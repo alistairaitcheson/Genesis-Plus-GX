@@ -41,6 +41,7 @@
 
 #include "shared.h"
 #include "eq.h"
+#include "ModConsole.h"
 
 /* Global variables */
 t_bitmap bitmap;

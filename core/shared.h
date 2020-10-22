@@ -36,7 +36,6 @@
 #include "areplay.h"
 #include "svp.h"
 #include "state.h"
-#include "alistair/ModConsole.h"
 
 #endif /* _SHARED_H_ */
 

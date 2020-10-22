@@ -59,6 +59,20 @@ static uint8 tmss[4];     /* TMSS security register */
 /* Init, reset, shutdown functions                                          */
 /*--------------------------------------------------------------------------*/
 
+uint8 aa_genesis_getWorkRam(uint location) {
+  if (location < 0x10000) {
+    return work_ram[location];
+  } else {
+    return 0;
+  }
+}
+
+void aa_genesis_setWorkRam(uint location, uint8 value){
+  if (location < 0x10000) {
+    work_ram[location] = value;
+  }
+}
+
 void gen_init(void)
 {
   int i;
