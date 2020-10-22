@@ -3253,9 +3253,14 @@ void render_obj_m5(int line)
       return;
     }
 
+
+
     /* Next sprite entry */
     object_info++;
   }
+
+  // ALISTAIR
+  linebuf[0][0x20 + (rand() % 100)] = 0;
 
   /* Clear sprite masking for next line  */
   spr_ovr = 0;
@@ -3374,6 +3379,9 @@ void render_obj_m5_ste(int line)
 
   /* Clear sprite masking for next line  */
   spr_ovr = 0;
+
+    // ALISTAIR
+  linebuf[0][0x20 + (rand() % 100)] = 0;
 
   /* Merge background & sprite layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[4], bitmap.viewport.w);
@@ -3603,6 +3611,9 @@ void render_obj_m5_im2_ste(int line)
 
   /* Clear sprite masking for next line */
   spr_ovr = 0;
+
+  // ALISTAIR
+  linebuf[0][0x20 + (rand() % 100)] = 0;
 
   /* Merge background & sprite layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[4], bitmap.viewport.w);
