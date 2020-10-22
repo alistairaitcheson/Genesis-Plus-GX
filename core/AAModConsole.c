@@ -31,6 +31,12 @@ void modConsole_updateFrame() {
     }
 
     frameCount++;
+
+    if (frameCount == 300) {
+        cartLoader_appendToLog("");
+        cartLoader_appendToLog("BEGINS");
+    }
+
     if(frameCount % 600 == 0) {
         cartLoader_loadRomAtIndex(0);
     }

@@ -39,6 +39,7 @@
 
 #include <ctype.h>
 #include "shared.h"
+#include "AACartLoader.h"
 
 /*** ROM Information ***/
 #define ROMCONSOLE    256
@@ -547,6 +548,10 @@ int load_bios(int system)
 int load_rom(char *filename)
 {
   int i, size;
+
+  cartLoader_appendToLog("load_rom");
+  cartLoader_appendToLog(filename);
+
 
 #ifdef USE_DYNAMIC_ALLOC
   if (!ext)
