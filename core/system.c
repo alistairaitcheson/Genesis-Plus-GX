@@ -607,6 +607,7 @@ void system_frame_gen(int do_skip)
     }
 
     /* render scanline */
+    vdp_setCurrentLineIndex(line);
     if (!do_skip)
     {
       render_line(line);

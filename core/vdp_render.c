@@ -606,6 +606,12 @@ void (*render_obj)(int line);
 void (*parse_satb)(int line);
 void (*update_bg_pattern_cache)(int index);
 
+/*------------------------ STUFF ADDED BY ALISTAIR ------------------------*/
+
+static uint mod_activeLineIndex;
+static uint8 mod_graphicLayers[4][0x400][0x400];
+static int mod_bufferPerLayer[4];
+
 
 /*--------------------------------------------------------------------------*/
 /* Sprite pattern name offset look-up table function (Mode 5)               */
@@ -1842,6 +1848,8 @@ void render_bg_m5_vs(int line)
       DRAW_COLUMN(atbuf, v_line)
     }
   }
+
+  drawTextLayers(mod_activeLineIndex);
 
   /* Merge background layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[(reg[12] & 0x08) >> 2], bitmap.viewport.w);
@@ -3153,6 +3161,9 @@ void render_obj_m4(int line)
 
 void render_obj_m5(int line)
 {
+  // in the Obj-C version this only happens when skipSprites is true
+  drawTextLayers(mod_activeLineIndex);
+
   int i, column;
   int xpos, width;
   int pixelcount = 0;
@@ -3260,7 +3271,7 @@ void render_obj_m5(int line)
   }
 
   // ALISTAIR
-  linebuf[0][0x20 + (rand() % 100)] = 0;
+  drawTextLayers(mod_activeLineIndex);
 
   /* Clear sprite masking for next line  */
   spr_ovr = 0;
@@ -4241,4 +4252,38 @@ void remap_line(int line)
     }
  #endif
   }
+}
+
+/* STUFF ADDED BY ALISTAIR */
+
+uint vdp_getScreenWidth() {
+    return bitmap.viewport.w;
+}
+
+uint vdp_getScreenHeight() {
+    return bitmap.viewport.h;
+}
+
+void vdp_setGraphicLayerPixel(int whichLayer, int x, int y, uint8 value) {
+    if (whichLayer < 4) {
+        if (x >= 0 && x < 0x400 && y>= 0 && y < 0x400) {
+            mod_graphicLayers[whichLayer][y][x] = value;
+        }
+    }
+}
+
+void vdp_setCurrentLineIndex(int lineIdx) {
+    mod_activeLineIndex = lineIdx;
+}
+
+void drawTextLayers(int lineIdx) {
+    for (int i = 0; i < 4; i++) {
+        int readableBuffer = mod_bufferPerLayer[i];
+        for (int x = 0; x < bitmap.viewport.w; x++) {
+            uint8 value = mod_graphicLayers[i][lineIdx][x];
+            if (value != 0) {
+                linebuf[0][0x20 + x] = value;
+            }
+        }
+    }
 }

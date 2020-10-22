@@ -140,4 +140,14 @@ extern void (*render_obj)(int line);
 extern void (*parse_satb)(int line);
 extern void (*update_bg_pattern_cache)(int index);
 
+/* ALISTAIR'S STUFF */
+//local
+void drawTextLayers(int lineIdx);
+// global
+extern uint vdp_getScreenWidth();
+extern uint vdp_getScreenHeight();
+extern void vdp_setGraphicLayerPixel(int whichLayer, int x, int y, uint8 value);
+extern void vdp_setCurrentLineIndex(int lineIdx);
+
+
 #endif /* _RENDER_H_ */
