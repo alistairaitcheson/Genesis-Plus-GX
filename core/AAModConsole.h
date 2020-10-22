@@ -3,4 +3,7 @@
 
 extern void modConsole_updateFrame();
 
+void updateSpeedUpOnRing();
+int ringCountHasChanged();
+
 #endif

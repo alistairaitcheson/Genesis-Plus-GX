@@ -67,11 +67,26 @@ uint8 aa_genesis_getWorkRam(uint location) {
   }
 }
 
-void aa_genesis_setWorkRam(uint location, uint8 value){
+void aa_genesis_setWorkRam(uint location, uint8 value) {
   if (location < 0x10000) {
     work_ram[location] = value;
   }
 }
+
+uint8 lastWorkRam[0x10000];
+void aa_genesis_upateLastRam() {
+  for (int i = 0; i < 0x10000; i++) {
+    lastWorkRam[i] = work_ram[i];
+  }
+}
+uint8 aa_genesis_getLastWorkRam(uint location) {
+  if (location < 0x10000) {
+    return lastWorkRam[location];
+  } else {
+    return 0;
+  }
+}
+
 
 void gen_init(void)
 {
