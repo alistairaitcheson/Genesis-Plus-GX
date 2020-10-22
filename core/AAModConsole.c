@@ -19,6 +19,8 @@ static AAModType activeModType = AAMODTYPE_SPEED_UP_ON_RING;
 static unsigned int ringCountByte = 0xFE20;
 static unsigned int specialRingCountByte = 0;
 
+static unsigned int frameCount = 0;
+
 void modConsole_initialise() {
     cartLoader_run();
 }
@@ -26,6 +28,11 @@ void modConsole_initialise() {
 void modConsole_updateFrame() {
     if (activeModType == AAMODTYPE_SPEED_UP_ON_RING) {
         updateSpeedUpOnRing();
+    }
+
+    frameCount++;
+    if(frameCount % 600 == 0) {
+        cartLoader_loadRomAtIndex(0);
     }
 
     aa_genesis_updateLastRam();

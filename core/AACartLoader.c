@@ -62,13 +62,28 @@ void listFiles(const char *path)
     closedir(dir);
 }
 
+void cartLoader_loadRomAtIndex(int index) {
+    char *fullPath = "";
+    strcat(folderPath, fullPath);
+    strcat(folderPath, romFileNames[index]);
+
+    load_rom(fullPath);
+}
+
 void addRomListing(char *path) {
-    
+    romFileNames[romCount] = path;
+    romCount++;
 }
 
 int pathIsRom(char *path, int pathLen) {
     if (pathLen > 4) {
         if (path[pathLen -4] == '.' && path[pathLen - 3] == 's' && path[pathLen - 2] == 'm' && path[pathLen - 1] == 'd' ) {
+            return 1;
+        }
+        if (path[pathLen -4] == '.' && path[pathLen - 3] == 'b' && path[pathLen - 2] == 'i' && path[pathLen - 1] == 'n' ) {
+            return 1;
+        }
+        if (path[pathLen -3] == '.' && path[pathLen - 2] == 'm' && path[pathLen - 1] == 'd') {
             return 1;
         }
     }

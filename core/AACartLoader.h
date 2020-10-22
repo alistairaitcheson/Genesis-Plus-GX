@@ -10,5 +10,6 @@ extern void cartLoader_run();
 void listFiles(const char *path);
 void addRomListing(char *path);
 int pathIsRom(char *path, int pathLen);
+void cartLoader_loadRomAtIndex(int index);
 
 #endif
