@@ -3,6 +3,7 @@
 Open Terminal
 
 cd C:\Users\agaitcheson\Documents\Development\Emulation\GenesisPlusGIT\Genesis-Plus-GX
+cls
 "C:\Program Files (x86)\GnuWin32\bin\make.exe" -f Makefile.libretro
 
 */
@@ -11,11 +12,16 @@ cd C:\Users\agaitcheson\Documents\Development\Emulation\GenesisPlusGIT\Genesis-P
 #include "AAModConsole.h"
 #include "AACommonTypes.h"
 #include "genesis.h"
+#include "AACartLoader.h"
 
 static AAModType activeModType = AAMODTYPE_SPEED_UP_ON_RING;
 
-static unsigned int ringCountByte;
-static unsigned int specialRingCountByte;
+static unsigned int ringCountByte = 0xFE20;
+static unsigned int specialRingCountByte = 0;
+
+void modConsole_initialise() {
+    cartLoader_run();
+}
 
 void modConsole_updateFrame() {
     if (activeModType == AAMODTYPE_SPEED_UP_ON_RING) {
@@ -27,7 +33,10 @@ void modConsole_updateFrame() {
 
 void updateSpeedUpOnRing() {
     if (ringCountHasChanged() != 0) {
-
+        // speed
+        aa_genesis_incrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
+        // acceleration
+        aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
     }
 }
 

@@ -41,7 +41,7 @@
 
 #include "shared.h"
 #include "eq.h"
-// #include "ZAAModConsole.h"
+#include "AAModConsole.h"
 
 /* Global variables */
 t_bitmap bitmap;
@@ -331,7 +331,7 @@ void system_frame_gen(int do_skip)
   /* line counters */
   int start, end, line;
 
-  // modConsole_updateFrame();
+  modConsole_updateFrame();
 
   /* reset frame cycle counter */
   mcycles_vdp = 0;
