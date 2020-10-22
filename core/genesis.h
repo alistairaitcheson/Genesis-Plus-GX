@@ -42,6 +42,7 @@
 #ifndef _GENESIS_H_
 #define _GENESIS_H_
 
+#include <stdint.h>
 #include "md_cart.h"
 #include "sms_cart.h"
 #include "scd.h"
@@ -78,10 +79,10 @@ extern void gen_zbank_w(unsigned int state);
 extern int z80_irq_callback(int param);
 
 /* Alistair's stufff */
-extern void aa_genesis_upateLastRam();
-extern uint8 aa_genesis_getWorkRam(uint location);
-extern void aa_genesis_setWorkRam(uint location, uint8 value);
-extern uint8 aa_genesis_getLastWorkRam(uint location);
+extern void aa_genesis_updateLastRam();
+extern uint8 aa_genesis_getWorkRam(unsigned int location);
+extern void aa_genesis_setWorkRam(unsigned int location, uint8 value);
+extern uint8 aa_genesis_getLastWorkRam(unsigned int location);
 
 #endif /* _GEN_H_ */
 

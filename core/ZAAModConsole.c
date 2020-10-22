@@ -7,8 +7,9 @@ cd C:\Users\agaitcheson\Documents\Development\Emulation\GenesisPlusGIT\Genesis-P
 
 */
 
-#include "AAModConsole.h"
-#include "AACommonTypes.h"
+#include <stdint.h>
+#include "ZAAModConsole.h"
+#include "ZAACommonTypes.h"
 #include "genesis.h"
 
 static AAModType activeModType = AAMODTYPE_SPEED_UP_ON_RING;
@@ -21,12 +22,12 @@ void modConsole_updateFrame() {
         updateSpeedUpOnRing();
     }
 
-    aa_genesis_upateLastRam();
+    aa_genesis_updateLastRam();
 }
 
 void updateSpeedUpOnRing() {
     if (ringCountHasChanged() != 0) {
-        
+
     }
 }
 

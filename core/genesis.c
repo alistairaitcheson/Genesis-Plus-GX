@@ -39,7 +39,7 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
+#include <shared.h>
 
 #ifdef USE_DYNAMIC_ALLOC
 external_t *ext;
@@ -59,7 +59,7 @@ static uint8 tmss[4];     /* TMSS security register */
 /* Init, reset, shutdown functions                                          */
 /*--------------------------------------------------------------------------*/
 
-uint8 aa_genesis_getWorkRam(uint location) {
+uint8 aa_genesis_getWorkRam(unsigned int location) {
   if (location < 0x10000) {
     return work_ram[location];
   } else {
@@ -67,19 +67,19 @@ uint8 aa_genesis_getWorkRam(uint location) {
   }
 }
 
-void aa_genesis_setWorkRam(uint location, uint8 value) {
+void aa_genesis_setWorkRam(unsigned int location, uint8 value) {
   if (location < 0x10000) {
     work_ram[location] = value;
   }
 }
 
 uint8 lastWorkRam[0x10000];
-void aa_genesis_upateLastRam() {
+void aa_genesis_updateLastRam() {
   for (int i = 0; i < 0x10000; i++) {
     lastWorkRam[i] = work_ram[i];
   }
 }
-uint8 aa_genesis_getLastWorkRam(uint location) {
+uint8 aa_genesis_getLastWorkRam(unsigned int location) {
   if (location < 0x10000) {
     return lastWorkRam[location];
   } else {

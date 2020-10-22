@@ -44,6 +44,8 @@
 #ifndef _MD_CART_H_
 #define _MD_CART_H_
 
+#include <stdint.h>
+
 #ifdef USE_DYNAMIC_ALLOC
 #define cart ext->md_cart
 #else
