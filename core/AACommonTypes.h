@@ -1,5 +1,5 @@
-#ifndef _ZAA_COMMON_TYPES_H_
-#define _ZAA_COMMON_TYPES_H_
+#ifndef _AA_COMMON_TYPES_H_
+#define _AA_COMMON_TYPES_H_
 
 #include <stdio.h>
 #include <stdlib.h>

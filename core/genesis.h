@@ -42,7 +42,6 @@
 #ifndef _GENESIS_H_
 #define _GENESIS_H_
 
-#include <stdint.h>
 #include "md_cart.h"
 #include "sms_cart.h"
 #include "scd.h"

@@ -7,9 +7,9 @@ cd C:\Users\agaitcheson\Documents\Development\Emulation\GenesisPlusGIT\Genesis-P
 
 */
 
-#include <stdint.h>
-#include "ZAAModConsole.h"
-#include "ZAACommonTypes.h"
+#include "shared.h" // <--- this needs to be included at the top of every file, for compiler reasons I don't understand
+#include "AAModConsole.h"
+#include "AACommonTypes.h"
 #include "genesis.h"
 
 static AAModType activeModType = AAMODTYPE_SPEED_UP_ON_RING;
