@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include "include/dirent.h"
 #include "vdp_render.h"
+#include "AAModConsole.h"
+#include "AACommonTypes.h"
 
 static unsigned int romCount;
 static char *folderPath = "downloads/hackula/";
@@ -13,10 +15,44 @@ static char romFileNames[0x1000][0x100];
 static char *logLines[0x100];
 static unsigned int logLineCount;
 
+static AAGameListing gameListings[5];
+
 void cartLoader_run() {
     listFiles(folderPath);
+
+    gameListings[0].ringByte = 0;
+    gameListings[0].specialRingByte = 0;
+    writeStringToArray32("NONE", gameListings[0].gameId);
+
+    gameListings[1].ringByte = 0xFE20;
+    gameListings[1].specialRingByte = 0;
+    writeStringToArray32("SONICTHEHEDGEHOG", gameListings[1].gameId);// = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','\0'};
+
+    gameListings[2].ringByte = 0xFE20;
+    gameListings[2].specialRingByte = 0;
+    writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
+
+    gameListings[3].ringByte = 0xFE20;
+    gameListings[3].specialRingByte = 0xE43A;
+    writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
+
+    gameListings[4].ringByte = 0xFE20;
+    gameListings[4].specialRingByte = 0xE43A;
+    writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
 }
 
+void writeStringToArray32(char *source, char dest[]) {
+    for (int i = 0; i < 0x20; i++) {
+        dest[i] = 0;
+    }
+
+    for (int i = 0; i < 0x20; i++) {
+        dest[i] = source[i];
+        if (source[i] == 0 || source[i] == '\0') {
+            return;
+        }
+    }
+}
 
 /**
  * Lists all files and sub-directories at given path.
@@ -113,6 +149,26 @@ void cartLoader_loadRomAtIndex(int index) {
     load_rom(fullPath);
     system_init();
     system_reset();
+
+    char romHeader[0x20];
+    modConsole_getRomHeader(romHeader);
+    cartLoader_appendToLog(romHeader);
+}
+
+int cartLoader_getActiveCartIndex() {
+    char romHeader[0x20];
+    modConsole_getRomHeader(romHeader);
+
+    for (int i = 1; i < 4; i++) {
+        if (modconsole_array32sAreEqual(romHeader, gameListings[i].gameId)) {
+            return i;
+        }
+    }
+    return 0;
+}
+
+AAGameListing cartLoader_getActiveGameListing() {
+    return gameListings[cartLoader_getActiveCartIndex()];
 }
 
 // void addRomListing(char *path) {

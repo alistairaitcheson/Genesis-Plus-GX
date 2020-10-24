@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "AACommonTypes.h"
 
 extern void layerRenderer_clearLayer(unsigned int layer, unsigned int x, unsigned int y, unsigned int value);
 extern void layerRenderer_writeLetter(unsigned int layer, unsigned int x, unsigned int y, char letter);
