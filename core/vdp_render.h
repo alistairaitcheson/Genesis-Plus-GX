@@ -148,6 +148,7 @@ extern uint vdp_getScreenWidth();
 extern uint vdp_getScreenHeight();
 extern void vdp_setGraphicLayerPixel(int whichLayer, int x, int y, uint8 value);
 extern void vdp_setCurrentLineIndex(int lineIdx);
+extern void vdp_clearGraphicLayer(int whichLayer);
 
 
 #endif /* _RENDER_H_ */

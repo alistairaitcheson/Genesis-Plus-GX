@@ -13,12 +13,17 @@ cls
 #include "AACommonTypes.h"
 #include "genesis.h"
 #include "AACartLoader.h"
+#include "gamepad.h"
+#include "input.h"
 
 static AAModType activeModType = AAMODTYPE_SPEED_UP_ON_RING;
 
 static unsigned int frameCount = 0;
 
 static AAGameListing activeGameListing;
+
+static uint16 lastPadState;
+static uint16 padState;
 
 void modConsole_initialise() {
     cartLoader_run();
@@ -28,24 +33,99 @@ void modConsole_updateActiveCart() {
     char romHeader[0x20];
     modConsole_getRomHeader(romHeader);
     activeGameListing = cartLoader_getActiveGameListing();
+
+    cartLoader_appendToLog("modConsole_updateActiveCart - You are playing:");
+    cartLoader_appendToLog(activeGameListing.gameId);
 }
 
 void modConsole_updateFrame() {
+    lastPadState = padState;
+    padState = input.pad[0];
+
+    // if (padState != lastPadState) {
+    //     char padStateAsString[0x20];
+    //     sprintf(padStateAsString, "%d", padState);
+    //     cartLoader_appendToLog(padStateAsString);
+    // }
+
     if (activeModType == AAMODTYPE_SPEED_UP_ON_RING) {
         updateSpeedUpOnRing();
     }
 
+    updateLives();
+    updateTime();
+
+    if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
+        buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+        buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+        modConsole_activatePanic();
+    }
+    if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
+        buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+        buttonStateAtIndex(INPUT_INDEX_A) != 0 &&
+        buttonStateAtIndex(INPUT_INDEX_B) != 0) {
+        modConsole_activateReset();
+    }
+
+    vdp_clearGraphicLayer(0);
+
+    for (int i = 0; i < 0x10; i++) {
+        int value = buttonStateAtIndex(i);
+        if(value != 0) {
+            for (int j = 0; j < 20; j++) {
+                vdp_setGraphicLayerPixel(0, (i + 1) * 5, j + value, 5);
+            }
+        }
+    }
+
+    int x = 0;
+    int y = 20;
+    for (int i = 0; i < padState; i++) {
+        vdp_setGraphicLayerPixel(0, x, y, 6);
+        x++;
+        if (x >= 0x100) {
+            x = 0;
+            y++;
+        }
+    }
+
     frameCount++;
 
-    if (frameCount == 300) {
-        cartLoader_appendToLog("");
-        cartLoader_appendToLog("BEGINS");
-    }
+    aa_genesis_updateLastRam();
+}
 
-    if(frameCount % 600 == 0) {
-        cartLoader_loadRomAtIndex(0);
+void updateLives() {
+    for (int i = 0; i < 3; i++) {
+        if (activeGameListing.livesBytes[i] != 0) {
+            aa_genesis_setWorkRam(activeGameListing.livesBytes[i], activeGameListing.livesByteDestinations[i]);
+        } else {
+            break;
+        }
     }
+}
 
+void updateTime() {
+    for (int i = 0; i < 3; i++) {
+        if (activeGameListing.timeBytes[i] != 0) {
+            aa_genesis_setWorkRam(activeGameListing.timeBytes[i], activeGameListing.timeByteDestinations[i]);
+        } else {
+            break;
+        }
+    }
+}
+
+void modConsole_activatePanic() {
+    for (int i = 0; i < 3; i++) {
+        if (activeGameListing.panicBytes[i] != 0) {
+            aa_genesis_setWorkRam(activeGameListing.panicBytes[i], activeGameListing.panicByteDestinations[i]);
+        } else {
+            break;
+        }
+    }
+}
+
+void modConsole_activateReset() {
+    system_reset();
     aa_genesis_updateLastRam();
 }
 
@@ -59,7 +139,7 @@ void updateSpeedUpOnRing() {
 }
 
 int ringCountHasChanged() {
-    if (ringCountByte > 0) {
+    if (activeGameListing.ringByte > 0) {
         unsigned int lastRingCount = aa_genesis_getLastWorkRam(activeGameListing.ringByte);
         unsigned int currentRingCount = aa_genesis_getWorkRam(activeGameListing.ringByte);
 
@@ -68,7 +148,7 @@ int ringCountHasChanged() {
         }
     }
 
-    if (specialRingCountByte > 0) {
+    if (activeGameListing.specialRingByte > 0) {
         unsigned int lastRingCount = aa_genesis_getLastWorkRam(activeGameListing.specialRingByte);
         unsigned int currentRingCount = aa_genesis_getWorkRam(activeGameListing.specialRingByte);
         int difference = abs((int)lastRingCount - (int)currentRingCount);
@@ -82,6 +162,11 @@ int ringCountHasChanged() {
 }
 
 void modConsole_getRomHeader(char intoArray[]) {
+    if (cart.romsize == 0x400000) {
+        writeStringToArray32("SONIC3&KNUCKLES", intoArray);
+        return;
+    }
+
     uint8 tempHeader[0x20];
     for (int i = 0; i < 0x20; i++) {
         tempHeader[i] = 0;
@@ -122,6 +207,10 @@ void modConsole_getRomHeader(char intoArray[]) {
 }
 
 int modconsole_array32sAreEqual(char arrayA[], char arrayB[]) {
+    // cartLoader_appendToLog("modconsole_array32sAreEqual");
+    // cartLoader_appendToLog(arrayA);
+    // cartLoader_appendToLog(arrayB);
+
     for (int i = 0; i < 0x20; i++) {
         if (arrayA[i] != arrayB[i]) {
             return 0;
@@ -131,4 +220,94 @@ int modconsole_array32sAreEqual(char arrayA[], char arrayB[]) {
         }
     }
     return 1;
+}
+
+int getButtonState(uint16 whichInput) {
+    // char padStateAsString[0x20];
+    // sprintf(padStateAsString, "%d", padState & whichInput);
+    // cartLoader_appendToLog(padStateAsString);
+
+    if (padState & whichInput != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int getLastButtonState(uint16 whichInput) {
+    if (lastPadState & whichInput != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int buttonWasReleased(uint16 whichInput) {
+    if (getLastButtonState(whichInput) != 0 && getButtonState(whichInput) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int buttonWasPressed(uint16 whichInput) {
+    if (getLastButtonState(whichInput) == 0 && getButtonState(whichInput) != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int buttonWasReleasedAtIndex(int index) {
+    if (lastButtonStateAtIndex(index) != 0 && buttonStateAtIndex(index) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int buttonWasPressedAtIndex(int index) {
+    if (lastButtonStateAtIndex(index) == 0 && buttonStateAtIndex(index) != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int lastButtonStateAtIndex(int index) {
+    uint testNum = 1;
+    for (int i = 0; i < index; i++) {
+        testNum = testNum * 2;
+    }
+
+    int result = ((int)((padState % 0x100) & testNum) % 0x100);
+
+    for (int i = 0; i < 0x10; i++) {
+        for (int j = 0; j < testNum; j++) {
+            vdp_setGraphicLayerPixel(0, j, (index + 3) * 10, 9);
+        }
+        vdp_setGraphicLayerPixel(0, result, ((index + 3) * 10) + 1, 5);
+    }
+
+    if (result == 0) { // why does this always return false?
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+int buttonStateAtIndex(int index) {
+    uint testNum = 1;
+    for (int i = 0; i < index; i++) {
+        testNum = testNum * 2;
+    }
+
+    int result = ((int)((padState % 0x100) & testNum) % 0x100);
+
+    for (int i = 0; i < 0x10; i++) {
+        for (int j = 0; j < testNum; j++) {
+            vdp_setGraphicLayerPixel(0, j, (index + 3) * 10, 9);
+        }
+        vdp_setGraphicLayerPixel(0, result, ((index + 3) * 10) + 1, 5);
+    }
+
+    if (result == 0) { // why does this always return false?
+        return 0;
+    } else {
+        return 1;
+    }
 }

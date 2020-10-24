@@ -15,30 +15,68 @@ static char romFileNames[0x1000][0x100];
 static char *logLines[0x100];
 static unsigned int logLineCount;
 
-static AAGameListing gameListings[5];
+static AAGameListing gameListings[0x100];
+static int gameListingCount = 0;
+
+static char romHeaderBuffer[0x20];
+
+static char *completeLog = "";
 
 void cartLoader_run() {
     listFiles(folderPath);
 
+    writeStringToArray32("NONE", gameListings[0].gameId);
     gameListings[0].ringByte = 0;
     gameListings[0].specialRingByte = 0;
-    writeStringToArray32("NONE", gameListings[0].gameId);
+    gameListings[0].livesBytes[0] = 0;
+    gameListings[0].livesByteDestinations[0] = 0;
+    gameListings[0].timeBytes[0] = 0;
+    gameListings[0].timeByteDestinations[0] = 0;
+    gameListings[0].panicBytes[0] = 0;
+    gameListings[0].panicByteDestinations[0] = 0;
 
-    gameListings[1].ringByte = 0xFE20;
-    gameListings[1].specialRingByte = 0;
     writeStringToArray32("SONICTHEHEDGEHOG", gameListings[1].gameId);// = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','\0'};
+    gameListings[1].ringByte = 0xFE20;
+    gameListings[1].specialRingByte = 0;    
+    gameListings[1].livesBytes[0] = 0xFE12;
+    gameListings[1].livesByteDestinations[0] = 0x5; 
+    gameListings[1].livesBytes[1] = 0xFE13;
+    gameListings[1].livesByteDestinations[1] = 0x5; 
+    gameListings[1].livesBytes[2] = 0xFE1C;
+    gameListings[1].livesByteDestinations[2] = 0xFF; 
+    gameListings[1].timeBytes[0] = 0xFE22;
+    gameListings[1].timeByteDestinations[0] = 1;
+    gameListings[1].timeBytes[1] = 0xFE23;
+    gameListings[1].timeByteDestinations[1] = 1;
+    gameListings[1].panicBytes[0] = 0xF72E;
+    gameListings[1].panicByteDestinations[0] = 0;
+    gameListings[1].panicBytes[1] = 0xF72F;
+    gameListings[1].panicByteDestinations[1] = 0;
+    gameListings[1].panicBytes[2] = 0xF75C;
+    gameListings[1].panicByteDestinations[2] = 0;
 
-    gameListings[2].ringByte = 0xFE20;
-    gameListings[2].specialRingByte = 0;
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
+    copyGameListing(gameListings[1], gameListings[2]);
+    gameListings[2].panicBytes[0] = 0xB00C;
+    gameListings[2].panicByteDestinations[0] = 0x55;
+    gameListings[2].panicBytes[1] = 0xB00D;
+    gameListings[2].panicByteDestinations[1] = 0x55;
 
-    gameListings[3].ringByte = 0xFE20;
-    gameListings[3].specialRingByte = 0xE43A;
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
+    copyGameListing(gameListings[1], gameListings[3]);
+    gameListings[3].specialRingByte = 0xE43A;
+    gameListings[3].panicBytes[0] = 0xB014;
+    gameListings[3].panicByteDestinations[0] = 0x55;
+    gameListings[3].panicBytes[1] = 0xB015;
+    gameListings[3].panicByteDestinations[1] = 0x55;
 
-    gameListings[4].ringByte = 0xFE20;
-    gameListings[4].specialRingByte = 0xE43A;
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
+    copyGameListing(gameListings[3], gameListings[4]);
+
+    writeStringToArray32("SONIC3&KNUCKLES", gameListings[5].gameId);
+    copyGameListing(gameListings[3], gameListings[5]);
+
+    gameListingCount = 6;
 }
 
 void writeStringToArray32(char *source, char dest[]) {
@@ -73,18 +111,18 @@ void listFiles(const char *path)
         fprintf(logWriter, "\n");
         fclose(logWriter);
 
-        for (int i = 0; i < 200; i++) {
-            vdp_setGraphicLayerPixel(0, i, yPos, 5);
-        }
-        return;
+        // for (int i = 0; i < 200; i++) {
+        //     vdp_setGraphicLayerPixel(0, i, yPos, 5);
+        // }
+        // return;
     } 
 
     while ((dp = readdir(dir)) != NULL)
     {
-        for (int i = 0; i < 10; i++) {
-            vdp_setGraphicLayerPixel(0, i, yPos, 5);
-        }
-        yPos += 10;
+        // for (int i = 0; i < 10; i++) {
+        //     vdp_setGraphicLayerPixel(0, i, yPos, 5);
+        // }
+        // yPos += 10;
 
         if (pathIsRom(dp->d_name, dp->d_namlen) != 0) {
             char name[0x100];
@@ -149,18 +187,17 @@ void cartLoader_loadRomAtIndex(int index) {
     load_rom(fullPath);
     system_init();
     system_reset();
-
-    char romHeader[0x20];
-    modConsole_getRomHeader(romHeader);
-    cartLoader_appendToLog(romHeader);
+    aa_genesis_updateLastRam();
 }
 
 int cartLoader_getActiveCartIndex() {
-    char romHeader[0x20];
-    modConsole_getRomHeader(romHeader);
+    modConsole_getRomHeader(romHeaderBuffer);
 
-    for (int i = 1; i < 4; i++) {
-        if (modconsole_array32sAreEqual(romHeader, gameListings[i].gameId)) {
+    cartLoader_appendToLog("cartLoader_getActiveCartIndex");
+    cartLoader_appendToLog(romHeaderBuffer);
+
+    for (int i = 1; i < gameListingCount; i++) {
+        if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
             return i;
         }
     }
@@ -198,7 +235,10 @@ int pathIsRom(char *path, int pathLen) {
 }
 
 void cartLoader_appendToLog(char *text) {
-    logLines[logLineCount % 0x100] = text;
+    // concatenate_string(completeLog, text);
+    // concatenate_string(completeLog, "\n");
+
+    logLines[logLineCount % 0x100] = text; // <-- need to clone here!!! Otherwise it takes a copy of the pointer
     logLines[(logLineCount + 1) % 0x100] = "---";
     logLineCount++;
 
@@ -208,6 +248,7 @@ void cartLoader_appendToLog(char *text) {
         fprintf(logWriter, logLines[i]);
         fprintf(logWriter, "\n");
     }
+    // fprintf(logWriter, completeLog);
     fclose(logWriter);
 }
 
@@ -225,3 +266,16 @@ void concatenate_string(char *original, char *add)
    *original = '\0';
 }
 
+void copyGameListing(AAGameListing fromGame, AAGameListing toGame) {
+    toGame.ringByte = fromGame.ringByte;
+    toGame.specialRingByte = fromGame.specialRingByte;
+
+    for (int i = 0; i < 0x20; i++) {
+        toGame.livesBytes[i] = fromGame.livesBytes[i];
+        toGame.livesByteDestinations[i] = fromGame.livesByteDestinations[i];
+        toGame.timeBytes[i] = fromGame.timeBytes[i];
+        toGame.timeByteDestinations[i] = fromGame.timeByteDestinations[i];
+        toGame.panicBytes[i] = fromGame.panicBytes[i];
+        toGame.panicByteDestinations[i] = fromGame.panicByteDestinations[i];
+    }
+}

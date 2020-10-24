@@ -609,7 +609,7 @@ void (*update_bg_pattern_cache)(int index);
 /*------------------------ STUFF ADDED BY ALISTAIR ------------------------*/
 
 static uint mod_activeLineIndex;
-static uint8 mod_graphicLayers[4][0x400][0x400];
+static uint8 mod_graphicLayers[4][400][400];
 static int mod_bufferPerLayer[4];
 
 
@@ -4266,8 +4266,18 @@ uint vdp_getScreenHeight() {
 
 void vdp_setGraphicLayerPixel(int whichLayer, int x, int y, uint8 value) {
     if (whichLayer < 4) {
-        if (x >= 0 && x < 0x400 && y>= 0 && y < 0x400) {
+        if (x >= 0 && x < 400 && y>= 0 && y < 400) {
             mod_graphicLayers[whichLayer][y][x] = value;
+        }
+    }
+}
+
+void vdp_clearGraphicLayer(int whichLayer) {
+    if (whichLayer < 4) {
+        for (int x = 0; x < 400; x++) {
+          for (int y = 0; y < 400; y++) {
+              mod_graphicLayers[whichLayer][x][y] = 0;
+          }
         }
     }
 }

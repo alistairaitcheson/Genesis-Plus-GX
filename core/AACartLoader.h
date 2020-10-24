@@ -18,5 +18,6 @@ int pathIsRom(char *path, int pathLen);
 void cartLoader_loadRomAtIndex(int index);
 void concatenate_string(char *original, char *add);
 void writeStringToArray32(char *source, char dest[]);
+void copyGameListing(AAGameListing fromGame, AAGameListing toGame);
 
 #endif
