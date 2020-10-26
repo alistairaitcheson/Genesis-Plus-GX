@@ -22,6 +22,9 @@ static char romHeaderBuffer[0x20];
 
 static char *completeLog = "";
 
+static FILE *globalLogWriter;
+static int openedLogWriter = 0;
+
 void cartLoader_run() {
     listFiles(folderPath);
 
@@ -235,6 +238,16 @@ int pathIsRom(char *path, int pathLen) {
 }
 
 void cartLoader_appendToLog(char *text) {
+    if (openedLogWriter == 0) {
+        openedLogWriter = 1;
+        remove("downloads/hackula/log.txt");
+        globalLogWriter = fopen("downloads/hackula/log.txt", "w");
+    }
+
+    fprintf(globalLogWriter, text);
+    fprintf(globalLogWriter, "\n");
+
+    /*
     // concatenate_string(completeLog, text);
     // concatenate_string(completeLog, "\n");
 
@@ -250,6 +263,7 @@ void cartLoader_appendToLog(char *text) {
     }
     // fprintf(logWriter, completeLog);
     fclose(logWriter);
+    */
 }
 
 void concatenate_string(char *original, char *add)

@@ -15,6 +15,7 @@ cls
 #include "AACartLoader.h"
 #include "gamepad.h"
 #include "input.h"
+#include "AALayerRenderer.h"
 
 static AAModType activeModType = AAMODTYPE_SPEED_UP_ON_RING;
 
@@ -26,6 +27,7 @@ static uint16 lastPadState;
 static uint16 padState;
 
 void modConsole_initialise() {
+    layerRenderer_populateLetters();
     cartLoader_run();
 }
 
@@ -36,6 +38,11 @@ void modConsole_updateActiveCart() {
 
     cartLoader_appendToLog("modConsole_updateActiveCart - You are playing:");
     cartLoader_appendToLog(activeGameListing.gameId);
+
+    layerRenderer_writeWord256(0, 0, 0, "Hello World!", 5);
+    layerRenderer_writeWord256(0, 0, 0, "!@#$&*()", 5);
+    layerRenderer_writeWord256(0, 0, 100, activeGameListing.gameId, 6);
+
 }
 
 void modConsole_updateFrame() {
@@ -67,27 +74,31 @@ void modConsole_updateFrame() {
         modConsole_activateReset();
     }
 
-    vdp_clearGraphicLayer(0);
+    // vdp_clearGraphicLayer(0);
+    // layerRenderer_writeWord256(0, 0, 0, "Hello World!", 5);
+    // layerRenderer_writeWord256(0, 0, 100, activeGameListing.gameId, 6);
 
-    for (int i = 0; i < 0x10; i++) {
-        int value = buttonStateAtIndex(i);
-        if(value != 0) {
-            for (int j = 0; j < 20; j++) {
-                vdp_setGraphicLayerPixel(0, (i + 1) * 5, j + value, 5);
-            }
-        }
-    }
+    // vdp_clearGraphicLayer(0);
 
-    int x = 0;
-    int y = 20;
-    for (int i = 0; i < padState; i++) {
-        vdp_setGraphicLayerPixel(0, x, y, 6);
-        x++;
-        if (x >= 0x100) {
-            x = 0;
-            y++;
-        }
-    }
+    // for (int i = 0; i < 0x10; i++) {
+    //     int value = buttonStateAtIndex(i);
+    //     if(value != 0) {
+    //         for (int j = 0; j < 20; j++) {
+    //             vdp_setGraphicLayerPixel(0, (i + 1) * 5, j + value, 5);
+    //         }
+    //     }
+    // }
+
+    // int x = 0;
+    // int y = 20;
+    // for (int i = 0; i < padState; i++) {
+    //     vdp_setGraphicLayerPixel(0, x, y, 6);
+    //     x++;
+    //     if (x >= 0x100) {
+    //         x = 0;
+    //         y++;
+    //     }
+    // }
 
     frameCount++;
 
@@ -305,7 +316,7 @@ int buttonStateAtIndex(int index) {
         vdp_setGraphicLayerPixel(0, result, ((index + 3) * 10) + 1, 5);
     }
 
-    if (result == 0) { // why does this always return false?
+    if (result == 0) {
         return 0;
     } else {
         return 1;

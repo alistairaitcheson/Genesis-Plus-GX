@@ -25,6 +25,12 @@ typedef struct
     int panicByteDestinations[0x20];
 } AAGameListing;
 
+typedef struct {
+    unsigned char lines[8];
+    int populated;
+} LetterListing;
+
+
 static int INPUT_INDEX_UP = 0;
 static int INPUT_INDEX_DOWN = 1;
 static int INPUT_INDEX_LEFT = 2;
