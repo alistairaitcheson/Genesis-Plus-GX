@@ -187,12 +187,12 @@ void updateSpeedUpOnRing() {
 
 void updateSwitchGameOnRing() {
     if (ringCountHasChanged() != 0) {
-        layerRenderer_clearLayer(0);
-        char word[0x20];
-        sprintf(word, "%d", aa_genesis_getWorkRam(activeGameListing.ringByte));
+        // layerRenderer_clearLayer(0);
+        // char word[0x20];
+        // sprintf(word, "%d", aa_genesis_getWorkRam(activeGameListing.ringByte));
 
-        layerRenderer_fill(0, 0, 0, 32, 8, 1);
-        layerRenderer_writeWord256(0, 0, 0, word, 5);
+        // layerRenderer_fill(0, 0, 0, 32, 8, 1);
+        // layerRenderer_writeWord256(0, 0, 0, word, 5);
         
         cartLoader_loadRandomRom();
     }

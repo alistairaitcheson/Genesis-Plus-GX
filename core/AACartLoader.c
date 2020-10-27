@@ -8,6 +8,7 @@
 #include "AAModConsole.h"
 #include "AACommonTypes.h"
 #include <sys/stat.h>
+#include "AALayerRenderer.h"
 
 static unsigned int romCount;
 static char *folderPath = "_magicbox";
@@ -182,14 +183,23 @@ unsigned int cartLoader_getRomCount() {
     return romCount;
 }
 
+static int loadAttemptCount = 0;
 void cartLoader_loadRandomRom() {
+    loadAttemptCount++;
     if (romCount > 1) {
         int nextIndex = rand() % romCount;
+        
+        // char logText[0x100];
+        // sprintf(logText, "%d - %d - %d", loadAttemptCount, nextIndex, lastLoadedIndex);
+        // layerRenderer_fill(0, 0, loadAttemptCount * 8, 100, 8, 1);
+        // layerRenderer_writeWord256(0, 0, loadAttemptCount * 8, logText, 5);
+
         if (nextIndex == lastLoadedIndex) {
             cartLoader_loadRandomRom();
         } else {
             lastLoadedIndex = nextIndex;
             cartLoader_loadRomAtIndex(lastLoadedIndex);
+            loadAttemptCount = 0;
         }
     }
 }
@@ -243,7 +253,7 @@ void cartLoader_loadRomAtIndex(int index) {
     load_rom(fullPath);
     system_init();
     system_reset();
-    lastLoadedIndex = cartLoader_getActiveCartIndex();
+    lastLoadedIndex = index;
 
     sprintf(loadedRomName, "%s", romFileNames[index]);
     hasLoadedRom = 1;
