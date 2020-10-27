@@ -37,6 +37,8 @@ void cartLoader_run() {
 
     initialiseDirectory();
 
+    cartLoader_appendToLog("will list files");
+
     listFiles(folderPath);
 
     cartLoader_appendToLog("Listed files");
@@ -290,26 +292,29 @@ int pathIsRom(char *path, int pathLen) {
 }
 
 void initialiseDirectory() {
-    // if (initialisedDirectory == 0) {
-    //     char command[0x100];
-    //     sprintf(command, "mkdir %s", folderPath);
-    //     system(command);
-    //     initialisedDirectory = 1;
-    // }
+    if (initialisedDirectory == 0) {
+        char command[0x100];
+        sprintf(command, "mkdir %s", folderPath);
+        system(command);
+        initialisedDirectory = 1;
+    }
 }
 
 void cartLoader_appendToLog(char *text) {
-    // return; // <-- currently blocked!!
+    // return; // 
     initialiseDirectory();
 
     if (openedLogWriter == 0) {
         openedLogWriter = 1;
-        remove("magicbox/log.txt");
-        globalLogWriter = fopen("magicbox/log.txt", "w");
+        char path[0x100];
+        sprintf(path, "%s/__log.txt", folderPath);
+        remove(path);
+        globalLogWriter = fopen(path, "w");
     }
 
     fprintf(globalLogWriter, text);
     fprintf(globalLogWriter, "\n");
+
 }
 
 void concatenate_string(char *original, char *add)
