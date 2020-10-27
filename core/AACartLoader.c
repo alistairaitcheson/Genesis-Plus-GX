@@ -11,6 +11,7 @@
 
 static unsigned int romCount;
 static char *folderPath = "_magicbox";
+static char *folderPathWithTail = "_magicbox/";
 static char romFileNames[0x1000][0x100];
 
 static char *logLines[0x100];
@@ -33,13 +34,14 @@ static int hasLoadedRom = 0;
 static int initialisedDirectory = 0;
 
 void cartLoader_run() {
+    
     cartLoader_appendToLog("cartLoader_run");
 
     initialiseDirectory();
 
     cartLoader_appendToLog("will list files");
 
-    listFiles(folderPath);
+    listFiles(folderPathWithTail);
 
     cartLoader_appendToLog("Listed files");
 
@@ -126,7 +128,7 @@ void listFiles(const char *path)
 
         if (pathIsSaveState(dp->d_name, dp->d_namlen)) {
             char pathToDelete[0x100];
-            sprintf(pathToDelete, "%s/%s", path, dp->d_name);
+            sprintf(pathToDelete, "%s%s", path, dp->d_name);
             cartLoader_appendToLog("removing save state");
             cartLoader_appendToLog(pathToDelete);
             remove(pathToDelete);
@@ -158,15 +160,17 @@ void listFiles(const char *path)
 }
 
 int pathIsSaveState(char *path, int pathLen) {
-    if (pathLen > 8) {
-        if (path[pathLen - 8] == '.' && 
-            path[pathLen - 7] == 'h' && 
-            path[pathLen - 6] == 'a' && 
-            path[pathLen - 5] == 'c' && 
-            path[pathLen - 4] == 'k' && 
-            path[pathLen - 3] == 'u' && 
-            path[pathLen - 2] == 'l' && 
-            path[pathLen - 1] == 'a' ) {
+    if (pathLen > 10) {
+        if (path[pathLen - 10] == '.' && 
+            path[pathLen - 9] == 's' && 
+            path[pathLen - 8] == 'a' && 
+            path[pathLen - 7] == 'v' && 
+            path[pathLen - 6] == 'e' && 
+            path[pathLen - 5] == 's' && 
+            path[pathLen - 4] == 't' && 
+            path[pathLen - 3] == 'a' &&
+            path[pathLen - 2] == 't' &&
+            path[pathLen - 1] == 'e' ) {
             return 1;
         }
 
@@ -221,7 +225,7 @@ void cartLoader_loadRomAtIndex(int index) {
             pathIndex++;
         }
     }
-    folderPath[pathIndex] = '/';
+    fullPath[pathIndex] = '/';
     pathIndex++;
 
     for (int i = 0; i < 0x100; i++) {
@@ -234,7 +238,8 @@ void cartLoader_loadRomAtIndex(int index) {
     }
     fullPath[pathIndex] = '\0';
 
-    // cartLoader_appendToLog(fullPath);
+    cartLoader_appendToLog(fullPath);
+
     load_rom(fullPath);
     system_init();
     system_reset();
