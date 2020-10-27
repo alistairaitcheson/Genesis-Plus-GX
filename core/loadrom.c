@@ -549,8 +549,8 @@ int load_rom(char *filename)
 {
   int i, size;
 
-  cartLoader_appendToLog("load_rom");
-  cartLoader_appendToLog(filename);
+  // cartLoader_appendToLog("load_rom");
+  // cartLoader_appendToLog(filename);
 
 
 #ifdef USE_DYNAMIC_ALLOC

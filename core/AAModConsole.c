@@ -17,7 +17,7 @@ cls
 #include "input.h"
 #include "AALayerRenderer.h"
 
-static AAModType activeModType = AAMODTYPE_SPEED_UP_ON_RING;
+static AAModType activeModType = AAMODTYPE_SWITCH_GAME;
 
 static unsigned int frameCount = 0;
 
@@ -26,9 +26,36 @@ static AAGameListing activeGameListing;
 static uint16 lastPadState;
 static uint16 padState;
 
+static int hasInitialised = 0;
+
+static int framesUntilClearLayer = 0;
+
 void modConsole_initialise() {
-    layerRenderer_populateLetters();
-    cartLoader_run();
+    if (hasInitialised == 0) {
+        layerRenderer_populateLetters();
+        cartLoader_run();
+        showRomList();
+
+        hasInitialised = 1;
+
+        cartLoader_loadRomAtIndex(0);
+    }
+}
+
+void showRomList() {
+    layerRenderer_fill(0, 0, 0, 256, 256, 1);
+
+    layerRenderer_writeWord256(0, 0, 0, "Alistair's Magic Box V0.01", 5);
+
+    layerRenderer_writeWord256(0, 0, 16, "YOUR ROMS:", 5);
+    for (int i = 0; i < cartLoader_getRomCount(); i++)
+    {
+        char fileNameBuf[0x100];
+        cartLoader_getRomFileName(i, fileNameBuf);
+        layerRenderer_writeWord256(0, 0, (i + 3) * 8, fileNameBuf, 5);
+    }   
+
+    framesUntilClearLayer = 10 * 60;
 }
 
 void modConsole_updateActiveCart() {
@@ -36,18 +63,20 @@ void modConsole_updateActiveCart() {
     modConsole_getRomHeader(romHeader);
     activeGameListing = cartLoader_getActiveGameListing();
 
-    cartLoader_appendToLog("modConsole_updateActiveCart - You are playing:");
-    cartLoader_appendToLog(activeGameListing.gameId);
-
-    layerRenderer_writeWord256(0, 0, 0, "Hello World!", 5);
-    layerRenderer_writeWord256(0, 0, 0, "!@#$&*()", 5);
-    layerRenderer_writeWord256(0, 0, 100, activeGameListing.gameId, 6);
-
+  // cartLoader_appendToLog("modConsole_updateActiveCart - you are playing:");
+    // cartLoader_appendToLog(activeGameListing.gameId);
 }
 
 void modConsole_updateFrame() {
     lastPadState = padState;
     padState = input.pad[0];
+
+    if (framesUntilClearLayer > 0) {
+        framesUntilClearLayer--;
+        if (framesUntilClearLayer == 0) {
+            vdp_clearGraphicLayer(0);
+        }
+    }
 
     // if (padState != lastPadState) {
     //     char padStateAsString[0x20];
@@ -57,6 +86,9 @@ void modConsole_updateFrame() {
 
     if (activeModType == AAMODTYPE_SPEED_UP_ON_RING) {
         updateSpeedUpOnRing();
+    }
+    if (activeModType == AAMODTYPE_SWITCH_GAME) {
+        updateSwitchGameOnRing();
     }
 
     updateLives();
@@ -75,8 +107,12 @@ void modConsole_updateFrame() {
     }
 
     // vdp_clearGraphicLayer(0);
-    // layerRenderer_writeWord256(0, 0, 0, "Hello World!", 5);
-    // layerRenderer_writeWord256(0, 0, 100, activeGameListing.gameId, 6);
+    // layerRenderer_writeWord256(0, 0, 0, activeGameListing.gameId, 6);
+    // static char buffer[0x20];
+    // sprintf(buffer, "%X", activeGameListing.ringByte);
+    // layerRenderer_writeWord256(0, 0, 8, buffer, 6);
+    // sprintf(buffer, "%X", activeGameListing.specialRingByte);
+    // layerRenderer_writeWord256(0, 0, 16, buffer, 6);
 
     // vdp_clearGraphicLayer(0);
 
@@ -146,6 +182,19 @@ void updateSpeedUpOnRing() {
         aa_genesis_incrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
         // acceleration
         aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
+    }
+}
+
+void updateSwitchGameOnRing() {
+    if (ringCountHasChanged() != 0) {
+        layerRenderer_clearLayer(0);
+        char word[0x20];
+        sprintf(word, "%d", aa_genesis_getWorkRam(activeGameListing.ringByte));
+
+        layerRenderer_fill(0, 0, 0, 32, 8, 1);
+        layerRenderer_writeWord256(0, 0, 0, word, 5);
+        
+        cartLoader_loadRandomRom();
     }
 }
 
@@ -287,12 +336,12 @@ int lastButtonStateAtIndex(int index) {
 
     int result = ((int)((padState % 0x100) & testNum) % 0x100);
 
-    for (int i = 0; i < 0x10; i++) {
-        for (int j = 0; j < testNum; j++) {
-            vdp_setGraphicLayerPixel(0, j, (index + 3) * 10, 9);
-        }
-        vdp_setGraphicLayerPixel(0, result, ((index + 3) * 10) + 1, 5);
-    }
+    // for (int i = 0; i < 0x10; i++) {
+    //     for (int j = 0; j < testNum; j++) {
+    //         vdp_setGraphicLayerPixel(0, j, (index + 3) * 10, 9);
+    //     }
+    //     vdp_setGraphicLayerPixel(0, result, ((index + 3) * 10) + 1, 5);
+    // }
 
     if (result == 0) { // why does this always return false?
         return 0;
@@ -309,12 +358,12 @@ int buttonStateAtIndex(int index) {
 
     int result = ((int)((padState % 0x100) & testNum) % 0x100);
 
-    for (int i = 0; i < 0x10; i++) {
-        for (int j = 0; j < testNum; j++) {
-            vdp_setGraphicLayerPixel(0, j, (index + 3) * 10, 9);
-        }
-        vdp_setGraphicLayerPixel(0, result, ((index + 3) * 10) + 1, 5);
-    }
+    // for (int i = 0; i < 0x10; i++) {
+    //     for (int j = 0; j < testNum; j++) {
+    //         vdp_setGraphicLayerPixel(0, j, (index + 3) * 10, 9);
+    //     }
+    //     vdp_setGraphicLayerPixel(0, result, ((index + 3) * 10) + 1, 5);
+    // }
 
     if (result == 0) {
         return 0;

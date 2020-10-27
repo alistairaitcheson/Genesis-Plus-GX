@@ -7,9 +7,10 @@
 #include "vdp_render.h"
 #include "AAModConsole.h"
 #include "AACommonTypes.h"
+#include <sys/stat.h>
 
 static unsigned int romCount;
-static char *folderPath = "downloads/hackula/";
+static char *folderPath = "_magicbox";
 static char romFileNames[0x1000][0x100];
 
 static char *logLines[0x100];
@@ -24,9 +25,21 @@ static char *completeLog = "";
 
 static FILE *globalLogWriter;
 static int openedLogWriter = 0;
+static int lastLoadedIndex = -1;
+
+static char loadedRomName[0x100];
+static int hasLoadedRom = 0;
+
+static int initialisedDirectory = 0;
 
 void cartLoader_run() {
+    cartLoader_appendToLog("cartLoader_run");
+
+    initialiseDirectory();
+
     listFiles(folderPath);
+
+    cartLoader_appendToLog("Listed files");
 
     writeStringToArray32("NONE", gameListings[0].gameId);
     gameListings[0].ringByte = 0;
@@ -59,14 +72,14 @@ void cartLoader_run() {
     gameListings[1].panicByteDestinations[2] = 0;
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
-    copyGameListing(gameListings[1], gameListings[2]);
+    copyGameListing(1, 2);
     gameListings[2].panicBytes[0] = 0xB00C;
     gameListings[2].panicByteDestinations[0] = 0x55;
     gameListings[2].panicBytes[1] = 0xB00D;
     gameListings[2].panicByteDestinations[1] = 0x55;
 
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
-    copyGameListing(gameListings[1], gameListings[3]);
+    copyGameListing(1, 3);
     gameListings[3].specialRingByte = 0xE43A;
     gameListings[3].panicBytes[0] = 0xB014;
     gameListings[3].panicByteDestinations[0] = 0x55;
@@ -74,12 +87,14 @@ void cartLoader_run() {
     gameListings[3].panicByteDestinations[1] = 0x55;
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
-    copyGameListing(gameListings[3], gameListings[4]);
+    copyGameListing(3, 4);
 
     writeStringToArray32("SONIC3&KNUCKLES", gameListings[5].gameId);
-    copyGameListing(gameListings[3], gameListings[5]);
+    copyGameListing(3, 5);
 
     gameListingCount = 6;
+
+    cartLoader_appendToLog("finished cartLoader_run");
 }
 
 void writeStringToArray32(char *source, char dest[]) {
@@ -102,31 +117,19 @@ void listFiles(const char *path)
 {
     struct dirent *dp;
     DIR *dir = opendir(path);
-    remove("downloads/hackula/log_listFiles.txt");
-    FILE *logWriter = fopen("downloads/hackula/log_listFiles.txt", "w");
-    fprintf(logWriter, " --- ROM FILES --- \n");
-
-    int yPos = 20;
-
-    // Unable to open directory stream
-    if (!dir) {
-        fprintf(logWriter, "nothing found here...");
-        fprintf(logWriter, "\n");
-        fclose(logWriter);
-
-        // for (int i = 0; i < 200; i++) {
-        //     vdp_setGraphicLayerPixel(0, i, yPos, 5);
-        // }
-        // return;
-    } 
 
     while ((dp = readdir(dir)) != NULL)
     {
-        // for (int i = 0; i < 10; i++) {
-        //     vdp_setGraphicLayerPixel(0, i, yPos, 5);
-        // }
-        // yPos += 10;
+        cartLoader_appendToLog(dp->d_name);
 
+        if (pathIsSaveState(dp->d_name, dp->d_namlen)) {
+            char pathToDelete[0x100];
+            sprintf(pathToDelete, "%s/%s", path, dp->d_name);
+            cartLoader_appendToLog("removing save state");
+            cartLoader_appendToLog(pathToDelete);
+            remove(pathToDelete);
+        }
+        
         if (pathIsRom(dp->d_name, dp->d_namlen) != 0) {
             char name[0x100];
             for (int i = 0; i < 0x100; i++) {
@@ -146,24 +149,65 @@ void listFiles(const char *path)
             romCount++;
             cartLoader_appendToLog("new-added rom");
             cartLoader_appendToLog(romFileNames[romCount]);
-
-            // addRomListing(name);
-
-            printf("%s\n", dp->d_name);
-            fprintf(logWriter, dp->d_name);
-            fprintf(logWriter, "\n");
         }
     }
 
-    fclose(logWriter);
-
-    // Close directory stream
     closedir(dir);
 }
 
+int pathIsSaveState(char *path, int pathLen) {
+    if (pathLen > 8) {
+        if (path[pathLen - 8] == '.' && 
+            path[pathLen - 7] == 'h' && 
+            path[pathLen - 6] == 'a' && 
+            path[pathLen - 5] == 'c' && 
+            path[pathLen - 4] == 'k' && 
+            path[pathLen - 3] == 'u' && 
+            path[pathLen - 2] == 'l' && 
+            path[pathLen - 1] == 'a' ) {
+            return 1;
+        }
+
+    }
+    return 0;
+}
+
+unsigned int cartLoader_getRomCount() {
+    return romCount;
+}
+
+void cartLoader_loadRandomRom() {
+    if (romCount > 1) {
+        int nextIndex = rand() % romCount;
+        if (nextIndex == lastLoadedIndex) {
+            cartLoader_loadRandomRom();
+        } else {
+            lastLoadedIndex = nextIndex;
+            cartLoader_loadRomAtIndex(lastLoadedIndex);
+        }
+    }
+}
+
+void cartLoader_getRomFileName(int index, char intoArray[]) {
+    for(int i = 0; i < 0x100; i++) {
+        intoArray[i] = romFileNames[index][i];
+    }
+}
+
 void cartLoader_loadRomAtIndex(int index) {
-    cartLoader_appendToLog("building rom path to:");
-    cartLoader_appendToLog(romFileNames[index]);
+    if (index >= romCount) {
+        char logStr[0x100];
+        sprintf(logStr, "Could not load rom and index %d (%d roms loaded)", index, romCount);
+        cartLoader_appendToLog(logStr);
+        return;
+    }
+
+    if (hasLoadedRom != 0) {
+        saveSaveStateForCurrentGame();
+    }
+
+    // cartLoader_appendToLog("building rom path to:");
+    // cartLoader_appendToLog(romFileNames[index]);
 
     char fullPath[0x100];
     int pathIndex = 0;
@@ -175,6 +219,8 @@ void cartLoader_loadRomAtIndex(int index) {
             pathIndex++;
         }
     }
+    folderPath[pathIndex] = '/';
+    pathIndex++;
 
     for (int i = 0; i < 0x100; i++) {
         if (romFileNames[index][i] == '\0') {
@@ -186,18 +232,24 @@ void cartLoader_loadRomAtIndex(int index) {
     }
     fullPath[pathIndex] = '\0';
 
-    cartLoader_appendToLog(fullPath);
+    // cartLoader_appendToLog(fullPath);
     load_rom(fullPath);
     system_init();
     system_reset();
+    lastLoadedIndex = cartLoader_getActiveCartIndex();
+
+    sprintf(loadedRomName, "%s", romFileNames[index]);
+    hasLoadedRom = 1;
+
+    loadSaveStateForCurrentGame();
     aa_genesis_updateLastRam();
 }
 
 int cartLoader_getActiveCartIndex() {
     modConsole_getRomHeader(romHeaderBuffer);
 
-    cartLoader_appendToLog("cartLoader_getActiveCartIndex");
-    cartLoader_appendToLog(romHeaderBuffer);
+    // cartLoader_appendToLog("cartLoader_getActiveCartIndex");
+    // cartLoader_appendToLog(romHeaderBuffer);
 
     for (int i = 1; i < gameListingCount; i++) {
         if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
@@ -237,33 +289,27 @@ int pathIsRom(char *path, int pathLen) {
     return 0;
 }
 
+void initialiseDirectory() {
+    // if (initialisedDirectory == 0) {
+    //     char command[0x100];
+    //     sprintf(command, "mkdir %s", folderPath);
+    //     system(command);
+    //     initialisedDirectory = 1;
+    // }
+}
+
 void cartLoader_appendToLog(char *text) {
+    // return; // <-- currently blocked!!
+    initialiseDirectory();
+
     if (openedLogWriter == 0) {
         openedLogWriter = 1;
-        remove("downloads/hackula/log.txt");
-        globalLogWriter = fopen("downloads/hackula/log.txt", "w");
+        remove("magicbox/log.txt");
+        globalLogWriter = fopen("magicbox/log.txt", "w");
     }
 
     fprintf(globalLogWriter, text);
     fprintf(globalLogWriter, "\n");
-
-    /*
-    // concatenate_string(completeLog, text);
-    // concatenate_string(completeLog, "\n");
-
-    logLines[logLineCount % 0x100] = text; // <-- need to clone here!!! Otherwise it takes a copy of the pointer
-    logLines[(logLineCount + 1) % 0x100] = "---";
-    logLineCount++;
-
-    remove("downloads/hackula/log.txt");
-    FILE *logWriter = fopen("downloads/hackula/log.txt", "w");
-    for (int i = 0; i < 0x100; i++) {
-        fprintf(logWriter, logLines[i]);
-        fprintf(logWriter, "\n");
-    }
-    // fprintf(logWriter, completeLog);
-    fclose(logWriter);
-    */
 }
 
 void concatenate_string(char *original, char *add)
@@ -280,16 +326,57 @@ void concatenate_string(char *original, char *add)
    *original = '\0';
 }
 
-void copyGameListing(AAGameListing fromGame, AAGameListing toGame) {
-    toGame.ringByte = fromGame.ringByte;
-    toGame.specialRingByte = fromGame.specialRingByte;
+void copyGameListing(int fromGame, int toGame) {
+    // cartLoader_appendToLog("copyGameListing");
+    // cartLoader_appendToLog(gameListings[fromGame].gameId);
+    // cartLoader_appendToLog("TO");
+    // cartLoader_appendToLog(gameListings[toGame].gameId);
+    // cartLoader_appendToLog("");
+
+    gameListings[toGame].ringByte = gameListings[fromGame].ringByte;
+    gameListings[toGame].specialRingByte = gameListings[fromGame].specialRingByte;
 
     for (int i = 0; i < 0x20; i++) {
-        toGame.livesBytes[i] = fromGame.livesBytes[i];
-        toGame.livesByteDestinations[i] = fromGame.livesByteDestinations[i];
-        toGame.timeBytes[i] = fromGame.timeBytes[i];
-        toGame.timeByteDestinations[i] = fromGame.timeByteDestinations[i];
-        toGame.panicBytes[i] = fromGame.panicBytes[i];
-        toGame.panicByteDestinations[i] = fromGame.panicByteDestinations[i];
+        gameListings[toGame].livesBytes[i] = gameListings[fromGame].livesBytes[i];
+        gameListings[toGame].livesByteDestinations[i] = gameListings[fromGame].livesByteDestinations[i];
+        gameListings[toGame].timeBytes[i] = gameListings[fromGame].timeBytes[i];
+        gameListings[toGame].timeByteDestinations[i] = gameListings[fromGame].timeByteDestinations[i];
+        gameListings[toGame].panicBytes[i] = gameListings[fromGame].panicBytes[i];
+        gameListings[toGame].panicByteDestinations[i] = gameListings[fromGame].panicByteDestinations[i];
+    }
+}
+
+void saveSaveStateForCurrentGame() {
+    char save_state_file[256];
+    sprintf(save_state_file,"%s/_%s.savestate", folderPath, loadedRomName);
+
+    cartLoader_appendToLog("Saving state");
+    cartLoader_appendToLog(save_state_file);
+
+
+    FILE *f = fopen(save_state_file,"wb");
+    if (f)
+    {
+        uint8 buf[STATE_SIZE];
+        int len = state_save(buf);
+        fwrite(&buf, len, 1, f);
+        fclose(f);
+    }
+}
+
+void loadSaveStateForCurrentGame() {
+    char save_state_file[256];
+    sprintf(save_state_file,"%s/_%s.savestate", folderPath, loadedRomName);
+    FILE *f = fopen(save_state_file,"rb");
+
+    cartLoader_appendToLog("Loading state");
+    cartLoader_appendToLog(save_state_file);
+
+    if (f)
+    {
+        uint8 buf[STATE_SIZE];
+        fread(&buf, STATE_SIZE, 1, f);
+        state_load(buf);
+        fclose(f);
     }
 }

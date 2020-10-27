@@ -3392,7 +3392,7 @@ void render_obj_m5_ste(int line)
   spr_ovr = 0;
 
     // ALISTAIR
-  linebuf[0][0x20 + (rand() % 100)] = 0;
+  // linebuf[0][0x20 + (rand() % 100)] = 0;
 
   /* Merge background & sprite layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[4], bitmap.viewport.w);
@@ -3624,7 +3624,7 @@ void render_obj_m5_im2_ste(int line)
   spr_ovr = 0;
 
   // ALISTAIR
-  linebuf[0][0x20 + (rand() % 100)] = 0;
+  // linebuf[0][0x20 + (rand() % 100)] = 0;
 
   /* Merge background & sprite layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[4], bitmap.viewport.w);

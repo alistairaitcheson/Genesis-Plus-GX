@@ -325,7 +325,7 @@ void system_reset(void)
   sound_reset();
   audio_reset();
 
-    modConsole_updateActiveCart();
+  modConsole_updateActiveCart();
 }
 
 void system_frame_gen(int do_skip)

@@ -11,6 +11,9 @@ extern void cartLoader_run();
 extern void cartLoader_appendToLog(char *text);
 extern int cartLoader_getActiveCartIndex();
 extern AAGameListing cartLoader_getActiveGameListing();
+extern void cartLoader_loadRandomRom();
+extern unsigned int cartLoader_getRomCount();
+extern void cartLoader_getRomFileName(int index, char intoArray[]);
 
 void listFiles(const char *path);
 void addRomListing(char *path);
@@ -18,6 +21,10 @@ int pathIsRom(char *path, int pathLen);
 void cartLoader_loadRomAtIndex(int index);
 void concatenate_string(char *original, char *add);
 void writeStringToArray32(char *source, char dest[]);
-void copyGameListing(AAGameListing fromGame, AAGameListing toGame);
+void copyGameListing(int fromGame, int toGame);
+void saveSaveStateForCurrentGame();
+void loadSaveStateForCurrentGame();
+int pathIsSaveState(char *path, int pathLen);
+void initialiseDirectory();
 
 #endif

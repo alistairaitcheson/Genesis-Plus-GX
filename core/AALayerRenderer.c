@@ -361,6 +361,42 @@ void layerRenderer_populateLetters() {
                     0b00000010,
                     0b00111100,
                     0b00000000);
+    populateLetter('.',
+                    0b00000000,
+                    0b00000000,
+                    0b00000000,
+                    0b00000000,
+                    0b00000000,
+                    0b01100000,
+                    0b01100000,
+                    0b00000000);
+    populateLetter('-',
+                    0b00000000,
+                    0b00000000,
+                    0b00000000,
+                    0b00000000,
+                    0b00111100,
+                    0b00000000,
+                    0b00000000,
+                    0b00000000);
+    populateLetter('&',
+                    0b00000000,
+                    0b00110000,
+                    0b01001000,
+                    0b00110000,
+                    0b01001010,
+                    0b01000100,
+                    0b00111010,
+                    0b00000000);
+    populateLetter('\'',
+                    0b00000000,
+                    0b00110000,
+                    0b00010000,
+                    0b00100000,
+                    0b00000000,
+                    0b00000000,
+                    0b00000000,
+                    0b00000000);
 }
 
 void populateLetter(char identifier, unsigned char line0, unsigned char line1, unsigned char line2, unsigned char line3, unsigned char line4, unsigned char line5, unsigned char line6, unsigned char line7) {

@@ -27,5 +27,7 @@ void updateSpeedUpOnRing();
 int ringCountHasChanged();
 void updateLives();
 void updateTime() ;
+void updateSwitchGameOnRing();
+void showRomList();
 
 #endif
