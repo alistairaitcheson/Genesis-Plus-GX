@@ -16,6 +16,7 @@ cls
 #include "gamepad.h"
 #include "input.h"
 #include "AALayerRenderer.h"
+#include "AAMenuDisplay.h"
 
 static AAModType activeModType = AAMODTYPE_SWITCH_GAME;
 
@@ -34,11 +35,12 @@ void modConsole_initialise() {
     if (hasInitialised == 0) {
         layerRenderer_populateLetters();
         cartLoader_run();
-        showRomList();
+        // showRomList();
 
         hasInitialised = 1;
 
-        cartLoader_loadRomAtIndex(0);
+        cartLoader_loadRomAtIndex(0, 0);
+        menuDisplay_showMenu(MENU_LISTING_TITLE);
     }
 }
 
@@ -108,6 +110,15 @@ void modConsole_updateFrame() {
         buttonStateAtIndex(INPUT_INDEX_A) != 0 &&
         buttonStateAtIndex(INPUT_INDEX_B) != 0) {
         modConsole_activateReset();
+    }
+
+    for (int i = 0; i < 8; i++) {
+        if (buttonWasPressedAtIndex(i) != 0) {
+            int success = menuDisplay_onButtonPress(i);
+            if (success != 0) {
+                break;
+            }
+        }
     }
 
     // vdp_clearGraphicLayer(0);
@@ -338,7 +349,7 @@ int lastButtonStateAtIndex(int index) {
         testNum = testNum * 2;
     }
 
-    int result = ((int)((padState % 0x100) & testNum) % 0x100);
+    int result = ((int)((lastPadState % 0x100) & testNum) % 0x100);
 
     // for (int i = 0; i < 0x10; i++) {
     //     for (int j = 0; j < testNum; j++) {

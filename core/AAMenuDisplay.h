@@ -8,15 +8,18 @@
 #include <stdint.h>
 #include "types.h"
 
-static int MENU_LISTING_NONE = 0;
-static int MENU_LISTING_TITLE = 1;
-static int MENU_LISTING_CHOOSE_GAME = 2;
-static int MENU_LISTING_SETTINGS = 2;
+#define MENU_LISTING_NONE 0
+#define MENU_LISTING_TITLE 1
+#define MENU_LISTING_CHOOSE_GAME 2
+#define MENU_LISTING_SETTINGS 2
 
 extern void menuDisplay_showMenu(int menuNum);
 extern void menuDisplay_hideMenu();
-extern void menuDisplay_onButtonPress(uint16 buttonId);
+extern int menuDisplay_onButtonPress(int buttonIndex);
 
 void beginGame();
+void showTitleMenu();
+void refreshMenu();
+void showChooseGameMenu();
 
 #endif

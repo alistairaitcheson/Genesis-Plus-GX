@@ -18,7 +18,7 @@ extern void cartLoader_getRomFileName(int index, char intoArray[]);
 void listFiles(const char *path);
 void addRomListing(char *path);
 int pathIsRom(char *path, int pathLen);
-void cartLoader_loadRomAtIndex(int index);
+void cartLoader_loadRomAtIndex(int index, int shouldCache);
 void concatenate_string(char *original, char *add);
 void writeStringToArray32(char *source, char dest[]);
 void copyGameListing(int fromGame, int toGame);

@@ -205,7 +205,7 @@ void cartLoader_loadRandomRom() {
         if (nextIndex == lastLoadedIndex) {
             cartLoader_loadRandomRom();
         } else {
-            cartLoader_loadRomAtIndex(nextIndex);
+            cartLoader_loadRomAtIndex(nextIndex, 1);
             loadAttemptCount = 0;
         }
     }
@@ -217,7 +217,7 @@ void cartLoader_getRomFileName(int index, char intoArray[]) {
     }
 }
 
-void cartLoader_loadRomAtIndex(int index) {
+void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     if (index >= romCount) {
         char logStr[0x100];
         sprintf(logStr, "Could not load rom and index %d (%d roms loaded)", index, romCount);
@@ -225,7 +225,7 @@ void cartLoader_loadRomAtIndex(int index) {
         return;
     }
 
-    if (hasLoadedRom != 0) {
+    if (hasLoadedRom != 0 && shouldCache != 0) {
         saveSaveStateForCurrentGame();
     }
 

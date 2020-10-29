@@ -17,7 +17,8 @@ extern int buttonWasReleased(uint16 whichInput);
 extern int buttonWasPressed(uint16 whichInput);
 extern int lastButtonStateAtIndex(int index);
 extern int buttonStateAtIndex(int index);
-
+extern int buttonWasReleasedAtIndex(int index);
+extern int buttonWasPressedAtIndex(int index);
 
 extern void modConsole_activatePanic();
 extern void modConsole_activateReset();
