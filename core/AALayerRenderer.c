@@ -397,6 +397,33 @@ void layerRenderer_populateLetters() {
                     0b00000000,
                     0b00000000,
                     0b00000000);
+    populateLetter('+',
+                    0b00000000,
+                    0b00000000,
+                    0b00010000,
+                    0b00010000,
+                    0b01111100,
+                    0b00010000,
+                    0b00010000,
+                    0b00000000);
+    populateLetter('(',
+                    0b00000000,
+                    0b00000100,
+                    0b00001000,
+                    0b00001000,
+                    0b00001000,
+                    0b00001000,
+                    0b00000100,
+                    0b00000000);
+    populateLetter(')',
+                    0b00000000,
+                    0b00100000,
+                    0b00010000,
+                    0b00010000,
+                    0b00010000,
+                    0b00010000,
+                    0b00100000,
+                    0b00000000);
 }
 
 void populateLetter(char identifier, unsigned char line0, unsigned char line1, unsigned char line2, unsigned char line3, unsigned char line4, unsigned char line5, unsigned char line6, unsigned char line7) {
@@ -468,6 +495,17 @@ void layerRenderer_writeWord256(unsigned int layer, unsigned int startX, unsigne
             x += 8;
         }
     }
+}
+
+void layerRenderer_writeWord256Centred(unsigned int layer, unsigned int startX, unsigned int startY, char word256[], unsigned int value) {
+    int length = 0;
+    for (int i = 0; i < 256; i++) {
+        if (word256[i] == 0 || word256[i] == '\0') {
+            break;
+        }
+        length++;
+    }
+    layerRenderer_writeWord256(layer, startX - (length * 4), startY - 4, word256, value);
 }
 
 unsigned int getPixelFromLetter(char letter, unsigned int x, unsigned int y) {

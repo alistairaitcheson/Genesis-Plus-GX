@@ -10,10 +10,12 @@
 #include <sys/stat.h>
 #include "AALayerRenderer.h"
 
+#define MAX_ROMS 0x100
+
 static unsigned int romCount;
 static char *folderPath = "_magicbox";
 static char *folderPathWithTail = "_magicbox/";
-static char romFileNames[0x1000][0x100];
+static char romFileNames[MAX_ROMS][0x100];
 
 static char *logLines[0x100];
 static unsigned int logLineCount;
@@ -34,7 +36,13 @@ static int hasLoadedRom = 0;
 
 static int initialisedDirectory = 0;
 
+static uint8 cachedSaveStates[MAX_ROMS][STATE_SIZE];
+static uint8 hasCachedSaveState[MAX_ROMS];
+
 void cartLoader_run() {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        hasCachedSaveState[i] = 0;
+    }
     
     cartLoader_appendToLog("cartLoader_run");
 
@@ -135,7 +143,7 @@ void listFiles(const char *path)
             remove(pathToDelete);
         }
         
-        if (pathIsRom(dp->d_name, dp->d_namlen) != 0) {
+        if (pathIsRom(dp->d_name, dp->d_namlen) != 0 && romCount < MAX_ROMS) {
             char name[0x100];
             for (int i = 0; i < 0x100; i++) {
                 if (i < dp->d_namlen) {
@@ -197,8 +205,7 @@ void cartLoader_loadRandomRom() {
         if (nextIndex == lastLoadedIndex) {
             cartLoader_loadRandomRom();
         } else {
-            lastLoadedIndex = nextIndex;
-            cartLoader_loadRomAtIndex(lastLoadedIndex);
+            cartLoader_loadRomAtIndex(nextIndex);
             loadAttemptCount = 0;
         }
     }
@@ -316,8 +323,8 @@ void initialiseDirectory() {
 }
 
 void cartLoader_appendToLog(char *text) {
-    // return; // 
     initialiseDirectory();
+    return; // <----------------- replace this with something togglable!
 
     if (openedLogWriter == 0) {
         openedLogWriter = 1;
@@ -367,36 +374,22 @@ void copyGameListing(int fromGame, int toGame) {
 }
 
 void saveSaveStateForCurrentGame() {
-    char save_state_file[256];
-    sprintf(save_state_file,"%s/_%s.savestate", folderPath, loadedRomName);
+    // char tempLog[256];
+    // sprintf(tempLog,"Caching save state %d (%s)", lastLoadedIndex, loadedRomName);
+    // cartLoader_appendToLog(tempLog);
 
-    cartLoader_appendToLog("Saving state");
-    cartLoader_appendToLog(save_state_file);
-
-
-    FILE *f = fopen(save_state_file,"wb");
-    if (f)
-    {
-        uint8 buf[STATE_SIZE];
-        int len = state_save(buf);
-        fwrite(&buf, len, 1, f);
-        fclose(f);
-    }
+    state_save(cachedSaveStates[lastLoadedIndex]);
+    hasCachedSaveState[lastLoadedIndex] = 1;
 }
 
 void loadSaveStateForCurrentGame() {
-    char save_state_file[256];
-    sprintf(save_state_file,"%s/_%s.savestate", folderPath, loadedRomName);
-    FILE *f = fopen(save_state_file,"rb");
-
-    cartLoader_appendToLog("Loading state");
-    cartLoader_appendToLog(save_state_file);
-
-    if (f)
-    {
-        uint8 buf[STATE_SIZE];
-        fread(&buf, STATE_SIZE, 1, f);
-        state_load(buf);
-        fclose(f);
+    if (hasCachedSaveState[lastLoadedIndex] == 0) {
+        return;
     }
+
+    // char tempLog[256];
+    // sprintf(tempLog,"Loading save state %d (%s) %d", lastLoadedIndex, loadedRomName, hasCachedSaveState[lastLoadedIndex]);
+    // cartLoader_appendToLog(tempLog);
+
+    state_load(cachedSaveStates[lastLoadedIndex]);
 }

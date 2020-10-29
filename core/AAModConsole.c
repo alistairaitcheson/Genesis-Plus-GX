@@ -45,14 +45,18 @@ void modConsole_initialise() {
 void showRomList() {
     layerRenderer_fill(0, 0, 0, 256, 256, 1);
 
-    layerRenderer_writeWord256(0, 0, 0, "Alistair's Magic Box V0.01", 5);
+    layerRenderer_writeWord256(0, 0, 0, "Alistair's Magic Box V0.02", 5);
 
-    layerRenderer_writeWord256(0, 0, 16, "YOUR ROMS:", 5);
+    layerRenderer_writeWord256(0, 0, 16, "HOLD (START + UP + A + B)", 5);
+    layerRenderer_writeWord256(0, 0, 24, "to reset active game", 5);
+
+
+    layerRenderer_writeWord256(0, 0, 48, "YOUR ROMS:", 5);
     for (int i = 0; i < cartLoader_getRomCount(); i++)
     {
         char fileNameBuf[0x100];
         cartLoader_getRomFileName(i, fileNameBuf);
-        layerRenderer_writeWord256(0, 0, (i + 3) * 8, fileNameBuf, 5);
+        layerRenderer_writeWord256(0, 0, 48 + ((i + 1) * 8), fileNameBuf, 5);
     }   
 
     framesUntilClearLayer = 10 * 60;
