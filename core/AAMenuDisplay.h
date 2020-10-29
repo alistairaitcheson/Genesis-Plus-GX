@@ -11,7 +11,7 @@
 #define MENU_LISTING_NONE 0
 #define MENU_LISTING_TITLE 1
 #define MENU_LISTING_CHOOSE_GAME 2
-#define MENU_LISTING_SETTINGS 2
+#define MENU_LISTING_SETTINGS 3
 
 extern void menuDisplay_showMenu(int menuNum);
 extern void menuDisplay_hideMenu();
@@ -21,5 +21,7 @@ void beginGame();
 void showTitleMenu();
 void refreshMenu();
 void showChooseGameMenu();
+void incrementOption(int byAmount);
+void showOptionsMenu();
 
 #endif

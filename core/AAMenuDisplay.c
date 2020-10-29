@@ -22,6 +22,8 @@ static int minorVersion = 3;
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
 
+static HackOptions hackOptions;
+
 void menuDisplay_showMenu(int menuNum) {
     activeMenu = menuNum;
 
@@ -31,6 +33,10 @@ void menuDisplay_showMenu(int menuNum) {
 
     if (activeMenu == MENU_LISTING_CHOOSE_GAME) {
         showChooseGameMenu();
+    }
+
+    if (activeMenu == MENU_LISTING_SETTINGS) {
+        showOptionsMenu();
     }
 }
 
@@ -50,7 +56,7 @@ void beginGame() {
 
 int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_TITLE && buttonIndex == INPUT_INDEX_START) {
-        menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
         return 1;
     }
 
@@ -79,7 +85,45 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
     }
 
+    if (activeMenu == MENU_LISTING_SETTINGS) {
+        if (buttonIndex == INPUT_INDEX_START) {
+            menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_UP) {
+            optionsItemIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            optionsItemIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_LEFT || buttonIndex == INPUT_INDEX_B) {
+            incrementOption(-1);
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_RIGHT || buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C) {
+            incrementOption(1);
+            refreshMenu();
+            return 1;
+        }
+    }
+
     return 0;
+}
+
+void incrementOption(int byAmount) {
+    if (optionsItemIndex == 0) {
+        hackOptions.infiniteLives += byAmount;
+    } else if (optionsItemIndex == 1) {
+        hackOptions.infiniteTime += byAmount;
+    } else if (optionsItemIndex == 2) {
+        hackOptions.copyVram += byAmount;
+    }
 }
 
 void showTitleMenu() {
@@ -141,15 +185,93 @@ void showChooseGameMenu() {
             for (int j = 0; j < 0xF0; j++) {
                 newNameBuf[j + 4] = fileNameBuf[j];
             }
-            newNameBuf[0] = ' ';
+            newNameBuf[0] = '>';
             newNameBuf[1] = '>';
             newNameBuf[2] = '>';
             newNameBuf[3] = ' ';
             layerRenderer_writeWord256(0, 16, yPos, newNameBuf, 5);
         } else {
-            layerRenderer_writeWord256(0, 16, yPos, fileNameBuf, 5);
+            char newNameBuf[0x100];
+            for (int j = 0; j < 0xF0; j++) {
+                newNameBuf[j + 3] = fileNameBuf[j];
+            }
+            newNameBuf[0] = ' ';
+            newNameBuf[1] = ' ';
+            newNameBuf[2] = ' ';
+            layerRenderer_writeWord256(0, 16, yPos, newNameBuf, 5);
         }
         yPos += 8;
     }
 
+}
+
+void showOptionsMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 1);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to play ---", 5);
+
+    int lineCount = 3;
+    char lines[lineCount][0x80];
+
+    if (optionsItemIndex < 0) {
+        optionsItemIndex = lineCount - 1;
+    }
+    if (optionsItemIndex >= lineCount) {
+        optionsItemIndex = 0;
+    }
+
+    if (hackOptions.infiniteLives > 1) {
+        hackOptions.infiniteLives = 0;
+    }
+    if (hackOptions.infiniteLives < 0) {
+        hackOptions.infiniteLives = 1;
+    }
+    if (hackOptions.infiniteLives == 1) {
+        sprintf(lines[0], "Infinite lives: ON");
+    } else {
+        sprintf(lines[0], "Infinite lives: OFF");
+    }
+
+    if (hackOptions.infiniteTime > 1) {
+        hackOptions.infiniteTime = 0;
+    }
+    if (hackOptions.infiniteTime < 0) {
+        hackOptions.infiniteTime = 1;
+    }
+    if (hackOptions.infiniteTime == 1) {
+        sprintf(lines[1], "Infinite time: ON");
+    } else {
+        sprintf(lines[1], "Infinite time: OFF");
+    }
+
+    if (hackOptions.copyVram > 3) {
+        hackOptions.copyVram = 0;
+    }
+    if (hackOptions.copyVram < 0) {
+        hackOptions.copyVram = 3;
+    }
+    if (hackOptions.copyVram == 0) {
+        sprintf(lines[2], "Keep vram on switch: NEVER");
+    } else if (hackOptions.copyVram == 1) {
+        sprintf(lines[2], "Keep vram on switch: ALWAYS");
+    } else if (hackOptions.copyVram == 2) {
+        sprintf(lines[2], "Keep vram on switch: SOMETIMES");
+    } else if (hackOptions.copyVram == 3) {
+        sprintf(lines[2], "Keep vram on switch: KEEP 1%%");
+    }
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        char toPrint[0x100];
+        if (i == optionsItemIndex) {
+            sprintf(toPrint, ">>> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "    %s", lines[i]);
+        }
+        layerRenderer_writeWord256(0, 16, yPos, toPrint, 5);
+
+        yPos += 8;
+    }
 }
