@@ -616,6 +616,12 @@ uint8 aa_genesis_getLastWorkRam(unsigned int location) {
   }
 }
 
+void aa_genesis_revertToLastRam() {
+  for (int i = 0; i < 0x10000; i++) {
+    work_ram[i] = lastWorkRam[i];
+  }
+}
+
 void aa_genesis_incrementWorkRamCompoundValueByInt(int index, int length, int amount) {
     int currentTotal = 0;
     for (int i = 0; i < length; i++) {

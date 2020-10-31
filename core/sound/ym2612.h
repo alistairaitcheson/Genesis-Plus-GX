@@ -31,4 +31,8 @@ extern unsigned int YM2612Read(void);
 extern int YM2612LoadContext(unsigned char *state);
 extern int YM2612SaveContext(unsigned char *state);
 
+// alistair
+extern void aa_ym2612_mute();
+extern void aa_ym2612_unmute();
+
 #endif /* _YM2612_ */

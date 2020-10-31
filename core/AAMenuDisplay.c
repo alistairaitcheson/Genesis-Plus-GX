@@ -24,8 +24,88 @@ static int DEFAULT_HEIGHT = 200;
 
 static HackOptions hackOptions;
 
+HackOptions menuDisplay_getHackOptions() {
+    return hackOptions;
+}
+
+int menuDisplay_isShowing() {
+    if (activeMenu == MENU_LISTING_NONE) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+void menuDisplay_initialise() {
+    // char path[0x100];
+    // char folder[0x10];
+    // writeFolderPathIntoArray32(folder);
+    // sprintf(path, "%s/__prefs.data", folder);
+    // FILE *prefsReader = fopen(path, "rb");
+
+    FILE *prefsReader = fopen("_magicbox/__prefs.data", "rb");
+
+    if (prefsReader) {
+        int prefsBuffer[0x100];
+        fread(prefsBuffer, sizeof(int), 0x100, prefsReader);
+        fclose(prefsReader);
+        applySettingsFromArray256(prefsBuffer);
+    } else {
+        applyDefaultSettings();
+    }
+}
+
+void applySettingsFromArray256(int array256[]) {
+    hackOptions.infiniteLives = array256[0];
+    hackOptions.infiniteTime = array256[1];
+    hackOptions.copyVram = array256[2];
+    hackOptions.switchGameType = array256[3];
+    hackOptions.cooldownOnSwitch = array256[4];
+    hackOptions.speedUpOnRing = array256[5];
+}
+
+void applyDefaultSettings() {
+    hackOptions.infiniteTime = 1;
+    hackOptions.infiniteLives = 1;
+    hackOptions.copyVram = 0;
+    hackOptions.switchGameType = 1;
+    hackOptions.cooldownOnSwitch = 0;
+    hackOptions.speedUpOnRing = 0;
+
+    saveHackOptions();
+}
+
+void saveHackOptions() {
+    int options[0x100];
+    for (int i = 0; i < 0x100; i++) {
+        options[i] = 0;
+    }
+    options[0] = hackOptions.infiniteLives;
+    options[1] = hackOptions.infiniteTime;
+    options[2] = hackOptions.copyVram;
+    options[3] = hackOptions.switchGameType;
+    options[4] = hackOptions.cooldownOnSwitch;
+    options[5] = hackOptions.speedUpOnRing;
+
+
+    // char path[0x100];
+    // char folder[0x10];
+    // writeFolderPathIntoArray32(folder);
+    // sprintf(path, "%s/__prefs.data", folder);
+    remove("_magicbox/__prefs.data");
+    FILE *prefsWriter = fopen("_magicbox/__prefs.data", "wb");
+
+    for (int i = 0; i < 0x100; i++) {
+        fwrite(options, sizeof(int), 0x100, prefsWriter);
+    }
+    fclose(prefsWriter);
+}
+
 void menuDisplay_showMenu(int menuNum) {
     activeMenu = menuNum;
+    vdp_setShouldRandomiseColours(1);
+    aa_psg_mute();
+    aa_ym2612_mute();
 
     if (activeMenu == MENU_LISTING_TITLE) {
         showTitleMenu();
@@ -51,6 +131,10 @@ void refreshMenu() {
 }
 
 void beginGame() {
+    vdp_setShouldRandomiseColours(0);
+    aa_psg_unmute();
+    aa_ym2612_unmute();
+    modConsole_applyHackOptions();
     cartLoader_loadRomAtIndex(chosenGameIndex, 0);
 }
 
@@ -87,6 +171,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
 
     if (activeMenu == MENU_LISTING_SETTINGS) {
         if (buttonIndex == INPUT_INDEX_START) {
+            saveHackOptions();
             menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
             return 1;
         }
@@ -118,21 +203,27 @@ int menuDisplay_onButtonPress(int buttonIndex) {
 
 void incrementOption(int byAmount) {
     if (optionsItemIndex == 0) {
-        hackOptions.infiniteLives += byAmount;
+        hackOptions.switchGameType += byAmount;
     } else if (optionsItemIndex == 1) {
-        hackOptions.infiniteTime += byAmount;
+        hackOptions.cooldownOnSwitch += byAmount;
     } else if (optionsItemIndex == 2) {
         hackOptions.copyVram += byAmount;
+    } else if (optionsItemIndex == 3) {
+        hackOptions.speedUpOnRing += byAmount;
+    } else if (optionsItemIndex == 4) {
+        hackOptions.infiniteLives += byAmount;
+    } else if (optionsItemIndex == 5) {
+        hackOptions.infiniteTime += byAmount;
     }
 }
 
 void showTitleMenu() {
     layerRenderer_clearLayer(0);
 
-    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 1);
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
 
     char titleText[0x100];
-    sprintf(titleText, "Alistair's Magic Box V%d.%2d", majorVersion, minorVersion);
+    sprintf(titleText, "Alistair's Magic Box V%d.%02d", majorVersion, minorVersion);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, titleText, 5);
 
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "HOLD (START + UP + A + B)", 5);
@@ -155,7 +246,7 @@ void showTitleMenu() {
 void showChooseGameMenu() {
     layerRenderer_clearLayer(0);
 
-    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 1);
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "choose a game", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to select ---", 5);
 
@@ -208,12 +299,16 @@ void showChooseGameMenu() {
 void showOptionsMenu() {
     layerRenderer_clearLayer(0);
 
-    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 1);
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to play ---", 5);
 
-    int lineCount = 3;
+    int lineCount = 6;
     char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+    }
 
     if (optionsItemIndex < 0) {
         optionsItemIndex = lineCount - 1;
@@ -222,28 +317,36 @@ void showOptionsMenu() {
         optionsItemIndex = 0;
     }
 
-    if (hackOptions.infiniteLives > 1) {
-        hackOptions.infiniteLives = 0;
+    if (hackOptions.switchGameType > 4) {
+        hackOptions.switchGameType = 0;
     }
-    if (hackOptions.infiniteLives < 0) {
-        hackOptions.infiniteLives = 1;
+    if (hackOptions.switchGameType < 0) {
+        hackOptions.switchGameType = 4;
     }
-    if (hackOptions.infiniteLives == 1) {
-        sprintf(lines[0], "Infinite lives: ON");
-    } else {
-        sprintf(lines[0], "Infinite lives: OFF");
+    if (hackOptions.switchGameType == 0) {
+        sprintf(lines[0], "Switch games: OFF");
+        blockedLines[1] = 1;
+        blockedLines[2] = 1;
+    } else if (hackOptions.switchGameType == 1) {
+        sprintf(lines[0], "Switch games: ON GET RING");
+    } else if (hackOptions.switchGameType == 2) {
+        sprintf(lines[0], "Switch games: EVERY 5 seconds");
+    } else if (hackOptions.switchGameType == 3) {
+        sprintf(lines[0], "Switch games: EVERY 10 seconds");
+    } else if (hackOptions.switchGameType == 4) {
+        sprintf(lines[0], "Switch games: EVERY 30 seconds");
     }
 
-    if (hackOptions.infiniteTime > 1) {
-        hackOptions.infiniteTime = 0;
+    if (hackOptions.cooldownOnSwitch > 1) {
+        hackOptions.cooldownOnSwitch = 0;
     }
-    if (hackOptions.infiniteTime < 0) {
-        hackOptions.infiniteTime = 1;
+    if (hackOptions.cooldownOnSwitch < 0) {
+        hackOptions.cooldownOnSwitch = 1;
     }
-    if (hackOptions.infiniteTime == 1) {
-        sprintf(lines[1], "Infinite time: ON");
+    if (hackOptions.cooldownOnSwitch == 0) {
+        sprintf(lines[1], "Cooldown before switch: OFF");
     } else {
-        sprintf(lines[1], "Infinite time: OFF");
+        sprintf(lines[1], "Cooldown before switch: 1 second");
     }
 
     if (hackOptions.copyVram > 3) {
@@ -262,6 +365,44 @@ void showOptionsMenu() {
         sprintf(lines[2], "Keep vram on switch: KEEP 1%%");
     }
 
+    if (hackOptions.speedUpOnRing > 1) {
+        hackOptions.speedUpOnRing = 0;
+    }
+    if (hackOptions.speedUpOnRing < 0) {
+        hackOptions.speedUpOnRing = 1;
+    }
+    if (hackOptions.speedUpOnRing == 1) {
+        sprintf(lines[3], "Speed up on ring collected: ON");
+    } else {
+        sprintf(lines[3], "Speed up on ring collected: OFF");
+    }
+
+
+
+    if (hackOptions.infiniteLives > 1) {
+        hackOptions.infiniteLives = 0;
+    }
+    if (hackOptions.infiniteLives < 0) {
+        hackOptions.infiniteLives = 1;
+    }
+    if (hackOptions.infiniteLives == 1) {
+        sprintf(lines[4], "Infinite lives: ON");
+    } else {
+        sprintf(lines[4], "Infinite lives: OFF");
+    }
+
+    if (hackOptions.infiniteTime > 1) {
+        hackOptions.infiniteTime = 0;
+    }
+    if (hackOptions.infiniteTime < 0) {
+        hackOptions.infiniteTime = 1;
+    }
+    if (hackOptions.infiniteTime == 1) {
+        sprintf(lines[5], "Infinite time: ON");
+    } else {
+        sprintf(lines[5], "Infinite time: OFF");
+    }
+
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
         char toPrint[0x100];
@@ -271,6 +412,10 @@ void showOptionsMenu() {
             sprintf(toPrint, "    %s", lines[i]);
         }
         layerRenderer_writeWord256(0, 16, yPos, toPrint, 5);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
 
         yPos += 8;
     }

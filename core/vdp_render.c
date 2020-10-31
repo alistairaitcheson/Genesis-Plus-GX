@@ -1126,11 +1126,16 @@ void color_update_m4(int index, unsigned int data)
 
 void color_update_m5(int index, unsigned int data)
 {
+
   /* Palette Mode */
   if (!(reg[0] & 0x04))
   {
     /* Color value is limited to 00X00X00X */
     data &= 0x49;
+  }
+
+  if (vdp_getShouldRandomiseColours() != 0) {
+    data = rand() % 0x100000000;
   }
 
   if(reg[12] & 0x08)
@@ -4296,4 +4301,13 @@ void drawTextLayers(int lineIdx) {
             }
         }
     }
+}
+
+static int shouldRandomiseColours = 0;
+void vdp_setShouldRandomiseColours(int toValue) {
+    shouldRandomiseColours = toValue;
+}
+
+int vdp_getShouldRandomiseColours() {
+  return shouldRandomiseColours;
 }

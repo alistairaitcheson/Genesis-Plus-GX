@@ -23,6 +23,8 @@ extern int buttonWasPressedAtIndex(int index);
 extern void modConsole_activatePanic();
 extern void modConsole_activateReset();
 
+extern void modConsole_applyHackOptions();
+
 
 void updateSpeedUpOnRing();
 int ringCountHasChanged();
@@ -30,5 +32,9 @@ void updateLives();
 void updateTime() ;
 void updateSwitchGameOnRing();
 void showRomList();
+void promptSwitchGame();
+void switchGame();
+void clearCooldownVisualiser();
+void showCooldownVisualiser();
 
 #endif

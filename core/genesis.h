@@ -86,6 +86,7 @@ extern void aa_genesis_incrementWorkRamCompoundValueByInt(int index, int length,
 
 extern uint8 getCartValueAtIndex(int index);
 extern void setCartValueAtIndex(int index, uint8 value);
+extern void aa_genesis_revertToLastRam();
 
 #endif /* _GEN_H_ */
 

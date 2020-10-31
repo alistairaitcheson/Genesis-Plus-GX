@@ -31,6 +31,13 @@ static int hasInitialised = 0;
 
 static int framesUntilClearLayer = 0;
 
+static int switchAfterTimePeriod = 0;
+static int switchCooldownPeriod = 0;
+static int switchAfterTimeCounter = 0;
+static int switchCooldownCounter = 0;
+
+static int shouldSwitchAfterCooldown = 0;
+
 void modConsole_initialise() {
     if (hasInitialised == 0) {
         layerRenderer_populateLetters();
@@ -39,7 +46,8 @@ void modConsole_initialise() {
 
         hasInitialised = 1;
 
-        cartLoader_loadRomAtIndex(0, 0);
+        // cartLoader_loadRomAtIndex(0, 0);
+        menuDisplay_initialise();
         menuDisplay_showMenu(MENU_LISTING_TITLE);
     }
 }
@@ -73,87 +81,161 @@ void modConsole_updateActiveCart() {
     // cartLoader_appendToLog(activeGameListing.gameId);
 }
 
+void modConsole_applyHackOptions() {
+    switchAfterTimeCounter = 0;
+    switchAfterTimePeriod = 0;
+
+    switchCooldownCounter = 0;
+    switchCooldownPeriod = 0;
+
+    if (menuDisplay_getHackOptions().switchGameType == 2) {
+        switchAfterTimePeriod = 60 * 5;
+    }
+    if (menuDisplay_getHackOptions().switchGameType == 3) {
+        switchAfterTimePeriod = 60 * 10;
+    }
+    if (menuDisplay_getHackOptions().switchGameType == 4) {
+        switchAfterTimePeriod = 60 * 30;
+    }
+    
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 1) {
+        switchCooldownPeriod = 60 * 1;
+    }
+}
+
 void modConsole_updateFrame() {
     lastPadState = padState;
     padState = input.pad[0];
 
-    if (framesUntilClearLayer > 0) {
-        framesUntilClearLayer--;
-        if (framesUntilClearLayer == 0) {
-            vdp_clearGraphicLayer(0);
-        }
-    }
-
-    // if (padState != lastPadState) {
-    //     char padStateAsString[0x20];
-    //     sprintf(padStateAsString, "%d", padState);
-    //     cartLoader_appendToLog(padStateAsString);
-    // }
-
-    if (activeModType == AAMODTYPE_SPEED_UP_ON_RING) {
-        updateSpeedUpOnRing();
-    }
-    if (activeModType == AAMODTYPE_SWITCH_GAME) {
-        updateSwitchGameOnRing();
-    }
-
-    updateLives();
-    updateTime();
-
-    if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
-        buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-        buttonStateAtIndex(INPUT_INDEX_A) != 0) {
-        modConsole_activatePanic();
-    }
-    if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
-        buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-        buttonStateAtIndex(INPUT_INDEX_A) != 0 &&
-        buttonStateAtIndex(INPUT_INDEX_B) != 0) {
-        modConsole_activateReset();
-    }
-
-    for (int i = 0; i < 8; i++) {
-        if (buttonWasPressedAtIndex(i) != 0) {
-            int success = menuDisplay_onButtonPress(i);
-            if (success != 0) {
-                break;
+    if (menuDisplay_isShowing() != 0) {
+        for (int i = 0; i < 8; i++) {
+            if (buttonWasPressedAtIndex(i) != 0) {
+                int success = menuDisplay_onButtonPress(i);
+                if (success != 0) {
+                    break;
+                }
             }
         }
+        if (frameCount >= 60) {
+            aa_genesis_revertToLastRam();
+        }
+
+        // HackOptions hackOpts = menuDisplay_getHackOptions();
+        // char optionsDisplay[0x10];
+        // sprintf(optionsDisplay, "%d %d %d %d %d %d\n--- %d %d",
+        //     hackOpts.switchGameType,
+        //     hackOpts.cooldownOnSwitch,
+        //     hackOpts.copyVram,
+        //     hackOpts.speedUpOnRing,
+        //     hackOpts.infiniteLives,
+        //     hackOpts.infiniteTime,
+        //     switchCooldownPeriod,
+        //     switchCooldownCounter
+        // );
+        // layerRenderer_clearLayer(0);
+        // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
+
+    } else {
+        if (framesUntilClearLayer > 0) {
+            framesUntilClearLayer--;
+            if (framesUntilClearLayer == 0) {
+                vdp_clearGraphicLayer(0);
+            }
+        }
+
+        HackOptions hackOpts = menuDisplay_getHackOptions();
+
+        // char optionsDisplay[0x10];
+        // sprintf(optionsDisplay, "%d %d %d %d %d %d\n+++ %d %d",
+        //     hackOpts.switchGameType,
+        //     hackOpts.cooldownOnSwitch,
+        //     hackOpts.copyVram,
+        //     hackOpts.speedUpOnRing,
+        //     hackOpts.infiniteLives,
+        //     hackOpts.infiniteTime,
+        //     switchCooldownPeriod,
+        //     switchCooldownCounter
+        // );
+        // layerRenderer_clearLayer(0);
+        // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
+
+        if (hackOpts.speedUpOnRing != 0) {
+            updateSpeedUpOnRing();
+        }
+        if (hackOpts.switchGameType == 1) {
+            updateSwitchGameOnRing();
+        }
+
+        if (hackOpts.switchGameType > 1) {
+            switchAfterTimeCounter++;
+            if (switchAfterTimeCounter >= switchAfterTimePeriod) {
+                switchAfterTimeCounter = 0;
+                promptSwitchGame();
+            }
+        }
+
+        if (switchCooldownPeriod > 0) {
+            showCooldownVisualiser();
+        }
+        if (shouldSwitchAfterCooldown) {
+            switchCooldownCounter++;
+            if (switchCooldownCounter >= switchCooldownPeriod) {
+                switchGame();
+            }       
+        }
+
+        if (hackOpts.infiniteLives != 0) {
+            updateLives();
+        }
+        if (hackOpts.infiniteTime != 0) {
+            updateTime();
+        }
+
+        if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+            modConsole_activatePanic();
+        }
+        if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_A) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_B) != 0) {
+            modConsole_activateReset();
+        }
     }
-
-    // vdp_clearGraphicLayer(0);
-    // layerRenderer_writeWord256(0, 0, 0, activeGameListing.gameId, 6);
-    // static char buffer[0x20];
-    // sprintf(buffer, "%X", activeGameListing.ringByte);
-    // layerRenderer_writeWord256(0, 0, 8, buffer, 6);
-    // sprintf(buffer, "%X", activeGameListing.specialRingByte);
-    // layerRenderer_writeWord256(0, 0, 16, buffer, 6);
-
-    // vdp_clearGraphicLayer(0);
-
-    // for (int i = 0; i < 0x10; i++) {
-    //     int value = buttonStateAtIndex(i);
-    //     if(value != 0) {
-    //         for (int j = 0; j < 20; j++) {
-    //             vdp_setGraphicLayerPixel(0, (i + 1) * 5, j + value, 5);
-    //         }
-    //     }
-    // }
-
-    // int x = 0;
-    // int y = 20;
-    // for (int i = 0; i < padState; i++) {
-    //     vdp_setGraphicLayerPixel(0, x, y, 6);
-    //     x++;
-    //     if (x >= 0x100) {
-    //         x = 0;
-    //         y++;
-    //     }
-    // }
 
     frameCount++;
 
     aa_genesis_updateLastRam();
+}
+
+void promptSwitchGame() {
+    shouldSwitchAfterCooldown = 1;
+    if (switchCooldownPeriod <= 0) {
+        switchGame();
+    }
+}
+
+void switchGame() {
+    shouldSwitchAfterCooldown = 0;
+    switchCooldownCounter = 0;
+    clearCooldownVisualiser();
+
+    cartLoader_loadRandomRom();
+}
+
+void clearCooldownVisualiser() {
+    layerRenderer_clearLayer(1);
+}
+
+void showCooldownVisualiser() {
+    layerRenderer_clearLayer(1);
+    if (switchCooldownPeriod > 0) {
+        int width = ((vdp_getScreenWidth() - 4) * switchCooldownCounter) / switchCooldownPeriod;
+        layerRenderer_fill(1, 0, 0, vdp_getScreenWidth(), 8, 0xFF);
+        layerRenderer_fill(1, 2, 2, (vdp_getScreenWidth() - 4), 4, 3);
+        layerRenderer_fill(1, 2, 2, width, 4, 4);
+    }
 }
 
 void updateLives() {
@@ -209,7 +291,7 @@ void updateSwitchGameOnRing() {
         // layerRenderer_fill(0, 0, 0, 32, 8, 1);
         // layerRenderer_writeWord256(0, 0, 0, word, 5);
         
-        cartLoader_loadRandomRom();
+        promptSwitchGame();
     }
 }
 

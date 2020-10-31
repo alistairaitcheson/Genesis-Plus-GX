@@ -13,9 +13,21 @@
 #define MENU_LISTING_CHOOSE_GAME 2
 #define MENU_LISTING_SETTINGS 3
 
+typedef struct {
+    int infiniteLives;
+    int infiniteTime;
+    int copyVram;
+    int switchGameType;
+    int cooldownOnSwitch;
+    int speedUpOnRing;
+} HackOptions;
+
 extern void menuDisplay_showMenu(int menuNum);
 extern void menuDisplay_hideMenu();
 extern int menuDisplay_onButtonPress(int buttonIndex);
+extern HackOptions menuDisplay_getHackOptions();
+extern void menuDisplay_initialise();
+extern int menuDisplay_isShowing();
 
 void beginGame();
 void showTitleMenu();
@@ -23,5 +35,9 @@ void refreshMenu();
 void showChooseGameMenu();
 void incrementOption(int byAmount);
 void showOptionsMenu();
+
+void applySettingsFromArray256(int array256[]);
+void applyDefaultSettings();
+void saveHackOptions();
 
 #endif

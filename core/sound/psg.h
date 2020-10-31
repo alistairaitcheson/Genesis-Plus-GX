@@ -57,4 +57,8 @@ extern void psg_write(unsigned int clocks, unsigned int data);
 extern void psg_config(unsigned int clocks, unsigned int preamp, unsigned int panning);
 extern void psg_end_frame(unsigned int clocks);
 
+// alistair
+extern void aa_psg_mute();
+extern void aa_psg_unmute();
+
 #endif /* _PSG_H_ */

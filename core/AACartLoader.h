@@ -14,6 +14,7 @@ extern AAGameListing cartLoader_getActiveGameListing();
 extern void cartLoader_loadRandomRom();
 extern unsigned int cartLoader_getRomCount();
 extern void cartLoader_getRomFileName(int index, char intoArray[]);
+extern void writeFolderPathIntoArray32(char array32[]);
 
 void listFiles(const char *path);
 void addRomListing(char *path);

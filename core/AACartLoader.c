@@ -39,6 +39,10 @@ static int initialisedDirectory = 0;
 static uint8 cachedSaveStates[MAX_ROMS][STATE_SIZE];
 static uint8 hasCachedSaveState[MAX_ROMS];
 
+void writeFolderPathIntoArray32(char array32[]) {
+    writeStringToArray32(folderPath, array32);
+}
+
 void cartLoader_run() {
     for (int i = 0; i < MAX_ROMS; i++) {
         hasCachedSaveState[i] = 0;

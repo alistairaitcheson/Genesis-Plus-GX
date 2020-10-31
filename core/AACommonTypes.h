@@ -30,12 +30,6 @@ typedef struct {
     int populated;
 } LetterListing;
 
-typedef struct {
-    int infiniteLives;
-    int infiniteTime;
-    int copyVram;
-} HackOptions;
-
 static int INPUT_INDEX_UP = 0;
 static int INPUT_INDEX_DOWN = 1;
 static int INPUT_INDEX_LEFT = 2;
