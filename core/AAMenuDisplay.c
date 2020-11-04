@@ -274,12 +274,11 @@ void showChooseGameMenu() {
         if (i == chosenGameIndex) {
             char newNameBuf[0x100];
             for (int j = 0; j < 0xF0; j++) {
-                newNameBuf[j + 4] = fileNameBuf[j];
+                newNameBuf[j + 3] = fileNameBuf[j];
             }
             newNameBuf[0] = '>';
             newNameBuf[1] = '>';
-            newNameBuf[2] = '>';
-            newNameBuf[3] = ' ';
+            newNameBuf[2] = ' ';
             layerRenderer_writeWord256(0, 16, yPos, newNameBuf, 5);
         } else {
             char newNameBuf[0x100];
@@ -324,17 +323,17 @@ void showOptionsMenu() {
         hackOptions.switchGameType = 4;
     }
     if (hackOptions.switchGameType == 0) {
-        sprintf(lines[0], "Switch games: OFF");
+        sprintf(lines[0], "Switch games:            OFF");
         blockedLines[1] = 1;
         blockedLines[2] = 1;
     } else if (hackOptions.switchGameType == 1) {
-        sprintf(lines[0], "Switch games: ON GET RING");
+        sprintf(lines[0], "Switch games:    ON GET RING");
     } else if (hackOptions.switchGameType == 2) {
-        sprintf(lines[0], "Switch games: EVERY 5 seconds");
+        sprintf(lines[0], "Switch games:   EVERY 5 secs");
     } else if (hackOptions.switchGameType == 3) {
-        sprintf(lines[0], "Switch games: EVERY 10 seconds");
+        sprintf(lines[0], "Switch games:  EVERY 10 secs");
     } else if (hackOptions.switchGameType == 4) {
-        sprintf(lines[0], "Switch games: EVERY 30 seconds");
+        sprintf(lines[0], "Switch games:  EVERY 30 secs");
     }
 
     if (hackOptions.cooldownOnSwitch > 1) {
@@ -344,25 +343,27 @@ void showOptionsMenu() {
         hackOptions.cooldownOnSwitch = 1;
     }
     if (hackOptions.cooldownOnSwitch == 0) {
-        sprintf(lines[1], "Cooldown before switch: OFF");
+        sprintf(lines[1], "Cooldown after switch:   OFF");
     } else {
-        sprintf(lines[1], "Cooldown before switch: 1 second");
+        sprintf(lines[1], "Cooldown after switch: 1 sec");
     }
 
-    if (hackOptions.copyVram > 3) {
+    if (hackOptions.copyVram > 4) {
         hackOptions.copyVram = 0;
     }
     if (hackOptions.copyVram < 0) {
         hackOptions.copyVram = 3;
     }
     if (hackOptions.copyVram == 0) {
-        sprintf(lines[2], "Keep vram on switch: NEVER");
+        sprintf(lines[2], "Keep vram on switch:     OFF");
     } else if (hackOptions.copyVram == 1) {
-        sprintf(lines[2], "Keep vram on switch: ALWAYS");
+        sprintf(lines[2], "Keep vram on switch:   100%%");
     } else if (hackOptions.copyVram == 2) {
-        sprintf(lines[2], "Keep vram on switch: SOMETIMES");
+        sprintf(lines[2], "Keep vram on switch:    50%%");
     } else if (hackOptions.copyVram == 3) {
-        sprintf(lines[2], "Keep vram on switch: KEEP 1%%");
+        sprintf(lines[2], "Keep vram on switch:    10%%");
+    } else if (hackOptions.copyVram == 4) {
+        sprintf(lines[2], "Keep vram on switch:     1%%");
     }
 
     if (hackOptions.speedUpOnRing > 1) {
@@ -372,9 +373,9 @@ void showOptionsMenu() {
         hackOptions.speedUpOnRing = 1;
     }
     if (hackOptions.speedUpOnRing == 1) {
-        sprintf(lines[3], "Speed up on ring collected: ON");
+        sprintf(lines[3], "Speed up on ring:         ON");
     } else {
-        sprintf(lines[3], "Speed up on ring collected: OFF");
+        sprintf(lines[3], "Speed up on ring:        OFF");
     }
 
 
@@ -386,9 +387,9 @@ void showOptionsMenu() {
         hackOptions.infiniteLives = 1;
     }
     if (hackOptions.infiniteLives == 1) {
-        sprintf(lines[4], "Infinite lives: ON");
+        sprintf(lines[4], "Infinite lives:           ON");
     } else {
-        sprintf(lines[4], "Infinite lives: OFF");
+        sprintf(lines[4], "Infinite lives:          OFF");
     }
 
     if (hackOptions.infiniteTime > 1) {
@@ -398,18 +399,18 @@ void showOptionsMenu() {
         hackOptions.infiniteTime = 1;
     }
     if (hackOptions.infiniteTime == 1) {
-        sprintf(lines[5], "Infinite time: ON");
+        sprintf(lines[5], "Infinite time:            ON");
     } else {
-        sprintf(lines[5], "Infinite time: OFF");
+        sprintf(lines[5], "Infinite time:           OFF");
     }
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
         char toPrint[0x100];
         if (i == optionsItemIndex) {
-            sprintf(toPrint, ">>> %s", lines[i]);
+            sprintf(toPrint, "> %s", lines[i]);
         } else {
-            sprintf(toPrint, "    %s", lines[i]);
+            sprintf(toPrint, "  %s", lines[i]);
         }
         layerRenderer_writeWord256(0, 16, yPos, toPrint, 5);
 

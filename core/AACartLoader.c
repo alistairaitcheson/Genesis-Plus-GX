@@ -9,6 +9,8 @@
 #include "AACommonTypes.h"
 #include <sys/stat.h>
 #include "AALayerRenderer.h"
+#include "genesis.h"
+#include "AAMenuDisplay.h"
 
 #define MAX_ROMS 0x100
 
@@ -233,6 +235,13 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
         saveSaveStateForCurrentGame();
     }
 
+    char vramCache[0x10000];
+    if (shouldCache != 0 && menuDisplay_getHackOptions().copyVram > 0) {
+        for (int i = 0; i < 0x10000; i++) {
+            vramCache[i] = aa_genesis_getVRamValue(i);
+        }
+    }
+
     // cartLoader_appendToLog("building rom path to:");
     // cartLoader_appendToLog(romFileNames[index]);
 
@@ -271,6 +280,25 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
 
     loadSaveStateForCurrentGame();
     aa_genesis_updateLastRam();
+
+    if (shouldCache != 0 && menuDisplay_getHackOptions().copyVram > 0) {
+        int probality = 100;
+        if (menuDisplay_getHackOptions().copyVram == 2) {
+            probality = 50;
+        } 
+        if (menuDisplay_getHackOptions().copyVram == 3) {
+            probality = 10;
+        } 
+        if (menuDisplay_getHackOptions().copyVram == 4) {
+            probality = 1;
+        } 
+
+        for (int i = 0; i < 0x10000; i++) {
+            if (rand() % 100 < probality) {
+                aa_genesis_setVRamValue(i, vramCache[i]);
+            }
+        }
+    }
 }
 
 int cartLoader_getActiveCartIndex() {

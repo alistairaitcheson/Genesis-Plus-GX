@@ -643,3 +643,11 @@ void aa_genesis_incrementWorkRamCompoundValueByInt(int index, int length, int am
         work_ram[index + i] = (uint8)valueThisIndex;
     }
 }
+
+extern uint8 aa_genesis_getVRamValue(int index) {
+    return vram[index];
+}
+
+extern void aa_genesis_setVRamValue(int index, uint8 value) {
+    vram[index] = value;
+}

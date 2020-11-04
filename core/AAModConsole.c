@@ -116,7 +116,7 @@ void modConsole_updateFrame() {
                 }
             }
         }
-        if (frameCount >= 60) {
+        if (frameCount >= 1000) {
             aa_genesis_revertToLastRam();
         }
 
@@ -174,15 +174,15 @@ void modConsole_updateFrame() {
             }
         }
 
-        if (switchCooldownPeriod > 0) {
-            showCooldownVisualiser();
-        }
-        if (shouldSwitchAfterCooldown) {
-            switchCooldownCounter++;
-            if (switchCooldownCounter >= switchCooldownPeriod) {
-                switchGame();
-            }       
-        }
+        // if (switchCooldownPeriod > 0) {
+        //     showCooldownVisualiser();
+        // }
+        // if (shouldSwitchAfterCooldown) {
+        //     switchCooldownCounter++;
+        //     if (switchCooldownCounter >= switchCooldownPeriod) {
+        //         switchGame();
+        //     }       
+        // }
 
         if (hackOpts.infiniteLives != 0) {
             updateLives();
@@ -210,15 +210,15 @@ void modConsole_updateFrame() {
 }
 
 void promptSwitchGame() {
-    shouldSwitchAfterCooldown = 1;
-    if (switchCooldownPeriod <= 0) {
+    // shouldSwitchAfterCooldown = 1;
+    // if (switchCooldownPeriod <= 0) {
         switchGame();
-    }
+    // }
 }
 
 void switchGame() {
     shouldSwitchAfterCooldown = 0;
-    switchCooldownCounter = 0;
+    switchCooldownCounter = switchCooldownPeriod;
     clearCooldownVisualiser();
 
     cartLoader_loadRandomRom();
@@ -283,7 +283,11 @@ void updateSpeedUpOnRing() {
 }
 
 void updateSwitchGameOnRing() {
-    if (ringCountHasChanged() != 0) {
+    if (switchCooldownCounter > 0) {
+        switchCooldownCounter --;
+    }
+
+    if (ringCountHasChanged() != 0 && switchCooldownCounter <= 0) {
         // layerRenderer_clearLayer(0);
         // char word[0x20];
         // sprintf(word, "%d", aa_genesis_getWorkRam(activeGameListing.ringByte));
