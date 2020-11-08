@@ -13,6 +13,7 @@ extern void layerRenderer_fill(unsigned int layer, unsigned int startX, unsigned
 extern void layerRenderer_writeWord256(unsigned int layer, unsigned int startX, unsigned int startY, char word256[], unsigned int value);
 extern void layerRenderer_populateLetters();
 extern void layerRenderer_writeWord256Centred(unsigned int layer, unsigned int startX, unsigned int startY, char word256[], unsigned int value);
+extern void layerRenderer_writeWord256WithBorder(unsigned int layer, unsigned int startX, unsigned int startY, char word256[], unsigned int value, unsigned int borderThickness, unsigned int borderValue);
 
 void populateLetter(char identifier, unsigned char line0, unsigned char line1, unsigned char line2, unsigned char line3, unsigned char line4, unsigned char line5, unsigned char line6, unsigned char line7);
 void duplicateLetter(char fromLetter, char toLetter);

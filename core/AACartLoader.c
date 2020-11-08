@@ -141,13 +141,13 @@ void listFiles(const char *path)
     {
         cartLoader_appendToLog(dp->d_name);
 
-        if (pathIsSaveState(dp->d_name, dp->d_namlen)) {
-            char pathToDelete[0x100];
-            sprintf(pathToDelete, "%s%s", path, dp->d_name);
-            cartLoader_appendToLog("removing save state");
-            cartLoader_appendToLog(pathToDelete);
-            remove(pathToDelete);
-        }
+        // if (pathIsSaveState(dp->d_name, dp->d_namlen)) {
+        //     char pathToDelete[0x100];
+        //     sprintf(pathToDelete, "%s%s", path, dp->d_name);
+        //     cartLoader_appendToLog("removing save state");
+        //     cartLoader_appendToLog(pathToDelete);
+        //     remove(pathToDelete);
+        // }
         
         if (pathIsRom(dp->d_name, dp->d_namlen) != 0 && romCount < MAX_ROMS) {
             char name[0x100];
@@ -278,7 +278,7 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     sprintf(loadedRomName, "%s", romFileNames[index]);
     hasLoadedRom = 1;
 
-    loadSaveStateForCurrentGame();
+    cartLoader_loadSaveStateForCurrentGame();
     aa_genesis_updateLastRam();
 
     if (shouldCache != 0 && menuDisplay_getHackOptions().copyVram > 0) {
@@ -414,7 +414,7 @@ void saveSaveStateForCurrentGame() {
     hasCachedSaveState[lastLoadedIndex] = 1;
 }
 
-void loadSaveStateForCurrentGame() {
+void cartLoader_loadSaveStateForCurrentGame() {
     if (hasCachedSaveState[lastLoadedIndex] == 0) {
         return;
     }
@@ -424,4 +424,65 @@ void loadSaveStateForCurrentGame() {
     // cartLoader_appendToLog(tempLog);
 
     state_load(cachedSaveStates[lastLoadedIndex]);
+}
+
+void cartLoader_saveAllSaveStatesToDisk() {
+    cartLoader_appendToLog("cartLoader_saveAllSaveStatesToDisk");
+
+    for (int i = 0; i < romCount; i++) {
+        if (hasCachedSaveState[i] != 0) {
+            char path[256];
+            sprintf(path, "%s_%s.savestate", folderPathWithTail, romFileNames[i]);
+            
+            char tempLog[256];
+            sprintf(tempLog,"Loading save state %d", i);
+            cartLoader_appendToLog(tempLog);
+            cartLoader_appendToLog(path);
+
+            FILE *f = fopen(path,"wb");
+            if (f)
+            {
+                fwrite(&cachedSaveStates[i], STATE_SIZE, 1, f);
+                fclose(f);
+                cartLoader_appendToLog("success!");
+            } else {
+                cartLoader_appendToLog("no state found");
+            }
+        } else {
+            char tempLog[256];
+            sprintf(tempLog,"No cached state at index %d", i);
+            cartLoader_appendToLog(tempLog);
+        }
+        cartLoader_appendToLog(" -- ");
+    }
+}
+
+void cartLoader_loadAllSaveStatesFromDisk() {
+    for (int i = 0; i < romCount; i++) {
+        char path[256];
+        sprintf(path, "%s_%s.savestate", folderPathWithTail, romFileNames[i]);
+
+        char tempLog[256];
+        sprintf(tempLog,"Saving save state %d", i);
+        cartLoader_appendToLog(tempLog);
+        cartLoader_appendToLog(path);
+        
+        FILE *f = fopen(path,"rb");
+        if (f)
+        {
+            fread(&cachedSaveStates[i], STATE_SIZE, 1, f);
+            fclose(f);
+            cartLoader_appendToLog("success!");
+            hasCachedSaveState[i] = 1;
+        } else {
+            cartLoader_appendToLog("not found - could not load");
+        }
+        cartLoader_appendToLog(" -- ");
+    }
+}
+
+void cartLoader_applyHackOptions() {
+    if (menuDisplay_getHackOptions().loadFromSavedState) {
+        cartLoader_loadAllSaveStatesFromDisk();
+    }
 }

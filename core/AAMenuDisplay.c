@@ -17,7 +17,7 @@ static int chosenGameIndex = 0;
 static int optionsItemIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 3;
+static int minorVersion = 4;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -62,6 +62,8 @@ void applySettingsFromArray256(int array256[]) {
     hackOptions.switchGameType = array256[3];
     hackOptions.cooldownOnSwitch = array256[4];
     hackOptions.speedUpOnRing = array256[5];
+    hackOptions.loadFromSavedState = array256[6];
+    hackOptions.automaticallySaveStatesFreq = array256[7];
 }
 
 void applyDefaultSettings() {
@@ -71,6 +73,8 @@ void applyDefaultSettings() {
     hackOptions.switchGameType = 1;
     hackOptions.cooldownOnSwitch = 0;
     hackOptions.speedUpOnRing = 0;
+    hackOptions.loadFromSavedState = 0;
+    hackOptions.automaticallySaveStatesFreq = 1;
 
     saveHackOptions();
 }
@@ -86,7 +90,8 @@ void saveHackOptions() {
     options[3] = hackOptions.switchGameType;
     options[4] = hackOptions.cooldownOnSwitch;
     options[5] = hackOptions.speedUpOnRing;
-
+    options[6] = hackOptions.loadFromSavedState;
+    options[7] = hackOptions.automaticallySaveStatesFreq;
 
     // char path[0x100];
     // char folder[0x10];
@@ -134,6 +139,7 @@ void beginGame() {
     vdp_setShouldRandomiseColours(0);
     aa_psg_unmute();
     aa_ym2612_unmute();
+    cartLoader_applyHackOptions();
     modConsole_applyHackOptions();
     cartLoader_loadRomAtIndex(chosenGameIndex, 0);
 }
@@ -214,6 +220,10 @@ void incrementOption(int byAmount) {
         hackOptions.infiniteLives += byAmount;
     } else if (optionsItemIndex == 5) {
         hackOptions.infiniteTime += byAmount;
+    } else if (optionsItemIndex == 6) {
+        hackOptions.loadFromSavedState += byAmount;
+    } else if (optionsItemIndex == 7) {
+        hackOptions.automaticallySaveStatesFreq += byAmount;
     }
 }
 
@@ -279,7 +289,7 @@ void showChooseGameMenu() {
             newNameBuf[0] = '>';
             newNameBuf[1] = '>';
             newNameBuf[2] = ' ';
-            layerRenderer_writeWord256(0, 16, yPos, newNameBuf, 5);
+            layerRenderer_writeWord256WithBorder(0, 16, yPos, newNameBuf, 5, 1, 0);
         } else {
             char newNameBuf[0x100];
             for (int j = 0; j < 0xF0; j++) {
@@ -288,7 +298,7 @@ void showChooseGameMenu() {
             newNameBuf[0] = ' ';
             newNameBuf[1] = ' ';
             newNameBuf[2] = ' ';
-            layerRenderer_writeWord256(0, 16, yPos, newNameBuf, 5);
+            layerRenderer_writeWord256WithBorder(0, 16, yPos, newNameBuf, 5, 1, 0);
         }
         yPos += 8;
     }
@@ -302,7 +312,7 @@ void showOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to play ---", 5);
 
-    int lineCount = 6;
+    int lineCount = 8;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -404,6 +414,38 @@ void showOptionsMenu() {
         sprintf(lines[5], "Infinite time:           OFF");
     }
 
+    if (hackOptions.loadFromSavedState > 1) {
+        hackOptions.loadFromSavedState = 0;
+    }
+    if (hackOptions.loadFromSavedState < 0) {
+        hackOptions.loadFromSavedState = 1;
+    }
+    if (hackOptions.loadFromSavedState == 0) {
+        sprintf(lines[6], "Begin with saved state:  OFF");
+    } else {
+        sprintf(lines[6], "Begin with saved state:   ON");
+    }
+
+    if (hackOptions.automaticallySaveStatesFreq > 5) {
+        hackOptions.automaticallySaveStatesFreq = 0;
+    }
+    if (hackOptions.automaticallySaveStatesFreq < 0) {
+        hackOptions.automaticallySaveStatesFreq = 5;
+    }
+    if (hackOptions.automaticallySaveStatesFreq == 0) {
+        sprintf(lines[7], "Auto-save state:         OFF");
+    } else if (hackOptions.automaticallySaveStatesFreq == 1) {
+        sprintf(lines[7], "Auto-save state: EVERY 1 min");
+    } else if (hackOptions.automaticallySaveStatesFreq == 2) {
+        sprintf(lines[7], "Auto-save state: EVERY 5 mins");
+    } else if (hackOptions.automaticallySaveStatesFreq == 3) {
+        sprintf(lines[7], "Auto-save state: EVERY 10 min");
+    } else if (hackOptions.automaticallySaveStatesFreq == 4) {
+        sprintf(lines[7], "Auto-save state: EVERY 15 min");
+    } else if (hackOptions.automaticallySaveStatesFreq == 5) {
+        sprintf(lines[7], "Auto-save state: EVERY 5 secs");
+    }
+
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
         char toPrint[0x100];
@@ -412,7 +454,8 @@ void showOptionsMenu() {
         } else {
             sprintf(toPrint, "  %s", lines[i]);
         }
-        layerRenderer_writeWord256(0, 16, yPos, toPrint, 5);
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
 
         if (blockedLines[i] != 0) {
             layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);

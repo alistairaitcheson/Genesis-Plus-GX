@@ -20,6 +20,8 @@ typedef struct {
     int switchGameType;
     int cooldownOnSwitch;
     int speedUpOnRing;
+    int loadFromSavedState;
+    int automaticallySaveStatesFreq;
 } HackOptions;
 
 extern void menuDisplay_showMenu(int menuNum);

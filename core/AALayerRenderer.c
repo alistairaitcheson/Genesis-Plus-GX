@@ -445,7 +445,7 @@ void layerRenderer_populateLetters() {
                     0b00001000,
                     0b00000000);
 
-    populateLetter('%%',
+    populateLetter('%',
                     0b00000000,
                     0b01100010,
                     0b01100100,
@@ -534,6 +534,15 @@ void layerRenderer_writeWord256(unsigned int layer, unsigned int startX, unsigne
             x += 8;
         }
     }
+}
+
+void layerRenderer_writeWord256WithBorder(unsigned int layer, unsigned int startX, unsigned int startY, char word256[], unsigned int value, unsigned int borderThickness, unsigned int borderValue) {
+    for (int oX = -borderThickness; oX <= borderThickness; oX ++) {
+        for (int oY = -borderThickness; oY <= borderThickness; oY ++) {
+            layerRenderer_writeWord256(layer, startX + oX, startY + oY, word256, borderValue);
+        }
+    }
+    layerRenderer_writeWord256(layer, startX, startY, word256, value);
 }
 
 void layerRenderer_writeWord256Centred(unsigned int layer, unsigned int startX, unsigned int startY, char word256[], unsigned int value) {

@@ -38,6 +38,9 @@ static int switchCooldownCounter = 0;
 
 static int shouldSwitchAfterCooldown = 0;
 
+static int saveAllStatesTimePeriod = 0;
+static int saveAllStatesTimeCounter = 0;
+
 void modConsole_initialise() {
     if (hasInitialised == 0) {
         layerRenderer_populateLetters();
@@ -101,6 +104,27 @@ void modConsole_applyHackOptions() {
     if (menuDisplay_getHackOptions().cooldownOnSwitch == 1) {
         switchCooldownPeriod = 60 * 1;
     }
+
+    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 1) {
+        // 1 minute
+        saveAllStatesTimePeriod = 60 * 60 * 1;
+    }
+    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 2) {
+        // 5 minutes
+        saveAllStatesTimePeriod = 60 * 60 * 1;
+    }
+    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 3) {
+        // 10 minutes
+        saveAllStatesTimePeriod = 60 * 60 * 1;
+    }
+    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 4) {
+        // 30 minutes
+        saveAllStatesTimePeriod = 60 * 60 * 1;
+    }
+    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 5) {
+        // 5 seconds
+        saveAllStatesTimePeriod = 60 * 5;
+    }
 }
 
 void modConsole_updateFrame() {
@@ -144,6 +168,15 @@ void modConsole_updateFrame() {
         }
 
         HackOptions hackOpts = menuDisplay_getHackOptions();
+
+        if (hackOpts.automaticallySaveStatesFreq > 0) {
+            saveAllStatesTimeCounter ++;
+            if (saveAllStatesTimeCounter > saveAllStatesTimePeriod) {
+                saveAllStatesTimeCounter = 0;
+                saveSaveStateForCurrentGame();
+                cartLoader_saveAllSaveStatesToDisk();
+            }
+        }
 
         // char optionsDisplay[0x10];
         // sprintf(optionsDisplay, "%d %d %d %d %d %d\n+++ %d %d",
