@@ -65,14 +65,13 @@ void cartLoader_run() {
     writeStringToArray32("NONE", gameListings[0].gameId);
     gameListings[0].ringByte = 0;
     gameListings[0].specialRingByte = 0;
-    gameListings[0].updateHUDFlags[0] = 0;
+    gameListings[1].updateHUDFlags[0] = 0;
     gameListings[0].livesBytes[0] = 0;
     gameListings[0].livesByteDestinations[0] = 0;
     gameListings[0].timeBytes[0] = 0;
     gameListings[0].timeByteDestinations[0] = 0;
     gameListings[0].panicBytes[0] = 0;
     gameListings[0].panicByteDestinations[0] = 0;
-    gameListings[0].extraLifeFlags[0] = 0;
 
     writeStringToArray32("SONICTHEHEDGEHOG", gameListings[1].gameId);// = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','\0'};
     gameListings[1].ringByte = 0xFE20;
@@ -81,9 +80,6 @@ void cartLoader_run() {
     gameListings[1].updateHUDFlags[1] = 0xFE1D;
     gameListings[1].updateHUDFlags[2] = 0xFE1E;
     gameListings[1].updateHUDFlags[3] = 0xFE1F;
-    gameListings[1].extraLifeFlags[0] = 0xFE1B;
-    gameListings[1].extraLifeFlags[1] = 0xFE54;
-    gameListings[1].extraLifeFlags[2] = 0;
     gameListings[1].livesBytes[0] = 0xFE12;
     gameListings[1].livesByteDestinations[0] = 0x5; 
     gameListings[1].livesBytes[1] = 0xFE13;
@@ -115,9 +111,6 @@ void cartLoader_run() {
     gameListings[3].panicByteDestinations[0] = 0x55;
     gameListings[3].panicBytes[1] = 0xB015;
     gameListings[3].panicByteDestinations[1] = 0x55;
-    gameListings[3].extraLifeFlags[0] = 0xFE1B;
-    gameListings[3].extraLifeFlags[1] = 0xFE43;
-    gameListings[3].extraLifeFlags[2] = 0xFE61;
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     copyGameListing(3, 4);
@@ -269,7 +262,6 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
 
     if (hasLoadedRom != 0 && shouldCache != 0) {
         saveSaveStateForCurrentGame();
-        cacheDataToCarryOver();
     }
 
     char vramCache[0x10000];
@@ -316,11 +308,6 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     hasLoadedRom = 1;
 
     cartLoader_loadSaveStateForCurrentGame();
-
-    if (hasLoadedRom != 0 && shouldCache != 0) {
-        restoreCarriedOverData();
-    }
-
     aa_genesis_updateLastRam();
 
     if (shouldCache != 0 && menuDisplay_getHackOptions().copyVram > 0) {
@@ -398,7 +385,7 @@ void initialiseDirectory() {
 
 void cartLoader_appendToLog(char *text) {
     initialiseDirectory();
-    // return; // <----------------- replace this with something togglable!
+    return; // <----------------- replace this with something togglable!
 
     if (openedLogWriter == 0) {
         openedLogWriter = 1;
@@ -444,8 +431,6 @@ void copyGameListing(int fromGame, int toGame) {
         gameListings[toGame].timeByteDestinations[i] = gameListings[fromGame].timeByteDestinations[i];
         gameListings[toGame].panicBytes[i] = gameListings[fromGame].panicBytes[i];
         gameListings[toGame].panicByteDestinations[i] = gameListings[fromGame].panicByteDestinations[i];
-        gameListings[toGame].updateHUDFlags[i] = gameListings[fromGame].updateHUDFlags[i];
-        gameListings[toGame].extraLifeFlags[i] = gameListings[fromGame].extraLifeFlags[i];
     }
 }
 
@@ -542,25 +527,10 @@ void cacheDataToCarryOver() {
     cachedPersistValues.lives[1] = -1;
     if (options.lives != 0) {
         if (gameListing.livesBytes[0] > 0) {
-            unsigned char value = aa_genesis_getWorkRam(gameListing.livesBytes[0]);
-            if (value > 0 && value < 100) {
-                cachedPersistValues.lives[0] = value;
-
-                // char logMsg[0x100];
-                // sprintf(logMsg, "Caching lives (0) %d from byte %04X", cachedPersistValues.lives[0], gameListing.livesBytes[0]);
-                // cartLoader_appendToLog(logMsg);
-            }
+            cachedPersistValues.lives[0] = aa_genesis_getWorkRam(gameListing.livesBytes[0]);
         }
         if (gameListing.livesBytes[1] > 0) {
-            unsigned char value = aa_genesis_getWorkRam(gameListing.livesBytes[1]);
-
-            if (value > 0 && value < 100) {
-                cachedPersistValues.lives[1] = value;
-
-                // char logMsg[0x100];
-                // sprintf(logMsg, "Caching lives (1) %d from byte %04X", cachedPersistValues.lives[1], gameListing.livesBytes[1]);
-                // cartLoader_appendToLog(logMsg);
-            }
+            cachedPersistValues.lives[1] = aa_genesis_getWorkRam(gameListing.livesBytes[1]);
         }
     }
 
@@ -568,40 +538,7 @@ void cacheDataToCarryOver() {
     cachedPersistValues.rings[1] = -1;
     if (options.rings != 0) {
         if (gameListing.ringByte > 0) {
-            cachedPersistValues.rings[0] = aa_genesis_getWorkRam(gameListing.ringByte);
-        }
-    }
-
-    cachedPersistValues.extraLifeFlag = -1;
-    
-    if (options.rings != 0 && options.lives != 0) {
-        // char logMsg2[0x100];
-        // sprintf(logMsg2, "Checking to cache extra lives state");
-        // cartLoader_appendToLog(logMsg2);
-
-        if (gameListing.ringByte > 0) {
-            int ringCount = aa_genesis_getWorkRam(gameListing.ringByte);
-            // char logMsg3[0x100];
-            // sprintf(logMsg3, "Ring byte is valid. You have %d rings", ringCount);
-            // cartLoader_appendToLog(logMsg3);
-
-            if (ringCount > 100) {
-                cachedPersistValues.extraLifeFlag = 0b11111111;
-                // char logMsg4[0x100];
-                // sprintf(logMsg4, "Over 100 rings. Setting flag to %d", cachedPersistValues.extraLifeFlag);
-                // cartLoader_appendToLog(logMsg4);
-            } else {
-                cachedPersistValues.extraLifeFlag = 0;
-                // char logMsg4[0x100];
-                // sprintf(logMsg4, "Less than 100 rings. Setting flag to %d", cachedPersistValues.extraLifeFlag);
-                // cartLoader_appendToLog(logMsg4); 
-            }
-            // if (ringCount > 200) {
-            //     cachedPersistValues.extraLifeFlag = 0b11111111;
-            //     char logMsg4[0x100];
-            //     sprintf(logMsg4, "Over 200 rings. Setting flag to %d", cachedPersistValues.extraLifeFlag);
-            //     cartLoader_appendToLog(logMsg4);
-            // }
+            cachedPersistValues.rings[0] = aa_genesis_getWorkRam(ringByte);
         }
     }
 }
@@ -610,45 +547,15 @@ void restoreCarriedOverData() {
     PersistValuesOptions options = menuDisplay_getPersistValuesOptions();
     AAGameListing gameListing = cartLoader_getActiveGameListing();
 
-    // cartLoader_appendToLog(".. restoreCarriedOverData");
-    // cartLoader_appendToLog(gameListing.gameId);
-    for (int i = 0; i < 3; i++) {
-        // char logMsgA[0x100];
-        // sprintf(logMsgA, "Extra life state at %04X is currently %02X", gameListing.extraLifeFlags[i], aa_genesis_getWorkRam(gameListing.extraLifeFlags[i]));
-        // cartLoader_appendToLog(logMsgA);
-    }
-
     if (cachedPersistValues.lives[0] != -1) {
         aa_genesis_setWorkRam(gameListing.livesBytes[0], cachedPersistValues.lives[0] % 0x100);
-
-        // char logMsg[0x100];
-        // sprintf(logMsg, "Applying lives (0) %d to byte %04X", cachedPersistValues.lives[0], gameListing.livesBytes[0]);
-        // cartLoader_appendToLog(logMsg);
     }
     if (cachedPersistValues.lives[1] != -1) {
-        aa_genesis_setWorkRam(gameListing.livesBytes[1], cachedPersistValues.lives[1] % 0x100);
-        
-        // char logMsg[0x100];
-        // sprintf(logMsg, "Applying lives (1) %d to byte %04X", cachedPersistValues.lives[1], gameListing.livesBytes[1]);
-        // cartLoader_appendToLog(logMsg);
+        aa_genesis_setWorkRam(gameListing.livesBytes[1], cachedPersistValues.lives[0] % 0x100);
     }
     
     if (cachedPersistValues.rings[0] != -1) {
         aa_genesis_setWorkRam(gameListing.ringByte, cachedPersistValues.rings[0] % 0x100);
-    }
-
-    // char logMsg2[0x100];
-    // sprintf(logMsg2, "Cached extra lives state is %d", cachedPersistValues.extraLifeFlag);
-    // cartLoader_appendToLog(logMsg2);
-    if (cachedPersistValues.extraLifeFlag != -1) {
-        for (int i = 0; i < 3; i++) {
-            if (gameListing.extraLifeFlags[i] > 0) {
-                aa_genesis_setWorkRam(gameListing.extraLifeFlags[i], cachedPersistValues.extraLifeFlag % 0x100);
-                // char logMsg[0x100];
-                // sprintf(logMsg, "Applying cached extra life state %d to byte (%d) %04X (now %02X)", cachedPersistValues.extraLifeFlag, i, gameListing.extraLifeFlags[i], aa_genesis_getWorkRam(gameListing.extraLifeFlags[i]));
-                // cartLoader_appendToLog(logMsg);
-            }
-        }
     }
 
     for (int i = 0; i < 0x20; i++) {

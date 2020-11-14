@@ -18,7 +18,6 @@ typedef struct
     int ringByte;
     int specialRingByte;
     int updateHUDFlags[0x20];
-    int extraLifeFlags[0x20];
     int livesBytes[0x20];
     int livesByteDestinations[0x20];
     int timeBytes[0x20];
