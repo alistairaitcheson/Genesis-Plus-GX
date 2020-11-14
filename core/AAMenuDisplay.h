@@ -12,6 +12,8 @@
 #define MENU_LISTING_TITLE 1
 #define MENU_LISTING_CHOOSE_GAME 2
 #define MENU_LISTING_SETTINGS 3
+#define MENU_LISTING_IN_GAME 4
+#define MENU_LISTING_RANDOMISED_ROMS 5
 
 typedef struct {
     int infiniteLives;
@@ -30,6 +32,7 @@ extern int menuDisplay_onButtonPress(int buttonIndex);
 extern HackOptions menuDisplay_getHackOptions();
 extern void menuDisplay_initialise();
 extern int menuDisplay_isShowing();
+extern void menuDisplay_hideMenuUnlessQueued();
 
 void beginGame();
 void showTitleMenu();
@@ -37,9 +40,13 @@ void refreshMenu();
 void showChooseGameMenu();
 void incrementOption(int byAmount);
 void showOptionsMenu();
+void showRandomisedGameMenu();
 
 void applySettingsFromArray256(int array256[]);
 void applyDefaultSettings();
 void saveHackOptions();
+
+void activateInGameMenuItem();
+void showInGameOptionsMenu();
 
 #endif

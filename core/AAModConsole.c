@@ -41,6 +41,8 @@ static int shouldSwitchAfterCooldown = 0;
 static int saveAllStatesTimePeriod = 0;
 static int saveAllStatesTimeCounter = 0;
 
+static int panicCountdown = 0;
+
 void modConsole_initialise() {
     if (hasInitialised == 0) {
         layerRenderer_populateLetters();
@@ -167,6 +169,11 @@ void modConsole_updateFrame() {
             }
         }
 
+        if (panicCountdown > 0) {
+            panicCountdown --;
+            modConsole_activatePanic();
+        }
+
         HackOptions hackOpts = menuDisplay_getHackOptions();
 
         if (hackOpts.automaticallySaveStatesFreq > 0) {
@@ -224,16 +231,15 @@ void modConsole_updateFrame() {
             updateTime();
         }
 
+        // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
+        //     buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+        //     buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+        //     modConsole_activatePanic();
+        // }
         if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_A) != 0) {
-            modConsole_activatePanic();
-        }
-        if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_A) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_B) != 0) {
-            modConsole_activateReset();
+            menuDisplay_showMenu(MENU_LISTING_IN_GAME);
         }
     }
 
@@ -299,6 +305,10 @@ void modConsole_activatePanic() {
             break;
         }
     }
+}
+
+void modConsole_queuePanic() {
+    panicCountdown = 5;
 }
 
 void modConsole_activateReset() {

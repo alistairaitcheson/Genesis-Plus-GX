@@ -20,6 +20,10 @@ extern void cartLoader_loadAllSaveStatesFromDisk();
 extern void cartLoader_saveAllSaveStatesToDisk();
 extern void cartLoader_applyHackOptions();
 extern void cartLoader_loadSaveStateForCurrentGame();
+extern void cartLoader_removeCurrentGameFromRandomiser();
+extern int cartLoader_gameIsBlockedFromRandomiser(int index);
+extern int cartLoder_getLastLoadedIndex();
+extern void cartLoader_toggleGameBlockedAtIndex(int index);
 
 void listFiles(const char *path);
 void addRomListing(char *path);

@@ -22,6 +22,7 @@ extern int buttonWasPressedAtIndex(int index);
 
 extern void modConsole_activatePanic();
 extern void modConsole_activateReset();
+extern void modConsole_queuePanic();
 
 extern void modConsole_applyHackOptions();
 

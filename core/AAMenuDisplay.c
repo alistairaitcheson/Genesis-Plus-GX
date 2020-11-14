@@ -15,12 +15,16 @@ static int activeMenu = MENU_LISTING_NONE;
 
 static int chosenGameIndex = 0;
 static int optionsItemIndex = 0;
+static int inGameOptionIndex = 0;
+static int randomisedGameIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 4;
+static int minorVersion = 5;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
+
+static int queuedMenu = MENU_LISTING_NONE;
 
 static HackOptions hackOptions;
 
@@ -107,6 +111,10 @@ void saveHackOptions() {
 }
 
 void menuDisplay_showMenu(int menuNum) {
+    char tempLog[256];
+    sprintf(tempLog, "menuDisplay_showMenu %d", menuNum);
+    cartLoader_appendToLog(tempLog);
+
     activeMenu = menuNum;
     vdp_setShouldRandomiseColours(1);
     aa_psg_mute();
@@ -123,12 +131,33 @@ void menuDisplay_showMenu(int menuNum) {
     if (activeMenu == MENU_LISTING_SETTINGS) {
         showOptionsMenu();
     }
+
+    if (activeMenu == MENU_LISTING_IN_GAME) {
+        showInGameOptionsMenu();
+    }
+
+    if (activeMenu == MENU_LISTING_RANDOMISED_ROMS) {
+        showRandomisedGameMenu();
+    }
 }
 
 void menuDisplay_hideMenu() {
     activeMenu = MENU_LISTING_NONE;
 
+    vdp_setShouldRandomiseColours(0);
+    aa_psg_unmute();
+    aa_ym2612_unmute();
+
     layerRenderer_clearLayer(0);
+}
+
+void menuDisplay_hideMenuUnlessQueued() {
+    if (queuedMenu != MENU_LISTING_NONE) {
+        menuDisplay_showMenu(queuedMenu);
+        queuedMenu = MENU_LISTING_NONE;
+    } else {
+        menuDisplay_hideMenu();
+    }
 }
 
 void refreshMenu() {
@@ -204,7 +233,96 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
     }
 
+    if (activeMenu == MENU_LISTING_IN_GAME) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            inGameOptionIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            inGameOptionIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C) {
+            activateInGameMenuItem();
+            menuDisplay_hideMenuUnlessQueued();
+            return 1;
+        }
+    }
+
+    if (activeMenu == MENU_LISTING_RANDOMISED_ROMS) {
+        int romCount = cartLoader_getRomCount();
+        if (buttonIndex == INPUT_INDEX_START) {
+            int romIndex = cartLoder_getLastLoadedIndex();
+            if (cartLoader_gameIsBlockedFromRandomiser(romIndex) != 0) {
+                cartLoader_loadRandomRom();
+            }
+            menuDisplay_hideMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_UP) {
+            randomisedGameIndex--;
+            if (randomisedGameIndex < 0) {
+                randomisedGameIndex = romCount - 1;
+            }
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            randomisedGameIndex++;
+            if (randomisedGameIndex >= romCount) {
+                chosenGameIndex = 0;
+            }
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_LEFT || buttonIndex == INPUT_INDEX_RIGHT) {
+            // tidy up the menu first!!
+            vdp_setShouldRandomiseColours(0);
+            aa_psg_unmute();
+            aa_ym2612_unmute();
+
+            cartLoader_toggleGameBlockedAtIndex(randomisedGameIndex);
+            refreshMenu();
+            return 1;
+        }
+    }
+
     return 0;
+}
+
+void activateInGameMenuItem() {
+    // tidy up the menu first!!
+    vdp_setShouldRandomiseColours(0);
+    aa_psg_unmute();
+    aa_ym2612_unmute();
+
+    if (inGameOptionIndex == 1) {
+        saveSaveStateForCurrentGame();
+        cartLoader_saveAllSaveStatesToDisk();
+    }
+    if (inGameOptionIndex == 2) {
+        cartLoader_loadAllSaveStatesFromDisk();
+        cartLoader_loadSaveStateForCurrentGame();
+    }
+    if (inGameOptionIndex == 3) {
+        cartLoader_removeCurrentGameFromRandomiser();
+    }
+    if (inGameOptionIndex == 4) {
+        randomisedGameIndex = cartLoader_getActiveCartIndex();
+        queuedMenu = MENU_LISTING_RANDOMISED_ROMS;
+    }
+    if (inGameOptionIndex == 5) {
+        modConsole_queuePanic();
+    }
+    if (inGameOptionIndex == 6) {
+        modConsole_activateReset();
+    }
+
+    inGameOptionIndex = 0;
 }
 
 void incrementOption(int byAmount) {
@@ -236,8 +354,8 @@ void showTitleMenu() {
     sprintf(titleText, "Alistair's Magic Box V%d.%02d", majorVersion, minorVersion);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, titleText, 5);
 
-    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "HOLD (START + UP + A + B)", 5);
-    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 40, "to reset active game", 5);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "HOLD (START + UP + B)", 5);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 40, "for emulator menu", 5);
 
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 56, "--- your roms ---", 5);
     for (int i = 0; i < cartLoader_getRomCount() && i < 16; i++)
@@ -463,4 +581,109 @@ void showOptionsMenu() {
 
         yPos += 8;
     }
+}
+
+void showInGameOptionsMenu() {
+    cartLoader_appendToLog("showInGameOptionsMenu");
+
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "--- press A/B/C to activate option ---", 5);
+
+    int lineCount = 8;
+    char lines[lineCount][0x80];
+
+    if (inGameOptionIndex < 0) {
+        inGameOptionIndex = 0;
+    }
+    if (inGameOptionIndex >= lineCount) {
+        inGameOptionIndex = lineCount - 1;
+    }
+
+    sprintf(lines[0], "Back to game");
+    sprintf(lines[1], "Save all game states to disk");
+    sprintf(lines[2], "Load all game states from disk" );
+    sprintf(lines[3], "Remove this game from randomiser" );
+    sprintf(lines[4], "Toggle games in randomiser" );
+    sprintf(lines[5], "Kill Sonic");
+    sprintf(lines[6], "Reset Game");
+    sprintf(lines[7], "Back to game");
+
+    int yPos = 48;
+    for (int i = 0; i < lineCount; i++) {
+        char lineBuf[0x100];
+        if (i == inGameOptionIndex) {
+            sprintf(lineBuf, ">>   %s", lines[i]);
+        } else {
+            sprintf(lineBuf, "   %s", lines[i]);
+
+        }
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, lineBuf, 5, 1, 0);
+        yPos += 8;
+    }
+}
+
+void showRandomisedGameMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Which games can be randomly", 5);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 24, "switched to?", 5);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to return ---", 5);
+
+    int listHeight = 16;
+    int halfListHeight = listHeight / 2;
+    int romCount = cartLoader_getRomCount();
+
+    int startIndex = randomisedGameIndex - halfListHeight;
+    int endIndex = randomisedGameIndex + halfListHeight;
+    if (startIndex < 0) {
+        startIndex = 0;
+        endIndex = listHeight;
+    } else if (endIndex >= romCount) {
+        endIndex = romCount - 1;
+        startIndex = endIndex - listHeight;
+        if (startIndex < 0) {
+            startIndex = 0;
+        }
+    }
+
+    char gameRandomStates[romCount][0x100];
+    for (int i = 0; i < romCount; i++) {
+        char fileNameBuf[0x100];
+        cartLoader_getRomFileName(i, fileNameBuf);
+
+        if (cartLoader_gameIsBlockedFromRandomiser(i)) {
+            sprintf(gameRandomStates[i], "off: %s", fileNameBuf);
+        } else {
+            sprintf(gameRandomStates[i], "on:  %s", fileNameBuf);
+        }   
+    }
+
+    int yPos = 32;
+    for (int i = startIndex; i < endIndex; i++) {
+        if (i == randomisedGameIndex) {
+            char newNameBuf[0x100];
+            for (int j = 0; j < 0xF0; j++) {
+                newNameBuf[j + 3] = gameRandomStates[i][j];
+            }
+            newNameBuf[0] = '>';
+            newNameBuf[1] = '>';
+            newNameBuf[2] = ' ';
+            layerRenderer_writeWord256WithBorder(0, 16, yPos, newNameBuf, 5, 1, 0);
+        } else {
+            char newNameBuf[0x100];
+            for (int j = 0; j < 0xF0; j++) {
+                newNameBuf[j + 3] = gameRandomStates[i][j];
+            }
+            newNameBuf[0] = ' ';
+            newNameBuf[1] = ' ';
+            newNameBuf[2] = ' ';
+            layerRenderer_writeWord256WithBorder(0, 16, yPos, newNameBuf, 5, 1, 0);
+        }
+        yPos += 8;
+    }
+
 }

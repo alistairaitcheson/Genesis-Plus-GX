@@ -18,6 +18,7 @@ static unsigned int romCount;
 static char *folderPath = "_magicbox";
 static char *folderPathWithTail = "_magicbox/";
 static char romFileNames[MAX_ROMS][0x100];
+static int romsRemovedFromRandomiser[MAX_ROMS];
 
 static char *logLines[0x100];
 static unsigned int logLineCount;
@@ -48,6 +49,7 @@ void writeFolderPathIntoArray32(char array32[]) {
 void cartLoader_run() {
     for (int i = 0; i < MAX_ROMS; i++) {
         hasCachedSaveState[i] = 0;
+        romsRemovedFromRandomiser[i] = 0;
     }
     
     cartLoader_appendToLog("cartLoader_run");
@@ -199,21 +201,43 @@ unsigned int cartLoader_getRomCount() {
 
 static int loadAttemptCount = 0;
 void cartLoader_loadRandomRom() {
-    loadAttemptCount++;
-    if (romCount > 1) {
-        int nextIndex = rand() % romCount;
-        
-        // char logText[0x100];
-        // sprintf(logText, "%d - %d - %d", loadAttemptCount, nextIndex, lastLoadedIndex);
-        // layerRenderer_fill(0, 0, loadAttemptCount * 8, 100, 8, 1);
-        // layerRenderer_writeWord256(0, 0, loadAttemptCount * 8, logText, 5);
-
-        if (nextIndex == lastLoadedIndex) {
-            cartLoader_loadRandomRom();
-        } else {
-            cartLoader_loadRomAtIndex(nextIndex, 1);
-            loadAttemptCount = 0;
+    int candidates[MAX_ROMS];
+    int candidateCount = 0;
+    for (int i = 0; i < romCount; i++) {
+        if (romsRemovedFromRandomiser[i] == 0 && i != lastLoadedIndex) {
+            candidates[candidateCount] = i;
+            candidateCount++;
         }
+    }
+
+    loadAttemptCount++;
+    if (candidateCount > 0) {
+        int whichCandidate = rand() % candidateCount;
+        int nextIndex = candidates[whichCandidate]; 
+        
+        cartLoader_loadRomAtIndex(nextIndex, 1);
+        loadAttemptCount = 0;
+    }
+}
+
+int cartLoder_getLastLoadedIndex() {
+    return lastLoadedIndex;
+}
+
+void cartLoader_removeCurrentGameFromRandomiser() {
+    if (lastLoadedIndex >= 0 && lastLoadedIndex < MAX_ROMS) {
+        romsRemovedFromRandomiser[lastLoadedIndex] = 1;
+        cartLoader_loadRandomRom();
+    }
+}
+
+int cartLoader_gameIsBlockedFromRandomiser(int index) {
+    return romsRemovedFromRandomiser[index];
+}
+
+void cartLoader_toggleGameBlockedAtIndex(int index) {
+    if (index >= 0 && index < MAX_ROMS) {
+        romsRemovedFromRandomiser[index] = 1 - romsRemovedFromRandomiser[index];
     }
 }
 
