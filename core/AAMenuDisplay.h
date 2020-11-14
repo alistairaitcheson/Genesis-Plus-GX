@@ -25,6 +25,7 @@ typedef struct {
     int speedUpOnRing;
     int loadFromSavedState;
     int automaticallySaveStatesFreq;
+    int shouldWriteToLog;
 } HackOptions;
 
 typedef struct {

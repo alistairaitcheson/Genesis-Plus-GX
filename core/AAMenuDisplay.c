@@ -103,6 +103,7 @@ void applySettingsFromArray256(int array256[]) {
     hackOptions.speedUpOnRing = array256[5];
     hackOptions.loadFromSavedState = array256[6];
     hackOptions.automaticallySaveStatesFreq = array256[7];
+    hackOptions.shouldWriteToLog = array256[8];
 }
 
 void applyDefaultSettings() {
@@ -114,6 +115,7 @@ void applyDefaultSettings() {
     hackOptions.speedUpOnRing = 0;
     hackOptions.loadFromSavedState = 0;
     hackOptions.automaticallySaveStatesFreq = 1;
+    hackOptions.shouldWriteToLog = 0;
 
     saveHackOptions();
 }
@@ -131,6 +133,7 @@ void saveHackOptions() {
     options[5] = hackOptions.speedUpOnRing;
     options[6] = hackOptions.loadFromSavedState;
     options[7] = hackOptions.automaticallySaveStatesFreq;
+    options[8] = hackOptions.shouldWriteToLog;
 
     // char path[0x100];
     // char folder[0x10];
@@ -265,13 +268,17 @@ int menuDisplay_onButtonPress(int buttonIndex) {
 
     if (activeMenu == MENU_LISTING_SETTINGS) {
         if (buttonIndex == INPUT_INDEX_START) {
-            saveHackOptions();
-            if (gameHasStarted == 0) {
-                menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
+            if (optionsItemIndex == 8) {
+                menuDisplay_showMenu(MENU_LISTING_PERSIST_VALUES);
             } else {
-                cartLoader_applyHackOptions(gameHasStarted);
-                modConsole_applyHackOptions();
-                menuDisplay_hideMenu();
+                saveHackOptions();
+                if (gameHasStarted == 0) {
+                    menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
+                } else {
+                    cartLoader_applyHackOptions(gameHasStarted);
+                    modConsole_applyHackOptions();
+                    menuDisplay_hideMenu();
+                }
             }
             return 1;
         }
@@ -455,6 +462,8 @@ void incrementOption(int byAmount) {
         hackOptions.automaticallySaveStatesFreq += byAmount;
     } else if (optionsItemIndex == 8) {
         menuDisplay_showMenu(MENU_LISTING_PERSIST_VALUES);
+    } else if (optionsItemIndex == 9) {
+        hackOptions.shouldWriteToLog += byAmount;
     }
 }
 
@@ -543,7 +552,7 @@ void showOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to play ---", 5);
 
-    int lineCount = 9;
+    int lineCount = 10;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -682,6 +691,18 @@ void showOptionsMenu() {
     }
 
     sprintf(lines[8], "Persist values between games >>");
+
+    if (hackOptions.shouldWriteToLog > 1) {
+        hackOptions.shouldWriteToLog = 0;
+    }
+    if (hackOptions.shouldWriteToLog < 0) {
+        hackOptions.shouldWriteToLog = 1;
+    }
+    if (hackOptions.shouldWriteToLog == 0) {
+        sprintf(lines[9], "Write to debug log:       OFF");
+    } else {
+        sprintf(lines[9], "Write to debug log:        ON"); 
+    }
 
 
     int yPos = 32;

@@ -122,7 +122,6 @@ void cartLoader_run() {
     copyGameListing(3, 5);
 
     gameListingCount = 6;
-
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
@@ -393,7 +392,10 @@ void initialiseDirectory() {
 
 void cartLoader_appendToLog(char *text) {
     initialiseDirectory();
-    return; // <----------------- replace this with something togglable!
+    if (menuDisplay_getHackOptions().shouldWriteToLog == 0) {
+        return;
+    }
+    // return; // <----------------- replace this with something togglable!
 
     if (openedLogWriter == 0) {
         openedLogWriter = 1;
@@ -432,7 +434,7 @@ void copyGameListing(int fromGame, int toGame) {
     gameListings[toGame].ringByte = gameListings[fromGame].ringByte;
     gameListings[toGame].specialRingByte = gameListings[fromGame].specialRingByte;
 
-    for (int i = 0; i < 0x20; i++) {
+    for (int i = 0; i < 8; i++) {
         gameListings[toGame].livesBytes[i] = gameListings[fromGame].livesBytes[i];
         gameListings[toGame].livesByteDestinations[i] = gameListings[fromGame].livesByteDestinations[i];
         gameListings[toGame].timeBytes[i] = gameListings[fromGame].timeBytes[i];
@@ -532,6 +534,9 @@ void cacheDataToCarryOver() {
     PersistValuesOptions options = menuDisplay_getPersistValuesOptions();
     AAGameListing gameListing = cartLoader_getActiveGameListing();
 
+    cartLoader_appendToLog("cacheDataToCarryOver");
+    cartLoader_appendToLog(gameListing.gameId);
+
     // we abuse the fact that the first two values are "life count" and the third is "update the life counter plz"
     cachedPersistValues.lives[0] = -1;
     cachedPersistValues.lives[1] = -1;
@@ -556,10 +561,25 @@ void cacheDataToCarryOver() {
     if (options.rings != 0) {
         if (gameListing.ringBytesForTransfer[0] > 0) {
             cachedPersistValues.rings[0] = aa_genesis_getWorkRam(gameListing.ringBytesForTransfer[0] % 0x10000);
+
+            char tempLog[0x100];
+            sprintf(tempLog, "Persisiting ring count %d at %04X", cachedPersistValues.rings[0], gameListing.ringBytesForTransfer[0]);
+            cartLoader_appendToLog(tempLog);
         }
+        //  else {
+        //     char tempLog[0x100];
+        //     sprintf(tempLog, "Will not persisit at %04X", gameListing.ringBytesForTransfer[0]);
+        //     cartLoader_appendToLog(tempLog);
+        // }
         if (gameListing.ringBytesForTransfer[1] > 0) {
             cachedPersistValues.rings[1] = aa_genesis_getWorkRam(gameListing.ringBytesForTransfer[1] % 0x10000);
+            
+            char tempLog[0x100];
+            sprintf(tempLog, "Persisiting ring count %d at %04X", cachedPersistValues.rings[1], gameListing.ringBytesForTransfer[1]);
+            cartLoader_appendToLog(tempLog);
         }
+    } else {
+        cartLoader_appendToLog("Not caching ring count");
     }
 }
 
@@ -576,14 +596,18 @@ void restoreCarriedOverData() {
     
     if (cachedPersistValues.rings[0] != -1) {
         aa_genesis_setWorkRam(gameListing.ringBytesForTransfer[0] % 0x10000, cachedPersistValues.rings[0] % 0x100);
+
+        char tempLog[0x100];
+        sprintf(tempLog, "Wrote ring count %d to %04X", cachedPersistValues.rings[0], gameListing.ringBytesForTransfer[0]);
+        cartLoader_appendToLog(tempLog);
     }
     if (cachedPersistValues.rings[1] != -1) {
         aa_genesis_setWorkRam(gameListing.ringBytesForTransfer[1] % 0x10000, cachedPersistValues.rings[1] % 0x100);
     }
 
-    for (int i = 0; i < 0x20; i++) {
+    for (int i = 0; i < 8; i++) {
         if (gameListing.updateHUDFlags[i] >= 0) {
-            aa_genesis_setWorkRam(gameListing.updateHUDFlags[i] % 0x10000, 0x0F);
+            aa_genesis_setWorkRam(gameListing.updateHUDFlags[i] % 0x10000, 0xFF);
         }
     }
 }

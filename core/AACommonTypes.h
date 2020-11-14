@@ -17,14 +17,14 @@ typedef struct
     char gameId[0x20];
     int ringByte;
     int specialRingByte;
-    int updateHUDFlags[0x20];
-    int ringBytesForTransfer[0x20];
-    int livesBytes[0x20];
-    int livesByteDestinations[0x20];
-    int timeBytes[0x20];
-    int timeByteDestinations[0x20];
-    int panicBytes[0x20];
-    int panicByteDestinations[0x20];
+    int updateHUDFlags[8];
+    int ringBytesForTransfer[8];
+    int livesBytes[8];
+    int livesByteDestinations[8];
+    int timeBytes[8];
+    int timeByteDestinations[8];
+    int panicBytes[8];
+    int panicByteDestinations[8];
 } AAGameListing;
 
 typedef struct {
