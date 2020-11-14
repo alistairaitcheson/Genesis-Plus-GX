@@ -73,6 +73,9 @@ void cartLoader_run() {
     gameListings[0].panicBytes[0] = 0;
     gameListings[0].panicByteDestinations[0] = 0;
     gameListings[0].ringBytesForTransfer[0] = 0;
+    gameListings[0].speedBytesForTransfer[0] = 0;
+    gameListings[0].timeBytesForTransfer[0] = 0;
+    gameListings[0].momentumBytesForTransfer[0] = 0;
 
     writeStringToArray32("SONICTHEHEDGEHOG", gameListings[1].gameId);// = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','\0'};
     gameListings[1].ringByte = 0xFE20;
@@ -99,6 +102,20 @@ void cartLoader_run() {
     gameListings[1].panicByteDestinations[1] = 0;
     gameListings[1].panicBytes[2] = 0xF75C;
     gameListings[1].panicByteDestinations[2] = 0;
+    gameListings[1].speedBytesForTransfer[0] = 0xF760;
+    gameListings[1].speedBytesForTransfer[1] = 0xF761;
+    gameListings[1].speedBytesForTransfer[2] = 0xF762;
+    gameListings[1].speedBytesForTransfer[3] = 0xF763;
+    gameListings[1].timeBytesForTransfer[0] = 0xFE22;
+    gameListings[1].timeBytesForTransfer[1] = 0xFE23;
+    gameListings[1].timeBytesForTransfer[2] = 0xFE24;
+    gameListings[1].timeBytesForTransfer[3] = 0xFE25;
+    gameListings[1].momentumBytesForTransfer[0] = 0xD010;
+    gameListings[1].momentumBytesForTransfer[1] = 0xD011;
+    gameListings[1].momentumBytesForTransfer[2] = 0xD012;
+    gameListings[1].momentumBytesForTransfer[3] = 0xD013;
+    gameListings[1].momentumBytesForTransfer[4] = 0xD014;
+    gameListings[1].momentumBytesForTransfer[5] = 0xD015;
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
     copyGameListing(1, 2);
@@ -106,6 +123,12 @@ void cartLoader_run() {
     gameListings[2].panicByteDestinations[0] = 0x55;
     gameListings[2].panicBytes[1] = 0xB00D;
     gameListings[2].panicByteDestinations[1] = 0x55;
+    gameListings[2].momentumBytesForTransfer[0] = 0xB010;
+    gameListings[2].momentumBytesForTransfer[1] = 0xB011;
+    gameListings[2].momentumBytesForTransfer[2] = 0xB012;
+    gameListings[2].momentumBytesForTransfer[3] = 0xB013;
+    gameListings[2].momentumBytesForTransfer[4] = 0xB014;
+    gameListings[2].momentumBytesForTransfer[5] = 0xB015;
 
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
     copyGameListing(1, 3);
@@ -114,6 +137,13 @@ void cartLoader_run() {
     gameListings[3].panicByteDestinations[0] = 0x55;
     gameListings[3].panicBytes[1] = 0xB015;
     gameListings[3].panicByteDestinations[1] = 0x55;
+    gameListings[3].momentumBytesForTransfer[0] = 0xB018;
+    gameListings[3].momentumBytesForTransfer[1] = 0xB019;
+    gameListings[3].momentumBytesForTransfer[2] = 0xB01A;
+    gameListings[3].momentumBytesForTransfer[3] = 0xB01B;
+    gameListings[3].momentumBytesForTransfer[4] = 0xB01C;
+    gameListings[3].momentumBytesForTransfer[5] = 0xB01D;
+
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     copyGameListing(3, 4);
@@ -313,7 +343,8 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     cartLoader_loadSaveStateForCurrentGame();
 
     if (hasLoadedRom != 0 && shouldCache != 0) {
-        restoreCarriedOverData();
+        cartLoader_restoreCarriedOverData();
+        modConsole_flagToApplyCache();
     }
     aa_genesis_updateLastRam();
 
@@ -443,6 +474,9 @@ void copyGameListing(int fromGame, int toGame) {
         gameListings[toGame].panicByteDestinations[i] = gameListings[fromGame].panicByteDestinations[i];
         gameListings[toGame].updateHUDFlags[i] = gameListings[fromGame].updateHUDFlags[i];
         gameListings[toGame].ringBytesForTransfer[i] = gameListings[fromGame].ringBytesForTransfer[i];
+        gameListings[toGame].speedBytesForTransfer[i] = gameListings[fromGame].speedBytesForTransfer[i];
+        gameListings[toGame].timeBytesForTransfer[i] = gameListings[fromGame].timeBytesForTransfer[i];
+        gameListings[toGame].momentumBytesForTransfer[i] = gameListings[fromGame].momentumBytesForTransfer[i];
     }
 }
 
@@ -534,7 +568,7 @@ void cacheDataToCarryOver() {
     PersistValuesOptions options = menuDisplay_getPersistValuesOptions();
     AAGameListing gameListing = cartLoader_getActiveGameListing();
 
-    cartLoader_appendToLog("cacheDataToCarryOver");
+    cartLoader_appendToLog(" - - - cacheDataToCarryOver");
     cartLoader_appendToLog(gameListing.gameId);
 
     // we abuse the fact that the first two values are "life count" and the third is "update the life counter plz"
@@ -581,17 +615,69 @@ void cacheDataToCarryOver() {
     } else {
         cartLoader_appendToLog("Not caching ring count");
     }
+
+    for (int i = 0; i < 4; i++) {
+        cachedPersistValues.topSpeed[i] = -1;
+    }
+    if (options.topSpeed != 0) {
+        for (int i = 0; i < 4; i++) {
+            if (gameListing.speedBytesForTransfer[i] > 0) {
+                cachedPersistValues.topSpeed[i] = aa_genesis_getWorkRam(gameListing.speedBytesForTransfer[i] % 0x10000);                
+            }
+        }
+    }
+
+    for (int i = 0; i < 4; i++) {
+        cachedPersistValues.time[i] = -1;
+    }
+    if (options.time != 0) {
+        for (int i = 0; i < 4; i++) {
+            if (gameListing.timeBytesForTransfer[i] > 0) {
+                cachedPersistValues.time[i] = aa_genesis_getWorkRam(gameListing.timeBytesForTransfer[i] % 0x10000);       
+                char tempLog[0x100];
+                sprintf(tempLog, "Persisiting time value (%i) %d at %04X", i, cachedPersistValues.time[i], gameListing.timeBytesForTransfer[i]);
+                cartLoader_appendToLog(tempLog);         
+            } else {
+                char tempLog[0x100];
+                sprintf(tempLog, "Will not persist time value (%i) at %04X", i, gameListing.timeBytesForTransfer[i]);
+                cartLoader_appendToLog(tempLog);   
+            }
+        }
+    }
+    
+    for (int i = 0; i < 6; i++) {
+        cachedPersistValues.momentum[i] = -1;
+    }
+    if (options.momentum != 0) {
+        for (int i = 0; i < 6; i++) {
+            if (gameListing.momentumBytesForTransfer[i] > 0) {
+                cachedPersistValues.momentum[i] = aa_genesis_getWorkRam(gameListing.momentumBytesForTransfer[i] % 0x10000);       
+                char tempLog[0x100];
+                sprintf(tempLog, "Persisiting momentum value (%i) %d at %04X", i, cachedPersistValues.momentum[i], gameListing.momentumBytesForTransfer[i]);
+                cartLoader_appendToLog(tempLog);         
+            } else {
+                char tempLog[0x100];
+                sprintf(tempLog, "Will not persist momentum value (%i) at %04X", i, gameListing.momentumBytesForTransfer[i]);
+                cartLoader_appendToLog(tempLog);   
+            }
+        }
+    }
 }
 
-void restoreCarriedOverData() {
+void cartLoader_restoreCarriedOverData() {
     PersistValuesOptions options = menuDisplay_getPersistValuesOptions();
     AAGameListing gameListing = cartLoader_getActiveGameListing();
 
+    cartLoader_appendToLog("cartLoader_restoreCarriedOverData");
+    cartLoader_appendToLog(gameListing.gameId);
+
     if (cachedPersistValues.lives[0] != -1) {
         aa_genesis_setWorkRam(gameListing.livesBytes[0], cachedPersistValues.lives[0] % 0x100);
+        flagHUDtoUpdate();
     }
     if (cachedPersistValues.lives[1] != -1) {
         aa_genesis_setWorkRam(gameListing.livesBytes[1], cachedPersistValues.lives[1] % 0x100);
+        flagHUDtoUpdate();
     }
     
     if (cachedPersistValues.rings[0] != -1) {
@@ -600,14 +686,84 @@ void restoreCarriedOverData() {
         char tempLog[0x100];
         sprintf(tempLog, "Wrote ring count %d to %04X", cachedPersistValues.rings[0], gameListing.ringBytesForTransfer[0]);
         cartLoader_appendToLog(tempLog);
+        flagHUDtoUpdate();
     }
     if (cachedPersistValues.rings[1] != -1) {
         aa_genesis_setWorkRam(gameListing.ringBytesForTransfer[1] % 0x10000, cachedPersistValues.rings[1] % 0x100);
+        flagHUDtoUpdate();
     }
 
-    for (int i = 0; i < 8; i++) {
-        if (gameListing.updateHUDFlags[i] >= 0) {
-            aa_genesis_setWorkRam(gameListing.updateHUDFlags[i] % 0x10000, 0xFF);
+    for (int i = 0; i < 4; i++) {
+        if (cachedPersistValues.topSpeed[i] != -1 && gameListing.speedBytesForTransfer[i] > 0) {
+            aa_genesis_setWorkRam(gameListing.speedBytesForTransfer[i] % 0x10000, cachedPersistValues.topSpeed[i] % 0x100);
+        }
+    }
+
+    for (int i = 0; i < 4; i++) {
+        if (cachedPersistValues.time[i] != -1 && gameListing.timeBytesForTransfer[i] > 0) {
+            aa_genesis_setWorkRam(gameListing.timeBytesForTransfer[i] % 0x10000, cachedPersistValues.time[i] % 0x100);
+
+            // if (i == 3) {
+            // aa_genesis_setWorkRam(0xFE25, 59);
+            // }
+
+            char tempLog[0x100];
+            sprintf(tempLog, "Wrting time value (%i) %d at %04X", i, cachedPersistValues.time[i], gameListing.timeBytesForTransfer[i]);
+            cartLoader_appendToLog(tempLog); 
+            flagHUDtoUpdate();
+        }
+    }
+    
+    for (int i = 0; i < 6; i++) {
+        if (cachedPersistValues.momentum[i] != -1 && gameListing.momentumBytesForTransfer[i] > 0) {
+            aa_genesis_setWorkRam(gameListing.momentumBytesForTransfer[i] % 0x10000, cachedPersistValues.momentum[i] % 0x100);
+
+            char tempLog[0x100];
+            sprintf(tempLog, "Wrting momentum value (%i) %d at %04X", i, cachedPersistValues.momentum[i], gameListing.momentumBytesForTransfer[i]);
+            cartLoader_appendToLog(tempLog); 
+            flagHUDtoUpdate();
         }
     }
 }
+
+// static int shouldUpdateHUD = 0;
+// int cartLoader_getFlagToUpdateHUD() {
+//     return shouldUpdateHUD;
+// }
+
+void flagHUDtoUpdate() {
+    // shouldUpdateHUD = 1;
+
+    // problem: the timer doesn't update nicely because the "I should change the HUD"
+    //          flag is set in the game's code, and is based on the seconds timer
+
+    AAGameListing gameListing = cartLoader_getActiveGameListing();
+
+    for (int i = 0; i < 8; i++) {
+        if (gameListing.updateHUDFlags[i] > 0) {
+            aa_genesis_setWorkRam(gameListing.updateHUDFlags[i] % 0x10000, 0xFF);
+
+            char tempLog[0x100];
+            sprintf(tempLog, "Updating HUD (%i)at %04X", i, gameListing.updateHUDFlags[i]);
+            cartLoader_appendToLog(tempLog); 
+        }
+    }
+
+    // shouldUpdateHUD = 0;
+}
+
+// void cartLoader_UpdateHUD() {
+//     AAGameListing gameListing = cartLoader_getActiveGameListing();
+
+//     for (int i = 0; i < 8; i++) {
+//         if (gameListing.updateHUDFlags[i] > 0) {
+//             aa_genesis_setWorkRam(gameListing.updateHUDFlags[i] % 0x10000, 0xFF);
+
+//             char tempLog[0x100];
+//             sprintf(tempLog, "Updating HUD (%i)at %04X", i, gameListing.updateHUDFlags[i]);
+//             cartLoader_appendToLog(tempLog); 
+//         }
+//     }
+
+//     shouldUpdateHUD = 0;
+// }

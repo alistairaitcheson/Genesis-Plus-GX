@@ -25,6 +25,7 @@ extern void modConsole_activateReset();
 extern void modConsole_queuePanic();
 
 extern void modConsole_applyHackOptions();
+extern void modConsole_flagToApplyCache();
 
 
 void updateSpeedUpOnRing();

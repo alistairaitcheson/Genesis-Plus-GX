@@ -43,6 +43,12 @@ static int saveAllStatesTimeCounter = 0;
 
 static int panicCountdown = 0;
 
+static int shouldApplyCacheNextFrame = 0;
+
+void modConsole_flagToApplyCache() {
+    shouldApplyCacheNextFrame = 1;
+}
+
 void modConsole_initialise() {
     if (hasInitialised == 0) {
         layerRenderer_populateLetters();
@@ -170,6 +176,12 @@ void modConsole_updateFrame() {
         // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
 
     } else {
+        if (shouldApplyCacheNextFrame > 0) {
+            shouldApplyCacheNextFrame--;
+            cartLoader_restoreCarriedOverData();
+            aa_genesis_updateLastRam();
+        }
+
         if (framesUntilClearLayer > 0) {
             framesUntilClearLayer--;
             if (framesUntilClearLayer == 0) {
@@ -179,6 +191,9 @@ void modConsole_updateFrame() {
 
         if (panicCountdown > 0) {
             panicCountdown --;
+            // char tempLog[0x100];
+            // sprintf(tempLog, "Panic countdown %d", panicCountdown);
+            // cartLoader_appendToLog(tempLog);
             modConsole_activatePanic();
         }
 
@@ -306,17 +321,26 @@ void updateTime() {
 }
 
 void modConsole_activatePanic() {
+    cartLoader_appendToLog("modConsole_activatePanic");
     for (int i = 0; i < 3; i++) {
+
         if (activeGameListing.panicBytes[i] != 0) {
             aa_genesis_setWorkRam(activeGameListing.panicBytes[i], activeGameListing.panicByteDestinations[i]);
+            char tempLog[0x100];
+            sprintf(tempLog, "Setting panic byte at index %i (%04X -> %02X", i, activeGameListing.panicBytes[i], activeGameListing.panicByteDestinations[i]);
+            cartLoader_appendToLog(tempLog);
         } else {
+            char tempLog[0x100];
+            sprintf(tempLog, "Nothing at index %i", i);
+            cartLoader_appendToLog(tempLog);
             break;
         }
     }
 }
 
 void modConsole_queuePanic() {
-    panicCountdown = 5;
+    panicCountdown = 60;
+    cartLoader_appendToLog("modConsole_queuePanic");
 }
 
 void modConsole_activateReset() {

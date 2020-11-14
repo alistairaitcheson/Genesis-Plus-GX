@@ -25,6 +25,9 @@ typedef struct
     int timeByteDestinations[8];
     int panicBytes[8];
     int panicByteDestinations[8];
+    int speedBytesForTransfer[8];
+    int timeBytesForTransfer[8];
+    int momentumBytesForTransfer[8];
 } AAGameListing;
 
 typedef struct {
