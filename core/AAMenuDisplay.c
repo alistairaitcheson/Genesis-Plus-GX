@@ -78,11 +78,18 @@ void menuDisplay_initialise() {
 }
 
 void applyPersistValuesFromArray256(int array256[]) {
+    for (int i = 0; i < 0x100; i++) {
+        if (array256[i] != 0) {
+            array256[i] = 1;
+        }
+    }
+
     persistValuesOptions.lives = array256[0];
     persistValuesOptions.rings = array256[1];
     persistValuesOptions.topSpeed = array256[2];
     persistValuesOptions.momentum = array256[3];
     persistValuesOptions.time = array256[4];
+    persistValuesOptions.score = array256[5];
 }
 
 void applyDefaultPersistValues() {
@@ -91,6 +98,7 @@ void applyDefaultPersistValues() {
     persistValuesOptions.topSpeed = 0;
     persistValuesOptions.momentum = 0;
     persistValuesOptions.time = 0;
+    persistValuesOptions.score = 0;
 }
 
 
@@ -156,6 +164,7 @@ void saveHackOptions() {
     persistValues[2] = persistValuesOptions.topSpeed;
     persistValues[3] = persistValuesOptions.momentum;
     persistValues[4] = persistValuesOptions.time;
+    persistValues[5] = persistValuesOptions.score;
 
     remove("_magicbox/__persistValues.data");
     FILE *persistValuesWriter = fopen("_magicbox/__persistValues.data", "wb");
@@ -405,6 +414,9 @@ void togglePersistValue(int index) {
     }
     if (index == 4) {
         persistValuesOptions.time = 1 - persistValuesOptions.time;
+    }
+    if (index == 5) {
+        persistValuesOptions.score = 1 - persistValuesOptions.score;
     }
 }
 
@@ -845,7 +857,7 @@ void showPersistValuesMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "persist values between games", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to confirm ---", 5);
 
-    int lineCount = 5;
+    int lineCount = 6;
     char lines[lineCount][0x80];
 
     if (persistValuesIndex < 0) {
@@ -885,7 +897,12 @@ void showPersistValuesMenu() {
         sprintf(lines[4], "time:        yes");
     }
 
-    
+    if (persistValuesOptions.score == 0) {
+        sprintf(lines[5], "score:        no");
+    } else {
+        sprintf(lines[5], "score:       yes");
+    }
+
 
 
     int yPos = 32;

@@ -34,6 +34,7 @@ typedef struct {
     int topSpeed;
     int momentum;
     int time;
+    int score;
 } PersistValuesOptions;
 
 extern void menuDisplay_showMenu(int menuNum);

@@ -13,12 +13,14 @@ typedef struct {
     int topSpeed[4];
     int momentum[6];
     int time[4];
+    int score[4];
 } PersistValuesData;
 
 extern void cartLoader_run();
 extern void cartLoader_appendToLog(char *text);
 extern int cartLoader_getActiveCartIndex();
 extern AAGameListing cartLoader_getActiveGameListing();
+extern AAGameTransferListing cartLoader_getActiveGameTransferListing();
 extern void cartLoader_loadRandomRom();
 extern unsigned int cartLoader_getRomCount();
 extern void cartLoader_getRomFileName(int index, char intoArray[]);

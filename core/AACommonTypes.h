@@ -18,17 +18,22 @@ typedef struct
     int ringByte;
     int specialRingByte;
     int updateHUDFlags[8];
-    int ringBytesForTransfer[8];
     int livesBytes[8];
     int livesByteDestinations[8];
     int timeBytes[8];
     int timeByteDestinations[8];
     int panicBytes[8];
     int panicByteDestinations[8];
+} AAGameListing;
+
+typedef struct
+{
+    int ringBytesForTransfer[8];
     int speedBytesForTransfer[8];
     int timeBytesForTransfer[8];
     int momentumBytesForTransfer[8];
-} AAGameListing;
+    int scoreBytesForTransfer[8];
+} AAGameTransferListing;
 
 typedef struct {
     unsigned char lines[8];
