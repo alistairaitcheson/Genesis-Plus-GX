@@ -9,6 +9,7 @@
 
 typedef struct {
     int lives[2];
+    int extraLifeFlag;
     int rings[2];
     int topSpeed[4];
     int momentum[8];
@@ -43,5 +44,8 @@ void copyGameListing(int fromGame, int toGame);
 extern void saveSaveStateForCurrentGame();
 int pathIsSaveState(char *path, int pathLen);
 void initialiseDirectory();
+
+void restoreCarriedOverData();
+void cacheDataToCarryOver();
 
 #endif

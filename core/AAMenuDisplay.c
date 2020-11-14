@@ -36,7 +36,7 @@ HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
 }
 
-PersistValuesOptions menuDisplay_PersistValuesOptions() {
+PersistValuesOptions menuDisplay_getPersistValuesOptions() {
     return persistValuesOptions;
 }
 
@@ -158,7 +158,7 @@ void saveHackOptions() {
     FILE *persistValuesWriter = fopen("_magicbox/__persistValues.data", "wb");
 
     for (int i = 0; i < 0x100; i++) {
-        fwrite(options, sizeof(int), 0x100, persistValuesWriter);
+        fwrite(persistValues, sizeof(int), 0x100, persistValuesWriter);
     }
     fclose(persistValuesWriter);
 }
@@ -875,6 +875,8 @@ void showPersistValuesMenu() {
         } else {
             sprintf(toPrint, "  %s", lines[i]);
         }
+        
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
 
         yPos += 8;
     }
