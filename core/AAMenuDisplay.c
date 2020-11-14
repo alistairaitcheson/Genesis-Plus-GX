@@ -255,6 +255,11 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_RANDOMISED_ROMS) {
         int romCount = cartLoader_getRomCount();
         if (buttonIndex == INPUT_INDEX_START) {
+            // tidy up the menu first!!
+            vdp_setShouldRandomiseColours(0);
+            aa_psg_unmute();
+            aa_ym2612_unmute();
+
             int romIndex = cartLoder_getLastLoadedIndex();
             if (cartLoader_gameIsBlockedFromRandomiser(romIndex) != 0) {
                 cartLoader_loadRandomRom();
@@ -280,11 +285,6 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
 
         if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_LEFT || buttonIndex == INPUT_INDEX_RIGHT) {
-            // tidy up the menu first!!
-            vdp_setShouldRandomiseColours(0);
-            aa_psg_unmute();
-            aa_ym2612_unmute();
-
             cartLoader_toggleGameBlockedAtIndex(randomisedGameIndex);
             refreshMenu();
             return 1;
@@ -464,7 +464,7 @@ void showOptionsMenu() {
         sprintf(lines[0], "Switch games:  EVERY 30 secs");
     }
 
-    if (hackOptions.cooldownOnSwitch > 1) {
+    if (hackOptions.cooldownOnSwitch > 3) {
         hackOptions.cooldownOnSwitch = 0;
     }
     if (hackOptions.cooldownOnSwitch < 0) {
@@ -472,8 +472,12 @@ void showOptionsMenu() {
     }
     if (hackOptions.cooldownOnSwitch == 0) {
         sprintf(lines[1], "Cooldown after switch:   OFF");
-    } else {
+    } else if (hackOptions.cooldownOnSwitch == 1) {
         sprintf(lines[1], "Cooldown after switch: 1 sec");
+    } else if (hackOptions.cooldownOnSwitch == 2) {
+        sprintf(lines[1], "Cooldown after switch: 0.5 sec");
+    } else if (hackOptions.cooldownOnSwitch == 3) {
+        sprintf(lines[1], "Cooldown after switch: 0.25 sec");
     }
 
     if (hackOptions.copyVram > 4) {
@@ -637,12 +641,20 @@ void showRandomisedGameMenu() {
     int halfListHeight = listHeight / 2;
     int romCount = cartLoader_getRomCount();
 
+    if (randomisedGameIndex < 0) {
+        randomisedGameIndex = romCount - 1;
+    }
+    if (randomisedGameIndex >= romCount) {
+        randomisedGameIndex = 0;
+    }
+
     int startIndex = randomisedGameIndex - halfListHeight;
     int endIndex = randomisedGameIndex + halfListHeight;
     if (startIndex < 0) {
         startIndex = 0;
         endIndex = listHeight;
-    } else if (endIndex >= romCount) {
+    } 
+    if (endIndex >= romCount) {
         endIndex = romCount - 1;
         startIndex = endIndex - listHeight;
         if (startIndex < 0) {
@@ -663,7 +675,7 @@ void showRandomisedGameMenu() {
     }
 
     int yPos = 32;
-    for (int i = startIndex; i < endIndex; i++) {
+    for (int i = startIndex; i <= endIndex; i++) {
         if (i == randomisedGameIndex) {
             char newNameBuf[0x100];
             for (int j = 0; j < 0xF0; j++) {

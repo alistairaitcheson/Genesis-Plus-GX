@@ -106,6 +106,12 @@ void modConsole_applyHackOptions() {
     if (menuDisplay_getHackOptions().cooldownOnSwitch == 1) {
         switchCooldownPeriod = 60 * 1;
     }
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 2) {
+        switchCooldownPeriod = 30 * 1;
+    }
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 3) {
+        switchCooldownPeriod = 15 * 1;
+    }
 
     if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 1) {
         // 1 minute
