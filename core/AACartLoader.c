@@ -65,7 +65,7 @@ void cartLoader_run() {
     writeStringToArray32("NONE", gameListings[0].gameId);
     gameListings[0].ringByte = 0;
     gameListings[0].specialRingByte = 0;
-    gameListings[1].updateHUDFlags[0] = 0;
+    gameListings[0].updateHUDFlags[0] = 0;
     gameListings[0].livesBytes[0] = 0;
     gameListings[0].livesByteDestinations[0] = 0;
     gameListings[0].timeBytes[0] = 0;
@@ -262,6 +262,7 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
 
     if (hasLoadedRom != 0 && shouldCache != 0) {
         saveSaveStateForCurrentGame();
+        cacheDataToCarryOver();
     }
 
     char vramCache[0x10000];
@@ -308,6 +309,10 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     hasLoadedRom = 1;
 
     cartLoader_loadSaveStateForCurrentGame();
+
+    if (hasLoadedRom != 0 && shouldCache != 0) {
+        restoreCarriedOverData();
+    }
     aa_genesis_updateLastRam();
 
     if (shouldCache != 0 && menuDisplay_getHackOptions().copyVram > 0) {
@@ -431,6 +436,7 @@ void copyGameListing(int fromGame, int toGame) {
         gameListings[toGame].timeByteDestinations[i] = gameListings[fromGame].timeByteDestinations[i];
         gameListings[toGame].panicBytes[i] = gameListings[fromGame].panicBytes[i];
         gameListings[toGame].panicByteDestinations[i] = gameListings[fromGame].panicByteDestinations[i];
+        gameListings[toGame].updateHUDFlags[i] = gameListings[fromGame].updateHUDFlags[i];
     }
 }
 
@@ -527,10 +533,17 @@ void cacheDataToCarryOver() {
     cachedPersistValues.lives[1] = -1;
     if (options.lives != 0) {
         if (gameListing.livesBytes[0] > 0) {
-            cachedPersistValues.lives[0] = aa_genesis_getWorkRam(gameListing.livesBytes[0]);
+            unsigned char value = aa_genesis_getWorkRam(gameListing.livesBytes[0]);
+            if (value > 0 && value < 100) {
+                cachedPersistValues.lives[0] = value;
+            }
         }
         if (gameListing.livesBytes[1] > 0) {
-            cachedPersistValues.lives[1] = aa_genesis_getWorkRam(gameListing.livesBytes[1]);
+            unsigned char value = aa_genesis_getWorkRam(gameListing.livesBytes[1]);
+
+            if (value > 0 && value < 100) {
+                cachedPersistValues.lives[1] = value;
+            }
         }
     }
 
@@ -551,7 +564,7 @@ void restoreCarriedOverData() {
         aa_genesis_setWorkRam(gameListing.livesBytes[0], cachedPersistValues.lives[0] % 0x100);
     }
     if (cachedPersistValues.lives[1] != -1) {
-        aa_genesis_setWorkRam(gameListing.livesBytes[1], cachedPersistValues.lives[0] % 0x100);
+        aa_genesis_setWorkRam(gameListing.livesBytes[1], cachedPersistValues.lives[1] % 0x100);
     }
     
     if (cachedPersistValues.rings[0] != -1) {
@@ -560,7 +573,7 @@ void restoreCarriedOverData() {
 
     for (int i = 0; i < 0x20; i++) {
         if (gameListing.updateHUDFlags[i] >= 0) {
-            aa_genesis_setWorkRam(gameListing.updateHUDFlags[i] % 0x10000, 0xFF);
+            aa_genesis_setWorkRam(gameListing.updateHUDFlags[i] % 0x10000, 0x0F);
         }
     }
 }

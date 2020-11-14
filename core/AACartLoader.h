@@ -44,4 +44,7 @@ extern void saveSaveStateForCurrentGame();
 int pathIsSaveState(char *path, int pathLen);
 void initialiseDirectory();
 
+void cacheDataToCarryOver();
+void restoreCarriedOverData();
+
 #endif
