@@ -538,7 +538,7 @@ void cacheDataToCarryOver() {
     cachedPersistValues.rings[1] = -1;
     if (options.rings != 0) {
         if (gameListing.ringByte > 0) {
-            cachedPersistValues.rings[0] = aa_genesis_getWorkRam(ringByte);
+            cachedPersistValues.rings[0] = aa_genesis_getWorkRam(gameListing.ringByte);
         }
     }
 }
