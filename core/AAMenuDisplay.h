@@ -14,6 +14,7 @@
 #define MENU_LISTING_SETTINGS 3
 #define MENU_LISTING_IN_GAME 4
 #define MENU_LISTING_RANDOMISED_ROMS 5
+#define MENU_LISTING_PERSIST_VALUES 6
 
 typedef struct {
     int infiniteLives;
@@ -26,6 +27,14 @@ typedef struct {
     int automaticallySaveStatesFreq;
 } HackOptions;
 
+typedef struct {
+    int lives;
+    int rings;
+    int topSpeed;
+    int momentum;
+    int time;
+} PersistValuesOptions;
+
 extern void menuDisplay_showMenu(int menuNum);
 extern void menuDisplay_hideMenu();
 extern int menuDisplay_onButtonPress(int buttonIndex);
@@ -33,6 +42,7 @@ extern HackOptions menuDisplay_getHackOptions();
 extern void menuDisplay_initialise();
 extern int menuDisplay_isShowing();
 extern void menuDisplay_hideMenuUnlessQueued();
+extern PersistValuesOptions menuDisplay_getPersistValuesOptions();
 
 void beginGame();
 void showTitleMenu();
@@ -41,6 +51,11 @@ void showChooseGameMenu();
 void incrementOption(int byAmount);
 void showOptionsMenu();
 void showRandomisedGameMenu();
+void showPersistValuesMenu();
+void togglePersistValue(int index);
+
+void applyPersistValuesFromArray256(int array256[]);
+void applyDefaultPersistValues();
 
 void applySettingsFromArray256(int array256[]);
 void applyDefaultSettings();

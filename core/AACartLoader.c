@@ -65,6 +65,7 @@ void cartLoader_run() {
     writeStringToArray32("NONE", gameListings[0].gameId);
     gameListings[0].ringByte = 0;
     gameListings[0].specialRingByte = 0;
+    gameListings[1].updateHUDFlags[0] = 0;
     gameListings[0].livesBytes[0] = 0;
     gameListings[0].livesByteDestinations[0] = 0;
     gameListings[0].timeBytes[0] = 0;
@@ -75,6 +76,10 @@ void cartLoader_run() {
     writeStringToArray32("SONICTHEHEDGEHOG", gameListings[1].gameId);// = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','\0'};
     gameListings[1].ringByte = 0xFE20;
     gameListings[1].specialRingByte = 0;    
+    gameListings[1].updateHUDFlags[0] = 0xFE1C;
+    gameListings[1].updateHUDFlags[1] = 0xFE1D;
+    gameListings[1].updateHUDFlags[2] = 0xFE1E;
+    gameListings[1].updateHUDFlags[3] = 0xFE1F;
     gameListings[1].livesBytes[0] = 0xFE12;
     gameListings[1].livesByteDestinations[0] = 0x5; 
     gameListings[1].livesBytes[1] = 0xFE13;
@@ -505,8 +510,57 @@ void cartLoader_loadAllSaveStatesFromDisk() {
     }
 }
 
-void cartLoader_applyHackOptions() {
-    if (menuDisplay_getHackOptions().loadFromSavedState) {
+void cartLoader_applyHackOptions(int gameHasStarted) {
+    if (menuDisplay_getHackOptions().loadFromSavedState && gameHasStarted == 0) {
         cartLoader_loadAllSaveStatesFromDisk();
+    }
+}
+
+static PersistValuesData cachedPersistValues;
+
+void cacheDataToCarryOver() {
+    PersistValuesOptions options = menuDisplay_getPersistValuesOptions();
+    AAGameListing gameListing = cartLoader_getActiveGameListing();
+
+    // we abuse the fact that the first two values are "life count" and the third is "update the life counter plz"
+    cachedPersistValues.lives[0] = -1;
+    cachedPersistValues.lives[1] = -1;
+    if (options.lives != 0) {
+        if (gameListing.livesBytes[0] > 0) {
+            cachedPersistValues.lives[0] = aa_genesis_getWorkRam(gameListing.livesBytes[0]);
+        }
+        if (gameListing.livesBytes[1] > 0) {
+            cachedPersistValues.lives[1] = aa_genesis_getWorkRam(gameListing.livesBytes[1]);
+        }
+    }
+
+    cachedPersistValues.rings[0] = -1;
+    cachedPersistValues.rings[1] = -1;
+    if (options.rings != 0) {
+        if (gameListing.ringByte > 0) {
+            cachedPersistValues.rings[0] = aa_genesis_getWorkRam(ringByte);
+        }
+    }
+}
+
+void restoreCarriedOverData() {
+    PersistValuesOptions options = menuDisplay_getPersistValuesOptions();
+    AAGameListing gameListing = cartLoader_getActiveGameListing();
+
+    if (cachedPersistValues.lives[0] != -1) {
+        aa_genesis_setWorkRam(gameListing.livesBytes[0], cachedPersistValues.lives[0] % 0x100);
+    }
+    if (cachedPersistValues.lives[1] != -1) {
+        aa_genesis_setWorkRam(gameListing.livesBytes[1], cachedPersistValues.lives[0] % 0x100);
+    }
+    
+    if (cachedPersistValues.rings[0] != -1) {
+        aa_genesis_setWorkRam(gameListing.ringByte, cachedPersistValues.rings[0] % 0x100);
+    }
+
+    for (int i = 0; i < 0x20; i++) {
+        if (gameListing.updateHUDFlags[i] >= 0) {
+            aa_genesis_setWorkRam(gameListing.updateHUDFlags[i] % 0x10000, 0xFF);
+        }
     }
 }

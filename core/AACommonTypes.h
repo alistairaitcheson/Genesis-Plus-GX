@@ -17,6 +17,7 @@ typedef struct
     char gameId[0x20];
     int ringByte;
     int specialRingByte;
+    int updateHUDFlags[0x20];
     int livesBytes[0x20];
     int livesByteDestinations[0x20];
     int timeBytes[0x20];

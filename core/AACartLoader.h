@@ -7,6 +7,14 @@
 #include <math.h>
 #include "AACommonTypes.h"
 
+typedef struct {
+    int lives[2];
+    int rings[2];
+    int topSpeed[4];
+    int momentum[8];
+    int time;
+} PersistValuesData;
+
 extern void cartLoader_run();
 extern void cartLoader_appendToLog(char *text);
 extern int cartLoader_getActiveCartIndex();
@@ -18,7 +26,7 @@ extern void writeFolderPathIntoArray32(char array32[]);
 
 extern void cartLoader_loadAllSaveStatesFromDisk();
 extern void cartLoader_saveAllSaveStatesToDisk();
-extern void cartLoader_applyHackOptions();
+extern void cartLoader_applyHackOptions(int gameHasStarted);
 extern void cartLoader_loadSaveStateForCurrentGame();
 extern void cartLoader_removeCurrentGameFromRandomiser();
 extern int cartLoader_gameIsBlockedFromRandomiser(int index);

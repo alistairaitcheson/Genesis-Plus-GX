@@ -17,6 +17,7 @@ static int chosenGameIndex = 0;
 static int optionsItemIndex = 0;
 static int inGameOptionIndex = 0;
 static int randomisedGameIndex = 0;
+static int persistValuesIndex = 0;
 
 static int majorVersion = 0;
 static int minorVersion = 5;
@@ -26,10 +27,17 @@ static int DEFAULT_HEIGHT = 200;
 
 static int queuedMenu = MENU_LISTING_NONE;
 
+static int gameHasStarted = 0;
+
 static HackOptions hackOptions;
+static PersistValuesOptions persistValuesOptions;
 
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
+}
+
+PersistValuesOptions menuDisplay_PersistValuesOptions() {
+    return persistValuesOptions;
 }
 
 int menuDisplay_isShowing() {
@@ -57,7 +65,34 @@ void menuDisplay_initialise() {
     } else {
         applyDefaultSettings();
     }
+
+    FILE *persistValuesReader = fopen("_magicbox/__persistValues.data", "rb");
+    if (persistValuesReader) {
+        int persistBuffer[0x100];
+        fread(persistBuffer, sizeof(int), 0x100, persistValuesReader);
+        fclose(persistValuesReader);
+        applyPersistValuesFromArray256(persistBuffer);
+    } else {
+        applyDefaultPersistValues();
+    }
 }
+
+void applyPersistValuesFromArray256(int array256[]) {
+    persistValuesOptions.lives = array256[0];
+    persistValuesOptions.rings = array256[1];
+    persistValuesOptions.topSpeed = array256[2];
+    persistValuesOptions.momentum = array256[3];
+    persistValuesOptions.time = array256[4];
+}
+
+void applyDefaultPersistValues() {
+    persistValuesOptions.lives = 0;
+    persistValuesOptions.rings = 0;
+    persistValuesOptions.topSpeed = 0;
+    persistValuesOptions.momentum = 0;
+    persistValuesOptions.time = 0;
+}
+
 
 void applySettingsFromArray256(int array256[]) {
     hackOptions.infiniteLives = array256[0];
@@ -108,6 +143,24 @@ void saveHackOptions() {
         fwrite(options, sizeof(int), 0x100, prefsWriter);
     }
     fclose(prefsWriter);
+
+    int persistValues[0x100];
+    for (int i = 0; i < 0x100; i++) {
+        persistValues[i] = 0;
+    }
+    persistValues[0] = persistValuesOptions.lives;
+    persistValues[1] = persistValuesOptions.rings;
+    persistValues[2] = persistValuesOptions.topSpeed;
+    persistValues[3] = persistValuesOptions.momentum;
+    persistValues[4] = persistValuesOptions.time;
+
+    remove("_magicbox/__persistValues.data");
+    FILE *persistValuesWriter = fopen("_magicbox/__persistValues.data", "wb");
+
+    for (int i = 0; i < 0x100; i++) {
+        fwrite(options, sizeof(int), 0x100, persistValuesWriter);
+    }
+    fclose(persistValuesWriter);
 }
 
 void menuDisplay_showMenu(int menuNum) {
@@ -139,6 +192,10 @@ void menuDisplay_showMenu(int menuNum) {
     if (activeMenu == MENU_LISTING_RANDOMISED_ROMS) {
         showRandomisedGameMenu();
     }
+
+    if (activeMenu == MENU_LISTING_PERSIST_VALUES) {
+        showPersistValuesMenu();
+    }
 }
 
 void menuDisplay_hideMenu() {
@@ -168,9 +225,11 @@ void beginGame() {
     vdp_setShouldRandomiseColours(0);
     aa_psg_unmute();
     aa_ym2612_unmute();
-    cartLoader_applyHackOptions();
+    cartLoader_applyHackOptions(gameHasStarted);
     modConsole_applyHackOptions();
     cartLoader_loadRomAtIndex(chosenGameIndex, 0);
+
+    gameHasStarted = 1;
 }
 
 int menuDisplay_onButtonPress(int buttonIndex) {
@@ -207,7 +266,13 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_SETTINGS) {
         if (buttonIndex == INPUT_INDEX_START) {
             saveHackOptions();
-            menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
+            if (gameHasStarted == 0) {
+                menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
+            } else {
+                cartLoader_applyHackOptions(gameHasStarted);
+                modConsole_applyHackOptions();
+                menuDisplay_hideMenu();
+            }
             return 1;
         }
         if (buttonIndex == INPUT_INDEX_UP) {
@@ -291,7 +356,49 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
     }
 
+    if (activeMenu == MENU_LISTING_PERSIST_VALUES) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            persistValuesIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            persistValuesIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_LEFT || buttonIndex == INPUT_INDEX_RIGHT) {
+            togglePersistValue(persistValuesIndex);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_START) {
+            menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+            return 1;
+        }
+    }
+
     return 0;
+}
+
+void togglePersistValue(int index) {
+    if (index == 0) {
+        persistValuesOptions.lives = 1 - persistValuesOptions.lives;
+    }
+    if (index == 1) {
+        persistValuesOptions.rings = 1 - persistValuesOptions.rings;
+    }
+    if (index == 2) {
+        persistValuesOptions.topSpeed = 1 - persistValuesOptions.topSpeed;
+    }
+    if (index == 3) {
+        persistValuesOptions.momentum = 1 - persistValuesOptions.momentum;
+    }
+    if (index == 4) {
+        persistValuesOptions.time = 1 - persistValuesOptions.time;
+    }
 }
 
 void activateInGameMenuItem() {
@@ -301,24 +408,28 @@ void activateInGameMenuItem() {
     aa_ym2612_unmute();
 
     if (inGameOptionIndex == 1) {
+        optionsItemIndex = 0;
+        queuedMenu = MENU_LISTING_SETTINGS;
+    }
+    if (inGameOptionIndex == 2) {
         saveSaveStateForCurrentGame();
         cartLoader_saveAllSaveStatesToDisk();
     }
-    if (inGameOptionIndex == 2) {
+    if (inGameOptionIndex == 3) {
         cartLoader_loadAllSaveStatesFromDisk();
         cartLoader_loadSaveStateForCurrentGame();
     }
-    if (inGameOptionIndex == 3) {
+    if (inGameOptionIndex == 4) {
         cartLoader_removeCurrentGameFromRandomiser();
     }
-    if (inGameOptionIndex == 4) {
+    if (inGameOptionIndex == 5) {
         randomisedGameIndex = cartLoader_getActiveCartIndex();
         queuedMenu = MENU_LISTING_RANDOMISED_ROMS;
     }
-    if (inGameOptionIndex == 5) {
+    if (inGameOptionIndex == 6) {
         modConsole_queuePanic();
     }
-    if (inGameOptionIndex == 6) {
+    if (inGameOptionIndex == 7) {
         modConsole_activateReset();
     }
 
@@ -342,6 +453,8 @@ void incrementOption(int byAmount) {
         hackOptions.loadFromSavedState += byAmount;
     } else if (optionsItemIndex == 7) {
         hackOptions.automaticallySaveStatesFreq += byAmount;
+    } else if (optionsItemIndex == 8) {
+        menuDisplay_showMenu(MENU_LISTING_PERSIST_VALUES);
     }
 }
 
@@ -430,7 +543,7 @@ void showOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to play ---", 5);
 
-    int lineCount = 8;
+    int lineCount = 9;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -473,11 +586,11 @@ void showOptionsMenu() {
     if (hackOptions.cooldownOnSwitch == 0) {
         sprintf(lines[1], "Cooldown after switch:   OFF");
     } else if (hackOptions.cooldownOnSwitch == 1) {
-        sprintf(lines[1], "Cooldown after switch: 1 sec");
-    } else if (hackOptions.cooldownOnSwitch == 2) {
-        sprintf(lines[1], "Cooldown after switch: 0.5 sec");
-    } else if (hackOptions.cooldownOnSwitch == 3) {
         sprintf(lines[1], "Cooldown after switch: 0.25 sec");
+    } else if (hackOptions.cooldownOnSwitch == 2) {
+        sprintf(lines[1], "Cooldown after switch: 0.50 sec");
+    } else if (hackOptions.cooldownOnSwitch == 3) {
+        sprintf(lines[1], "Cooldown after switch: 1.00 sec");
     }
 
     if (hackOptions.copyVram > 4) {
@@ -568,6 +681,9 @@ void showOptionsMenu() {
         sprintf(lines[7], "Auto-save state: EVERY 5 secs");
     }
 
+    sprintf(lines[8], "Persist values between games >>");
+
+
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
         char toPrint[0x100];
@@ -596,7 +712,7 @@ void showInGameOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "--- press A/B/C to activate option ---", 5);
 
-    int lineCount = 8;
+    int lineCount = 9;
     char lines[lineCount][0x80];
 
     if (inGameOptionIndex < 0) {
@@ -607,13 +723,14 @@ void showInGameOptionsMenu() {
     }
 
     sprintf(lines[0], "Back to game");
-    sprintf(lines[1], "Save all game states to disk");
-    sprintf(lines[2], "Load all game states from disk" );
-    sprintf(lines[3], "Remove this game from randomiser" );
-    sprintf(lines[4], "Toggle games in randomiser" );
-    sprintf(lines[5], "Kill Sonic");
-    sprintf(lines[6], "Reset Game");
-    sprintf(lines[7], "Back to game");
+    sprintf(lines[1], "Change hack options");
+    sprintf(lines[2], "Save all game states to disk");
+    sprintf(lines[3], "Load all game states from disk" );
+    sprintf(lines[4], "Remove this game from randomiser" );
+    sprintf(lines[5], "Toggle games in randomiser" );
+    sprintf(lines[6], "Kill Sonic");
+    sprintf(lines[7], "Reset Game");
+    sprintf(lines[8], "Back to game");
 
     int yPos = 48;
     for (int i = 0; i < lineCount; i++) {
@@ -698,4 +815,67 @@ void showRandomisedGameMenu() {
         yPos += 8;
     }
 
+}
+
+void showPersistValuesMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "persist values between games", 5);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to confirm ---", 5);
+
+    int lineCount = 5;
+    char lines[lineCount][0x80];
+
+    if (persistValuesIndex < 0) {
+        persistValuesIndex = lineCount - 1;
+    }
+    if (persistValuesIndex >= lineCount) {
+        persistValuesIndex = 0;
+    }
+
+    if (persistValuesOptions.lives == 0) {
+        sprintf(lines[0], "Lives:        no");
+    } else {
+        sprintf(lines[0], "Lives:       yes");
+    }
+    
+    if (persistValuesOptions.rings == 0) {
+        sprintf(lines[1], "Rings:        no");
+    } else {
+        sprintf(lines[1], "Rings:       yes");
+    }
+    
+    if (persistValuesOptions.topSpeed == 0) {
+        sprintf(lines[2], "Top speed:    no");
+    } else {
+        sprintf(lines[2], "Top speed:   yes");
+    }
+
+    if (persistValuesOptions.momentum == 0) {
+        sprintf(lines[3], "Momentum:     no");
+    } else {
+        sprintf(lines[3], "Momentum:    yes");
+    }
+
+    if (persistValuesOptions.time == 0) {
+        sprintf(lines[4], "time:         no");
+    } else {
+        sprintf(lines[4], "time:        yes");
+    }
+
+    
+
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        char toPrint[0x100];
+        if (i == persistValuesIndex) {
+            sprintf(toPrint, "> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "  %s", lines[i]);
+        }
+
+        yPos += 8;
+    }
 }
