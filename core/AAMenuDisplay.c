@@ -20,7 +20,7 @@ static int randomisedGameIndex = 0;
 static int persistValuesIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 5;
+static int minorVersion = 6;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -112,6 +112,9 @@ void applySettingsFromArray256(int array256[]) {
     hackOptions.loadFromSavedState = array256[6];
     hackOptions.automaticallySaveStatesFreq = array256[7];
     hackOptions.shouldWriteToLog = array256[8];
+    hackOptions.shouldSortColours = array256[9];
+    hackOptions.limitedColourType = array256[10];
+    hackOptions.shouldHideLayers = array256[11];
 }
 
 void applyDefaultSettings() {
@@ -124,6 +127,9 @@ void applyDefaultSettings() {
     hackOptions.loadFromSavedState = 0;
     hackOptions.automaticallySaveStatesFreq = 1;
     hackOptions.shouldWriteToLog = 0;
+    hackOptions.shouldSortColours = 0;
+    hackOptions.limitedColourType = 0;
+    hackOptions.shouldHideLayers = 0;
 
     saveHackOptions();
 }
@@ -277,17 +283,13 @@ int menuDisplay_onButtonPress(int buttonIndex) {
 
     if (activeMenu == MENU_LISTING_SETTINGS) {
         if (buttonIndex == INPUT_INDEX_START) {
-            if (optionsItemIndex == 8) {
-                menuDisplay_showMenu(MENU_LISTING_PERSIST_VALUES);
+            saveHackOptions();
+            if (gameHasStarted == 0) {
+                menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
             } else {
-                saveHackOptions();
-                if (gameHasStarted == 0) {
-                    menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
-                } else {
-                    cartLoader_applyHackOptions(gameHasStarted);
-                    modConsole_applyHackOptions();
-                    menuDisplay_hideMenu();
-                }
+                cartLoader_applyHackOptions(gameHasStarted);
+                modConsole_applyHackOptions();
+                menuDisplay_hideMenu();
             }
             return 1;
         }
@@ -475,6 +477,12 @@ void incrementOption(int byAmount) {
     } else if (optionsItemIndex == 8) {
         menuDisplay_showMenu(MENU_LISTING_PERSIST_VALUES);
     } else if (optionsItemIndex == 9) {
+        hackOptions.shouldSortColours += byAmount;
+    } else if (optionsItemIndex == 10) {
+        hackOptions.limitedColourType += byAmount;
+    } else if (optionsItemIndex == 11) {
+        hackOptions.shouldHideLayers += byAmount;
+    }  else if (optionsItemIndex == 12) {
         hackOptions.shouldWriteToLog += byAmount;
     }
 }
@@ -564,7 +572,7 @@ void showOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to play ---", 5);
 
-    int lineCount = 10;
+    int lineCount = 13;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -704,6 +712,52 @@ void showOptionsMenu() {
 
     sprintf(lines[8], "Persist values between games >>");
 
+    if (hackOptions.shouldSortColours > 1) {
+        hackOptions.shouldSortColours = 0;
+    }
+    if (hackOptions.shouldSortColours < 0) {
+        hackOptions.shouldSortColours = 1;
+    }
+    if (hackOptions.shouldSortColours == 0) {
+        sprintf(lines[9], "Sort pixels by colour:    OFF");
+    } else {
+        sprintf(lines[9], "Sort pixels by colour:     ON");
+    }
+
+    if (hackOptions.limitedColourType > 5) {
+        hackOptions.limitedColourType = 0;
+    }
+    if (hackOptions.limitedColourType < 0) {
+        hackOptions.limitedColourType = 5;
+    }
+    if (hackOptions.limitedColourType == 0) {
+        sprintf(lines[10], "Limit palettes:           OFF");
+    } else if (hackOptions.limitedColourType == 1) {
+        sprintf(lines[10], "Limit palettes:     2 COLOURS");
+    } else if (hackOptions.limitedColourType == 2) {
+        sprintf(lines[10], "Limit palettes:     3 COLOURS");
+    } else if (hackOptions.limitedColourType == 3) {
+        sprintf(lines[10], "Limit palettes:     4 COLOURS");
+    } else if (hackOptions.limitedColourType == 4) {
+        sprintf(lines[10], "Limit palettes:     5 COLOURS");
+    } else if (hackOptions.limitedColourType == 5) {
+        sprintf(lines[10], "Limit palettes:    10 COLOURS");
+    }
+
+    if (hackOptions.shouldHideLayers > 2) {
+        hackOptions.shouldHideLayers = 0;
+    }
+    if (hackOptions.shouldHideLayers < 0) {
+        hackOptions.shouldHideLayers = 2;
+    }
+    if (hackOptions.shouldHideLayers == 0) {
+        sprintf(lines[11], "Hide layers:              OFF");
+    } else if (hackOptions.shouldHideLayers == 1) {
+        sprintf(lines[11], "Hide layers:        NO SPRITES");
+    } else if (hackOptions.shouldHideLayers == 2) {
+        sprintf(lines[11], "Hide layers:    NO BACKGROUNDS");
+    }
+
     if (hackOptions.shouldWriteToLog > 1) {
         hackOptions.shouldWriteToLog = 0;
     }
@@ -711,9 +765,9 @@ void showOptionsMenu() {
         hackOptions.shouldWriteToLog = 1;
     }
     if (hackOptions.shouldWriteToLog == 0) {
-        sprintf(lines[9], "Write to debug log:       OFF");
+        sprintf(lines[12], "Write to debug log:       OFF");
     } else {
-        sprintf(lines[9], "Write to debug log:        ON"); 
+        sprintf(lines[12], "Write to debug log:        ON"); 
     }
 
 
@@ -756,7 +810,7 @@ void showInGameOptionsMenu() {
     }
 
     sprintf(lines[0], "Back to game");
-    sprintf(lines[1], "Change hack options");
+    sprintf(lines[1], "Change hack options >>");
     sprintf(lines[2], "Save all game states to disk");
     sprintf(lines[3], "Load all game states from disk" );
     sprintf(lines[4], "Remove this game from randomiser" );

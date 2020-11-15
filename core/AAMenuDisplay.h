@@ -26,6 +26,9 @@ typedef struct {
     int loadFromSavedState;
     int automaticallySaveStatesFreq;
     int shouldWriteToLog;
+    int shouldSortColours;
+    int limitedColourType;
+    int shouldHideLayers;
 } HackOptions;
 
 typedef struct {

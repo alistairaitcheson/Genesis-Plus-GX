@@ -611,6 +611,10 @@ void (*update_bg_pattern_cache)(int index);
 static uint mod_activeLineIndex;
 static uint8 mod_graphicLayers[4][400][400];
 static int mod_bufferPerLayer[4];
+static int shouldLimitColourPalette = 0;
+static int shouldHideSprites = 0;
+static int shouldHideBackgrounds = 0;
+static int shouldSortPixels = 0;
 
 
 /*--------------------------------------------------------------------------*/
@@ -1165,6 +1169,11 @@ void color_update_m5(int index, unsigned int data)
 /* Graphics I */
 void render_bg_m0(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   uint8 color, name, pattern;
 
   uint8 *lb = &linebuf[0][0x20];
@@ -1196,6 +1205,11 @@ void render_bg_m0(int line)
 /* Text */
 void render_bg_m1(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   uint8 pattern;
   uint8 color = reg[7];
 
@@ -1275,6 +1289,11 @@ void render_bg_m1x(int line)
 /* Graphics II */
 void render_bg_m2(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   uint8 color, pattern;
   uint16 name;
   uint8 *ct, *pg;
@@ -1319,6 +1338,11 @@ void render_bg_m2(int line)
 /* Multicolor */
 void render_bg_m3(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   uint8 color;
   uint8 *lb = &linebuf[0][0x20];
   uint8 *nt = &vram[((reg[2] << 10) & 0x3C00) + ((line & 0xF8) << 2)];
@@ -1346,6 +1370,11 @@ void render_bg_m3(int line)
 /* Multicolor + extended PG */
 void render_bg_m3x(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   uint8 color;
   uint8 *pg;
 
@@ -1413,6 +1442,11 @@ void render_bg_inv(int line)
 /* Mode 4 */
 void render_bg_m4(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column;
   uint16 *nt;
   uint32 attr, atex, *src;
@@ -1519,6 +1553,11 @@ void render_bg_m4(int line)
 #ifndef ALT_RENDERER
 void render_bg_m5(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column;
   uint32 atex, atbuf, *src, *dst;
 
@@ -1670,6 +1709,11 @@ void render_bg_m5(int line)
 
 void render_bg_m5_vs(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column;
   uint32 atex, atbuf, *src, *dst;
   uint32 v_line, *nt;
@@ -1854,6 +1898,12 @@ void render_bg_m5_vs(int line)
     }
   }
 
+  if (shouldSortPixels != 0) {
+      sortLineBuffer();
+  }
+  if (shouldLimitColourPalette != 0) {
+    replaceColoursInLineWithShuffledColours();
+  }
   drawTextLayers(mod_activeLineIndex);
 
   /* Merge background layers */
@@ -1862,6 +1912,11 @@ void render_bg_m5_vs(int line)
 
 void render_bg_m5_im2(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column;
   uint32 atex, atbuf, *src, *dst;
 
@@ -2014,6 +2069,11 @@ void render_bg_m5_im2(int line)
 
 void render_bg_m5_im2_vs(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column;
   uint32 atex, atbuf, *src, *dst;
   uint32 v_line, *nt;
@@ -2207,6 +2267,11 @@ void render_bg_m5_im2_vs(int line)
 
 void render_bg_m5(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column, start, end;
   uint32 atex, atbuf, *src, *dst;
   uint32 shift, index, v_line, *nt;
@@ -2364,6 +2429,11 @@ void render_bg_m5(int line)
 
 void render_bg_m5_vs(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column, start, end;
   uint32 atex, atbuf, *src, *dst;
   uint32 shift, index, v_line, *nt;
@@ -2558,6 +2628,11 @@ void render_bg_m5_vs(int line)
 
 void render_bg_m5_im2(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column, start, end;
   uint32 atex, atbuf, *src, *dst;
   uint32 shift, index, v_line, *nt;
@@ -2716,6 +2791,11 @@ void render_bg_m5_im2(int line)
 
 void render_bg_m5_im2_vs(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column, start, end;
   uint32 atex, atbuf, *src, *dst;
   uint32 shift, index, v_line, *nt;
@@ -2918,6 +2998,10 @@ void render_bg_m5_im2_vs(int line)
 
 void render_obj_tms(int line)
 {
+  if (shouldHideSprites) {
+    return;
+  }
+
   int x, start, end;
   uint8 *lb, *sg;
   uint8 color, pattern[2];
@@ -3167,7 +3251,16 @@ void render_obj_m4(int line)
 void render_obj_m5(int line)
 {
   // in the Obj-C version this only happens when skipSprites is true
-  drawTextLayers(mod_activeLineIndex);
+  if (shouldHideSprites != 0) {
+    if (shouldSortPixels != 0) {
+        sortLineBuffer();
+    }
+    if (shouldLimitColourPalette != 0) {
+      replaceColoursInLineWithShuffledColours();
+    }
+    drawTextLayers(mod_activeLineIndex);
+    return;
+  }
 
   int i, column;
   int xpos, width;
@@ -3276,6 +3369,12 @@ void render_obj_m5(int line)
   }
 
   // ALISTAIR
+  if (shouldSortPixels != 0) {
+      sortLineBuffer();
+  }
+  if (shouldLimitColourPalette != 0) {
+    replaceColoursInLineWithShuffledColours();
+  }
   drawTextLayers(mod_activeLineIndex);
 
   /* Clear sprite masking for next line  */
@@ -3284,6 +3383,11 @@ void render_obj_m5(int line)
 
 void render_obj_m5_ste(int line)
 {
+
+  if (shouldHideSprites) {
+    return;
+  }
+
   int i, column;
   int xpos, width;
   int pixelcount = 0;
@@ -4310,4 +4414,79 @@ void vdp_setShouldRandomiseColours(int toValue) {
 
 int vdp_getShouldRandomiseColours() {
   return shouldRandomiseColours;
+}
+
+void vdp_setShouldSortPixels(int toValue) {
+    shouldSortPixels = toValue;
+}
+
+int vdp_getShouldSortPixels() {
+  return shouldSortPixels;
+}
+
+static uint countPerColour[0x100];
+void sortLineBuffer() {
+    for (int i = 0; i < 0x100; i++) {
+        countPerColour[i] = 0;
+    }
+    
+    for (int i = 0; i < bitmap.viewport.w; i++) {
+        uint8 colour = linebuf[0][i + 0x20];
+        countPerColour[colour]++;
+    }
+
+    int paintedPixels = 0;
+    for (int colourIdx = 0; colourIdx < 0x100; colourIdx++) {
+        uint8 colour = colourIdx;
+        for (int i = 0; i < countPerColour[colour]; i++) {
+            linebuf[0][0x20 + paintedPixels] = colour;
+            paintedPixels++;
+        }
+    }
+}
+
+void vdp_setShouldLimitColourPalettes(int toValue) {
+    shouldLimitColourPalette = toValue;
+}
+
+int vdp_getShouldLimitColourPalette() {
+  return shouldLimitColourPalette;
+}
+
+
+uint8 alistair_shuffledColours[0x100];
+uint8 alistair_colourReferents[0x100];
+void vdp_generateAlistairSortedColours(int count) {
+  if (count > 0) {
+    for (int i = 0; i < 0x100; i++) {
+      alistair_colourReferents[i] = rand() % 0x100;
+    }
+
+    for (int i = 0; i < 0x100; i++) {
+        int index = alistair_colourReferents[rand() % count]; 
+        alistair_shuffledColours[i] = index;
+    }
+  }
+}
+
+void replaceColoursInLineWithShuffledColours() {
+    for (int colourIdx = 0; colourIdx < bitmap.viewport.w; colourIdx++) {
+        uint8 colour = linebuf[0][0x20 + colourIdx];
+        linebuf[0][0x20 + colourIdx] = alistair_shuffledColours[colour];
+    }
+}
+
+void vdp_setShouldHideSprites(int toValue) {
+    shouldHideSprites = toValue;
+}
+
+void vdp_setShouldHideBackgrounds(int toValue) {
+    shouldHideBackgrounds = toValue;
+}
+
+
+void replaceLineWithBlankColour() {
+    for (int colourIdx = 0; colourIdx < bitmap.viewport.w; colourIdx++) {
+        linebuf[0][0x20 + colourIdx] = 0;
+    }
 }

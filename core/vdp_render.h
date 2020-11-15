@@ -152,4 +152,16 @@ extern void vdp_clearGraphicLayer(int whichLayer);
 extern void vdp_setShouldRandomiseColours(int toValue);
 extern int vdp_getShouldRandomiseColours();
 
+extern void vdp_setShouldSortPixels(int toValue);
+extern int vdp_getShouldSortPixels();
+void sortLineBuffer();
+extern void vdp_setShouldLimitColourPalettes(int toValue);
+extern int vdp_getShouldLimitColourPalette();
+extern void vdp_generateAlistairSortedColours(int count);
+void replaceColoursInLineWithShuffledColours();
+
+void vdp_setShouldHideSprites(int toValue);
+void vdp_setShouldHideBackgrounds(int toValue);
+void replaceLineWithBlankColour();
+
 #endif /* _RENDER_H_ */

@@ -11,7 +11,7 @@ typedef struct {
     int lives[2];
     int rings[2];
     int topSpeed[4];
-    int momentum[6];
+    int momentum[8];
     int time[4];
     int score[4];
 } PersistValuesData;
@@ -35,6 +35,8 @@ extern int cartLoader_gameIsBlockedFromRandomiser(int index);
 extern int cartLoder_getLastLoadedIndex();
 extern void cartLoader_toggleGameBlockedAtIndex(int index);
 extern void cartLoader_restoreCarriedOverData();
+
+extern int cartLoader_string32AreEqual(char strA[], char strB[]);
 
 void listFiles(const char *path);
 void addRomListing(char *path);

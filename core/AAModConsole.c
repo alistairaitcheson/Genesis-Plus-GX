@@ -141,6 +141,42 @@ void modConsole_applyHackOptions() {
         // 5 seconds
         saveAllStatesTimePeriod = 60 * 5;
     }
+
+    if (menuDisplay_getHackOptions().shouldSortColours != 0) {
+        vdp_setShouldSortPixels(1);
+    } else {
+        vdp_setShouldSortPixels(0);
+    }
+
+    if (menuDisplay_getHackOptions().shouldHideLayers == 0) {
+        vdp_setShouldHideSprites(0);
+        vdp_setShouldHideBackgrounds(0);
+    } else if (menuDisplay_getHackOptions().shouldHideLayers == 1) {
+        vdp_setShouldHideSprites(1);
+        vdp_setShouldHideBackgrounds(0);
+    } else if (menuDisplay_getHackOptions().shouldHideLayers == 2) {
+        vdp_setShouldHideSprites(0);
+        vdp_setShouldHideBackgrounds(1);
+    }
+
+    if (menuDisplay_getHackOptions().limitedColourType == 0) {
+        vdp_setShouldLimitColourPalettes(0);
+    } else if (menuDisplay_getHackOptions().limitedColourType == 1) {
+        vdp_setShouldLimitColourPalettes(1);
+        vdp_generateAlistairSortedColours(2);
+    } else if (menuDisplay_getHackOptions().limitedColourType == 2) {
+        vdp_setShouldLimitColourPalettes(1);
+        vdp_generateAlistairSortedColours(3);
+    } else if (menuDisplay_getHackOptions().limitedColourType == 3) {
+        vdp_setShouldLimitColourPalettes(1);
+        vdp_generateAlistairSortedColours(4);
+    } else if (menuDisplay_getHackOptions().limitedColourType == 4) {
+        vdp_setShouldLimitColourPalettes(1);
+        vdp_generateAlistairSortedColours(5);
+    } else if (menuDisplay_getHackOptions().limitedColourType == 5) {
+        vdp_setShouldLimitColourPalettes(1);
+        vdp_generateAlistairSortedColours(10);
+    }
 }
 
 void modConsole_updateFrame() {
@@ -350,10 +386,30 @@ void modConsole_activateReset() {
 
 void updateSpeedUpOnRing() {
     if (ringCountHasChanged() != 0) {
-        // speed
-        aa_genesis_incrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
-        // acceleration
-        aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
+        if (cartLoader_getActiveGameListing().accelerationType == 1) {
+            cartLoader_appendToLog("Increasing Sonic 2D speed");
+
+            // speed
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
+            // acceleration
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
+        }
+        if (cartLoader_getActiveGameListing().accelerationType == 2) {
+            cartLoader_appendToLog("Increasing Sonic3DBlast speed");
+            char logText[0x100];
+            sprintf(logText, "X: From %02X, %02X", aa_genesis_getWorkRam(0xC204), aa_genesis_getWorkRam(0xC205));
+            cartLoader_appendToLog(logText);
+            // x speed
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xC204, 2, 0x40);
+            sprintf(logText, "X: To   %02X, %02X", aa_genesis_getWorkRam(0xC204), aa_genesis_getWorkRam(0xC205));
+            cartLoader_appendToLog(logText);
+            // y speed
+            sprintf(logText, "Y: From %02X, %02X", aa_genesis_getWorkRam(0xC206), aa_genesis_getWorkRam(0xC207));
+            cartLoader_appendToLog(logText);
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xC206, 2, 0x40);
+            sprintf(logText, "Y: To   %02X, %02X", aa_genesis_getWorkRam(0xC206), aa_genesis_getWorkRam(0xC207));
+            cartLoader_appendToLog(logText);
+        }
     }
 }
 
@@ -398,11 +454,6 @@ int ringCountHasChanged() {
 }
 
 void modConsole_getRomHeader(char intoArray[]) {
-    if (cart.romsize == 0x400000) {
-        writeStringToArray32("SONIC3&KNUCKLES", intoArray);
-        return;
-    }
-
     uint8 tempHeader[0x20];
     for (int i = 0; i < 0x20; i++) {
         tempHeader[i] = 0;
@@ -439,6 +490,11 @@ void modConsole_getRomHeader(char intoArray[]) {
         else {
             intoArray[i] = 0;
         }
+    }
+
+    if (cart.romsize == 0x400000 && modconsole_array32sAreEqual("SONIC&KNUCKLES", intoArray) != 0) {
+        writeStringToArray32("SONIC3&KNUCKLES", intoArray);
+        return;
     }
 }
 
