@@ -408,8 +408,8 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
 int cartLoader_getActiveCartIndex() {
     modConsole_getRomHeader(romHeaderBuffer);
 
-    // cartLoader_appendToLog("cartLoader_getActiveCartIndex");
-    // cartLoader_appendToLog(romHeaderBuffer);
+    cartLoader_appendToLog("cartLoader_getActiveCartIndex");
+    cartLoader_appendToLog(romHeaderBuffer);
 
     for (int i = 1; i < gameListingCount; i++) {
         if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
@@ -450,6 +450,9 @@ int pathIsRom(char *path, int pathLen) {
             return 1;
         }
         if (path[pathLen -3] == '.' && path[pathLen - 2] == 'm' && path[pathLen - 1] == 'd') {
+            return 1;
+        }
+        if (path[pathLen -4] == '.' && path[pathLen - 3] == 's' && path[pathLen - 2] == 'm' && path[pathLen - 1] == 's' ) {
             return 1;
         }
     }
