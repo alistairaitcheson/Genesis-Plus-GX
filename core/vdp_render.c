@@ -1713,9 +1713,6 @@ void render_bg_m5(int line)
     }
   }
 
-    // ALISTAIR -- testing for sms
-  // linebuf[0][0x20 + (rand() % 100)] = 0;
-
   /* Merge background layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[(reg[12] & 0x08) >> 2], bitmap.viewport.w);
 }
@@ -1919,9 +1916,6 @@ void render_bg_m5_vs(int line)
   }
   drawTextLayers(mod_activeLineIndex);
 
-  // ALISTAIR -- testing for sms
-  // linebuf[0][0x20 + (rand() % 100)] = 0;
-
   /* Merge background layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[(reg[12] & 0x08) >> 2], bitmap.viewport.w);
 }
@@ -2078,9 +2072,6 @@ void render_bg_m5_im2(int line)
       DRAW_COLUMN_IM2(atbuf, v_line)
     }
   }
-
-  // ALISTAIR -- testing for sms
-  // linebuf[0][0x20 + (rand() % 100)] = 0;
 
   /* Merge background layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[(reg[12] & 0x08) >> 2], bitmap.viewport.w);
@@ -2277,9 +2268,6 @@ void render_bg_m5_im2_vs(int line)
       DRAW_COLUMN_IM2(atbuf, v_line)
     }
   }
-
-  // ALISTAIR -- testing for sms
-  // linebuf[0][0x20 + (rand() % 100)] = 0;
 
   /* Merge background layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[(reg[12] & 0x08) >> 2], bitmap.viewport.w);
@@ -3523,7 +3511,7 @@ void render_obj_m5_ste(int line)
   spr_ovr = 0;
 
     // ALISTAIR
-  // linebuf[0][0x20 + (rand() % 100)] = 0; <-- not called on sms
+  // linebuf[0][0x20 + (rand() % 100)] = 0;
 
   /* Merge background & sprite layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[4], bitmap.viewport.w);
@@ -3637,15 +3625,6 @@ void render_obj_m5_im2(int line)
 
   /* Clear sprite masking for next line */
   spr_ovr = 0;
-
-  // ALISTAIR - MASTER SYSTEM? 
-    // if (shouldSortPixels != 0) {
-    //   sortLineBuffer();
-    // }
-    // if (shouldLimitColourPalette != 0) {
-    //   replaceColoursInLineWithShuffledColours();
-    // }
-    // drawTextLayers(mod_activeLineIndex);
 }
 
 void render_obj_m5_im2_ste(int line)
@@ -3765,16 +3744,6 @@ void render_obj_m5_im2_ste(int line)
 
   // ALISTAIR
   // linebuf[0][0x20 + (rand() % 100)] = 0;
-
-  // ALISTAIR - MASTER SYSTEM? 
-    // if (shouldSortPixels != 0) {
-    //   sortLineBuffer();
-    // }
-    // if (shouldLimitColourPalette != 0) {
-    //   replaceColoursInLineWithShuffledColours();
-    // }
-    // drawTextLayers(mod_activeLineIndex);
-
 
   /* Merge background & sprite layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[4], bitmap.viewport.w);
@@ -4294,8 +4263,6 @@ void render_line(int line)
     /* Render sprite layer */
     render_obj(line & 1);
 
-    drawTextLayers(line); // <-- testing for SMS
-
     /* Left-most column blanking */
     if (reg[0] & 0x20)
     {
@@ -4438,15 +4405,14 @@ void vdp_setCurrentLineIndex(int lineIdx) {
     mod_activeLineIndex = lineIdx;
 }
 
-void drawTextLayers(int lineIdx) { // <-- doesn't even get called in sms games
+void drawTextLayers(int lineIdx) {
     for (int i = 0; i < 4; i++) {
         int readableBuffer = mod_bufferPerLayer[i];
         for (int x = 0; x < bitmap.viewport.w; x++) {
-        //  linebuf[0][0x20 + x] = rand() % 0x100;
-          uint8 value = mod_graphicLayers[i][lineIdx][x];
-          if (value != 0) {
-              linebuf[0][0x20 + x] = value;
-          }
+            uint8 value = mod_graphicLayers[i][lineIdx][x];
+            if (value != 0) {
+                linebuf[0][0x20 + x] = value;
+            }
         }
     }
 }
