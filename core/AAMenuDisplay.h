@@ -30,6 +30,7 @@ typedef struct {
     int shouldSortColours;
     int limitedColourType;
     int shouldHideLayers;
+    int shouldShowSwapCount;
 } HackOptions;
 
 typedef struct {

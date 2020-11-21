@@ -221,6 +221,7 @@ void applySettingsFromArray256(int array256[]) {
     hackOptions.shouldSortColours = array256[9];
     hackOptions.limitedColourType = array256[10];
     hackOptions.shouldHideLayers = array256[11];
+    hackOptions.shouldShowSwapCount = array256[12];
 }
 
 void applyDefaultSettings() {
@@ -236,6 +237,7 @@ void applyDefaultSettings() {
     hackOptions.shouldSortColours = 0;
     hackOptions.limitedColourType = 0;
     hackOptions.shouldHideLayers = 0;
+    hackOptions.shouldShowSwapCount = 0;
 
     saveHackOptions();
 }
@@ -254,6 +256,10 @@ void saveHackOptions() {
     options[6] = hackOptions.loadFromSavedState;
     options[7] = hackOptions.automaticallySaveStatesFreq;
     options[8] = hackOptions.shouldWriteToLog;
+    options[9] = hackOptions.shouldSortColours;
+    options[10] = hackOptions.limitedColourType;
+    options[11] = hackOptions.shouldHideLayers;
+    options[12] = hackOptions.shouldShowSwapCount;
 
     // char path[0x100];
     // char folder[0x10];
@@ -680,6 +686,8 @@ void incrementOption(int byAmount) {
         hackOptions.shouldHideLayers += byAmount;
     }  else if (optionsItemIndex == 12) {
         hackOptions.shouldWriteToLog += byAmount;
+    }  else if (optionsItemIndex == 13) {
+        hackOptions.shouldShowSwapCount += byAmount;
     }
 }
 
@@ -768,7 +776,7 @@ void showOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to play ---", 5);
 
-    int lineCount = 13;
+    int lineCount = 14;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -965,6 +973,19 @@ void showOptionsMenu() {
     } else {
         sprintf(lines[12], "Write to debug log:        ON"); 
     }
+
+    if (hackOptions.shouldShowSwapCount > 1) {
+        hackOptions.shouldShowSwapCount = 0;
+    }
+    if (hackOptions.shouldShowSwapCount < 0) {
+        hackOptions.shouldShowSwapCount = 1;
+    }
+    if (hackOptions.shouldShowSwapCount == 0) {
+        sprintf(lines[13], "Show swap counter:        OFF");
+    } else {
+        sprintf(lines[13], "Show swap counter:         ON");
+    }
+
 
 
     int yPos = 32;

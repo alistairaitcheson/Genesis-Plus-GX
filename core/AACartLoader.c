@@ -43,6 +43,8 @@ static int initialisedDirectory = 0;
 static uint8 cachedSaveStates[MAX_ROMS][STATE_SIZE];
 static uint8 hasCachedSaveState[MAX_ROMS];
 
+static int gameSwapCount = 0;
+
 void writeFolderPathIntoArray32(char array32[]) {
     writeStringToArray32(folderPath, array32);
 }
@@ -74,6 +76,7 @@ void cartLoader_run() {
     gameListings[0].panicBytes[0] = 0;
     gameListings[0].panicByteDestinations[0] = 0;
     gameListings[0].accelerationType = 0;
+    gameListings[0].valueWriteDuration = 0;
     gameTransferListings[0].ringBytesForTransfer[0] = 0;
     gameTransferListings[0].speedBytesForTransfer[0] = 0;
     gameTransferListings[0].timeBytesForTransfer[0] = 0;
@@ -106,6 +109,7 @@ void cartLoader_run() {
     gameListings[1].panicBytes[2] = 0xF75C;
     gameListings[1].panicByteDestinations[2] = 0;
     gameListings[1].accelerationType = 1;
+    gameListings[1].valueWriteDuration = 0;
     gameTransferListings[1].speedBytesForTransfer[0] = 0xF760;
     gameTransferListings[1].speedBytesForTransfer[1] = 0xF761;
     gameTransferListings[1].speedBytesForTransfer[2] = 0xF762;
@@ -170,12 +174,14 @@ void cartLoader_run() {
     gameListings[6].livesBytes[0] = 0x0680;
     gameListings[6].livesByteDestinations[0] = 0x5; 
     gameListings[6].accelerationType = 2;
+    gameListings[6].valueWriteDuration = 60; // once per second
 
     writeStringToArray32("SonicSpinball", gameListings[7].gameId);
     gameListings[7].ringByte = 0x57A1;
     gameListings[7].specialRingByte = 0;    
     gameListings[7].livesBytes[0] = 0x579F;
     gameListings[7].livesByteDestinations[0] = 0x5; 
+    gameListings[7].valueWriteDuration = 20 * 60 * 60; // only update lives every 20 seconds
 
     gameListingCount = 8;
     cartLoader_appendToLog("finished cartLoader_run");
@@ -280,6 +286,8 @@ void cartLoader_loadRandomRom() {
         
         cartLoader_loadRomAtIndex(nextIndex, 1);
         loadAttemptCount = 0;
+
+        gameSwapCount++;
     }
 }
 
@@ -500,6 +508,7 @@ void copyGameListing(int fromGame, int toGame) {
 
     gameListings[toGame].ringByte = gameListings[fromGame].ringByte;
     gameListings[toGame].specialRingByte = gameListings[fromGame].specialRingByte;
+    gameListings[toGame].valueWriteDuration = gameListings[fromGame].valueWriteDuration;
 
     for (int i = 0; i < 8; i++) {
         gameListings[toGame].livesBytes[i] = gameListings[fromGame].livesBytes[i];
@@ -847,4 +856,8 @@ int cartLoader_string32AreEqual(char strA[], char strB[]) {
         }
     }
     return 1;
+}
+
+int cartLoader_getSwapCount() {
+    return gameSwapCount;
 }

@@ -27,6 +27,7 @@ extern void modConsole_queuePanic();
 extern void modConsole_applyHackOptions();
 extern void modConsole_flagToApplyCache();
 
+int lengthOfString256(char string256[]);
 
 void updateSpeedUpOnRing();
 int ringCountHasChanged();

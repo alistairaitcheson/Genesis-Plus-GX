@@ -37,6 +37,7 @@ extern void cartLoader_toggleGameBlockedAtIndex(int index);
 extern void cartLoader_restoreCarriedOverData();
 
 extern int cartLoader_string32AreEqual(char strA[], char strB[]);
+extern int cartLoader_getSwapCount();
 
 void listFiles(const char *path);
 void addRomListing(char *path);

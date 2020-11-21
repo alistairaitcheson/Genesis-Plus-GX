@@ -45,6 +45,8 @@ static int panicCountdown = 0;
 
 static int shouldApplyCacheNextFrame = 0;
 
+static int valueWriteTimeCounter = 0;
+
 void modConsole_flagToApplyCache() {
     shouldApplyCacheNextFrame = 1;
 }
@@ -289,11 +291,26 @@ void modConsole_updateFrame() {
         //     }       
         // }
 
-        if (hackOpts.infiniteLives != 0) {
-            updateLives();
+        valueWriteTimeCounter++;
+        if (valueWriteTimeCounter > activeGameListing.valueWriteDuration) {
+            if (hackOpts.infiniteLives != 0) {
+                updateLives();
+            }
+            if (hackOpts.infiniteTime != 0) {
+                updateTime();
+            }
         }
-        if (hackOpts.infiniteTime != 0) {
-            updateTime();
+
+        if (hackOpts.shouldShowSwapCount != 0) {
+            char counterText[0x40];
+            sprintf(counterText, "SWAPS: %08d", cartLoader_getSwapCount());
+            int lengthOfText = lengthOfString256(counterText);
+
+            vdp_clearGraphicLayer(2);
+            layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8, 8 * lengthOfText, 8, 0xFF);
+            layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8, counterText, 0x5);
+        } else {
+            vdp_clearGraphicLayer(2);
         }
 
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
@@ -631,4 +648,13 @@ int buttonStateAtIndex(int index) {
     } else {
         return 1;
     }
+}
+
+int lengthOfString256(char string256[]) {
+    for (int i = 0; i < 0x100; i++) {
+        if (string256[i] == 0 || string256[i] == '\0') {
+            return i;
+        }
+    }
+    return 0x100;
 }
