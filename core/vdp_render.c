@@ -4263,6 +4263,8 @@ void render_line(int line)
     /* Render sprite layer */
     render_obj(line & 1);
 
+    drawTextLayers(line);
+
     /* Left-most column blanking */
     if (reg[0] & 0x20)
     {
