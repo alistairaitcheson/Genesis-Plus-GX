@@ -617,8 +617,11 @@ static int shouldLimitColourPalette = 0;
 static int shouldHideSprites = 0;
 static int shouldHideBackgrounds = 0;
 static int shouldSortPixels = 0;
-static unsigned int randomColourValue = 0;
+static unsigned int randomColourValues[0x50];
 static unsigned int cachedPaletteColours[0x50];
+
+static int alistair_vdpOffsetX = 0;
+static int alistair_vdpOffsetY = 0;
 
 /*--------------------------------------------------------------------------*/
 /* Sprite pattern name offset look-up table function (Mode 5)               */
@@ -1134,9 +1137,9 @@ void color_update_m4(int index, unsigned int data)
 void color_update_m5(int index, unsigned int data)
 {
   if (vdp_getShouldRandomiseColours() == 0) {
-        char logString[0x100];
-        sprintf(logString, "   - Caching colour %02X: %08X", index, cachedPaletteColours[index]); 
-        cartLoader_appendToLog(logString);
+        // char logString[0x100];
+        // sprintf(logString, "   - Caching colour %02X: %08X", index, cachedPaletteColours[index]); 
+        // cartLoader_appendToLog(logString);
       cachedPaletteColours[index] = data;
   }
 
@@ -1149,7 +1152,7 @@ void color_update_m5(int index, unsigned int data)
 
   // ALISTAIR'S HACK
   if (vdp_getShouldRandomiseColours() != 0) {
-    data = randomColourValue; // rand() % 0x100000000;
+    data = randomColourValues[index]; // rand() % 0x100000000;
   }
 
   if(reg[12] & 0x08)
@@ -4323,7 +4326,7 @@ void remap_line(int line)
   uint8 *src = &linebuf[0][0x20 - bitmap.viewport.x];
 
   /* Adjust line offset in framebuffer */
-  line = (line + bitmap.viewport.y) % lines_per_frame;
+  line = (line + bitmap.viewport.y + alistair_vdpOffsetY) % lines_per_frame; // <-- Alistair - add a configurable y-offset here
 
   /* Take care of Game Gear reduced screen when overscan is disabled */
   if (line < 0) return;
@@ -4354,12 +4357,12 @@ void remap_line(int line)
     CUSTOM_BLITTER(line, width, pixel, src)
 #else
     /* Convert VDP pixel data to output pixel format */
-    PIXEL_OUT_T *dst = ((PIXEL_OUT_T *)&bitmap.data[(line * bitmap.pitch)]);
+    PIXEL_OUT_T *dst = ((PIXEL_OUT_T *)&bitmap.data[alistair_vdpOffsetX + (line * bitmap.pitch)]); // <-- Alistair - is this what I need to hijack to get SMS screen to look nice?
     if (config.lcd)
     {
       do
       {
-        RENDER_PIXEL_LCD(src,dst,pixel,config.lcd);
+        RENDER_PIXEL_LCD(src,dst,pixel,config.lcd); // <-- Alistair - is this what I need to hijack to get SMS screen to look nice?
       }
       while (--width);
     }
@@ -4423,26 +4426,28 @@ static int shouldRandomiseColours = 0;
 void vdp_setShouldRandomiseColours(int toValue) {
     int oldValue = shouldRandomiseColours;
     shouldRandomiseColours = toValue;
-    randomColourValue = rand() % 0x100000000;
+    for (int i = 0; i < 0x50; i++) {
+      randomColourValues[i] = vdp_randomValueWithinReason();// rand() % 0x100000000;
+    }
 
     for (int i = 0; i < 0x20; i++)
     {
       if (vdp_getShouldRandomiseColours() == 0/* && vdp_getShouldRandomiseColours() != oldValue*/) {
-        char logString[0x100];
-        sprintf(logString, "Restoring cached colour %02X: %08X", i, cachedPaletteColours[i]); 
-        cartLoader_appendToLog(logString);
+        // char logString[0x100];
+        // sprintf(logString, "Restoring cached colour %02X: %08X", i, cachedPaletteColours[i]); 
+        // cartLoader_appendToLog(logString);
         color_update_m5(i, cachedPaletteColours[i]);
       } else {
-        color_update_m5(i, randomColourValue);
+        color_update_m5(i, randomColourValues[i]);
       }
     }
     if (vdp_getShouldRandomiseColours() == 0/* && vdp_getShouldRandomiseColours() != oldValue*/) {
-        char logString[0x100];
-        sprintf(logString, "Restoring cached colour 0x40: %08X", cachedPaletteColours[0x40]); 
-        cartLoader_appendToLog(logString);
+        // char logString[0x100];
+        // sprintf(logString, "Restoring cached colour 0x40: %08X", cachedPaletteColours[0x40]); 
+        // cartLoader_appendToLog(logString);
       color_update_m5(0x40, cachedPaletteColours[0x40]);
     } else {
-      color_update_m5(0x40, randomColourValue);
+      color_update_m5(0x40, randomColourValues[0x40]);
     }
 
 }
@@ -4532,4 +4537,27 @@ int vdp_isMasterSystem() {
   } else {
     return 0;
   }
+}
+
+unsigned int vdp_randomValueWithinReason() {
+  return rand() % 0x100000000;
+  // unsigned int value = 0;
+  // for (int i = 0; i < 8; i++) {
+  //   unsigned int multiplicand = 1;
+  //   for (int j = 0; j < i; j++) {
+  //     multiplicand *= 0x10;
+  //   }
+
+  //   value += multiplicand * ((rand() % 4) + 8);
+  // }
+  // return value;
+}
+
+void vdp_setAlistairOffset(int x, int y) {
+    char debugLog[0x100];
+    sprintf(debugLog, "setting Alistair offset: %d, %d", x, y);
+    cartLoader_appendToLog(debugLog);
+
+  alistair_vdpOffsetX = x;
+  alistair_vdpOffsetY = y;
 }

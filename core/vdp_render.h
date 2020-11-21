@@ -165,5 +165,8 @@ void vdp_setShouldHideBackgrounds(int toValue);
 void replaceLineWithBlankColour();
 
 extern int vdp_isMasterSystem();
+unsigned int vdp_randomValueWithinReason();
+
+extern void vdp_setAlistairOffset(int x, int y) ;
 
 #endif /* _RENDER_H_ */

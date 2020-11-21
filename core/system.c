@@ -671,6 +671,9 @@ void system_frame_gen(int do_skip)
 
 void system_frame_scd(int do_skip)
 {
+        // bitmap.viewport.x = 100;
+        // bitmap.viewport.y = 100;
+
   /* line counters */
   int start, end, line;
 

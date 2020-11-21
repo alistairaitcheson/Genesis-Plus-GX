@@ -47,6 +47,8 @@ static uint8 saveStateBeforeMenu[STATE_SIZE];
 
 static int gameSwapCount = 0;
 
+static unsigned char lastSystemType;
+
 void writeFolderPathIntoArray32(char array32[]) {
     writeStringToArray32(folderPath, array32);
 }
@@ -436,6 +438,47 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
 
     cartLoader_appendToLog("*** Loaded game ***");
     cartLoader_appendToLog(cartLoader_getActiveGameListing().gameId);
+
+    // if (lastSystemType != system_hw) {
+        if (cartLoader_cartIsSMS() != 0) {
+            vdp_setAlistairOffset(64, 16); /// <-- either not working yet or not being called
+            // replace with a multiply effect?
+        } else {
+            vdp_setAlistairOffset(0, 0);
+        }
+        lastSystemType = system_hw;
+    // }
+}
+
+int cartLoader_cartIsSMS() {
+    char checkText[0x20];
+    sprintf(checkText, /*"TMR SEGA"*/ "54 4D 52 20 53 45 47 41");
+    char romText[0x20];
+    sprintf(romText, "%02X %02X %02X %02X %02X %02X %02X %02X", 
+        cart.rom[0x7FF0 + 0], 
+        cart.rom[0x7FF0 + 1], 
+        cart.rom[0x7FF0 + 2], 
+        cart.rom[0x7FF0 + 3], 
+        cart.rom[0x7FF0 + 4], 
+        cart.rom[0x7FF0 + 5], 
+        cart.rom[0x7FF0 + 6], 
+        cart.rom[0x7FF0 + 7]);
+    // for (int i = 8; i < 8; i++) {
+    //     sprintf(romText, "%s%02X", romText, cart.rom[0x7FF0 + i]);
+    //     // romText[i] = cart.rom[0x7FF0 + i]; // <-- I don't think this works...
+    // }
+    // romText[8] = '\0';
+
+    char debugLog[0x100];
+    sprintf(debugLog, "Comparing ROM HEADERS: %s > %s", checkText, romText);
+    cartLoader_appendToLog(debugLog);
+
+    if (cartLoader_string32AreEqual(checkText, romText) != 0) {
+        cartLoader_appendToLog("It's a match!");
+        return 1;
+    }
+    cartLoader_appendToLog("It's not a match...");
+    return 0;
 }
 
 int cartLoader_getActiveCartIndex() {

@@ -55,5 +55,6 @@ void flagHUDtoUpdate();
 
 void cartLoader_cacheSaveStateBeforeMenu();
 void cartLoader_loadSaveStateForQuitMenu();
+extern int cartLoader_cartIsSMS();
 
 #endif
