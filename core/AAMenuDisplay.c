@@ -18,9 +18,10 @@ static int optionsItemIndex = 0;
 static int inGameOptionIndex = 0;
 static int randomisedGameIndex = 0;
 static int persistValuesIndex = 0;
+static int ramDetectiveIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 6;
+static int minorVersion = 7;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -31,6 +32,11 @@ static int gameHasStarted = 0;
 
 static HackOptions hackOptions;
 static PersistValuesOptions persistValuesOptions;
+static RamDetectiveOptions ramDetectiveOptions;
+
+static int trackedRamFrameCounts[0x10000];
+// static int trackedRamLocationCount = 0;
+
 
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
@@ -75,6 +81,84 @@ void menuDisplay_initialise() {
     } else {
         applyDefaultPersistValues();
     }
+
+    applyDefaultRamDetectiveValues();
+}
+
+// void addRamLocationToTracker(int location) {
+//     if (trackedRamLocationCount >= 0x10000){
+//         return;
+//     }
+
+//     int found = 0;
+//     for (int i = 0; i < trackedRamLocationCount; i++) {
+//         if (trackedRamLocations[i] == location) {
+//             found = 1;
+//             break;
+//         }
+//     }
+
+//     if (found == 0) {
+//         trackedRamLocations[trackedRamLocationCount] = location;
+//         trackedRamLocationCount++;
+//     }
+// }
+
+void menuDisplay_updateRamDetective() {
+    if (ramDetectiveOptions.shouldShow == 0) {
+        return;
+    }
+
+    int start = 
+        (ramDetectiveOptions.startLoc[0] * 0x1000) + 
+        (ramDetectiveOptions.startLoc[1] * 0x0100) + 
+        (ramDetectiveOptions.startLoc[2] * 0x0010) + 
+        (ramDetectiveOptions.startLoc[3] * 0x0001);
+    int end = 
+        (ramDetectiveOptions.endLoc[0] * 0x1000) + 
+        (ramDetectiveOptions.endLoc[1] * 0x0100) + 
+        (ramDetectiveOptions.endLoc[2] * 0x0010) + 
+        (ramDetectiveOptions.endLoc[3] * 0x0001);
+    int seekValue = 
+        (ramDetectiveOptions.seekValue[0] * 0x10) +
+        (ramDetectiveOptions.seekValue[1] * 0x01);
+
+    for (int i = start; i <= end; i++) {
+        int value = aa_genesis_getWorkRam(i);
+        if (value == seekValue) {
+            trackedRamFrameCounts[i]++;
+        } else {
+            trackedRamFrameCounts[i] = 0;
+        }
+    }
+}
+
+void menuDisplay_renderRamDetective() {
+    if (ramDetectiveOptions.shouldShow == 0) {
+        return;
+    }
+
+    layerRenderer_clearLayer(0);
+
+    int x = 0;
+    int y = 0;
+    int width = (8 * 4);
+    int height = 8;
+
+    for (int i = 0; i < 0x10000; i++) {
+        if (trackedRamFrameCounts[i] > ramDetectiveOptions.minFrames) {
+            char text[0x10];
+            sprintf(text, "%04X", i);
+            layerRenderer_fill(0, x, y, width, height, 0xFF);
+            layerRenderer_writeWord256(0, x, y, text, 5);
+
+            y += height + 1;
+            if (y >= vdp_getScreenHeight() - height) {
+                y = 0;
+                x += width + 1;
+            }
+        }
+    }
 }
 
 void applyPersistValuesFromArray256(int array256[]) {
@@ -99,6 +183,28 @@ void applyDefaultPersistValues() {
     persistValuesOptions.momentum = 0;
     persistValuesOptions.time = 0;
     persistValuesOptions.score = 0;
+}
+
+void applyDefaultRamDetectiveValues() {
+    ramDetectiveOptions.startLoc[0] = 0;
+    ramDetectiveOptions.startLoc[1] = 0;
+    ramDetectiveOptions.startLoc[2] = 0;
+    ramDetectiveOptions.startLoc[3] = 0;
+
+    ramDetectiveOptions.endLoc[0] = 0xF;
+    ramDetectiveOptions.endLoc[1] = 0xF;
+    ramDetectiveOptions.endLoc[2] = 0xF;
+    ramDetectiveOptions.endLoc[3] = 0xF;
+
+    ramDetectiveOptions.seekValue[0] = 0;
+    ramDetectiveOptions.seekValue[1] = 0;
+
+    ramDetectiveOptions.minFrames = 0;
+    ramDetectiveOptions.shouldShow = 0;
+
+    for (int i = 0; i < 0x10000; i++) {
+        trackedRamFrameCounts[i] = 0;
+    }
 }
 
 
@@ -213,6 +319,10 @@ void menuDisplay_showMenu(int menuNum) {
 
     if (activeMenu == MENU_LISTING_PERSIST_VALUES) {
         showPersistValuesMenu();
+    }
+
+    if (activeMenu == MENU_LISTING_RAM_DETECTIVE) {
+        showRamDetectiveMenu();
     }
 }
 
@@ -398,7 +508,86 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
     }
 
+    if (activeMenu == MENU_LISTING_RAM_DETECTIVE) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            ramDetectiveIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            ramDetectiveIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_LEFT) {
+            ramDetectivePressDPadDir(-1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_RIGHT) {
+            ramDetectivePressDPadDir(1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C) {
+            ramDetectivePressFaceButton(1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B) {
+            ramDetectivePressFaceButton(-1);
+            refreshMenu();
+            return 1;
+        }
+
+
+        if (buttonIndex == INPUT_INDEX_START) {
+            menuDisplay_hideMenu();
+            return 1;
+        }
+    }
+
     return 0;
+}
+
+void ramDetectivePressFaceButton(int direction) {
+    if (ramDetectiveIndex == 0) {
+        ramDetectiveOptions.startLoc[ramDetectiveOptions.startValueIndex] += direction;
+    }
+    if (ramDetectiveIndex == 1) {
+        ramDetectiveOptions.endLoc[ramDetectiveOptions.endValueIndex] += direction;
+    }
+    if (ramDetectiveIndex == 2) {
+        ramDetectiveOptions.seekValue[ramDetectiveOptions.seekValueIndex] += direction;
+    }
+    if (ramDetectiveIndex == 3) {
+        ramDetectiveOptions.minFrames += direction;
+    }
+    if (ramDetectiveIndex == 4) {
+        ramDetectiveOptions.shouldShow += direction;
+    }
+}
+
+void ramDetectivePressDPadDir(int direction) {
+    if (ramDetectiveIndex == 0) {
+        ramDetectiveOptions.startValueIndex += direction;
+    }
+    if (ramDetectiveIndex == 1) {
+        ramDetectiveOptions.endValueIndex += direction;
+    }
+    if (ramDetectiveIndex == 2) {
+        ramDetectiveOptions.seekValueIndex += direction;
+    }
+    if (ramDetectiveIndex == 3) {
+        ramDetectiveOptions.minFrames += direction;
+    }
+    if (ramDetectiveIndex == 4) {
+        ramDetectiveOptions.shouldShow += direction;
+    }
 }
 
 void togglePersistValue(int index) {
@@ -452,6 +641,13 @@ void activateInGameMenuItem() {
     }
     if (inGameOptionIndex == 7) {
         modConsole_activateReset();
+    }
+    if (inGameOptionIndex == 8) {
+        ramDetectiveIndex = 0;
+        for (int i = 0; i < 0x10000; i++) {
+            trackedRamFrameCounts[i] = 0;
+        }
+        queuedMenu = MENU_LISTING_RAM_DETECTIVE;
     }
 
     inGameOptionIndex = 0;
@@ -799,7 +995,7 @@ void showInGameOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "--- press A/B/C to activate option ---", 5);
 
-    int lineCount = 9;
+    int lineCount = 10;
     char lines[lineCount][0x80];
 
     if (inGameOptionIndex < 0) {
@@ -817,7 +1013,8 @@ void showInGameOptionsMenu() {
     sprintf(lines[5], "Toggle games in randomiser" );
     sprintf(lines[6], "Kill Sonic");
     sprintf(lines[7], "Reset Game");
-    sprintf(lines[8], "Back to game");
+    sprintf(lines[8], "Ram detective tool >>");
+    sprintf(lines[9], "Back to game");
 
     int yPos = 48;
     for (int i = 0; i < lineCount; i++) {
@@ -963,6 +1160,133 @@ void showPersistValuesMenu() {
     for (int i = 0; i < lineCount; i++) {
         char toPrint[0x100];
         if (i == persistValuesIndex) {
+            sprintf(toPrint, "> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "  %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+        yPos += 8;
+    }
+}
+
+
+void showRamDetectiveMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Ram Detective", 5);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to confirm ---", 5);
+
+    int lineCount = 5;
+    char lines[lineCount][0x80];
+
+    if (ramDetectiveIndex < 0) {
+        ramDetectiveIndex = lineCount - 1;
+    }
+    if (ramDetectiveIndex >= lineCount) {
+        ramDetectiveIndex = 0;
+    }
+
+    if (ramDetectiveOptions.startValueIndex < 0) {
+        ramDetectiveOptions.startValueIndex = 0;
+    }
+    if (ramDetectiveOptions.startValueIndex > 3) {
+        ramDetectiveOptions.startValueIndex = 3;
+    }
+
+    if (ramDetectiveOptions.endValueIndex < 0) {
+        ramDetectiveOptions.endValueIndex = 0;
+    }
+    if (ramDetectiveOptions.endValueIndex > 3) {
+        ramDetectiveOptions.endValueIndex = 3;
+    }
+
+    if (ramDetectiveOptions.seekValueIndex < 0) {
+        ramDetectiveOptions.seekValueIndex = 0;
+    }
+    if (ramDetectiveOptions.seekValueIndex > 1) {
+        ramDetectiveOptions.seekValueIndex = 1;
+    }
+
+    if (ramDetectiveOptions.shouldShow < 0) {
+        ramDetectiveOptions.shouldShow = 1;
+    }
+    if (ramDetectiveOptions.shouldShow > 1) {
+        ramDetectiveOptions.shouldShow = 0;
+    }
+
+    if (ramDetectiveOptions.shouldShow < 0) {
+        ramDetectiveOptions.shouldShow = 300;
+    }
+    if (ramDetectiveOptions.shouldShow > 300) {
+        ramDetectiveOptions.shouldShow = 0;
+    }
+
+
+    char startValuesText[4][0x10];
+    for (int i = 0; i < 4; i++) {
+        if (ramDetectiveOptions.startLoc[i] < 0) {
+            ramDetectiveOptions.startLoc[i] = 0xF;
+        }
+        if (ramDetectiveOptions.startLoc[i] > 0xF) {
+            ramDetectiveOptions.startLoc[i] = 0;
+        }
+
+        if (ramDetectiveIndex == 0 && ramDetectiveOptions.startValueIndex == i) {
+            sprintf(startValuesText[i], "<%X>", ramDetectiveOptions.startLoc[i]);
+        } else {
+            sprintf(startValuesText[i], " %X ", ramDetectiveOptions.startLoc[i]);
+        }
+    }
+    sprintf(lines[0], "START: %s%s%s%s", startValuesText[0], startValuesText[1], startValuesText[2], startValuesText[3]);
+
+    char endValuesText[4][0x10];
+    for (int i = 0; i < 4; i++) {
+        if (ramDetectiveOptions.endLoc[i] < 0) {
+            ramDetectiveOptions.endLoc[i] = 0xF;
+        }
+        if (ramDetectiveOptions.endLoc[i] > 0xF) {
+            ramDetectiveOptions.endLoc[i] = 0;
+        }
+
+        if (ramDetectiveIndex == 1 && ramDetectiveOptions.endValueIndex == i) {
+            sprintf(endValuesText[i], "<%X>", ramDetectiveOptions.endLoc[i]);
+        } else {
+            sprintf(endValuesText[i], " %X ", ramDetectiveOptions.endLoc[i]);
+        }
+    }
+    sprintf(lines[1], "END:   %s%s%s%s", endValuesText[0], endValuesText[1], endValuesText[2], endValuesText[3]);
+
+    char seekValuesText[2][0x10];
+    for (int i = 0; i < 2; i++) {
+        if (ramDetectiveOptions.seekValue[i] < 0) {
+            ramDetectiveOptions.seekValue[i] = 0xF;
+        }
+        if (ramDetectiveOptions.seekValue[i] > 0xF) {
+            ramDetectiveOptions.seekValue[i] = 0;
+        }
+
+        if (ramDetectiveIndex == 2 && ramDetectiveOptions.seekValueIndex == i) {
+            sprintf(seekValuesText[i], "<%X>", ramDetectiveOptions.seekValue[i]);
+        } else {
+            sprintf(seekValuesText[i], " %X ", ramDetectiveOptions.seekValue[i]);
+        }
+    }
+    sprintf(lines[2], "SEEK:  %s%s", seekValuesText[0], seekValuesText[1]);
+
+    sprintf(lines[3], "MIN FRAMES: %d", ramDetectiveOptions.minFrames);
+
+    if (ramDetectiveOptions.shouldShow == 0) {
+        sprintf(lines[4], "SHOW DURING GAME:   OFF");
+    } else {
+        sprintf(lines[4], "SHOW DURING GAME:    ON");
+    }
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        char toPrint[0x100];
+        if (i == ramDetectiveIndex) {
             sprintf(toPrint, "> %s", lines[i]);
         } else {
             sprintf(toPrint, "  %s", lines[i]);

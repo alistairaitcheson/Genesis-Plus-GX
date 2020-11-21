@@ -43,6 +43,8 @@
 #include "md_ntsc.h"
 #include "sms_ntsc.h"
 
+#include "AACartLoader.h"
+
 #ifndef HAVE_NO_SPRITE_LIMIT
 #define MAX_SPRITES_PER_LINE 20
 #define TMS_MAX_SPRITES_PER_LINE 4
@@ -615,7 +617,8 @@ static int shouldLimitColourPalette = 0;
 static int shouldHideSprites = 0;
 static int shouldHideBackgrounds = 0;
 static int shouldSortPixels = 0;
-
+static unsigned int randomColourValue = 0;
+static unsigned int cachedPaletteColours[0x50];
 
 /*--------------------------------------------------------------------------*/
 /* Sprite pattern name offset look-up table function (Mode 5)               */
@@ -1130,6 +1133,12 @@ void color_update_m4(int index, unsigned int data)
 
 void color_update_m5(int index, unsigned int data)
 {
+  if (vdp_getShouldRandomiseColours() == 0) {
+        char logString[0x100];
+        sprintf(logString, "   - Caching colour %02X: %08X", index, cachedPaletteColours[index]); 
+        cartLoader_appendToLog(logString);
+      cachedPaletteColours[index] = data;
+  }
 
   /* Palette Mode */
   if (!(reg[0] & 0x04))
@@ -1138,8 +1147,9 @@ void color_update_m5(int index, unsigned int data)
     data &= 0x49;
   }
 
+  // ALISTAIR'S HACK
   if (vdp_getShouldRandomiseColours() != 0) {
-    data = rand() % 0x100000000;
+    data = randomColourValue; // rand() % 0x100000000;
   }
 
   if(reg[12] & 0x08)
@@ -4410,6 +4420,28 @@ void drawTextLayers(int lineIdx) {
 static int shouldRandomiseColours = 0;
 void vdp_setShouldRandomiseColours(int toValue) {
     shouldRandomiseColours = toValue;
+    randomColourValue = rand() % 0x100000000;
+
+    for (int i = 0; i < 0x20; i++)
+    {
+      if (vdp_getShouldRandomiseColours() == 0) {
+        char logString[0x100];
+        sprintf(logString, "Restoring cached colour %02X: %08X", i, cachedPaletteColours[i]); 
+        cartLoader_appendToLog(logString);
+        color_update_m5(i, cachedPaletteColours[i]);
+      } else {
+        color_update_m5(i, randomColourValue);
+      }
+    }
+    if (vdp_getShouldRandomiseColours() == 0) {
+        char logString[0x100];
+        sprintf(logString, "Restoring cached colour 0x40: %08X", cachedPaletteColours[0x40]); 
+        cartLoader_appendToLog(logString);
+      color_update_m5(0x40, cachedPaletteColours[0x40]);
+    } else {
+      color_update_m5(0x40, randomColourValue);
+    }
+
 }
 
 int vdp_getShouldRandomiseColours() {

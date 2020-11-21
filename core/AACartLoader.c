@@ -166,12 +166,18 @@ void cartLoader_run() {
 
     writeStringToArray32("SONIC3DBLAST", gameListings[6].gameId);
     gameListings[6].ringByte = 0x0A5A;
-    gameListings[6].specialRingByte = 0;    
+    gameListings[6].specialRingByte = 0;    // <-- to do!
     gameListings[6].livesBytes[0] = 0x0680;
     gameListings[6].livesByteDestinations[0] = 0x5; 
     gameListings[6].accelerationType = 2;
 
-    gameListingCount = 7;
+    writeStringToArray32("SonicSpinball", gameListings[7].gameId);
+    gameListings[7].ringByte = 0x57A1;
+    gameListings[7].specialRingByte = 0;    
+    gameListings[7].livesBytes[0] = 0x579F;
+    gameListings[7].livesByteDestinations[0] = 0x5; 
+
+    gameListingCount = 8;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
@@ -426,6 +432,9 @@ AAGameTransferListing cartLoader_getActiveGameTransferListing() {
 
 int pathIsRom(char *path, int pathLen) {
     if (pathLen > 4) {
+        if (path[pathLen -4] == '.' && path[pathLen - 3] == 'g' && path[pathLen - 2] == 'e' && path[pathLen - 1] == 'n' ) {
+            return 1;
+        }
         if (path[pathLen -4] == '.' && path[pathLen - 3] == 's' && path[pathLen - 2] == 'm' && path[pathLen - 1] == 'd' ) {
             return 1;
         }

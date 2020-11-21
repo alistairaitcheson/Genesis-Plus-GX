@@ -86,10 +86,13 @@ void showRomList() {
 void modConsole_updateActiveCart() {
     char romHeader[0x20];
     modConsole_getRomHeader(romHeader);
+    cartLoader_appendToLog("modConsole_updateActiveCart - active ROM is:");
+    cartLoader_appendToLog(romHeader);
+
     activeGameListing = cartLoader_getActiveGameListing();
 
-  // cartLoader_appendToLog("modConsole_updateActiveCart - you are playing:");
-    // cartLoader_appendToLog(activeGameListing.gameId);
+    cartLoader_appendToLog("modConsole_updateActiveCart - you are playing:");
+    cartLoader_appendToLog(activeGameListing.gameId);
 }
 
 void modConsole_applyHackOptions() {
@@ -225,6 +228,9 @@ void modConsole_updateFrame() {
             }
         }
 
+        menuDisplay_updateRamDetective();
+        menuDisplay_renderRamDetective();
+
         if (panicCountdown > 0) {
             panicCountdown --;
             // char tempLog[0x100];
@@ -299,7 +305,16 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_B) != 0) {
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
+        } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_C) != 0) {
+            menuDisplay_showMenu(MENU_LISTING_IN_GAME);
+        } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+            menuDisplay_showMenu(MENU_LISTING_IN_GAME);
         }
+
     }
 
     frameCount++;
@@ -395,20 +410,34 @@ void updateSpeedUpOnRing() {
             aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
         }
         if (cartLoader_getActiveGameListing().accelerationType == 2) {
+            // I don't think this does anything because I don't think Sonic's running
+            // speed is held in RAM
+
+            /*
             cartLoader_appendToLog("Increasing Sonic3DBlast speed");
             char logText[0x100];
             sprintf(logText, "X: From %02X, %02X", aa_genesis_getWorkRam(0xC204), aa_genesis_getWorkRam(0xC205));
             cartLoader_appendToLog(logText);
             // x speed
-            aa_genesis_incrementWorkRamCompoundValueByInt(0xC204, 2, 0x40);
+            for (int i = 0xC1F4; i < 0xC1F8; i++) {
+                aa_genesis_incrementWorkRamCompoundValueByInt(i, 1, 0x40);
+            }
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xC204, 1, 0x40);
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xC205, 1, 0x40);
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xC206, 1, 0x40);
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xC207, 1, 0x40);
             sprintf(logText, "X: To   %02X, %02X", aa_genesis_getWorkRam(0xC204), aa_genesis_getWorkRam(0xC205));
             cartLoader_appendToLog(logText);
             // y speed
             sprintf(logText, "Y: From %02X, %02X", aa_genesis_getWorkRam(0xC206), aa_genesis_getWorkRam(0xC207));
             cartLoader_appendToLog(logText);
-            aa_genesis_incrementWorkRamCompoundValueByInt(0xC206, 2, 0x40);
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xC208, 1, 0x40);
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xC209, 1, 0x40);
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xC20A, 1, 0x40);
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xC20B, 1, 0x40);
             sprintf(logText, "Y: To   %02X, %02X", aa_genesis_getWorkRam(0xC206), aa_genesis_getWorkRam(0xC207));
             cartLoader_appendToLog(logText);
+            */
         }
     }
 }

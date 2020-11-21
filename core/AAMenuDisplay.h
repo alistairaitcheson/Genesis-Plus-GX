@@ -15,6 +15,7 @@
 #define MENU_LISTING_IN_GAME 4
 #define MENU_LISTING_RANDOMISED_ROMS 5
 #define MENU_LISTING_PERSIST_VALUES 6
+#define MENU_LISTING_RAM_DETECTIVE 7
 
 typedef struct {
     int infiniteLives;
@@ -40,6 +41,17 @@ typedef struct {
     int score;
 } PersistValuesOptions;
 
+typedef struct {
+    int startLoc[4];
+    int startValueIndex;
+    int endLoc[4];
+    int endValueIndex;
+    int seekValue[2];
+    int seekValueIndex;
+    int minFrames;
+    int shouldShow;
+} RamDetectiveOptions;
+
 extern void menuDisplay_showMenu(int menuNum);
 extern void menuDisplay_hideMenu();
 extern int menuDisplay_onButtonPress(int buttonIndex);
@@ -48,6 +60,8 @@ extern void menuDisplay_initialise();
 extern int menuDisplay_isShowing();
 extern void menuDisplay_hideMenuUnlessQueued();
 extern PersistValuesOptions menuDisplay_getPersistValuesOptions();
+extern void menuDisplay_renderRamDetective();
+extern void menuDisplay_updateRamDetective();
 
 void beginGame();
 void showTitleMenu();
@@ -62,11 +76,16 @@ void togglePersistValue(int index);
 void applyPersistValuesFromArray256(int array256[]);
 void applyDefaultPersistValues();
 
+void applyDefaultRamDetectiveValues();
+
 void applySettingsFromArray256(int array256[]);
 void applyDefaultSettings();
 void saveHackOptions();
 
 void activateInGameMenuItem();
 void showInGameOptionsMenu();
+void showRamDetectiveMenu();
+void ramDetectivePressFaceButton(int direction);
+void ramDetectivePressDPadDir(int direction);
 
 #endif
