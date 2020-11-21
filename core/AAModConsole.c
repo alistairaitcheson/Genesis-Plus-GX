@@ -47,8 +47,14 @@ static int shouldApplyCacheNextFrame = 0;
 
 static int valueWriteTimeCounter = 0;
 
+static int countdownToSummonMenu;
+
 void modConsole_flagToApplyCache() {
     shouldApplyCacheNextFrame = 1;
+}
+
+void modConsole_flagToSummonMenu() {
+    countdownToSummonMenu = 60;
 }
 
 void modConsole_initialise() {
@@ -214,9 +220,9 @@ void modConsole_updateFrame() {
                 }
             }
         }
-        if (frameCount >= 1000) {
-            aa_genesis_revertToLastRam();
-        }
+        // if (frameCount >= 1000) {
+        //     aa_genesis_revertToLastRam();
+        // }
 
         // HackOptions hackOpts = menuDisplay_getHackOptions();
         // char optionsDisplay[0x10];
@@ -352,6 +358,12 @@ void modConsole_updateFrame() {
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
         }
 
+        if (countdownToSummonMenu > 0) {
+            countdownToSummonMenu--;
+            if (countdownToSummonMenu == 0) {
+                menuDisplay_showMenu(MENU_LISTING_IN_GAME);
+            }
+        }
     }
 
     frameCount++;

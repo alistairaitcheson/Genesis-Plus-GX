@@ -345,6 +345,10 @@ void menuDisplay_hideMenu() {
     if (gameHasStarted != 0 && saveStateWasLoaded == 0) {
         cartLoader_loadSaveStateForQuitMenu();
     }
+
+    if (saveStateWasLoaded != 0) {
+        // modConsole_flagToSummonMenu();
+    }
     saveStateWasLoaded = 0;
 }
 
@@ -467,6 +471,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
 
             int romIndex = cartLoder_getLastLoadedIndex();
             if (cartLoader_gameIsBlockedFromRandomiser(romIndex) != 0) {
+                cartLoader_loadSaveStateForQuitMenu();
                 cartLoader_loadRandomRom();
                 saveStateWasLoaded = 1;
             }
@@ -635,14 +640,17 @@ void activateInGameMenuItem() {
         queuedMenu = MENU_LISTING_SETTINGS;
     }
     if (inGameOptionIndex == 2) {
+        cartLoader_loadSaveStateForQuitMenu();
         saveSaveStateForCurrentGame();
         cartLoader_saveAllSaveStatesToDisk();
     }
     if (inGameOptionIndex == 3) {
+        cartLoader_loadSaveStateForQuitMenu();
         cartLoader_loadAllSaveStatesFromDisk();
         cartLoader_loadSaveStateForCurrentGame();
     }
     if (inGameOptionIndex == 4) {
+        cartLoader_loadSaveStateForQuitMenu();
         vdp_setShouldRandomiseColours(0);
         cartLoader_removeCurrentGameFromRandomiser();
         saveStateWasLoaded = 1;
@@ -655,6 +663,7 @@ void activateInGameMenuItem() {
         modConsole_queuePanic();
     }
     if (inGameOptionIndex == 7) {
+        cartLoader_loadSaveStateForQuitMenu();
         modConsole_activateReset();
         saveStateWasLoaded = 1;
     }

@@ -172,7 +172,7 @@ void cartLoader_run() {
 
     writeStringToArray32("SONIC3DBLAST", gameListings[6].gameId);
     gameListings[6].ringByte = 0x0A5A;
-    gameListings[6].specialRingByte = 0;    // <-- to do!
+    gameListings[6].specialRingByte = 0xA17C;    // <-- to do!
     gameListings[6].livesBytes[0] = 0x0680;
     gameListings[6].livesByteDestinations[0] = 0x5; 
     gameListings[6].accelerationType = 2;
