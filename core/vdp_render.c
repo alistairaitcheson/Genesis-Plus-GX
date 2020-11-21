@@ -4421,12 +4421,13 @@ void drawTextLayers(int lineIdx) {
 
 static int shouldRandomiseColours = 0;
 void vdp_setShouldRandomiseColours(int toValue) {
+    int oldValue = shouldRandomiseColours;
     shouldRandomiseColours = toValue;
     randomColourValue = rand() % 0x100000000;
 
     for (int i = 0; i < 0x20; i++)
     {
-      if (vdp_getShouldRandomiseColours() == 0) {
+      if (vdp_getShouldRandomiseColours() == 0 && vdp_getShouldRandomiseColours() != oldValue) {
         char logString[0x100];
         sprintf(logString, "Restoring cached colour %02X: %08X", i, cachedPaletteColours[i]); 
         cartLoader_appendToLog(logString);
@@ -4435,7 +4436,7 @@ void vdp_setShouldRandomiseColours(int toValue) {
         color_update_m5(i, randomColourValue);
       }
     }
-    if (vdp_getShouldRandomiseColours() == 0) {
+    if (vdp_getShouldRandomiseColours() == 0 && vdp_getShouldRandomiseColours() != oldValue) {
         char logString[0x100];
         sprintf(logString, "Restoring cached colour 0x40: %08X", cachedPaletteColours[0x40]); 
         cartLoader_appendToLog(logString);

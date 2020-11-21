@@ -184,8 +184,39 @@ void cartLoader_run() {
     gameListings[7].livesBytes[0] = 0x579F;
     gameListings[7].livesByteDestinations[0] = 0x5; 
     gameListings[7].valueWriteDuration = 20 * 60 * 60; // only update lives every 20 seconds
+    
+    writeStringToArray32("15900", gameListings[8].gameId); // Sonic 2 MS
+    gameListings[8].ringByte = 0x1299;
+    gameListings[8].specialRingByte = 0;    
+    gameListings[8].livesBytes[0] = 0x1298;
+    gameListings[8].livesByteDestinations[0] = 0x5; 
+    gameListings[8].valueWriteDuration = 0;
+    gameListings[8].timeBytes[0] = 0x12B9;
+    gameListings[8].timeByteDestinations[0] = 1;
+    gameListings[8].timeBytes[1] = 0x12BA;
+    gameListings[8].timeByteDestinations[1] = 1;
+    gameListings[8].valueWriteDuration = 60;
+        
+    writeStringToArray32("76700", gameListings[9].gameId); // Sonic 1 MS
+    gameListings[9].ringByte = 0x12AA;
+    gameListings[9].specialRingByte = 0;    
+    gameListings[9].livesBytes[0] = 0x1246;
+    gameListings[9].livesByteDestinations[0] = 0x5; 
+    gameListings[9].timeBytes[0] = 0x12CE;
+    gameListings[9].timeByteDestinations[0] = 1;
+    gameListings[9].valueWriteDuration = 60;
 
-    gameListingCount = 8;
+    writeStringToArray32("21900", gameListings[10].gameId); // Sonic Chaos MS
+    gameListings[10].ringByte = 0x129A;
+    gameListings[10].specialRingByte = 0;    
+    gameListings[10].livesBytes[0] = 0x1299;
+    gameListings[10].livesByteDestinations[0] = 0x5; 
+    gameListings[10].timeBytes[0] = 0x12C0;
+    gameListings[10].timeByteDestinations[0] = 1;
+    gameListings[10].valueWriteDuration = 0;
+    gameListings[10].valueWriteDuration = 60;
+
+    gameListingCount = 11;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
@@ -418,6 +449,19 @@ int cartLoader_getActiveCartIndex() {
             return i;
         }
     }
+
+    // not found - check Master System headers
+    modConsole_getMasterSystemProductId(romHeaderBuffer);
+
+    cartLoader_appendToLog("! No ROM found - checking Master System product ID");
+    cartLoader_appendToLog(romHeaderBuffer);    
+    for (int i = 1; i < gameListingCount; i++) {
+        if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
+            return i;
+        }
+    }
+
+
     return 0;
 }
 

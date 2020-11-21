@@ -519,6 +519,10 @@ int ringCountHasChanged() {
     return 0;
 }
 
+void modConsole_getMasterSystemProductId(char intoArray[]) {
+    sprintf(intoArray, "%02X%02X%01X", getCartValueAtIndex(0x7FFC), getCartValueAtIndex(0x7FFD), getCartValueAtIndex(0x7FFE) / 0x10);
+}
+
 void modConsole_getRomHeader(char intoArray[]) {
     uint8 tempHeader[0x20];
     for (int i = 0; i < 0x20; i++) {

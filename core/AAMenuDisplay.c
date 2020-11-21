@@ -643,6 +643,7 @@ void activateInGameMenuItem() {
         cartLoader_loadSaveStateForCurrentGame();
     }
     if (inGameOptionIndex == 4) {
+        vdp_setShouldRandomiseColours(0);
         cartLoader_removeCurrentGameFromRandomiser();
         saveStateWasLoaded = 1;
     }
