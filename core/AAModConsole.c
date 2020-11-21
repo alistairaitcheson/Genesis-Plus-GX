@@ -189,9 +189,26 @@ void modConsole_updateFrame() {
     padState = input.pad[0];
 
     if (menuDisplay_isShowing() != 0) {
+        // vdp_clearGraphicLayer(1);
+        // for (int i = 0; i < 8; i++) {
+        //     if (buttonWasPressedAtIndex(i)) {
+        //         layerRenderer_fill(1, 8 * i, 0, 8, 8, 0xff);
+        //     }
+        // }
+
+        int translatedButtons[8];
         for (int i = 0; i < 8; i++) {
-            if (buttonWasPressedAtIndex(i) != 0) {
-                int success = menuDisplay_onButtonPress(i);
+            translatedButtons[i] = i;
+        }
+        // if (vdp_isMasterSystem() != 0) {
+        //     translatedButtons[INPUT_INDEX_A] = INPUT_INDEX_C;
+        //     translatedButtons[INPUT_INDEX_B] = INPUT_INDEX_START;
+        // }
+
+        for (int i = 0; i < 8; i++) {
+            int buttonId = translatedButtons[i];
+            if (buttonWasPressedAtIndex(buttonId) != 0) {
+                int success = menuDisplay_onButtonPress(buttonId);
                 if (success != 0) {
                     break;
                 }
@@ -321,14 +338,17 @@ void modConsole_updateFrame() {
         if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_B) != 0) {
+            cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
         } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_C) != 0) {
+            cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
         } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+            cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
         }
 

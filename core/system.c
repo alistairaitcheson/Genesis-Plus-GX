@@ -995,6 +995,8 @@ void system_frame_scd(int do_skip)
 
 void system_frame_sms(int do_skip)
 {
+  modConsole_updateFrame();
+  
   /* line counter */
   int start, end, line;
 

@@ -164,4 +164,6 @@ void vdp_setShouldHideSprites(int toValue);
 void vdp_setShouldHideBackgrounds(int toValue);
 void replaceLineWithBlankColour();
 
+extern int vdp_isMasterSystem();
+
 #endif /* _RENDER_H_ */

@@ -43,6 +43,8 @@ static int initialisedDirectory = 0;
 static uint8 cachedSaveStates[MAX_ROMS][STATE_SIZE];
 static uint8 hasCachedSaveState[MAX_ROMS];
 
+static uint8 saveStateBeforeMenu[STATE_SIZE];
+
 static int gameSwapCount = 0;
 
 void writeFolderPathIntoArray32(char array32[]) {
@@ -549,6 +551,15 @@ void cartLoader_loadSaveStateForCurrentGame() {
     // cartLoader_appendToLog(tempLog);
 
     state_load(cachedSaveStates[lastLoadedIndex]);
+}
+
+void cartLoader_cacheSaveStateBeforeMenu() {
+    cartLoader_appendToLog("cartLoader_cacheSaveStateBeforeMenu");
+    state_save(saveStateBeforeMenu);
+}
+
+void cartLoader_loadSaveStateForQuitMenu() {
+    state_load(saveStateBeforeMenu);
 }
 
 void cartLoader_saveAllSaveStatesToDisk() {

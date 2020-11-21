@@ -53,4 +53,7 @@ void initialiseDirectory();
 void cacheDataToCarryOver();
 void flagHUDtoUpdate();
 
+void cartLoader_cacheSaveStateBeforeMenu();
+void cartLoader_loadSaveStateForQuitMenu();
+
 #endif

@@ -4524,3 +4524,11 @@ void replaceLineWithBlankColour() {
         linebuf[0][0x20 + colourIdx] = 0;
     }
 }
+
+int vdp_isMasterSystem() {
+  if (system_hw == SYSTEM_SMS || system_hw == SYSTEM_SMS) {
+    return 1;
+  } else {
+    return 0;
+  }
+}

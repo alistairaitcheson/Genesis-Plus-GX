@@ -29,6 +29,7 @@ static int DEFAULT_HEIGHT = 200;
 static int queuedMenu = MENU_LISTING_NONE;
 
 static int gameHasStarted = 0;
+static int saveStateWasLoaded = 0;
 
 static HackOptions hackOptions;
 static PersistValuesOptions persistValuesOptions;
@@ -140,7 +141,7 @@ void menuDisplay_renderRamDetective() {
 
     layerRenderer_clearLayer(0);
 
-    int x = 0;
+    int x = 8;
     int y = 0;
     int width = (8 * 4);
     int height = 8;
@@ -340,6 +341,11 @@ void menuDisplay_hideMenu() {
     aa_ym2612_unmute();
 
     layerRenderer_clearLayer(0);
+
+    if (gameHasStarted != 0 && saveStateWasLoaded == 0) {
+        cartLoader_loadSaveStateForQuitMenu();
+    }
+    saveStateWasLoaded = 0;
 }
 
 void menuDisplay_hideMenuUnlessQueued() {
@@ -462,6 +468,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
             int romIndex = cartLoder_getLastLoadedIndex();
             if (cartLoader_gameIsBlockedFromRandomiser(romIndex) != 0) {
                 cartLoader_loadRandomRom();
+                saveStateWasLoaded = 1;
             }
             menuDisplay_hideMenu();
             return 1;
@@ -637,6 +644,7 @@ void activateInGameMenuItem() {
     }
     if (inGameOptionIndex == 4) {
         cartLoader_removeCurrentGameFromRandomiser();
+        saveStateWasLoaded = 1;
     }
     if (inGameOptionIndex == 5) {
         randomisedGameIndex = cartLoader_getActiveCartIndex();
@@ -647,6 +655,7 @@ void activateInGameMenuItem() {
     }
     if (inGameOptionIndex == 7) {
         modConsole_activateReset();
+        saveStateWasLoaded = 1;
     }
     if (inGameOptionIndex == 8) {
         ramDetectiveIndex = 0;
