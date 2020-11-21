@@ -294,6 +294,10 @@ void saveHackOptions() {
 }
 
 void menuDisplay_showMenu(int menuNum) {
+    // probably a better way to do this...
+    // DEFAULT_WIDTH = vdp_getScreenWidth();
+    // DEFAULT_HEIGHT = vdp_getScreenHeight();
+
     char tempLog[256];
     sprintf(tempLog, "menuDisplay_showMenu %d", menuNum);
     cartLoader_appendToLog(tempLog);

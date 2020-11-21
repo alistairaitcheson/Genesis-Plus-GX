@@ -1339,7 +1339,8 @@ void system_frame_sms(int do_skip)
       v_counter = line;
 
       /* render scanline */
-      if (!do_skip)
+      vdp_setCurrentLineIndex(line);
+      if (!do_skip) // <--- this line is definitely called during SMS MASTER SYSTEM games
       {
         render_line(line);
       }
