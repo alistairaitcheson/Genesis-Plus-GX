@@ -4557,7 +4557,34 @@ int vdp_isMasterSystem() {
 }
 
 unsigned int vdp_randomValueWithinReason() {
-  return rand() % 0x100000000;
+  int bytes[4];
+  for (int i = 0; i < 4; i++) {
+    bytes[i] = (rand() % 10) + 6;
+  }
+  int randIndex = rand() % 4;
+  bytes[randIndex] = 0xF;
+
+  unsigned int value = 0;
+  int multiplicand = 1;
+  for (int i = 0; i < 4; i++) {
+    value += multiplicand * bytes[i];
+    multiplicand *= 0x10;
+  }
+  return value;
+
+  // if (rand() % 100 < 50) {
+  //   return (unsigned int)0x000F000;
+  // }
+  // if (rand() % 100 < 50) {
+  //   return (unsigned int)0x0000F00;
+  // }
+  // if (rand() % 100 < 50) {
+  //   return (unsigned int)0x00000F0;
+  // }
+  // return (unsigned int)0x000000F;
+
+  // return rand() % 0x100000000;
+
   // unsigned int value = 0;
   // for (int i = 0; i < 8; i++) {
   //   unsigned int multiplicand = 1;
