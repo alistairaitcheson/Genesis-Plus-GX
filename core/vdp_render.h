@@ -168,5 +168,8 @@ extern int vdp_isMasterSystem();
 unsigned int vdp_randomValueWithinReason();
 
 extern void vdp_setAlistairOffset(int x, int y) ;
+void vdp_setAlistairScale(int numerator, int denominator);
+extern int vdp_getScaledViewportHeight();
+extern int vdp_getSourceLineForScaledYPos(int yPos);
 
 #endif /* _RENDER_H_ */

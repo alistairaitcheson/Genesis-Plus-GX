@@ -66,6 +66,7 @@ void gen_init(void)
 {
   int i;
 
+  vdp_setAlistairScale(100, 100);
   modConsole_initialise();
 
   /* initialize Z80 */

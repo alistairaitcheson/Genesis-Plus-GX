@@ -622,6 +622,8 @@ static unsigned int cachedPaletteColours[0x50];
 
 static int alistair_vdpOffsetX = 0;
 static int alistair_vdpOffsetY = 0;
+static int alistair_vdpScaleNum = 1;
+static int alistair_vdpScaleDen = 1;
 
 /*--------------------------------------------------------------------------*/
 /* Sprite pattern name offset look-up table function (Mode 5)               */
@@ -4326,7 +4328,8 @@ void remap_line(int line)
   uint8 *src = &linebuf[0][0x20 - bitmap.viewport.x];
 
   /* Adjust line offset in framebuffer */
-  line = (line + bitmap.viewport.y + alistair_vdpOffsetY) % lines_per_frame; // <-- Alistair - add a configurable y-offset here
+  line = ((((line + bitmap.viewport.y) * alistair_vdpScaleNum) / alistair_vdpScaleDen) + alistair_vdpOffsetY) % lines_per_frame; // <-- Alistair - add a configurable y-offset here
+  // line = (line + bitmap.viewport.y + alistair_vdpOffsetY) % lines_per_frame; // <-- Alistair - add a configurable y-offset here
 
   /* Take care of Game Gear reduced screen when overscan is disabled */
   if (line < 0) return;
@@ -4357,22 +4360,36 @@ void remap_line(int line)
     CUSTOM_BLITTER(line, width, pixel, src)
 #else
     /* Convert VDP pixel data to output pixel format */
-    PIXEL_OUT_T *dst = ((PIXEL_OUT_T *)&bitmap.data[alistair_vdpOffsetX + (line * bitmap.pitch)]); // <-- Alistair - is this what I need to hijack to get SMS screen to look nice?
-    if (config.lcd)
-    {
-      do
-      {
-        RENDER_PIXEL_LCD(src,dst,pixel,config.lcd); // <-- Alistair - is this what I need to hijack to get SMS screen to look nice?
-      }
-      while (--width);
-    }
-    else
-    {
-      do
-      {
-        *dst++ = pixel[*src++];
-      }
-      while (--width);
+    for (int yOffset = -1; yOffset <= 0; yOffset++) {
+      int index = alistair_vdpOffsetX + ((line + yOffset) * bitmap.pitch);
+      width = bitmap.viewport.w + 2*bitmap.viewport.x;
+      src = &linebuf[0][0x20 - bitmap.viewport.x];
+      // if (index > 0) {
+        PIXEL_OUT_T *dst = ((PIXEL_OUT_T *)&bitmap.data[index]); // <-- Alistair - is this what I need to hijack to get SMS screen to look nice?
+        if (config.lcd)
+        {
+          do
+          {
+            RENDER_PIXEL_LCD(src,dst,pixel,config.lcd); // <-- Alistair - is this what I need to hijack to get SMS screen to look nice?
+          }
+          while (--width);
+        }
+        else
+        {
+          int tempOffsetX = 0;
+          do
+          {
+            *dst++ = pixel[*src++];
+            tempOffsetX += (alistair_vdpScaleNum - alistair_vdpScaleDen);
+            if (tempOffsetX >= alistair_vdpScaleDen) {
+              tempOffsetX -= alistair_vdpScaleDen;
+              width++;
+              *dst = pixel[*src--];
+            }
+          }
+          while (--width);
+        }
+      // }
     }
  #endif
   }
@@ -4560,4 +4577,23 @@ void vdp_setAlistairOffset(int x, int y) {
 
   alistair_vdpOffsetX = x;
   alistair_vdpOffsetY = y;
+}
+
+void vdp_setAlistairScale(int numerator, int denominator) {
+    char debugLog[0x100];
+    sprintf(debugLog, "setting Alistair scale: %d, %d", numerator, denominator);
+    cartLoader_appendToLog(debugLog);
+
+  alistair_vdpScaleNum = numerator;
+  alistair_vdpScaleDen = denominator;
+}
+
+int vdp_getScaledViewportHeight() {
+  // return (bitmap.viewport.h * alistair_vdpScaleNum) / alistair_vdpScaleDen;
+  return bitmap.viewport.h;
+}
+
+int vdp_getSourceLineForScaledYPos(int yPos) {
+  // return (yPos * alistair_vdpScaleDen) / alistair_vdpScaleNum;
+  return yPos;
 }

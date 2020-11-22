@@ -354,6 +354,8 @@ void cartLoader_getRomFileName(int index, char intoArray[]) {
 }
 
 void cartLoader_loadRomAtIndex(int index, int shouldCache) {
+    int cartWasSMS = cartLoader_cartIsSMS();
+
     if (index >= romCount) {
         char logStr[0x100];
         sprintf(logStr, "Could not load rom and index %d (%d roms loaded)", index, romCount);
@@ -439,15 +441,17 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     cartLoader_appendToLog("*** Loaded game ***");
     cartLoader_appendToLog(cartLoader_getActiveGameListing().gameId);
 
-    // if (lastSystemType != system_hw) {
+    if (cartWasSMS != cartLoader_cartIsSMS()) {
         if (cartLoader_cartIsSMS() != 0) {
-            vdp_setAlistairOffset(64, 16); /// <-- either not working yet or not being called
+            // vdp_setAlistairOffset(64, 16); /// <-- either not working yet or not being called
             // replace with a multiply effect?
+            vdp_setAlistairScale(120, 100);
         } else {
-            vdp_setAlistairOffset(0, 0);
+            // vdp_setAlistairOffset(0, 0);
+            vdp_setAlistairScale(100, 100);
         }
         lastSystemType = system_hw;
-    // }
+    }
 }
 
 int cartLoader_cartIsSMS() {

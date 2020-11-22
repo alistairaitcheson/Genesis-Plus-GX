@@ -1346,7 +1346,7 @@ void system_frame_sms(int do_skip)
       /* render scanline */
       if (!do_skip)
       {
-        render_line(line);
+        render_line(vdp_getSourceLineForScaledYPos(line)); // <--- Alistair - edited scaling here
       }
     }
 
@@ -1388,7 +1388,7 @@ void system_frame_sms(int do_skip)
     /* update VDP cycle count */
     mcycles_vdp += MCYCLES_PER_LINE;
   }
-  while (++line < bitmap.viewport.h);
+  while (++line < vdp_getScaledViewportHeight()); // <--- Alistair - edited scaling here
 
   /* check viewport changes */
   if (bitmap.viewport.w != bitmap.viewport.ow)
