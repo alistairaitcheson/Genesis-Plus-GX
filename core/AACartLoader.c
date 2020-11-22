@@ -408,6 +408,10 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     cartLoader_appendToLog(fullPath);
 
     load_rom(fullPath);
+    if (cartLoader_cartIsSMS() != 0) {
+        system_hw = SYSTEM_SMS;
+        bitmap.viewport.changed = 1;
+    }
     system_init();
     system_reset();
     lastLoadedIndex = index;
@@ -445,17 +449,17 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     cartLoader_appendToLog("*** Loaded game ***");
     cartLoader_appendToLog(cartLoader_getActiveGameListing().gameId);
 
-    if (hasBeenNonSMS) { //(cartWasSMS != cartLoader_cartIsSMS()) {
-        if (cartLoader_cartIsSMS() != 0) {
-            // vdp_setAlistairOffset(64, 16); /// <-- either not working yet or not being called
-            // replace with a multiply effect?
-            vdp_setAlistairScale(120, 100);
-        } else {
-            // vdp_setAlistairOffset(0, 0);
-            vdp_setAlistairScale(100, 100);
-        }
-        lastSystemType = system_hw;
-    }
+    // if (hasBeenNonSMS) { //(cartWasSMS != cartLoader_cartIsSMS()) {
+    //     if (cartLoader_cartIsSMS() != 0) {
+    //         // vdp_setAlistairOffset(64, 16); /// <-- either not working yet or not being called
+    //         // replace with a multiply effect?
+    //         vdp_setAlistairScale(120, 100);
+    //     } else {
+    //         // vdp_setAlistairOffset(0, 0);
+    //         vdp_setAlistairScale(100, 100);
+    //     }
+    //     lastSystemType = system_hw;
+    // }
 }
 
 int cartLoader_cartIsSMS() {
