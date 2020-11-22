@@ -48,6 +48,7 @@ static uint8 saveStateBeforeMenu[STATE_SIZE];
 static int gameSwapCount = 0;
 
 static unsigned char lastSystemType;
+static int hasBeenNonSMS = 0;
 
 void writeFolderPathIntoArray32(char array32[]) {
     writeStringToArray32(folderPath, array32);
@@ -355,6 +356,9 @@ void cartLoader_getRomFileName(int index, char intoArray[]) {
 
 void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     int cartWasSMS = cartLoader_cartIsSMS();
+    if (cartLoader_cartIsSMS() == 0) {
+        hasBeenNonSMS = 1;
+    }
 
     if (index >= romCount) {
         char logStr[0x100];
@@ -441,7 +445,7 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     cartLoader_appendToLog("*** Loaded game ***");
     cartLoader_appendToLog(cartLoader_getActiveGameListing().gameId);
 
-    if (cartWasSMS != cartLoader_cartIsSMS()) {
+    if (hasBeenNonSMS) { //(cartWasSMS != cartLoader_cartIsSMS()) {
         if (cartLoader_cartIsSMS() != 0) {
             // vdp_setAlistairOffset(64, 16); /// <-- either not working yet or not being called
             // replace with a multiply effect?
