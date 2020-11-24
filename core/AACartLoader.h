@@ -7,6 +7,12 @@
 #include <math.h>
 #include "AACommonTypes.h"
 
+#define CART_TYPE_MEGADRIVE 0
+#define CART_TYPE_MASTERSYSTEM 1
+#define CART_TYPE_GAMEGEAR 2
+#define CART_TYPE_SEGACD 3
+
+
 typedef struct {
     int lives[2];
     int rings[2];
@@ -56,8 +62,9 @@ void flagHUDtoUpdate();
 
 void cartLoader_cacheSaveStateBeforeMenu();
 void cartLoader_loadSaveStateForQuitMenu();
-extern int cartLoader_cartIsSMS();
+extern int cartLoader_consoleForCurrentCart();
 extern int cartLoader_getFoundZipCount();
 int pathIsZip(char *path, int pathLen);
+int fileName256IsCD(char fileName[]);
 
 #endif

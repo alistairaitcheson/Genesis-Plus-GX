@@ -89,6 +89,7 @@ void cartLoader_run() {
     gameTransferListings[0].timeBytesForTransfer[0] = 0;
     gameTransferListings[0].momentumBytesForTransfer[0] = 0;
     gameTransferListings[0].scoreBytesForTransfer[0] = 0;
+    gameListings[0].isISO = 0;
 
     writeStringToArray32("SONICTHEHEDGEHOG", gameListings[1].gameId);// = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','\0'};
     gameListings[1].ringByte = 0xFE20;
@@ -221,7 +222,82 @@ void cartLoader_run() {
     gameListings[10].valueWriteDuration = 0;
     gameListings[10].valueWriteDuration = 60;
 
-    gameListingCount = 11;
+    writeStringToArray32("73250", gameListings[11].gameId); // Sonic Blast MS <-- still need to find lives and time
+    gameListings[11].ringByte = 0x125E; // <-- WARNING! it is used in the title sequence (once per frame?)
+    gameListings[11].specialRingByte =  0;
+    gameListings[11].livesBytes[0] = 0;
+    gameListings[11].livesByteDestinations[0] = 0x5; 
+    gameListings[11].timeBytes[0] = 0;
+    gameListings[11].timeByteDestinations[0] = 1;
+    gameListings[11].valueWriteDuration = 0;
+    gameListings[11].valueWriteDuration = 60;
+
+    writeStringToArray32("07250", gameListings[12].gameId); // Sonic 2 GG <-- still need to find lives and time
+    gameListings[12].ringByte = 0x1299;
+    gameListings[12].specialRingByte = 0;
+    gameListings[12].livesBytes[0] = 0;
+    gameListings[12].livesByteDestinations[0] = 0x5; 
+    gameListings[12].timeBytes[0] = 0;
+    gameListings[12].timeByteDestinations[0] = 1;
+    gameListings[12].valueWriteDuration = 0;
+    gameListings[12].valueWriteDuration = 60;    
+
+    writeStringToArray32("08240", gameListings[13].gameId); // Sonic 1 GG<-- still need to find lives and time
+    gameListings[13].ringByte = 0x12A9;
+    gameListings[13].specialRingByte = 0;
+    gameListings[13].livesBytes[0] = 0;
+    gameListings[13].livesByteDestinations[0] = 0x5; 
+    gameListings[13].timeBytes[0] = 0;
+    gameListings[13].timeByteDestinations[0] = 1;
+    gameListings[13].valueWriteDuration = 0;
+    gameListings[13].valueWriteDuration = 60;   
+
+    writeStringToArray32("15250", gameListings[14].gameId); // Sonic Chaos GG <-- still need to find lives and time
+    gameListings[14].ringByte = 0x129C;
+    gameListings[14].specialRingByte = 0;
+    gameListings[14].livesBytes[0] = 0;
+    gameListings[14].livesByteDestinations[0] = 0x5; 
+    gameListings[14].timeBytes[0] = 0;
+    gameListings[14].timeByteDestinations[0] = 1;
+    gameListings[14].valueWriteDuration = 0;
+    gameListings[14].valueWriteDuration = 60;   
+
+    writeStringToArray32("73250", gameListings[15].gameId); // Sonic Blast GG <-- still need to find lives and time (identical to SMS)
+    copyGameListing(11, 15);
+
+    writeStringToArray32("30250", gameListings[16].gameId); // Sonic Triple Trouble<-- still need to find lives and time
+    gameListings[16].ringByte = 0x1159;
+    gameListings[16].specialRingByte = 0;
+    gameListings[16].livesBytes[0] = 0;
+    gameListings[16].livesByteDestinations[0] = 0x5; 
+    gameListings[16].timeBytes[0] = 0;
+    gameListings[16].timeByteDestinations[0] = 1;
+    gameListings[16].valueWriteDuration = 0;
+    gameListings[16].valueWriteDuration = 60;   
+
+    
+    writeStringToArray32("SONICCD", gameListings[17].gameId);
+    gameListings[17].ringByte = 0;
+    gameListings[17].specialRingByte = 0;
+    gameListings[17].livesBytes[0] = 0;
+    gameListings[17].livesByteDestinations[0] = 0x5; 
+    gameListings[17].timeBytes[0] = 0;
+    gameListings[17].timeByteDestinations[0] = 1;
+    gameListings[17].valueWriteDuration = 0;
+    gameListings[17].valueWriteDuration = 60;   
+    gameListings[17].isISO = 1;   
+
+
+    // 08240 = Sonic 1 GG
+    // 07250 = Sonic 2 GG
+    // 15250 = Sonic Chaos GG
+    // 30250 = triple trouble GG
+    // 73250 = Blast GG
+
+    // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
+    // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
+
+    gameListingCount = 18;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
@@ -377,8 +453,8 @@ void cartLoader_getRomFilePrefix(int index, char intoArray[]) {
 }
 
 void cartLoader_loadRomAtIndex(int index, int shouldCache) {
-    int cartWasSMS = cartLoader_cartIsSMS();
-    if (cartLoader_cartIsSMS() == 0) {
+    int previousConsoleType = cartLoader_consoleForCurrentCart();
+    if (cartLoader_consoleForCurrentCart() == 0) {
         hasBeenNonSMS = 1;
     }
 
@@ -410,8 +486,16 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     cartLoader_appendToLog(fullPath);
 
     load_rom(fullPath);
-    if (cartLoader_cartIsSMS() != 0) {
+    if (fileName256IsCD(romFileNames[index]) == 1) {
+        system_hw = SYSTEM_MCD;
+        bitmap.viewport.changed = 1;
+    }
+    if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM) {
         system_hw = SYSTEM_SMS;
+        bitmap.viewport.changed = 1;
+    }
+    if (cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR) {
+        system_hw = SYSTEM_GG;
         bitmap.viewport.changed = 1;
     }
     system_init();
@@ -451,8 +535,8 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     cartLoader_appendToLog("*** Loaded game ***");
     cartLoader_appendToLog(cartLoader_getActiveGameListing().gameId);
 
-    // if (hasBeenNonSMS) { //(cartWasSMS != cartLoader_cartIsSMS()) {
-    //     if (cartLoader_cartIsSMS() != 0) {
+    // if (hasBeenNonSMS) { //(previousConsoleType != cartLoader_consoleForCurrentCart()) {
+    //     if (cartLoader_consoleForCurrentCart() != 0) {
     //         // vdp_setAlistairOffset(64, 16); /// <-- either not working yet or not being called
     //         // replace with a multiply effect?
     //         vdp_setAlistairScale(120, 100);
@@ -464,7 +548,20 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     // }
 }
 
-int cartLoader_cartIsSMS() {
+int fileName256IsCD(char fileName[]) {
+    for (int i = 0; i < 0x100 - 4; i++) {
+        if (fileName[i] == '.' && fileName[i + 1] == 'i' && fileName[i + 2] == 's' && fileName[i + 3] == 'o') {
+            return 1;
+        }
+
+        if (fileName[i] == 0 || fileName[i] == '\0') {
+            return 0;
+        }
+    }
+    return 0;
+}
+
+int cartLoader_consoleForCurrentCart() {
     char checkText[0x20];
     sprintf(checkText, /*"TMR SEGA"*/ "54 4D 52 20 53 45 47 41");
     char romText[0x20];
@@ -484,15 +581,24 @@ int cartLoader_cartIsSMS() {
     // romText[8] = '\0';
 
     char debugLog[0x100];
-    sprintf(debugLog, "Comparing ROM HEADERS: %s > %s", checkText, romText);
+    sprintf(debugLog, "Checking for SMS - comparing ROM HEADERS: %s > %s", checkText, romText);
     cartLoader_appendToLog(debugLog);
 
     if (cartLoader_string32AreEqual(checkText, romText) != 0) {
-        cartLoader_appendToLog("It's a match!");
-        return 1;
+        cartLoader_appendToLog("It's SMS or GG...");
+        unsigned char regionByte = cart.rom[0x7FFF] / 0x10;
+        char logText[0x100];
+        sprintf(logText, "Region code: %d", regionByte);
+        if (regionByte <= 4) {
+            cartLoader_appendToLog("It's SMS!");
+            return CART_TYPE_MASTERSYSTEM;
+        } else {
+            cartLoader_appendToLog("It's GG!");
+            return CART_TYPE_GAMEGEAR;
+        }
     }
-    cartLoader_appendToLog("It's not a match...");
-    return 0;
+    cartLoader_appendToLog("It's MD");
+    return CART_TYPE_MEGADRIVE;
 }
 
 int cartLoader_getActiveCartIndex() {
@@ -556,6 +662,12 @@ int pathIsRom(char *path, int pathLen) {
             return 1;
         }
         if (path[pathLen -4] == '.' && path[pathLen - 3] == 's' && path[pathLen - 2] == 'm' && path[pathLen - 1] == 's' ) {
+            return 1;
+        }
+        // if (path[pathLen -4] == '.' && path[pathLen - 3] == 'i' && path[pathLen - 2] == 's' && path[pathLen - 1] == 'o' ) {
+        //     return 1;
+        // }
+        if (path[pathLen -3] == '.' && path[pathLen - 2] == 'g' && path[pathLen - 1] == 'g') {
             return 1;
         }
     }
@@ -627,6 +739,7 @@ void copyGameListing(int fromGame, int toGame) {
     gameListings[toGame].ringByte = gameListings[fromGame].ringByte;
     gameListings[toGame].specialRingByte = gameListings[fromGame].specialRingByte;
     gameListings[toGame].valueWriteDuration = gameListings[fromGame].valueWriteDuration;
+    gameListings[toGame].isISO = gameListings[fromGame].isISO;
 
     for (int i = 0; i < 8; i++) {
         gameListings[toGame].livesBytes[i] = gameListings[fromGame].livesBytes[i];

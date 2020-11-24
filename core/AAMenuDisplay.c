@@ -141,10 +141,19 @@ void menuDisplay_renderRamDetective() {
 
     layerRenderer_clearLayer(0);
 
+    int startY = 0;
     int x = 8;
-    int y = 0;
     int width = (8 * 4);
     int height = 8;
+    int maxHeight = vdp_getScreenHeight() - height;
+
+    if (cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR) {
+        x += 40;
+        startY += 30;
+        maxHeight -= 100;
+    }
+
+    int y = startY;
 
     for (int i = 0; i < 0x10000; i++) {
         if (trackedRamFrameCounts[i] > ramDetectiveOptions.minFrames) {
@@ -155,7 +164,7 @@ void menuDisplay_renderRamDetective() {
 
             y += height + 1;
             if (y >= vdp_getScreenHeight() - height) {
-                y = 0;
+                y = startY;
                 x += width + 1;
             }
         }
@@ -583,7 +592,7 @@ void ramDetectivePressFaceButton(int direction) {
         ramDetectiveOptions.seekValue[ramDetectiveOptions.seekValueIndex] += direction;
     }
     if (ramDetectiveIndex == 3) {
-        ramDetectiveOptions.minFrames += direction;
+        ramDetectiveOptions.minFrames += direction * 10;
     }
     if (ramDetectiveIndex == 4) {
         ramDetectiveOptions.shouldShow += direction;
@@ -601,7 +610,7 @@ void ramDetectivePressDPadDir(int direction) {
         ramDetectiveOptions.seekValueIndex += direction;
     }
     if (ramDetectiveIndex == 3) {
-        ramDetectiveOptions.minFrames += direction;
+        ramDetectiveOptions.minFrames += direction * 10;
     }
     if (ramDetectiveIndex == 4) {
         ramDetectiveOptions.shouldShow += direction;
@@ -1336,6 +1345,9 @@ void showRamDetectiveMenu() {
     }
     sprintf(lines[2], "SEEK:  %s%s", seekValuesText[0], seekValuesText[1]);
 
+    if (ramDetectiveOptions.minFrames < 0) {
+        ramDetectiveOptions.minFrames = 0;
+    }
     sprintf(lines[3], "MIN FRAMES: %d", ramDetectiveOptions.minFrames);
 
     if (ramDetectiveOptions.shouldShow == 0) {

@@ -26,6 +26,7 @@ typedef struct
     int panicByteDestinations[8];
     int accelerationType;
     int valueWriteDuration;
+    int isISO;
 } AAGameListing;
 
 typedef struct
