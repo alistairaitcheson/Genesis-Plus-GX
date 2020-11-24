@@ -90,6 +90,7 @@ void cartLoader_run() {
     gameTransferListings[0].momentumBytesForTransfer[0] = 0;
     gameTransferListings[0].scoreBytesForTransfer[0] = 0;
     gameListings[0].isISO = 0;
+    gameListings[0].ringSwitchCooldown = 0;
 
     writeStringToArray32("SONICTHEHEDGEHOG", gameListings[1].gameId);// = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','\0'};
     gameListings[1].ringByte = 0xFE20;
@@ -224,13 +225,14 @@ void cartLoader_run() {
 
     writeStringToArray32("73250", gameListings[11].gameId); // Sonic Blast MS <-- still need to find lives and time
     gameListings[11].ringByte = 0x125E; // <-- WARNING! it is used in the title sequence (once per frame?)
-    gameListings[11].specialRingByte =  0;
+    gameListings[11].specialRingByte =  0x1D9E;
     gameListings[11].livesBytes[0] = 0;
     gameListings[11].livesByteDestinations[0] = 0x5; 
     gameListings[11].timeBytes[0] = 0;
     gameListings[11].timeByteDestinations[0] = 1;
     gameListings[11].valueWriteDuration = 0;
     gameListings[11].valueWriteDuration = 60;
+    gameListings[11].ringSwitchCooldown = 7;
 
     writeStringToArray32("07250", gameListings[12].gameId); // Sonic 2 GG <-- still need to find lives and time
     gameListings[12].ringByte = 0x1299;
@@ -276,7 +278,7 @@ void cartLoader_run() {
     gameListings[16].valueWriteDuration = 60;   
 
     
-    writeStringToArray32("SONICCD", gameListings[17].gameId);
+    writeStringToArray32("SONICCD", gameListings[17].gameId); // <-- not used yet
     gameListings[17].ringByte = 0;
     gameListings[17].specialRingByte = 0;
     gameListings[17].livesBytes[0] = 0;
@@ -285,8 +287,18 @@ void cartLoader_run() {
     gameListings[17].timeByteDestinations[0] = 1;
     gameListings[17].valueWriteDuration = 0;
     gameListings[17].valueWriteDuration = 60;   
-    gameListings[17].isISO = 1;   
-
+    gameListings[17].isISO = 1;  // <-- I plan to use this as a way to detect CD games for the time being...
+    
+    writeStringToArray32("Dr.Robotnik'sMeanBeanMachine", gameListings[18].gameId); // <-- not used yet
+    gameListings[18].ringByte = 0;
+    gameListings[18].specialRingByte = 0;
+    gameListings[18].livesBytes[0] = 0;
+    gameListings[18].livesByteDestinations[0] = 0x5; 
+    gameListings[18].timeBytes[0] = 0;
+    gameListings[18].timeByteDestinations[0] = 1;
+    gameListings[18].valueWriteDuration = 0;
+    gameListings[18].valueWriteDuration = 60;   
+    gameListings[18].isISO = 1;  // <-- I plan to use this as a way to detect CD games for the time being...
 
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
@@ -297,7 +309,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 18;
+    gameListingCount = 19;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
@@ -580,32 +592,32 @@ int cartLoader_consoleForCurrentCart() {
     // }
     // romText[8] = '\0';
 
-    char debugLog[0x100];
-    sprintf(debugLog, "Checking for SMS - comparing ROM HEADERS: %s > %s", checkText, romText);
-    cartLoader_appendToLog(debugLog);
+    // char debugLog[0x100];
+    // sprintf(debugLog, "Checking for SMS - comparing ROM HEADERS: %s > %s", checkText, romText);
+    // cartLoader_appendToLog(debugLog);
 
     if (cartLoader_string32AreEqual(checkText, romText) != 0) {
-        cartLoader_appendToLog("It's SMS or GG...");
+        // cartLoader_appendToLog("It's SMS or GG...");
         unsigned char regionByte = cart.rom[0x7FFF] / 0x10;
         char logText[0x100];
-        sprintf(logText, "Region code: %d", regionByte);
+        // sprintf(logText, "Region code: %d", regionByte);
         if (regionByte <= 4) {
-            cartLoader_appendToLog("It's SMS!");
+            // cartLoader_appendToLog("It's SMS!");
             return CART_TYPE_MASTERSYSTEM;
         } else {
-            cartLoader_appendToLog("It's GG!");
+            // cartLoader_appendToLog("It's GG!");
             return CART_TYPE_GAMEGEAR;
         }
     }
-    cartLoader_appendToLog("It's MD");
+    // cartLoader_appendToLog("It's MD");
     return CART_TYPE_MEGADRIVE;
 }
 
 int cartLoader_getActiveCartIndex() {
     modConsole_getRomHeader(romHeaderBuffer);
 
-    cartLoader_appendToLog("cartLoader_getActiveCartIndex");
-    cartLoader_appendToLog(romHeaderBuffer);
+    // cartLoader_appendToLog("cartLoader_getActiveCartIndex");
+    // cartLoader_appendToLog(romHeaderBuffer);
 
     for (int i = 1; i < gameListingCount; i++) {
         if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
@@ -616,8 +628,8 @@ int cartLoader_getActiveCartIndex() {
     // not found - check Master System headers
     modConsole_getMasterSystemProductId(romHeaderBuffer);
 
-    cartLoader_appendToLog("! No ROM found - checking Master System product ID");
-    cartLoader_appendToLog(romHeaderBuffer);    
+    // cartLoader_appendToLog("! No ROM found - checking Master System product ID");
+    // cartLoader_appendToLog(romHeaderBuffer);    
     for (int i = 1; i < gameListingCount; i++) {
         if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
             return i;
@@ -740,6 +752,7 @@ void copyGameListing(int fromGame, int toGame) {
     gameListings[toGame].specialRingByte = gameListings[fromGame].specialRingByte;
     gameListings[toGame].valueWriteDuration = gameListings[fromGame].valueWriteDuration;
     gameListings[toGame].isISO = gameListings[fromGame].isISO;
+    gameListings[toGame].ringSwitchCooldown = gameListings[fromGame].ringSwitchCooldown;
 
     for (int i = 0; i < 8; i++) {
         gameListings[toGame].livesBytes[i] = gameListings[fromGame].livesBytes[i];

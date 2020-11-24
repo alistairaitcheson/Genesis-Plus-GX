@@ -47,7 +47,9 @@ static int shouldApplyCacheNextFrame = 0;
 
 static int valueWriteTimeCounter = 0;
 
-static int countdownToSummonMenu;
+static int countdownToSummonMenu = 0;
+
+static int countdownUntilRingSwitch = 0;
 
 void modConsole_flagToApplyCache() {
     shouldApplyCacheNextFrame = 1;
@@ -304,6 +306,13 @@ void modConsole_updateFrame() {
             }
         }
 
+        if (countdownUntilRingSwitch > 0) {
+            countdownUntilRingSwitch--;
+            if (countdownUntilRingSwitch == 0) {
+                promptSwitchGame();
+            }
+        }
+
         // if (switchCooldownPeriod > 0) {
         //     showCooldownVisualiser();
         // }
@@ -503,8 +512,11 @@ void updateSwitchGameOnRing() {
 
         // layerRenderer_fill(0, 0, 0, 32, 8, 1);
         // layerRenderer_writeWord256(0, 0, 0, word, 5);
-        
-        promptSwitchGame();
+        if (activeGameListing.ringSwitchCooldown > 0) {
+            countdownUntilRingSwitch = activeGameListing.ringSwitchCooldown;
+        } else {
+            promptSwitchGame();
+        }
     }
 }
 
@@ -514,6 +526,9 @@ int ringCountHasChanged() {
         unsigned int currentRingCount = aa_genesis_getWorkRam(activeGameListing.ringByte);
 
         if (currentRingCount != 0 && currentRingCount != lastRingCount) {
+            char word[0x100];
+            sprintf(word, "Ring count went from %02X to %02X, frame %d", lastRingCount, currentRingCount, frameCount);
+            cartLoader_appendToLog(word);
             return 1;
         }
     }
