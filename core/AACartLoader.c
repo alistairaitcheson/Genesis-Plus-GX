@@ -50,6 +50,8 @@ static int gameSwapCount = 0;
 static unsigned char lastSystemType;
 static int hasBeenNonSMS = 0;
 
+static int foundZipFiles = 0;
+
 void writeFolderPathIntoArray32(char array32[]) {
     writeStringToArray32(folderPath, array32);
 }
@@ -283,9 +285,16 @@ void listFiles(const char *path, char prefix[])
             cartLoader_appendToLog(romFilePrefixes[romCount]);
             cartLoader_appendToLog(romFileNames[romCount]);
         }
+        if (pathIsZip(dp->d_name, dp->d_namlen)) {
+            foundZipFiles++;
+        }
     }
 
     closedir(dir);
+}
+
+int cartLoader_getFoundZipCount() {
+    return foundZipFiles;
 }
 
 int pathIsSaveState(char *path, int pathLen) {
@@ -547,6 +556,18 @@ int pathIsRom(char *path, int pathLen) {
             return 1;
         }
         if (path[pathLen -4] == '.' && path[pathLen - 3] == 's' && path[pathLen - 2] == 'm' && path[pathLen - 1] == 's' ) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int pathIsZip(char *path, int pathLen) {
+    if (pathLen > 4) {
+        if (path[pathLen -4] == '.' && path[pathLen - 3] == 'z' && path[pathLen - 2] == 'i' && path[pathLen - 1] == 'p' ) {
+            return 1;
+        }
+        if (path[pathLen -3] == '.' && path[pathLen - 2] == '7' && path[pathLen - 1] == 'z') {
             return 1;
         }
     }

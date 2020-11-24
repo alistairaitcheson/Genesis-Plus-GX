@@ -57,5 +57,7 @@ void flagHUDtoUpdate();
 void cartLoader_cacheSaveStateBeforeMenu();
 void cartLoader_loadSaveStateForQuitMenu();
 extern int cartLoader_cartIsSMS();
+extern int cartLoader_getFoundZipCount();
+int pathIsZip(char *path, int pathLen);
 
 #endif

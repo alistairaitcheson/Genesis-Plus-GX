@@ -722,15 +722,41 @@ void showTitleMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "HOLD (START + UP + B)", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 40, "for emulator menu", 5);
 
-    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 56, "--- your roms ---", 5);
-    for (int i = 0; i < cartLoader_getRomCount() && i < 16; i++)
+    char romCountMsg[0x100];
+    sprintf(romCountMsg, "--- found %d roms ---", cartLoader_getRomCount());
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 56, romCountMsg, 5);
+
+    int startYPos = 72;
+    if (cartLoader_getFoundZipCount() > 0) {
+        char zipMsg[0x100];
+        sprintf(zipMsg, "Found %d zip files", cartLoader_getFoundZipCount());
+        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, startYPos, zipMsg, 5);
+        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, startYPos + 8, "You must unzip them before", 5);
+        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, startYPos + 16, "you can play them", 5);
+        startYPos += 32;
+    }
+
+    if (cartLoader_getRomCount() == 0) {
+        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, startYPos + 8, "Please put files of type", 5);
+        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, startYPos + 16, ".md .smd .sms .bin .gen", 5);
+        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, startYPos + 24, "in your _magicbox folder", 5);
+        startYPos += 32;
+    }
+
+    int didBreak = 0;
+    for (int i = 0; i < cartLoader_getRomCount(); i++)
     {
         char fileNameBuf[0x100];
         cartLoader_getRomFileName(i, fileNameBuf);
-        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 56 + ((i + 1) * 8), fileNameBuf, 5);
+        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, startYPos, fileNameBuf, 5);
+        startYPos += 8;
+        if (startYPos >= DEFAULT_HEIGHT - 32) {
+            didBreak = 1;
+            break;
+        }
     }  
-    if (cartLoader_getRomCount() >= 16) {
-        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 56 + ((17) * 8), "... and more", 5);
+    if (didBreak == 1) {
+        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, startYPos, "... and more", 5);
     }
 
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to begin ---", 5);
@@ -761,7 +787,7 @@ void showChooseGameMenu() {
     }
 
     int yPos = 32;
-    for (int i = startIndex; i < endIndex; i++) {
+    for (int i = startIndex; i <= endIndex; i++) {
         char fileNameBuf[0x100];
         cartLoader_getRomFileName(i, fileNameBuf);
         if (i == chosenGameIndex) {
