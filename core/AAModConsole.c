@@ -60,13 +60,13 @@ void modConsole_flagToSummonMenu() {
 void modConsole_initialise() {
     if (hasInitialised == 0) {
         layerRenderer_populateLetters();
+        menuDisplay_initialise();
         cartLoader_run();
         // showRomList();
 
         hasInitialised = 1;
 
         // cartLoader_loadRomAtIndex(0, 0);
-        menuDisplay_initialise();
         menuDisplay_showMenu(MENU_LISTING_TITLE);
     }
 }

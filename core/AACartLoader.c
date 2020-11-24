@@ -16,8 +16,8 @@
 
 static unsigned int romCount;
 static char *folderPath = "_magicbox";
-static char *folderPathWithTail = "_magicbox/";
 static char romFileNames[MAX_ROMS][0x100];
+static char romFilePrefixes[MAX_ROMS][0x100];
 static int romsRemovedFromRandomiser[MAX_ROMS];
 
 static char *logLines[0x100];
@@ -66,7 +66,7 @@ void cartLoader_run() {
 
     cartLoader_appendToLog("will list files");
 
-    listFiles(folderPathWithTail);
+    listFiles(folderPath, "/");
 
     cartLoader_appendToLog("Listed files");
 
@@ -186,7 +186,7 @@ void cartLoader_run() {
     gameListings[7].specialRingByte = 0;    
     gameListings[7].livesBytes[0] = 0x579F;
     gameListings[7].livesByteDestinations[0] = 0x5; 
-    gameListings[7].valueWriteDuration = 20 * 60 * 60; // only update lives every 20 seconds
+    gameListings[7].valueWriteDuration = 300; // only update lives every 20 seconds
     
     writeStringToArray32("15900", gameListings[8].gameId); // Sonic 2 MS
     gameListings[8].ringByte = 0x1299;
@@ -239,24 +239,29 @@ void writeStringToArray32(char *source, char dest[]) {
 /**
  * Lists all files and sub-directories at given path.
  */
-void listFiles(const char *path)
+void listFiles(const char *path, char prefix[])
 {
+    char fullPath[0x100];
+    sprintf(fullPath, "%s%s", path, prefix);
+
+    char logMsg[0x100];
+    sprintf(logMsg, "LIST FILES: %s", fullPath);
+    cartLoader_appendToLog(logMsg);
+
     struct dirent *dp;
-    DIR *dir = opendir(path);
+    DIR *dir = opendir(fullPath);
 
     while ((dp = readdir(dir)) != NULL)
     {
-        cartLoader_appendToLog(dp->d_name);
+        char fileLog[0x100];
+        sprintf(fileLog, "%s %d", dp->d_name, dp->d_type);
+        cartLoader_appendToLog(fileLog);
 
-        // if (pathIsSaveState(dp->d_name, dp->d_namlen)) {
-        //     char pathToDelete[0x100];
-        //     sprintf(pathToDelete, "%s%s", path, dp->d_name);
-        //     cartLoader_appendToLog("removing save state");
-        //     cartLoader_appendToLog(pathToDelete);
-        //     remove(pathToDelete);
-        // }
-        
-        if (pathIsRom(dp->d_name, dp->d_namlen) != 0 && romCount < MAX_ROMS) {
+        if(dp->d_type == 16384 && dp->d_name[0] != '.') {
+            char newPrefix[0x100];
+            sprintf(newPrefix, "%s%s/", prefix, dp->d_name);
+            listFiles(path, newPrefix);
+        } if (pathIsRom(dp->d_name, dp->d_namlen) != 0 && romCount < MAX_ROMS) {
             char name[0x100];
             for (int i = 0; i < 0x100; i++) {
                 if (i < dp->d_namlen) {
@@ -269,11 +274,13 @@ void listFiles(const char *path)
             }
 
             // because I can't figure out strings and pointers
-            for (int i = 0; i < 0x100; i++) {
+            for (int i = 0; i < 0x100; i++) { 
                 romFileNames[romCount][i] = name[i]; 
             }
+            sprintf(romFilePrefixes[romCount], "%s", prefix);
             romCount++;
             cartLoader_appendToLog("new-added rom");
+            cartLoader_appendToLog(romFilePrefixes[romCount]);
             cartLoader_appendToLog(romFileNames[romCount]);
         }
     }
@@ -354,6 +361,12 @@ void cartLoader_getRomFileName(int index, char intoArray[]) {
     }
 }
 
+void cartLoader_getRomFilePrefix(int index, char intoArray[]) {
+    for(int i = 0; i < 0x100; i++) {
+        intoArray[i] = romFilePrefixes[index][i];
+    }
+}
+
 void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     int cartWasSMS = cartLoader_cartIsSMS();
     if (cartLoader_cartIsSMS() == 0) {
@@ -383,27 +396,7 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     // cartLoader_appendToLog(romFileNames[index]);
 
     char fullPath[0x100];
-    int pathIndex = 0;
-    for (int i = 0; i < 0x100; i++) {
-        if (folderPath[i] == '\0') {
-            break;
-        } else {
-            fullPath[i] = folderPath[i];
-            pathIndex++;
-        }
-    }
-    fullPath[pathIndex] = '/';
-    pathIndex++;
-
-    for (int i = 0; i < 0x100; i++) {
-        if (romFileNames[index][i] == '\0') {
-            break;
-        } else {
-            fullPath[pathIndex] = romFileNames[index][i];
-            pathIndex++;
-        }
-    }
-    fullPath[pathIndex] = '\0';
+    sprintf(fullPath, "%s%s%s", folderPath, romFilePrefixes[index], romFileNames[index]);
 
     cartLoader_appendToLog(fullPath);
 
@@ -667,7 +660,7 @@ void cartLoader_saveAllSaveStatesToDisk() {
     for (int i = 0; i < romCount; i++) {
         if (hasCachedSaveState[i] != 0) {
             char path[256];
-            sprintf(path, "%s_%s.savestate", folderPathWithTail, romFileNames[i]);
+            sprintf(path, "%s%s_%s.savestate", folderPath, romFilePrefixes[i], romFileNames[i]);
             
             char tempLog[256];
             sprintf(tempLog,"Loading save state %d", i);
@@ -695,7 +688,7 @@ void cartLoader_saveAllSaveStatesToDisk() {
 void cartLoader_loadAllSaveStatesFromDisk() {
     for (int i = 0; i < romCount; i++) {
         char path[256];
-        sprintf(path, "%s_%s.savestate", folderPathWithTail, romFileNames[i]);
+        sprintf(path, "%s%s_%s.savestate", folderPath, romFilePrefixes[i], romFileNames[i]);
 
         char tempLog[256];
         sprintf(tempLog,"Saving save state %d", i);

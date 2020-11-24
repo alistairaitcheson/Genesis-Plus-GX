@@ -21,7 +21,7 @@ static int persistValuesIndex = 0;
 static int ramDetectiveIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 7;
+static int minorVersion = 8;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -766,12 +766,7 @@ void showChooseGameMenu() {
         cartLoader_getRomFileName(i, fileNameBuf);
         if (i == chosenGameIndex) {
             char newNameBuf[0x100];
-            for (int j = 0; j < 0xF0; j++) {
-                newNameBuf[j + 3] = fileNameBuf[j];
-            }
-            newNameBuf[0] = '>';
-            newNameBuf[1] = '>';
-            newNameBuf[2] = ' ';
+            sprintf(newNameBuf, ">>  %s", fileNameBuf);
             layerRenderer_writeWord256WithBorder(0, 16, yPos, newNameBuf, 5, 1, 0);
         } else {
             char newNameBuf[0x100];

@@ -24,6 +24,7 @@ extern AAGameTransferListing cartLoader_getActiveGameTransferListing();
 extern void cartLoader_loadRandomRom();
 extern unsigned int cartLoader_getRomCount();
 extern void cartLoader_getRomFileName(int index, char intoArray[]);
+extern void cartLoader_getRomFilePrefix(int index, char intoArray[]);
 extern void writeFolderPathIntoArray32(char array32[]);
 
 extern void cartLoader_loadAllSaveStatesFromDisk();
@@ -39,7 +40,7 @@ extern void cartLoader_restoreCarriedOverData();
 extern int cartLoader_string32AreEqual(char strA[], char strB[]);
 extern int cartLoader_getSwapCount();
 
-void listFiles(const char *path);
+void listFiles(const char *path, char prefix[]);
 void addRomListing(char *path);
 int pathIsRom(char *path, int pathLen);
 void cartLoader_loadRomAtIndex(int index, int shouldCache);
