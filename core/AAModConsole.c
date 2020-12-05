@@ -2,7 +2,7 @@
 
 Open Terminal
 
-cd C:\Users\agaitcheson\Documents\Development\Emulation\GenesisPlusGIT\Genesis-Plus-GX
+cd C:\Users\agait\OneDrive\Documents\Development\GenesisPlusGX\Genesis-Plus-GX
 cls
 "C:\Program Files (x86)\GnuWin32\bin\make.exe" -f Makefile.libretro
 

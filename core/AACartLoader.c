@@ -232,34 +232,34 @@ void cartLoader_run() {
     gameListings[11].timeByteDestinations[0] = 1;
     gameListings[11].valueWriteDuration = 0;
     gameListings[11].valueWriteDuration = 60;
-    gameListings[11].ringSwitchCooldown = 7;
+    gameListings[11].ringSwitchCooldown = 8;
 
-    writeStringToArray32("07250", gameListings[12].gameId); // Sonic 2 GG <-- still need to find lives and time
+    writeStringToArray32("07250", gameListings[12].gameId); // Sonic 2 GG
     gameListings[12].ringByte = 0x1299;
     gameListings[12].specialRingByte = 0;
-    gameListings[12].livesBytes[0] = 0;
+    gameListings[12].livesBytes[0] = 0x1298;
     gameListings[12].livesByteDestinations[0] = 0x5; 
-    gameListings[12].timeBytes[0] = 0;
+    gameListings[12].timeBytes[0] = 0x12BA;
     gameListings[12].timeByteDestinations[0] = 1;
     gameListings[12].valueWriteDuration = 0;
     gameListings[12].valueWriteDuration = 60;    
 
-    writeStringToArray32("08240", gameListings[13].gameId); // Sonic 1 GG<-- still need to find lives and time
+    writeStringToArray32("08240", gameListings[13].gameId); // Sonic 1 GG
     gameListings[13].ringByte = 0x12A9;
     gameListings[13].specialRingByte = 0;
-    gameListings[13].livesBytes[0] = 0;
+    gameListings[13].livesBytes[0] = 0x1240;
     gameListings[13].livesByteDestinations[0] = 0x5; 
-    gameListings[13].timeBytes[0] = 0;
+    gameListings[13].timeBytes[0] = 0x12CF;
     gameListings[13].timeByteDestinations[0] = 1;
     gameListings[13].valueWriteDuration = 0;
     gameListings[13].valueWriteDuration = 60;   
 
-    writeStringToArray32("15250", gameListings[14].gameId); // Sonic Chaos GG <-- still need to find lives and time
+    writeStringToArray32("15250", gameListings[14].gameId); // Sonic Chaos GG
     gameListings[14].ringByte = 0x129C;
     gameListings[14].specialRingByte = 0;
-    gameListings[14].livesBytes[0] = 0;
+    gameListings[14].livesBytes[0] = 0x129B;
     gameListings[14].livesByteDestinations[0] = 0x5; 
-    gameListings[14].timeBytes[0] = 0;
+    gameListings[14].timeBytes[0] = 0x12C2;
     gameListings[14].timeByteDestinations[0] = 1;
     gameListings[14].valueWriteDuration = 0;
     gameListings[14].valueWriteDuration = 60;   
@@ -270,9 +270,9 @@ void cartLoader_run() {
     writeStringToArray32("30250", gameListings[16].gameId); // Sonic Triple Trouble<-- still need to find lives and time
     gameListings[16].ringByte = 0x1159;
     gameListings[16].specialRingByte = 0;
-    gameListings[16].livesBytes[0] = 0;
+    gameListings[16].livesBytes[0] = 0x1140;
     gameListings[16].livesByteDestinations[0] = 0x5; 
-    gameListings[16].timeBytes[0] = 0;
+    gameListings[16].timeBytes[0] = 0x115E;
     gameListings[16].timeByteDestinations[0] = 1;
     gameListings[16].valueWriteDuration = 0;
     gameListings[16].valueWriteDuration = 60;   

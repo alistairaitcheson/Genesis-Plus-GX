@@ -51,6 +51,9 @@ typedef struct {
     int seekValueIndex;
     int minFrames;
     int shouldShow;
+    int trackerLocations[8][4];
+    int trackerValueIndexes[8];
+    int shouldShowTracker;
 } RamDetectiveOptions;
 
 extern void menuDisplay_showMenu(int menuNum);

@@ -135,9 +135,6 @@ void menuDisplay_updateRamDetective() {
 }
 
 void menuDisplay_renderRamDetective() {
-    if (ramDetectiveOptions.shouldShow == 0) {
-        return;
-    }
 
     layerRenderer_clearLayer(0);
 
@@ -153,6 +150,36 @@ void menuDisplay_renderRamDetective() {
         maxHeight -= 100;
     }
 
+    int showedTracker = 0;
+    if (ramDetectiveOptions.shouldShowTracker != 0) {
+        for (int i = 0; i < 8; i++) {
+            int loc = 
+                (ramDetectiveOptions.trackerLocations[i][0] * 0x1000) + 
+                (ramDetectiveOptions.trackerLocations[i][1] * 0x0100) + 
+                (ramDetectiveOptions.trackerLocations[i][2] * 0x0010) + 
+                (ramDetectiveOptions.trackerLocations[i][3] * 0x0001);
+            if (loc > 0) {
+                showedTracker = 1;
+                char text[0x10];
+
+                unsigned char value = aa_genesis_getWorkRam(loc);
+
+                sprintf(text, "%04X:%02X", loc, value);
+                int localY = startY + (i * 9);
+                layerRenderer_fill(0, x, localY, 7 * 8, height, 0xFF);
+                layerRenderer_writeWord256(0, x, localY, text, 5);
+            }
+        }
+    }
+
+
+    if (ramDetectiveOptions.shouldShow == 0) {
+        return;
+    }
+
+    if (showedTracker != 0) {
+        x += 7 * 8 + 1;
+    }
     int y = startY;
 
     for (int i = 0; i < 0x10000; i++) {
@@ -215,6 +242,14 @@ void applyDefaultRamDetectiveValues() {
     for (int i = 0; i < 0x10000; i++) {
         trackedRamFrameCounts[i] = 0;
     }
+
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 4; j++) {
+            ramDetectiveOptions.trackerLocations[i][j] = 0;
+        }
+    }
+
+    ramDetectiveOptions.shouldShowTracker = 0;
 }
 
 
@@ -597,6 +632,17 @@ void ramDetectivePressFaceButton(int direction) {
     if (ramDetectiveIndex == 4) {
         ramDetectiveOptions.shouldShow += direction;
     }
+
+    for (int trackerIdx = 0; trackerIdx < 8; trackerIdx++) {
+        if (ramDetectiveIndex == 5 + trackerIdx) {
+            int col = ramDetectiveOptions.trackerValueIndexes[trackerIdx];
+            ramDetectiveOptions.trackerLocations[trackerIdx][col] += direction;
+        } 
+    }
+
+    if (ramDetectiveIndex == 13) {
+        ramDetectiveOptions.shouldShowTracker += direction;
+    }
 }
 
 void ramDetectivePressDPadDir(int direction) {
@@ -614,6 +660,16 @@ void ramDetectivePressDPadDir(int direction) {
     }
     if (ramDetectiveIndex == 4) {
         ramDetectiveOptions.shouldShow += direction;
+    }
+
+    for (int trackerIdx = 0; trackerIdx < 8; trackerIdx++) {
+        if (ramDetectiveIndex == 5 + trackerIdx) {
+            ramDetectiveOptions.trackerValueIndexes[trackerIdx] += direction;
+        } 
+    }
+
+    if (ramDetectiveIndex == 13) {
+        ramDetectiveOptions.shouldShowTracker += direction;
     }
 }
 
@@ -1248,7 +1304,7 @@ void showRamDetectiveMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Ram Detective", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to confirm ---", 5);
 
-    int lineCount = 5;
+    int lineCount = 14;
     char lines[lineCount][0x80];
 
     if (ramDetectiveIndex < 0) {
@@ -1286,13 +1342,28 @@ void showRamDetectiveMenu() {
         ramDetectiveOptions.shouldShow = 0;
     }
 
-    if (ramDetectiveOptions.shouldShow < 0) {
-        ramDetectiveOptions.shouldShow = 300;
+    if (ramDetectiveOptions.minFrames < 0) {
+        ramDetectiveOptions.minFrames = 300;
     }
-    if (ramDetectiveOptions.shouldShow > 300) {
-        ramDetectiveOptions.shouldShow = 0;
+    if (ramDetectiveOptions.minFrames > 300) {
+        ramDetectiveOptions.minFrames = 0;
     }
 
+    for (int trackIdx = 0; trackIdx < 8; trackIdx++) {
+        if (ramDetectiveOptions.trackerValueIndexes[trackIdx] < 0) {
+            ramDetectiveOptions.trackerValueIndexes[trackIdx] = 0;
+        }
+        if (ramDetectiveOptions.trackerValueIndexes[trackIdx] > 3) {
+            ramDetectiveOptions.trackerValueIndexes[trackIdx] = 3;
+        }
+    }
+
+    if (ramDetectiveOptions.shouldShowTracker < 0) {
+        ramDetectiveOptions.shouldShowTracker = 1;
+    }
+    if (ramDetectiveOptions.shouldShowTracker > 1) {
+        ramDetectiveOptions.shouldShowTracker = 0;
+    }
 
     char startValuesText[4][0x10];
     for (int i = 0; i < 4; i++) {
@@ -1351,10 +1422,37 @@ void showRamDetectiveMenu() {
     sprintf(lines[3], "MIN FRAMES: %d", ramDetectiveOptions.minFrames);
 
     if (ramDetectiveOptions.shouldShow == 0) {
-        sprintf(lines[4], "SHOW DURING GAME:   OFF");
+        sprintf(lines[4], "SHOW SEEKER:   OFF");
     } else {
-        sprintf(lines[4], "SHOW DURING GAME:    ON");
+        sprintf(lines[4], "SHOW SEEKER:    ON");
     }
+
+    for (int trackIdx = 0; trackIdx < 8; trackIdx++) {
+        char trackValuesText[4][0x10];
+        int lineIdx = 5 + trackIdx;
+        for (int i = 0; i < 4; i++) {
+            if (ramDetectiveOptions.trackerLocations[trackIdx][i] < 0) {
+                ramDetectiveOptions.trackerLocations[trackIdx][i] = 0xF;
+            }
+            if (ramDetectiveOptions.trackerLocations[trackIdx][i] > 0xF) {
+                ramDetectiveOptions.trackerLocations[trackIdx][i] = 0;
+            }
+
+            if (ramDetectiveIndex == lineIdx && ramDetectiveOptions.trackerValueIndexes[trackIdx] == i) {
+                sprintf(trackValuesText[i], "<%X>", ramDetectiveOptions.trackerLocations[trackIdx][i]);
+            } else {
+                sprintf(trackValuesText[i], " %X ", ramDetectiveOptions.trackerLocations[trackIdx][i]);
+            }
+        }
+        sprintf(lines[lineIdx], "Track %i:  %s%s%s%s", trackIdx, trackValuesText[0], trackValuesText[1], trackValuesText[2], trackValuesText[3]);
+    }
+
+    if (ramDetectiveOptions.shouldShowTracker == 0) {
+        sprintf(lines[13], "SHOW TRACKER:   OFF");
+    } else {
+        sprintf(lines[13], "SHOW TRACKER:    ON");
+    }
+
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
