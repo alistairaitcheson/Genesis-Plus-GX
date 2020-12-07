@@ -34,6 +34,7 @@ static int saveStateWasLoaded = 0;
 static HackOptions hackOptions;
 static PersistValuesOptions persistValuesOptions;
 static RamDetectiveOptions ramDetectiveOptions;
+static int logRamStateCounter[0x10000];
 
 static int trackedRamFrameCounts[0x10000];
 // static int trackedRamLocationCount = 0;
@@ -198,6 +199,60 @@ void menuDisplay_renderRamDetective() {
     }
 }
 
+void clearLogRamState() {
+    for (int i = 0; i < 0x10000; i++) {
+        logRamStateCounter[i] = 0;
+    }
+}
+
+void menuDisplay_logRamStateToTrackedValues() {
+    cartLoader_appendToLog("*** menuDisplay_logRamStateToTrackedValues ***");
+    int start = 
+        (ramDetectiveOptions.startLoc[0] * 0x1000) + 
+        (ramDetectiveOptions.startLoc[1] * 0x0100) + 
+        (ramDetectiveOptions.startLoc[2] * 0x0010) + 
+        (ramDetectiveOptions.startLoc[3] * 0x0001);
+    int end = 
+        (ramDetectiveOptions.endLoc[0] * 0x1000) + 
+        (ramDetectiveOptions.endLoc[1] * 0x0100) + 
+        (ramDetectiveOptions.endLoc[2] * 0x0010) + 
+        (ramDetectiveOptions.endLoc[3] * 0x0001);
+    int seekValue = 
+        (ramDetectiveOptions.seekValue[0] * 0x10) +
+        (ramDetectiveOptions.seekValue[1] * 0x01);
+
+    char headingLog[0x20];
+    sprintf(headingLog, "*** Seeking %02X (%04X to %04X)", seekValue, start, end);
+    cartLoader_appendToLog(headingLog);
+
+    int maxCounter = 0;
+    for (int i = 0; i < 0x10000; i++) {
+        if (i < start || i > end) {
+            logRamStateCounter[i] = 0;
+        }
+        if (aa_genesis_getWorkRam(i) == seekValue) {
+            logRamStateCounter[i] ++;
+            char logText[0x10];
+            sprintf(logText, "%04X (%i)", i, logRamStateCounter[i]);
+            cartLoader_appendToLog(logText);
+
+            if (maxCounter < logRamStateCounter[i]) {
+                maxCounter = logRamStateCounter[i];
+            }
+        } else {
+            logRamStateCounter[i] = 0;
+        }
+    }
+
+    for (int i = 0; i < 0x10000; i++) {
+        if (logRamStateCounter[i] == maxCounter) {
+            char logText[0x20];
+            sprintf(logText, "%0X2: MAXIMUM %04X (%i)", seekValue, i, logRamStateCounter[i]);
+            cartLoader_appendToLog(logText);            
+        }
+    }
+}
+
 void applyPersistValuesFromArray256(int array256[]) {
     for (int i = 0; i < 0x100; i++) {
         if (array256[i] != 0) {
@@ -241,6 +296,7 @@ void applyDefaultRamDetectiveValues() {
 
     for (int i = 0; i < 0x10000; i++) {
         trackedRamFrameCounts[i] = 0;
+        logRamStateCounter[i] = 0;
     }
 
     for (int i = 0; i < 8; i++) {
@@ -643,6 +699,13 @@ void ramDetectivePressFaceButton(int direction) {
     if (ramDetectiveIndex == 13) {
         ramDetectiveOptions.shouldShowTracker += direction;
     }
+
+    if (ramDetectiveIndex == 14) {
+        modConsole_flagToLogRamState();
+    }
+    if (ramDetectiveIndex == 15) {
+        clearLogRamState();
+    }
 }
 
 void ramDetectivePressDPadDir(int direction) {
@@ -670,6 +733,13 @@ void ramDetectivePressDPadDir(int direction) {
 
     if (ramDetectiveIndex == 13) {
         ramDetectiveOptions.shouldShowTracker += direction;
+    }
+
+    if (ramDetectiveIndex == 14) {
+        modConsole_flagToLogRamState();
+    }
+    if (ramDetectiveIndex == 15) {
+        clearLogRamState();
     }
 }
 
@@ -1304,7 +1374,7 @@ void showRamDetectiveMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Ram Detective", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to confirm ---", 5);
 
-    int lineCount = 14;
+    int lineCount = 16;
     char lines[lineCount][0x80];
 
     if (ramDetectiveIndex < 0) {
@@ -1453,6 +1523,8 @@ void showRamDetectiveMenu() {
         sprintf(lines[13], "SHOW TRACKER:    ON");
     }
 
+    sprintf(lines[14], "print seek to log now");
+    sprintf(lines[15], "reset seek log counter");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

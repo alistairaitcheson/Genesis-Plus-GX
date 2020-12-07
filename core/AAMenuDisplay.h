@@ -66,6 +66,7 @@ extern void menuDisplay_hideMenuUnlessQueued();
 extern PersistValuesOptions menuDisplay_getPersistValuesOptions();
 extern void menuDisplay_renderRamDetective();
 extern void menuDisplay_updateRamDetective();
+extern void menuDisplay_logRamStateToTrackedValues();
 
 void beginGame();
 void showTitleMenu();
@@ -91,5 +92,7 @@ void showInGameOptionsMenu();
 void showRamDetectiveMenu();
 void ramDetectivePressFaceButton(int direction);
 void ramDetectivePressDPadDir(int direction);
+
+void clearLogRamState();
 
 #endif

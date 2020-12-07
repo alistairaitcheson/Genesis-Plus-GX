@@ -44,7 +44,8 @@ typedef struct
     int scoreBytes[8];
     int delayBetweenChanges;
     int calculatationType; // 0 = add the values of the bytes (like Sonic 2 rings), 1 = 0x12 should be read as 12 (like Sonic 3D rings), 2 = each byte is a single place value (like Mean Bean Machine)
-    int significantScoreThresholds[8]; // e.g. switch when your score goes up by [A, B, C, ...] - or when it goes past this threshold? Which is more interesting? Probably the latter
+    int scoreJumpForTrigger;
+    // int significantScoreThresholds[8]; // e.g. switch when your score goes up by [A, B, C, ...] - or when it goes past this threshold? Which is more interesting? Probably the latter
 } AAScoreMonitorListing;
 
 typedef struct {

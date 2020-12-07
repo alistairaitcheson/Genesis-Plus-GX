@@ -28,6 +28,7 @@ extern void modConsole_queuePanic();
 extern void modConsole_applyHackOptions();
 extern void modConsole_flagToApplyCache();
 extern void modConsole_flagToSummonMenu();
+extern void modConsole_flagToLogRamState();
 
 int lengthOfString256(char string256[]);
 

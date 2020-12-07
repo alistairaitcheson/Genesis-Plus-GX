@@ -25,6 +25,7 @@ static unsigned int logLineCount;
 
 static AAGameListing gameListings[0x100];
 static AAGameTransferListing gameTransferListings[0x100];
+static AAScoreMonitorListing scoreMonitorListings[0x100];
 static int gameListingCount = 0;
 
 static char romHeaderBuffer[0x20];
@@ -274,7 +275,6 @@ void cartLoader_run() {
     gameListings[16].livesByteDestinations[0] = 0x5; 
     gameListings[16].timeBytes[0] = 0x115E;
     gameListings[16].timeByteDestinations[0] = 1;
-    gameListings[16].valueWriteDuration = 0;
     gameListings[16].valueWriteDuration = 60;   
 
     
@@ -297,8 +297,10 @@ void cartLoader_run() {
     gameListings[18].timeBytes[0] = 0;
     gameListings[18].timeByteDestinations[0] = 1;
     gameListings[18].valueWriteDuration = 0;
-    gameListings[18].valueWriteDuration = 60;   
-    gameListings[18].isISO = 1;  // <-- I plan to use this as a way to detect CD games for the time being...
+    scoreMonitorListings[18].scoreBytes[0] = 0xE00C;
+    scoreMonitorListings[18].scoreBytes[1] = 0xE00D;
+    scoreMonitorListings[18].calculatationType = 0;
+    scoreMonitorListings[18].scoreJumpForTrigger = 39;
 
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
@@ -647,6 +649,11 @@ AAGameListing cartLoader_getActiveGameListing() {
 AAGameTransferListing cartLoader_getActiveGameTransferListing() {
     return gameTransferListings[cartLoader_getActiveCartIndex()];
 }
+
+AAScoreMonitorListing cartLoader_getActiveScoreMonitorListing() {
+    return scoreMonitorListings[cartLoader_getActiveCartIndex()];
+}
+
 
 // void addRomListing(char *path) {
 //     cartLoader_appendToLog("addRomListing");

@@ -27,6 +27,7 @@ extern void cartLoader_appendToLog(char *text);
 extern int cartLoader_getActiveCartIndex();
 extern AAGameListing cartLoader_getActiveGameListing();
 extern AAGameTransferListing cartLoader_getActiveGameTransferListing();
+extern AAScoreMonitorListing cartLoader_getActiveScoreMonitorListing();
 extern void cartLoader_loadRandomRom();
 extern unsigned int cartLoader_getRomCount();
 extern void cartLoader_getRomFileName(int index, char intoArray[]);

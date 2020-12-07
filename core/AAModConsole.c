@@ -51,6 +51,12 @@ static int countdownToSummonMenu = 0;
 
 static int countdownUntilRingSwitch = 0;
 
+static int countdownUntilLogRamState = 0;
+
+void modConsole_flagToLogRamState() {
+    countdownUntilLogRamState = 1;
+}
+
 void modConsole_flagToApplyCache() {
     shouldApplyCacheNextFrame = 1;
 }
@@ -258,6 +264,13 @@ void modConsole_updateFrame() {
         menuDisplay_updateRamDetective();
         menuDisplay_renderRamDetective();
 
+        if (countdownUntilLogRamState > 0) {
+            countdownUntilLogRamState --;
+            if (countdownUntilLogRamState == 0) {
+                menuDisplay_logRamStateToTrackedValues();
+            }
+        }
+
         if (panicCountdown > 0) {
             panicCountdown --;
             // char tempLog[0x100];
@@ -379,6 +392,8 @@ void modConsole_updateFrame() {
 
     aa_genesis_updateLastRam();
 }
+
+
 
 void promptSwitchGame() {
     // shouldSwitchAfterCooldown = 1;
@@ -541,6 +556,28 @@ int ringCountHasChanged() {
         if (currentRingCount != 0 && currentRingCount != lastRingCount && difference < 6) {
             return 1;
         }
+    }
+
+    AAScoreMonitorListing scoreListing = cartLoader_getActiveScoreMonitorListing();
+    int lastScore = 0;
+    int currentScore = 0;
+    int multiplier = 1;
+    for (int i = 0; i < 8; i++) {
+        if (scoreListing.scoreBytes[i] > 0 && scoreListing.scoreBytes[i] < 0x10000) {
+            unsigned int lastScoreVal = aa_genesis_getLastWorkRam(scoreListing.scoreBytes[i]);
+            unsigned int currentScoreVal = aa_genesis_getWorkRam(scoreListing.scoreBytes[i]);
+
+            //change the below for different calculation types
+            lastScore += lastScoreVal * multiplier;
+            currentScore += currentScoreVal * multiplier;
+            multiplier *= 0x100;
+        } else {
+            break;
+        }
+    }
+
+    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger) {
+        return 1;
     }
 
     return 0;
