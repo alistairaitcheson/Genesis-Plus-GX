@@ -247,7 +247,7 @@ void menuDisplay_logRamStateToTrackedValues() {
     for (int i = 0; i < 0x10000; i++) {
         if (logRamStateCounter[i] == maxCounter) {
             char logText[0x20];
-            sprintf(logText, "%0X2: MAXIMUM %04X (%i)", seekValue, i, logRamStateCounter[i]);
+            sprintf(logText, "%02X: MAXIMUM %04X (%i)", seekValue, i, logRamStateCounter[i]);
             cartLoader_appendToLog(logText);            
         }
     }

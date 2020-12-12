@@ -26,9 +26,10 @@ static unsigned int logLineCount;
 static AAGameListing gameListings[0x100];
 static AAGameTransferListing gameTransferListings[0x100];
 static AAScoreMonitorListing scoreMonitorListings[0x100];
+static unsigned char gameAltIds[0x100][0x80];
 static int gameListingCount = 0;
 
-static char romHeaderBuffer[0x20];
+static unsigned char romHeaderBuffer[0x20];
 
 static char *completeLog = "";
 
@@ -227,7 +228,7 @@ void cartLoader_run() {
     writeStringToArray32("73250", gameListings[11].gameId); // Sonic Blast MS <-- still need to find lives and time
     gameListings[11].ringByte = 0x125E; // <-- WARNING! it is used in the title sequence (once per frame?)
     gameListings[11].specialRingByte =  0x1D9E;
-    gameListings[11].livesBytes[0] = 0;
+    gameListings[11].livesBytes[0] = 0x1178;
     gameListings[11].livesByteDestinations[0] = 0x5; 
     gameListings[11].timeBytes[0] = 0;
     gameListings[11].timeByteDestinations[0] = 1;
@@ -299,8 +300,85 @@ void cartLoader_run() {
     gameListings[18].valueWriteDuration = 0;
     scoreMonitorListings[18].scoreBytes[0] = 0xE00C;
     scoreMonitorListings[18].scoreBytes[1] = 0xE00D;
+    scoreMonitorListings[18].scoreBytesP2[0] = 0xE04C;
+    scoreMonitorListings[18].scoreBytesP2[1] = 0xE04D;
     scoreMonitorListings[18].calculatationType = 0;
     scoreMonitorListings[18].scoreJumpForTrigger = 39;
+    scoreMonitorListings[18].blockJumpFromZero = 1;
+    gameListings[18].ringSwitchCooldown = 2;
+
+    writeStringToArray32("Puyo Puyo (JP)", gameListings[19].gameId); // <-- puyo puyo
+    copyGameListing(18, 19);
+    sprintf(gameAltIds[19], "82D582E682D582E6 0000000000000000 0000000000000000 0000000000000000");
+    gameListings[19].ringByte = 0;
+    gameListings[19].specialRingByte = 0;
+
+    writeStringToArray32("Puyo Puyo 2 (JP)", gameListings[20].gameId); // <-- puyo puyo 2
+    sprintf(gameAltIds[20], "82D582E682D582E6 8251000000000000 0000000000000000 0000000000000000");
+    gameListings[20].ringByte = 0;
+    gameListings[20].specialRingByte = 0;
+    gameListings[20].livesBytes[0] = 0;
+    gameListings[20].livesByteDestinations[0] = 0x5; 
+    gameListings[20].timeBytes[0] = 0;
+    gameListings[20].timeByteDestinations[0] = 1;
+    gameListings[20].valueWriteDuration = 0;
+    scoreMonitorListings[20].scoreBytes[0] = 0xD08C;
+    scoreMonitorListings[20].scoreBytes[1] = 0xD08D;
+    scoreMonitorListings[20].scoreBytesP2[0] = 0xD0CC;
+    scoreMonitorListings[20].scoreBytesP2[1] = 0xD0CD;
+    scoreMonitorListings[20].calculatationType = 0;
+    scoreMonitorListings[20].scoreJumpForTrigger = 39;
+    scoreMonitorListings[20].blockJumpFromZero = 1;
+    gameListings[20].ringSwitchCooldown = 2;
+
+    writeStringToArray32("BAREKNUCKLE", gameListings[21].gameId); // <-- Streets of Rage 1
+    gameListings[21].ringByte = 0;
+    gameListings[21].specialRingByte = 0;
+    gameListings[21].livesBytes[0] = 0;
+    gameListings[21].livesByteDestinations[0] = 0x5; 
+    gameListings[21].timeBytes[0] = 0;
+    gameListings[21].timeByteDestinations[0] = 1;
+    gameListings[21].valueWriteDuration = 0;
+    scoreMonitorListings[21].scoreBytes[0] = 0xFF0B;
+    scoreMonitorListings[21].scoreBytes[1] = 0xFF08;
+    scoreMonitorListings[21].scoreBytesP2[0] = 0;
+    scoreMonitorListings[21].scoreBytesP2[1] = 0;
+    scoreMonitorListings[21].calculatationType = 1;
+    scoreMonitorListings[21].scoreJumpForTrigger = 1;
+    gameListings[21].ringSwitchCooldown = 2;
+
+    writeStringToArray32("BAREKNUCKLE2", gameListings[22].gameId); // <-- Streets of Rage 2
+    gameListings[22].ringByte = 0;
+    gameListings[22].specialRingByte = 0;
+    gameListings[22].livesBytes[0] = 0;
+    gameListings[22].livesByteDestinations[0] = 0x5; 
+    gameListings[22].timeBytes[0] = 0;
+    gameListings[22].timeByteDestinations[0] = 1;
+    gameListings[22].valueWriteDuration = 0;
+    scoreMonitorListings[22].scoreBytes[0] = 0xEF99;
+    scoreMonitorListings[22].scoreBytes[1] = 0xEF96;
+    scoreMonitorListings[22].scoreBytesP2[0] = 0;
+    scoreMonitorListings[22].scoreBytesP2[1] = 0;
+    scoreMonitorListings[22].calculatationType = 1;
+    scoreMonitorListings[22].scoreJumpForTrigger = 1;
+    gameListings[22].ringSwitchCooldown = 2;
+    
+    writeStringToArray32("BAREKNUCKLE3", gameListings[23].gameId); // <-- Streets of Rage 3
+    gameListings[23].ringByte = 0;
+    gameListings[23].specialRingByte = 0;
+    gameListings[23].livesBytes[0] = 0;
+    gameListings[23].livesByteDestinations[0] = 0x5; 
+    gameListings[23].timeBytes[0] = 0;
+    gameListings[23].timeByteDestinations[0] = 1;
+    gameListings[23].valueWriteDuration = 0;
+    scoreMonitorListings[23].scoreBytes[0] = 0xDF82;
+    scoreMonitorListings[23].scoreBytes[1] = 0xDF83;
+    scoreMonitorListings[23].scoreBytesP2[0] = 0;
+    scoreMonitorListings[23].scoreBytesP2[1] = 0;
+    scoreMonitorListings[23].calculatationType = 0;
+    scoreMonitorListings[23].scoreJumpForTrigger = 1;
+    gameListings[23].ringSwitchCooldown = 2;
+
 
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
@@ -311,7 +389,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 19;
+    gameListingCount = 24;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
@@ -627,6 +705,78 @@ int cartLoader_getActiveCartIndex() {
         }
     }
 
+    //not found - check it as a byte list (account for japanese games)
+    // cartLoader_appendToLog("CHECKING ROM HEADER ALT");
+    char altBuffer[0x80];
+    sprintf(altBuffer,"%02X%02X%02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X%02X%02X %02X%02X%02X%02X%02X%02X%02X%02X",
+        romHeaderBuffer[0],
+        romHeaderBuffer[1],
+        romHeaderBuffer[2],
+        romHeaderBuffer[3],
+        romHeaderBuffer[4],
+        romHeaderBuffer[5],
+        romHeaderBuffer[6],
+        romHeaderBuffer[7],
+        
+        romHeaderBuffer[8],
+        romHeaderBuffer[9],
+        romHeaderBuffer[10],
+        romHeaderBuffer[11],
+        romHeaderBuffer[12],
+        romHeaderBuffer[13],
+        romHeaderBuffer[14],
+        romHeaderBuffer[15],
+
+        romHeaderBuffer[16],
+        romHeaderBuffer[17],
+        romHeaderBuffer[18],
+        romHeaderBuffer[19],
+        romHeaderBuffer[20],
+        romHeaderBuffer[21],
+        romHeaderBuffer[22],
+        romHeaderBuffer[23],
+
+        romHeaderBuffer[24],
+        romHeaderBuffer[25],
+        romHeaderBuffer[26],
+        romHeaderBuffer[27],
+        romHeaderBuffer[28],
+        romHeaderBuffer[29],
+        romHeaderBuffer[30],
+        romHeaderBuffer[31]
+    );
+    // for (int i = 0; i < 0x20; i++) {
+    //     char hexValue[2];
+    //     sprintf(hexValue, "%02X", romHeaderBuffer[i] % 0x100);
+    //     cartLoader_appendToLog(hexValue);
+    //     altBuffer[i * 2] = hexValue[0];
+    //     altBuffer[(i * 2) + 1] = hexValue[1];
+    //     cartLoader_appendToLog(altBuffer);
+    // }
+    // altBuffer[0x40] = '\0';
+
+    // cartLoader_appendToLog(romHeaderBuffer);
+    // cartLoader_appendToLog(altBuffer);
+
+    // for (int i = 1; i < gameListingCount; i++) {
+    //     int success = 1;
+    //     for (int charIdx = 0; charIdx < 0x40; charIdx++) {
+    //         if (altBuffer[charIdx] != gameAltIds[i][charIdx]) {
+    //             success = 0;
+    //             break;
+    //         }
+    //     }
+    //     if (success == 1) {
+    //         return i;
+    //     }
+    // }
+
+    for (int i = 0; i < gameListingCount; i++) {
+        if (modconsole_array32sAreEqual(altBuffer, gameAltIds[i]) == 1) {
+            return i;
+        }
+    }
+
     // not found - check Master System headers
     modConsole_getMasterSystemProductId(romHeaderBuffer);
 
@@ -776,6 +926,14 @@ void copyGameListing(int fromGame, int toGame) {
         gameTransferListings[toGame].momentumBytesForTransfer[i] = gameTransferListings[fromGame].momentumBytesForTransfer[i];
         gameTransferListings[toGame].scoreBytesForTransfer[i] = gameTransferListings[fromGame].scoreBytesForTransfer[i];
     }
+
+    for (int i = 0; i < 8; i++) {
+        scoreMonitorListings[toGame].scoreBytes[i] = scoreMonitorListings[fromGame].scoreBytes[i];
+        scoreMonitorListings[toGame].scoreBytesP2[i] = scoreMonitorListings[fromGame].scoreBytesP2[i];
+    }
+    scoreMonitorListings[toGame].calculatationType = scoreMonitorListings[fromGame].calculatationType ;
+    scoreMonitorListings[toGame].scoreJumpForTrigger = scoreMonitorListings[fromGame].scoreJumpForTrigger;
+    scoreMonitorListings[toGame].blockJumpFromZero = scoreMonitorListings[fromGame].blockJumpFromZero;
 }
 
 void saveSaveStateForCurrentGame() {

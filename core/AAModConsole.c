@@ -562,10 +562,51 @@ int ringCountHasChanged() {
     int lastScore = 0;
     int currentScore = 0;
     int multiplier = 1;
+
+    // P1 score
     for (int i = 0; i < 8; i++) {
         if (scoreListing.scoreBytes[i] > 0 && scoreListing.scoreBytes[i] < 0x10000) {
             unsigned int lastScoreVal = aa_genesis_getLastWorkRam(scoreListing.scoreBytes[i]);
             unsigned int currentScoreVal = aa_genesis_getWorkRam(scoreListing.scoreBytes[i]);
+
+            //change the below for different calculation types
+            if (scoreListing.calculatationType == 0) {
+                lastScore += lastScoreVal * multiplier;
+                currentScore += currentScoreVal * multiplier;
+                multiplier *= 0x100;
+            } else if (scoreListing.calculatationType == 1) {
+                unsigned int lastScoreLowDigit = lastScoreVal % 0x10;
+                unsigned int lastScoreHighDigit = lastScoreVal / 0x10;
+                unsigned int currentScoreLowDigit = currentScoreVal % 0x10;
+                unsigned int currentScoreHighDigit = currentScoreVal / 0x10;
+
+                lastScore += (lastScoreLowDigit + (10 * lastScoreHighDigit)) * multiplier;
+                currentScore += (currentScoreLowDigit + (10 * currentScoreHighDigit)) * multiplier;
+                multiplier *= 100;
+            }
+        } else {
+            break;
+        }
+    }
+
+    int jumpedFromZero = 0;
+    if (scoreListing.blockJumpFromZero != 0) {
+        if (lastScore != 0) {
+            jumpedFromZero = 1;
+        }
+    }
+    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && jumpedFromZero == 0) {
+        return 1;
+    }
+
+    // P2 score
+    lastScore = 0;
+    currentScore = 0;
+    multiplier = 1;
+    for (int i = 0; i < 8; i++) {
+        if (scoreListing.scoreBytesP2[i] > 0 && scoreListing.scoreBytesP2[i] < 0x10000) {
+            unsigned int lastScoreVal = aa_genesis_getLastWorkRam(scoreListing.scoreBytesP2[i]);
+            unsigned int currentScoreVal = aa_genesis_getWorkRam(scoreListing.scoreBytesP2[i]);
 
             //change the below for different calculation types
             lastScore += lastScoreVal * multiplier;
@@ -576,7 +617,12 @@ int ringCountHasChanged() {
         }
     }
 
-    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger) {
+    if (scoreListing.blockJumpFromZero != 0) {
+        if (lastScore != 0) {
+            jumpedFromZero = 1;
+        }
+    }
+    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && jumpedFromZero == 0) {
         return 1;
     }
 
