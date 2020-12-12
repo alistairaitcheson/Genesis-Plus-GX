@@ -360,7 +360,7 @@ void cartLoader_run() {
     scoreMonitorListings[22].scoreBytesP2[0] = 0;
     scoreMonitorListings[22].scoreBytesP2[1] = 0;
     scoreMonitorListings[22].calculatationType = 1;
-    scoreMonitorListings[22].scoreJumpForTrigger = 1;
+    scoreMonitorListings[22].scoreJumpForTrigger = 99;
     gameListings[22].ringSwitchCooldown = 2;
     
     writeStringToArray32("BAREKNUCKLE3", gameListings[23].gameId); // <-- Streets of Rage 3
@@ -376,9 +376,59 @@ void cartLoader_run() {
     scoreMonitorListings[23].scoreBytesP2[0] = 0;
     scoreMonitorListings[23].scoreBytesP2[1] = 0;
     scoreMonitorListings[23].calculatationType = 0;
-    scoreMonitorListings[23].scoreJumpForTrigger = 1;
+    scoreMonitorListings[23].scoreJumpForTrigger = 99;
     gameListings[23].ringSwitchCooldown = 2;
 
+
+    writeStringToArray32("THESUPERSHINOBI2", gameListings[24].gameId); // <-- Shinobi III
+    gameListings[24].ringByte = 0;
+    gameListings[24].specialRingByte = 0;
+    gameListings[24].livesBytes[0] = 0;
+    gameListings[24].livesByteDestinations[0] = 0x5; 
+    gameListings[24].timeBytes[0] = 0;
+    gameListings[24].timeByteDestinations[0] = 1;
+    gameListings[24].valueWriteDuration = 0;
+    scoreMonitorListings[24].scoreBytes[0] = 0x37B4;
+    scoreMonitorListings[24].scoreBytes[1] = 0x37B5;
+    scoreMonitorListings[24].scoreBytes[2] = 0x37B6;
+    scoreMonitorListings[24].scoreBytesP2[0] = 0;
+    scoreMonitorListings[24].scoreBytesP2[1] = 0;
+    scoreMonitorListings[24].calculatationType = 1;
+    scoreMonitorListings[24].scoreJumpForTrigger = 1;
+    gameListings[24].ringSwitchCooldown = 2;
+
+    writeStringToArray32("THESUPERSHINOBI", gameListings[25].gameId); // <-- Revenge of Shinobi
+    gameListings[25].ringByte = 0;
+    gameListings[25].specialRingByte = 0;
+    gameListings[25].livesBytes[0] = 0;
+    gameListings[25].livesByteDestinations[0] = 0x5; 
+    gameListings[25].timeBytes[0] = 0;
+    gameListings[25].timeByteDestinations[0] = 1;
+    gameListings[25].valueWriteDuration = 0;
+    scoreMonitorListings[25].scoreBytes[0] = 0xFF12;
+    scoreMonitorListings[25].scoreBytes[1] = 0xFF13;
+    scoreMonitorListings[25].scoreBytesP2[0] = 0;
+    scoreMonitorListings[25].scoreBytesP2[1] = 0;
+    scoreMonitorListings[25].calculatationType = 1;
+    scoreMonitorListings[25].scoreJumpForTrigger = 1;
+    gameListings[25].ringSwitchCooldown = 2;
+
+    writeStringToArray32("SHADOWDANCER", gameListings[26].gameId); // <-- SHADOWDANCER
+    sprintf(gameAltIds[26], "534841444F574441 4E434552896582CC 9591000000000000 0000000000000000");
+    gameListings[26].ringByte = 0;
+    gameListings[26].specialRingByte = 0;
+    gameListings[26].livesBytes[0] = 0;
+    gameListings[26].livesByteDestinations[0] = 0x5; 
+    gameListings[26].timeBytes[0] = 0;
+    gameListings[26].timeByteDestinations[0] = 1;
+    gameListings[26].valueWriteDuration = 0;
+    scoreMonitorListings[26].scoreBytes[0] = 0x13E3;
+    scoreMonitorListings[26].scoreBytes[1] = 0x13E0;
+    scoreMonitorListings[26].scoreBytesP2[0] = 0;
+    scoreMonitorListings[26].scoreBytesP2[1] = 0;
+    scoreMonitorListings[26].calculatationType = 1;
+    scoreMonitorListings[26].scoreJumpForTrigger = 0;
+    gameListings[26].ringSwitchCooldown = 2;
 
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
@@ -389,7 +439,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 24;
+    gameListingCount = 27;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 

@@ -589,13 +589,13 @@ int ringCountHasChanged() {
         }
     }
 
-    int jumpedFromZero = 0;
+    int blockedBecauseZero = 0;
     if (scoreListing.blockJumpFromZero != 0) {
-        if (lastScore != 0) {
-            jumpedFromZero = 1;
+        if (lastScore == 0) {
+            blockedBecauseZero = 1;
         }
     }
-    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && jumpedFromZero == 0) {
+    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0) {
         return 1;
     }
 
@@ -617,12 +617,13 @@ int ringCountHasChanged() {
         }
     }
 
+    blockedBecauseZero = 0;
     if (scoreListing.blockJumpFromZero != 0) {
-        if (lastScore != 0) {
-            jumpedFromZero = 1;
+        if (lastScore == 0) {
+            blockedBecauseZero = 1;
         }
     }
-    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && jumpedFromZero == 0) {
+    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0) {
         return 1;
     }
 
