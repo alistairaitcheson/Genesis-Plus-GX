@@ -1,3 +1,5 @@
+A Mega Drive emulator that switches to a different Sonic game every time you collect a ring. Also does a bunch of other fun hacky stuff which I will document better at some point!
+
 A modified version of GenesisPlusGX - if you like it, go to https://github.com/ekeeke/Genesis-Plus-GX and donate something there. 
 
 I just did the all the hacky extra features, not building the emulator in the first place, and ekeeke put in a lot of work to make something so great for nuisances like me to work off of.
