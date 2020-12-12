@@ -43,6 +43,8 @@
 #include "md_ntsc.h"
 #include "sms_ntsc.h"
 
+#include "AACartLoader.h"
+
 #ifndef HAVE_NO_SPRITE_LIMIT
 #define MAX_SPRITES_PER_LINE 20
 #define TMS_MAX_SPRITES_PER_LINE 4
@@ -606,6 +608,22 @@ void (*render_obj)(int line);
 void (*parse_satb)(int line);
 void (*update_bg_pattern_cache)(int index);
 
+/*------------------------ STUFF ADDED BY ALISTAIR ------------------------*/
+
+static uint mod_activeLineIndex;
+static uint8 mod_graphicLayers[4][400][400];
+static int mod_bufferPerLayer[4];
+static int shouldLimitColourPalette = 0;
+static int shouldHideSprites = 0;
+static int shouldHideBackgrounds = 0;
+static int shouldSortPixels = 0;
+static unsigned int randomColourValues[0x50];
+static unsigned int cachedPaletteColours[0x50];
+
+static int alistair_vdpOffsetX = 0;
+static int alistair_vdpOffsetY = 0;
+static int alistair_vdpScaleNum = 1;
+static int alistair_vdpScaleDen = 1;
 
 /*--------------------------------------------------------------------------*/
 /* Sprite pattern name offset look-up table function (Mode 5)               */
@@ -1120,11 +1138,23 @@ void color_update_m4(int index, unsigned int data)
 
 void color_update_m5(int index, unsigned int data)
 {
+  if (vdp_getShouldRandomiseColours() == 0) {
+        // char logString[0x100];
+        // sprintf(logString, "   - Caching colour %02X: %08X", index, cachedPaletteColours[index]); 
+        // cartLoader_appendToLog(logString);
+      cachedPaletteColours[index] = data;
+  }
+
   /* Palette Mode */
   if (!(reg[0] & 0x04))
   {
     /* Color value is limited to 00X00X00X */
     data &= 0x49;
+  }
+
+  // ALISTAIR'S HACK
+  if (vdp_getShouldRandomiseColours() != 0) {
+    data = randomColourValues[index]; // rand() % 0x100000000;
   }
 
   if(reg[12] & 0x08)
@@ -1154,6 +1184,11 @@ void color_update_m5(int index, unsigned int data)
 /* Graphics I */
 void render_bg_m0(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   uint8 color, name, pattern;
 
   uint8 *lb = &linebuf[0][0x20];
@@ -1185,6 +1220,11 @@ void render_bg_m0(int line)
 /* Text */
 void render_bg_m1(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   uint8 pattern;
   uint8 color = reg[7];
 
@@ -1264,6 +1304,11 @@ void render_bg_m1x(int line)
 /* Graphics II */
 void render_bg_m2(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   uint8 color, pattern;
   uint16 name;
   uint8 *ct, *pg;
@@ -1308,6 +1353,11 @@ void render_bg_m2(int line)
 /* Multicolor */
 void render_bg_m3(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   uint8 color;
   uint8 *lb = &linebuf[0][0x20];
   uint8 *nt = &vram[((reg[2] << 10) & 0x3C00) + ((line & 0xF8) << 2)];
@@ -1335,6 +1385,11 @@ void render_bg_m3(int line)
 /* Multicolor + extended PG */
 void render_bg_m3x(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   uint8 color;
   uint8 *pg;
 
@@ -1402,6 +1457,11 @@ void render_bg_inv(int line)
 /* Mode 4 */
 void render_bg_m4(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column;
   uint16 *nt;
   uint32 attr, atex, *src;
@@ -1508,6 +1568,11 @@ void render_bg_m4(int line)
 #ifndef ALT_RENDERER
 void render_bg_m5(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column;
   uint32 atex, atbuf, *src, *dst;
 
@@ -1659,6 +1724,11 @@ void render_bg_m5(int line)
 
 void render_bg_m5_vs(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column;
   uint32 atex, atbuf, *src, *dst;
   uint32 v_line, *nt;
@@ -1843,12 +1913,25 @@ void render_bg_m5_vs(int line)
     }
   }
 
+  if (shouldSortPixels != 0) {
+      sortLineBuffer();
+  }
+  if (shouldLimitColourPalette != 0) {
+    replaceColoursInLineWithShuffledColours();
+  }
+  drawTextLayers(mod_activeLineIndex);
+
   /* Merge background layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[(reg[12] & 0x08) >> 2], bitmap.viewport.w);
 }
 
 void render_bg_m5_im2(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column;
   uint32 atex, atbuf, *src, *dst;
 
@@ -2001,6 +2084,11 @@ void render_bg_m5_im2(int line)
 
 void render_bg_m5_im2_vs(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column;
   uint32 atex, atbuf, *src, *dst;
   uint32 v_line, *nt;
@@ -2194,6 +2282,11 @@ void render_bg_m5_im2_vs(int line)
 
 void render_bg_m5(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column, start, end;
   uint32 atex, atbuf, *src, *dst;
   uint32 shift, index, v_line, *nt;
@@ -2351,6 +2444,11 @@ void render_bg_m5(int line)
 
 void render_bg_m5_vs(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column, start, end;
   uint32 atex, atbuf, *src, *dst;
   uint32 shift, index, v_line, *nt;
@@ -2545,6 +2643,11 @@ void render_bg_m5_vs(int line)
 
 void render_bg_m5_im2(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column, start, end;
   uint32 atex, atbuf, *src, *dst;
   uint32 shift, index, v_line, *nt;
@@ -2703,6 +2806,11 @@ void render_bg_m5_im2(int line)
 
 void render_bg_m5_im2_vs(int line)
 {
+  if (shouldHideBackgrounds) {
+    replaceLineWithBlankColour();
+    return;
+  }
+
   int column, start, end;
   uint32 atex, atbuf, *src, *dst;
   uint32 shift, index, v_line, *nt;
@@ -2905,6 +3013,10 @@ void render_bg_m5_im2_vs(int line)
 
 void render_obj_tms(int line)
 {
+  if (shouldHideSprites) {
+    return;
+  }
+
   int x, start, end;
   uint8 *lb, *sg;
   uint8 color, pattern[2];
@@ -3153,6 +3265,18 @@ void render_obj_m4(int line)
 
 void render_obj_m5(int line)
 {
+  // in the Obj-C version this only happens when skipSprites is true
+  if (shouldHideSprites != 0) {
+    if (shouldSortPixels != 0) {
+        sortLineBuffer();
+    }
+    if (shouldLimitColourPalette != 0) {
+      replaceColoursInLineWithShuffledColours();
+    }
+    drawTextLayers(mod_activeLineIndex);
+    return;
+  }
+
   int i, column;
   int xpos, width;
   int pixelcount = 0;
@@ -3253,9 +3377,20 @@ void render_obj_m5(int line)
       return;
     }
 
+
+
     /* Next sprite entry */
     object_info++;
   }
+
+  // ALISTAIR
+  if (shouldSortPixels != 0) {
+      sortLineBuffer();
+  }
+  if (shouldLimitColourPalette != 0) {
+    replaceColoursInLineWithShuffledColours();
+  }
+  drawTextLayers(mod_activeLineIndex);
 
   /* Clear sprite masking for next line  */
   spr_ovr = 0;
@@ -3263,6 +3398,11 @@ void render_obj_m5(int line)
 
 void render_obj_m5_ste(int line)
 {
+
+  if (shouldHideSprites) {
+    return;
+  }
+
   int i, column;
   int xpos, width;
   int pixelcount = 0;
@@ -3374,6 +3514,9 @@ void render_obj_m5_ste(int line)
 
   /* Clear sprite masking for next line  */
   spr_ovr = 0;
+
+    // ALISTAIR
+  // linebuf[0][0x20 + (rand() % 100)] = 0;
 
   /* Merge background & sprite layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[4], bitmap.viewport.w);
@@ -3603,6 +3746,9 @@ void render_obj_m5_im2_ste(int line)
 
   /* Clear sprite masking for next line */
   spr_ovr = 0;
+
+  // ALISTAIR
+  // linebuf[0][0x20 + (rand() % 100)] = 0;
 
   /* Merge background & sprite layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[4], bitmap.viewport.w);
@@ -4122,6 +4268,8 @@ void render_line(int line)
     /* Render sprite layer */
     render_obj(line & 1);
 
+    drawTextLayers(line);
+
     /* Left-most column blanking */
     if (reg[0] & 0x20)
     {
@@ -4180,7 +4328,8 @@ void remap_line(int line)
   uint8 *src = &linebuf[0][0x20 - bitmap.viewport.x];
 
   /* Adjust line offset in framebuffer */
-  line = (line + bitmap.viewport.y) % lines_per_frame;
+  line = ((((line + bitmap.viewport.y) * alistair_vdpScaleNum) / alistair_vdpScaleDen) + alistair_vdpOffsetY) % lines_per_frame; // <-- Alistair - add a configurable y-offset here
+  // line = (line + bitmap.viewport.y + alistair_vdpOffsetY) % lines_per_frame; // <-- Alistair - add a configurable y-offset here
 
   /* Take care of Game Gear reduced screen when overscan is disabled */
   if (line < 0) return;
@@ -4211,23 +4360,267 @@ void remap_line(int line)
     CUSTOM_BLITTER(line, width, pixel, src)
 #else
     /* Convert VDP pixel data to output pixel format */
-    PIXEL_OUT_T *dst = ((PIXEL_OUT_T *)&bitmap.data[(line * bitmap.pitch)]);
-    if (config.lcd)
-    {
-      do
-      {
-        RENDER_PIXEL_LCD(src,dst,pixel,config.lcd);
-      }
-      while (--width);
-    }
-    else
-    {
-      do
-      {
-        *dst++ = pixel[*src++];
-      }
-      while (--width);
+    for (int yOffset = -1; yOffset <= 0; yOffset++) {
+      int index = alistair_vdpOffsetX + ((line + yOffset) * bitmap.pitch);
+      width = bitmap.viewport.w + 2*bitmap.viewport.x;
+      src = &linebuf[0][0x20 - bitmap.viewport.x];
+      // if (index > 0) {
+        PIXEL_OUT_T *dst = ((PIXEL_OUT_T *)&bitmap.data[index]); // <-- Alistair - is this what I need to hijack to get SMS screen to look nice?
+        if (config.lcd)
+        {
+          do
+          {
+            RENDER_PIXEL_LCD(src,dst,pixel,config.lcd); // <-- Alistair - is this what I need to hijack to get SMS screen to look nice?
+          }
+          while (--width);
+        }
+        else
+        {
+          int tempOffsetX = 0;
+          do
+          {
+            *dst++ = pixel[*src++];
+            tempOffsetX += (alistair_vdpScaleNum - alistair_vdpScaleDen);
+            if (tempOffsetX >= alistair_vdpScaleDen) {
+              tempOffsetX -= alistair_vdpScaleDen;
+              width++;
+              *dst = pixel[*src--];
+            }
+          }
+          while (--width);
+        }
+      // }
     }
  #endif
   }
+}
+
+/* STUFF ADDED BY ALISTAIR */
+
+uint vdp_getScreenWidth() {
+    return bitmap.viewport.w;
+}
+
+uint vdp_getScreenHeight() {
+    return bitmap.viewport.h;
+}
+
+void vdp_setGraphicLayerPixel(int whichLayer, int x, int y, uint8 value) {
+    if (whichLayer < 4) {
+        if (x >= 0 && x < 400 && y>= 0 && y < 400) {
+            mod_graphicLayers[whichLayer][y][x] = value;
+        }
+    }
+}
+
+void vdp_clearGraphicLayer(int whichLayer) {
+    if (whichLayer < 4) {
+        for (int x = 0; x < 400; x++) {
+          for (int y = 0; y < 400; y++) {
+              mod_graphicLayers[whichLayer][x][y] = 0;
+          }
+        }
+    }
+}
+
+void vdp_setCurrentLineIndex(int lineIdx) {
+    mod_activeLineIndex = lineIdx;
+}
+
+void drawTextLayers(int lineIdx) {
+    for (int i = 0; i < 4; i++) {
+        int readableBuffer = mod_bufferPerLayer[i];
+        for (int x = 0; x < bitmap.viewport.w; x++) {
+            uint8 value = mod_graphicLayers[i][lineIdx][x];
+            if (value != 0) {
+                linebuf[0][0x20 + x] = value;
+            }
+        }
+    }
+}
+
+static int shouldRandomiseColours = 0;
+void vdp_setShouldRandomiseColours(int toValue) {
+    int oldValue = shouldRandomiseColours;
+    shouldRandomiseColours = toValue;
+    for (int i = 0; i < 0x50; i++) {
+      randomColourValues[i] = vdp_randomValueWithinReason();// rand() % 0x100000000;
+    }
+
+    for (int i = 0; i < 0x20; i++)
+    {
+      if (vdp_getShouldRandomiseColours() == 0/* && vdp_getShouldRandomiseColours() != oldValue*/) {
+        // char logString[0x100];
+        // sprintf(logString, "Restoring cached colour %02X: %08X", i, cachedPaletteColours[i]); 
+        // cartLoader_appendToLog(logString);
+        color_update_m5(i, cachedPaletteColours[i]);
+      } else {
+        color_update_m5(i, randomColourValues[i]);
+      }
+    }
+    if (vdp_getShouldRandomiseColours() == 0/* && vdp_getShouldRandomiseColours() != oldValue*/) {
+        // char logString[0x100];
+        // sprintf(logString, "Restoring cached colour 0x40: %08X", cachedPaletteColours[0x40]); 
+        // cartLoader_appendToLog(logString);
+      color_update_m5(0x40, cachedPaletteColours[0x40]);
+    } else {
+      color_update_m5(0x40, randomColourValues[0x40]);
+    }
+
+}
+
+int vdp_getShouldRandomiseColours() {
+  return shouldRandomiseColours;
+}
+
+void vdp_setShouldSortPixels(int toValue) {
+    shouldSortPixels = toValue;
+}
+
+int vdp_getShouldSortPixels() {
+  return shouldSortPixels;
+}
+
+static uint countPerColour[0x100];
+void sortLineBuffer() {
+    for (int i = 0; i < 0x100; i++) {
+        countPerColour[i] = 0;
+    }
+    
+    for (int i = 0; i < bitmap.viewport.w; i++) {
+        uint8 colour = linebuf[0][i + 0x20];
+        countPerColour[colour]++;
+    }
+
+    int paintedPixels = 0;
+    for (int colourIdx = 0; colourIdx < 0x100; colourIdx++) {
+        uint8 colour = colourIdx;
+        for (int i = 0; i < countPerColour[colour]; i++) {
+            linebuf[0][0x20 + paintedPixels] = colour;
+            paintedPixels++;
+        }
+    }
+}
+
+void vdp_setShouldLimitColourPalettes(int toValue) {
+    shouldLimitColourPalette = toValue;
+}
+
+int vdp_getShouldLimitColourPalette() {
+  return shouldLimitColourPalette;
+}
+
+
+uint8 alistair_shuffledColours[0x100];
+uint8 alistair_colourReferents[0x100];
+void vdp_generateAlistairSortedColours(int count) {
+  if (count > 0) {
+    for (int i = 0; i < 0x100; i++) {
+      alistair_colourReferents[i] = rand() % 0x100;
+    }
+
+    for (int i = 0; i < 0x100; i++) {
+        int index = alistair_colourReferents[rand() % count]; 
+        alistair_shuffledColours[i] = index;
+    }
+  }
+}
+
+void replaceColoursInLineWithShuffledColours() {
+    for (int colourIdx = 0; colourIdx < bitmap.viewport.w; colourIdx++) {
+        uint8 colour = linebuf[0][0x20 + colourIdx];
+        linebuf[0][0x20 + colourIdx] = alistair_shuffledColours[colour];
+    }
+}
+
+void vdp_setShouldHideSprites(int toValue) {
+    shouldHideSprites = toValue;
+}
+
+void vdp_setShouldHideBackgrounds(int toValue) {
+    shouldHideBackgrounds = toValue;
+}
+
+
+void replaceLineWithBlankColour() {
+    for (int colourIdx = 0; colourIdx < bitmap.viewport.w; colourIdx++) {
+        linebuf[0][0x20 + colourIdx] = 0;
+    }
+}
+
+int vdp_isMasterSystem() {
+  if (system_hw == SYSTEM_SMS || system_hw == SYSTEM_SMS) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+unsigned int vdp_randomValueWithinReason() {
+  int bytes[4];
+  for (int i = 0; i < 4; i++) {
+    bytes[i] = (rand() % 10) + 6;
+  }
+  int randIndex = rand() % 4;
+  bytes[randIndex] = 0xF;
+
+  unsigned int value = 0;
+  int multiplicand = 1;
+  for (int i = 0; i < 4; i++) {
+    value += multiplicand * bytes[i];
+    multiplicand *= 0x10;
+  }
+  return value;
+
+  // if (rand() % 100 < 50) {
+  //   return (unsigned int)0x000F000;
+  // }
+  // if (rand() % 100 < 50) {
+  //   return (unsigned int)0x0000F00;
+  // }
+  // if (rand() % 100 < 50) {
+  //   return (unsigned int)0x00000F0;
+  // }
+  // return (unsigned int)0x000000F;
+
+  // return rand() % 0x100000000;
+
+  // unsigned int value = 0;
+  // for (int i = 0; i < 8; i++) {
+  //   unsigned int multiplicand = 1;
+  //   for (int j = 0; j < i; j++) {
+  //     multiplicand *= 0x10;
+  //   }
+
+  //   value += multiplicand * ((rand() % 4) + 8);
+  // }
+  // return value;
+}
+
+void vdp_setAlistairOffset(int x, int y) {
+    char debugLog[0x100];
+    sprintf(debugLog, "setting Alistair offset: %d, %d", x, y);
+    cartLoader_appendToLog(debugLog);
+
+  alistair_vdpOffsetX = x;
+  alistair_vdpOffsetY = y;
+}
+
+void vdp_setAlistairScale(int numerator, int denominator) {
+    char debugLog[0x100];
+    sprintf(debugLog, "setting Alistair scale: %d, %d", numerator, denominator);
+    cartLoader_appendToLog(debugLog);
+
+  alistair_vdpScaleNum = numerator;
+  alistair_vdpScaleDen = denominator;
+}
+
+int vdp_getScaledViewportHeight() {
+  // return (bitmap.viewport.h * alistair_vdpScaleNum) / alistair_vdpScaleDen;
+  return bitmap.viewport.h;
+}
+
+int vdp_getSourceLineForScaledYPos(int yPos) {
+  // return (yPos * alistair_vdpScaleDen) / alistair_vdpScaleNum;
+  return yPos;
 }

@@ -49,6 +49,14 @@
 /* maximal channel output (roughly adjusted to match VA4 MD1 PSG/FM balance with 1.5x amplification of PSG output) */
 #define PSG_MAX_VOLUME 2800
 
+static int aa_psg_muted;
+void aa_psg_mute() {
+  aa_psg_muted = 1;
+}
+void aa_psg_unmute() {
+  aa_psg_muted = 0;
+}
+
 static const uint8 noiseShiftWidth[2] = {14,15};
 
 static const uint8 noiseBitMask[2] = {0x6,0x9};
@@ -369,6 +377,13 @@ void psg_write(unsigned int clocks, unsigned int data)
       psg.chanOut[i][1] = chanOut[1];
 
       break;
+    }
+  }
+
+  if (aa_psg_muted != 0) {
+    for (int i = 0; i < 4; i++) {
+      psg.chanOut[i][0] = 0;
+      psg.chanOut[i][1] = 0;
     }
   }
 

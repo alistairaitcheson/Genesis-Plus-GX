@@ -41,6 +41,7 @@
 
 #include "shared.h"
 #include "eq.h"
+#include "AAModConsole.h"
 
 /* Global variables */
 t_bitmap bitmap;
@@ -323,12 +324,16 @@ void system_reset(void)
   vdp_reset();
   sound_reset();
   audio_reset();
+
+  modConsole_updateActiveCart();
 }
 
 void system_frame_gen(int do_skip)
 {
   /* line counters */
   int start, end, line;
+
+  modConsole_updateFrame();
 
   /* reset frame cycle counter */
   mcycles_vdp = 0;
@@ -604,6 +609,7 @@ void system_frame_gen(int do_skip)
     }
 
     /* render scanline */
+    vdp_setCurrentLineIndex(line);
     if (!do_skip)
     {
       render_line(line);
@@ -665,8 +671,13 @@ void system_frame_gen(int do_skip)
 
 void system_frame_scd(int do_skip)
 {
+        // bitmap.viewport.x = 100;
+        // bitmap.viewport.y = 100;
+
   /* line counters */
   int start, end, line;
+
+  modConsole_updateFrame();
 
   /* reset frame cycle counter */
   mcycles_vdp = 0;
@@ -989,6 +1000,8 @@ void system_frame_scd(int do_skip)
 
 void system_frame_sms(int do_skip)
 {
+  modConsole_updateFrame();
+  
   /* line counter */
   int start, end, line;
 
@@ -1335,7 +1348,7 @@ void system_frame_sms(int do_skip)
       /* render scanline */
       if (!do_skip)
       {
-        render_line(line);
+        render_line(vdp_getSourceLineForScaledYPos(line)); // <--- Alistair - edited scaling here
       }
     }
 
@@ -1377,7 +1390,7 @@ void system_frame_sms(int do_skip)
     /* update VDP cycle count */
     mcycles_vdp += MCYCLES_PER_LINE;
   }
-  while (++line < bitmap.viewport.h);
+  while (++line < vdp_getScaledViewportHeight()); // <--- Alistair - edited scaling here
 
   /* check viewport changes */
   if (bitmap.viewport.w != bitmap.viewport.ow)

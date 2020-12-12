@@ -140,4 +140,36 @@ extern void (*render_obj)(int line);
 extern void (*parse_satb)(int line);
 extern void (*update_bg_pattern_cache)(int index);
 
+/* ALISTAIR'S STUFF */
+//local
+void drawTextLayers(int lineIdx);
+// global
+extern uint vdp_getScreenWidth();
+extern uint vdp_getScreenHeight();
+extern void vdp_setGraphicLayerPixel(int whichLayer, int x, int y, uint8 value);
+extern void vdp_setCurrentLineIndex(int lineIdx);
+extern void vdp_clearGraphicLayer(int whichLayer);
+extern void vdp_setShouldRandomiseColours(int toValue);
+extern int vdp_getShouldRandomiseColours();
+
+extern void vdp_setShouldSortPixels(int toValue);
+extern int vdp_getShouldSortPixels();
+void sortLineBuffer();
+extern void vdp_setShouldLimitColourPalettes(int toValue);
+extern int vdp_getShouldLimitColourPalette();
+extern void vdp_generateAlistairSortedColours(int count);
+void replaceColoursInLineWithShuffledColours();
+
+void vdp_setShouldHideSprites(int toValue);
+void vdp_setShouldHideBackgrounds(int toValue);
+void replaceLineWithBlankColour();
+
+extern int vdp_isMasterSystem();
+unsigned int vdp_randomValueWithinReason();
+
+extern void vdp_setAlistairOffset(int x, int y) ;
+void vdp_setAlistairScale(int numerator, int denominator);
+extern int vdp_getScaledViewportHeight();
+extern int vdp_getSourceLineForScaledYPos(int yPos);
+
 #endif /* _RENDER_H_ */

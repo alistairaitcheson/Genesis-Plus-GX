@@ -146,6 +146,15 @@
 
 #include "shared.h"
 
+
+static int aa_ym2612_muted = 0;
+void aa_ym2612_mute() {
+  aa_ym2612_muted = 1;
+}
+void aa_ym2612_unmute() {
+  aa_ym2612_muted = 0;
+}
+
 /* envelope generator */
 #define ENV_BITS    10
 #define ENV_LEN      (1<<ENV_BITS)
@@ -2074,6 +2083,12 @@ void YM2612Update(int *buffer, int length)
 
       /* advance envelope generator */
       advance_eg_channels(&ym2612.CH[0], ym2612.OPN.eg_cnt);
+    }
+
+    if (aa_ym2612_muted != 0) {
+        for (int i = 0; i < 6; i++) {
+            out_fm[i] = 0;
+        }
     }
 
     /* channels accumulator output clipping (14-bit max) */

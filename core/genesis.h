@@ -77,5 +77,18 @@ extern void gen_zreset_w(unsigned int state, unsigned int cycles);
 extern void gen_zbank_w(unsigned int state);
 extern int z80_irq_callback(int param);
 
+/* Alistair's stufff */
+extern void aa_genesis_updateLastRam();
+extern uint8 aa_genesis_getWorkRam(unsigned int location);
+extern void aa_genesis_setWorkRam(unsigned int location, uint8 value);
+extern uint8 aa_genesis_getLastWorkRam(unsigned int location);
+extern void aa_genesis_incrementWorkRamCompoundValueByInt(int index, int length, int amount);
+
+extern uint8 getCartValueAtIndex(int index);
+extern void setCartValueAtIndex(int index, uint8 value);
+extern void aa_genesis_revertToLastRam();
+extern uint8 aa_genesis_getVRamValue(int index);
+extern void aa_genesis_setVRamValue(int index, uint8 value);
+
 #endif /* _GEN_H_ */
 

@@ -39,7 +39,8 @@
  *
  ****************************************************************************************/
 
-#include "shared.h"
+#include <shared.h>
+#include "AAModConsole.h"
 
 #ifdef USE_DYNAMIC_ALLOC
 external_t *ext;
@@ -59,9 +60,14 @@ static uint8 tmss[4];     /* TMSS security register */
 /* Init, reset, shutdown functions                                          */
 /*--------------------------------------------------------------------------*/
 
+
+
 void gen_init(void)
 {
   int i;
+
+  vdp_setAlistairScale(100, 100);
+  modConsole_initialise();
 
   /* initialize Z80 */
   z80_init(0,z80_irq_callback);
@@ -569,4 +575,80 @@ void gen_zbank_w (unsigned int data)
 int z80_irq_callback (int param)
 {
   return -1;
+}
+
+/* ALISTAIR'S STUFF */
+
+
+uint8 getCartValueAtIndex(int index) {
+    return cart.rom[index];
+}
+
+void setCartValueAtIndex(int index, uint8 value) {
+    cart.rom[index] = value;
+}
+
+
+uint8 aa_genesis_getWorkRam(unsigned int location) {
+  if (location < 0x10000) {
+    return work_ram[location];
+  } else {
+    return 0;
+  }
+}
+
+void aa_genesis_setWorkRam(unsigned int location, uint8 value) {
+  if (location < 0x10000) {
+    work_ram[location] = value;
+  }
+}
+
+uint8 lastWorkRam[0x10000];
+void aa_genesis_updateLastRam() {
+  for (int i = 0; i < 0x10000; i++) {
+    lastWorkRam[i] = work_ram[i];
+  }
+}
+uint8 aa_genesis_getLastWorkRam(unsigned int location) {
+  if (location < 0x10000) {
+    return lastWorkRam[location];
+  } else {
+    return 0;
+  }
+}
+
+void aa_genesis_revertToLastRam() {
+  for (int i = 0; i < 0x10000; i++) {
+    work_ram[i] = lastWorkRam[i];
+  }
+}
+
+void aa_genesis_incrementWorkRamCompoundValueByInt(int index, int length, int amount) {
+    int currentTotal = 0;
+    for (int i = 0; i < length; i++) {
+        int multiplicand = 1;
+        for (int j = 0; j < i; j++) {
+            multiplicand *= 0x100;
+        }
+        currentTotal += (int)work_ram[index + i] * multiplicand;
+    }
+    
+    currentTotal += amount;
+    
+    for (int i = length - 1; i >= 0; i--) {
+        int multiplicand = 1;
+        for (int j = 0; j < i; j++) {
+            multiplicand *= 0x100;
+        }
+        int valueThisIndex = (currentTotal / multiplicand) % 0x100;
+        work_ram[index + i] = (uint8)valueThisIndex;
+    }
+}
+
+extern uint8 aa_genesis_getVRamValue(int index) {
+    return vram[index];
+}
+
+extern void aa_genesis_setVRamValue(int index, uint8 value) {
+    vram[index] = value;
 }
