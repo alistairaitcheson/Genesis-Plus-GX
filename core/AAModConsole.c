@@ -311,6 +311,10 @@ void modConsole_updateFrame() {
             updateSwitchGameOnRing();
         }
 
+        if (hackOpts.overwriteLevelType > 0) {
+            overwriteLevelOnRing();
+        }
+
         if (hackOpts.switchGameType > 1) {
             switchAfterTimeCounter++;
             if (switchAfterTimeCounter >= switchAfterTimePeriod) {
@@ -393,6 +397,30 @@ void modConsole_updateFrame() {
     aa_genesis_updateLastRam();
 }
 
+void overwriteLevelOnRing() {
+    if (ringCountHasChanged() != 0) {
+        AALevelEditListing levelEdits = cartLoader_getActiveLevelEditListing();
+        HackOptions hackOpts = menuDisplay_getHackOptions();
+        if (levelEdits.endByte > 0 && levelEdits.endByte > levelEdits.startByte) {
+            int cycleCount = 10;
+            if (hackOpts.overwriteLevelDifficulty == 1) {
+                cycleCount = 20;
+            }
+            if (hackOpts.overwriteLevelDifficulty == 2) {
+                cycleCount = 50;
+            }
+
+            for (int i = 0; i < cycleCount; i++) {
+                unsigned int value = 0;
+                if (hackOpts.overwriteLevelType == 1) {
+                    value = rand() % 0x100;
+                }
+                unsigned int index = (rand() % (levelEdits.endByte - levelEdits.startByte)) + levelEdits.startByte;
+                aa_genesis_setWorkRam(index, value);
+            }
+        }
+    }
+}
 
 
 void promptSwitchGame() {

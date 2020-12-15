@@ -28,11 +28,13 @@ extern int cartLoader_getActiveCartIndex();
 extern AAGameListing cartLoader_getActiveGameListing();
 extern AAGameTransferListing cartLoader_getActiveGameTransferListing();
 extern AAScoreMonitorListing cartLoader_getActiveScoreMonitorListing();
+extern AALevelEditListing cartLoader_getActiveLevelEditListing();
 extern void cartLoader_loadRandomRom();
 extern unsigned int cartLoader_getRomCount();
 extern void cartLoader_getRomFileName(int index, char intoArray[]);
 extern void cartLoader_getRomFilePrefix(int index, char intoArray[]);
 extern void writeFolderPathIntoArray32(char array32[]);
+extern void writeShortenedFileName(char source256[], char output256[], int length);
 
 extern void cartLoader_loadAllSaveStatesFromDisk();
 extern void cartLoader_saveAllSaveStatesToDisk();

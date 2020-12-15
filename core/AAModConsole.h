@@ -42,5 +42,6 @@ void promptSwitchGame();
 void switchGame();
 void clearCooldownVisualiser();
 void showCooldownVisualiser();
+void overwriteLevelOnRing();
 
 #endif

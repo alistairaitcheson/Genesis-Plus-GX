@@ -31,6 +31,8 @@ typedef struct {
     int limitedColourType;
     int shouldHideLayers;
     int shouldShowSwapCount;
+    int overwriteLevelType; // 0 = off,  1 = with random number, 2 = with 0
+    int overwriteLevelDifficulty; // 0 = easy (5x), 1 = medium (10x), 2 = hard (20x), 3 = extreme (50x)
 } HackOptions;
 
 typedef struct {

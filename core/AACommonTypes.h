@@ -52,6 +52,11 @@ typedef struct
 } AAScoreMonitorListing;
 
 typedef struct {
+    unsigned int startByte;
+    unsigned int endByte;
+} AALevelEditListing;
+
+typedef struct {
     unsigned char lines[8];
     int populated;
 } LetterListing;

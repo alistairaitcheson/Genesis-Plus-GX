@@ -26,6 +26,7 @@ static unsigned int logLineCount;
 static AAGameListing gameListings[0x100];
 static AAGameTransferListing gameTransferListings[0x100];
 static AAScoreMonitorListing scoreMonitorListings[0x100];
+static AALevelEditListing levelEditListings[0x100];
 static unsigned char gameAltIds[0x100][0x80];
 static int gameListingCount = 0;
 
@@ -141,6 +142,8 @@ void cartLoader_run() {
     gameTransferListings[1].scoreBytesForTransfer[1] = 0xFE27;
     gameTransferListings[1].scoreBytesForTransfer[2] = 0xFE28;
     gameTransferListings[1].scoreBytesForTransfer[3] = 0xFE29;
+    levelEditListings[1].startByte = 0xA408;
+    levelEditListings[1].endByte = 0xA800;
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
     copyGameListing(1, 2);
@@ -156,6 +159,8 @@ void cartLoader_run() {
     gameTransferListings[2].momentumBytesForTransfer[5] = 0xB015;
     gameTransferListings[2].momentumBytesForTransfer[6] = 0xB022;
     gameTransferListings[2].momentumBytesForTransfer[7] = 0xB03C;
+    levelEditListings[2].startByte = 0x8008;
+    levelEditListings[2].endByte = 0x9000;
 
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
     copyGameListing(1, 3);
@@ -854,6 +859,10 @@ AAScoreMonitorListing cartLoader_getActiveScoreMonitorListing() {
     return scoreMonitorListings[cartLoader_getActiveCartIndex()];
 }
 
+AALevelEditListing cartLoader_getActiveLevelEditListing() {
+    return levelEditListings[cartLoader_getActiveCartIndex()];
+}
+
 
 // void addRomListing(char *path) {
 //     cartLoader_appendToLog("addRomListing");
@@ -984,6 +993,9 @@ void copyGameListing(int fromGame, int toGame) {
     scoreMonitorListings[toGame].calculatationType = scoreMonitorListings[fromGame].calculatationType ;
     scoreMonitorListings[toGame].scoreJumpForTrigger = scoreMonitorListings[fromGame].scoreJumpForTrigger;
     scoreMonitorListings[toGame].blockJumpFromZero = scoreMonitorListings[fromGame].blockJumpFromZero;
+
+    levelEditListings[toGame].startByte = levelEditListings[fromGame].startByte;
+    levelEditListings[toGame].endByte = levelEditListings[fromGame].endByte;
 }
 
 void saveSaveStateForCurrentGame() {
@@ -1328,4 +1340,55 @@ int cartLoader_string32AreEqual(char strA[], char strB[]) {
 
 int cartLoader_getSwapCount() {
     return gameSwapCount;
+}
+
+void writeShortenedFileName(char source256[], char output256[], int length) {
+    char beforeDecimal[0x100];
+    char afterDecimal[0x100];
+    int hasHitDecimal = 0;
+    int indexAfterDecimal = 0;
+    int lengthBeforeDecimal = 0;
+
+    int decimalIndex = 0;
+    for (int i = 0; i < 0x100; i++) {
+        if (source256[i] == '.') {
+            decimalIndex = i;
+        }
+        if (source256[i] == 0 || source256[i] == '\0') {
+            break;
+        }
+    }
+
+    for (int i = 0; i < 0x100; i++) {
+        if (hasHitDecimal == 0) {
+            if (i == decimalIndex) {
+                hasHitDecimal = 1;
+            } else {
+                beforeDecimal[i] = source256[i];
+                lengthBeforeDecimal++;
+            }
+        } else {
+            afterDecimal[indexAfterDecimal] = source256[i];
+            afterDecimal[indexAfterDecimal + 1] = '\0';
+            indexAfterDecimal++;
+            if (indexAfterDecimal >= 3) {
+                break;
+            }
+        }
+    }
+
+    if (lengthBeforeDecimal + 4 <= length) {
+        sprintf(output256, "%s", source256);
+        return;
+    } else {
+        char buffer[0x100];
+        for (int i = 0; i < 0x100; i++) {
+            buffer[i] = 0;
+        } 
+        for (int i = 0; i < length - 4; i++) {
+            buffer[i] = beforeDecimal[i];
+            buffer[i + 1] = '\0';
+        }
+        sprintf(output256, "%s.%s", buffer, afterDecimal);
+    }
 }

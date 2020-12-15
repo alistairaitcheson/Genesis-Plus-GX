@@ -21,7 +21,7 @@ static int persistValuesIndex = 0;
 static int ramDetectiveIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 8;
+static int minorVersion = 9;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -39,6 +39,7 @@ static int logRamStateCounter[0x10000];
 static int trackedRamFrameCounts[0x10000];
 // static int trackedRamLocationCount = 0;
 
+static int maxFileNameLength = 28;
 
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
@@ -323,6 +324,8 @@ void applySettingsFromArray256(int array256[]) {
     hackOptions.limitedColourType = array256[10];
     hackOptions.shouldHideLayers = array256[11];
     hackOptions.shouldShowSwapCount = array256[12];
+    hackOptions.overwriteLevelType = array256[13];
+    hackOptions.overwriteLevelDifficulty = array256[14];
 }
 
 void applyDefaultSettings() {
@@ -339,7 +342,8 @@ void applyDefaultSettings() {
     hackOptions.limitedColourType = 0;
     hackOptions.shouldHideLayers = 0;
     hackOptions.shouldShowSwapCount = 0;
-
+    hackOptions.overwriteLevelType = 0;
+    hackOptions.overwriteLevelDifficulty = 1;
     saveHackOptions();
 }
 
@@ -361,6 +365,8 @@ void saveHackOptions() {
     options[10] = hackOptions.limitedColourType;
     options[11] = hackOptions.shouldHideLayers;
     options[12] = hackOptions.shouldShowSwapCount;
+    options[13] = hackOptions.overwriteLevelType;
+    options[14] = hackOptions.overwriteLevelDifficulty;
 
     // char path[0x100];
     // char folder[0x10];
@@ -521,11 +527,17 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
         if (buttonIndex == INPUT_INDEX_UP) {
             optionsItemIndex--;
+            if (optionsItemIndex == 15) {
+                optionsItemIndex --;
+            }
             refreshMenu();
             return 1;
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             optionsItemIndex++;
+            if (optionsItemIndex == 15) {
+                optionsItemIndex ++;
+            }
             refreshMenu();
             return 1;
         }
@@ -842,6 +854,10 @@ void incrementOption(int byAmount) {
         hackOptions.shouldWriteToLog += byAmount;
     }  else if (optionsItemIndex == 13) {
         hackOptions.shouldShowSwapCount += byAmount;
+    }  else if (optionsItemIndex == 14) {
+        hackOptions.overwriteLevelType += byAmount;
+    }  else if (optionsItemIndex == 16) {
+        hackOptions.overwriteLevelDifficulty += byAmount;
     }
 }
 
@@ -883,7 +899,9 @@ void showTitleMenu() {
     {
         char fileNameBuf[0x100];
         cartLoader_getRomFileName(i, fileNameBuf);
-        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, startYPos, fileNameBuf, 5);
+        char shortenedBuf[0x100];
+        writeShortenedFileName(fileNameBuf, shortenedBuf, maxFileNameLength);
+        layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, startYPos, shortenedBuf, 5);
         startYPos += 8;
         if (startYPos >= DEFAULT_HEIGHT - 32) {
             didBreak = 1;
@@ -925,14 +943,17 @@ void showChooseGameMenu() {
     for (int i = startIndex; i <= endIndex; i++) {
         char fileNameBuf[0x100];
         cartLoader_getRomFileName(i, fileNameBuf);
+        char shortenedBuf[0x100];
+        writeShortenedFileName(fileNameBuf, shortenedBuf, maxFileNameLength);
+
         if (i == chosenGameIndex) {
             char newNameBuf[0x100];
-            sprintf(newNameBuf, ">>  %s", fileNameBuf);
+            sprintf(newNameBuf, ">>  %s", shortenedBuf);
             layerRenderer_writeWord256WithBorder(0, 16, yPos, newNameBuf, 5, 1, 0);
         } else {
             char newNameBuf[0x100];
             for (int j = 0; j < 0xF0; j++) {
-                newNameBuf[j + 3] = fileNameBuf[j];
+                newNameBuf[j + 3] = shortenedBuf[j];
             }
             newNameBuf[0] = ' ';
             newNameBuf[1] = ' ';
@@ -951,7 +972,7 @@ void showOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to play ---", 5);
 
-    int lineCount = 14;
+    int lineCount = 17;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -1161,7 +1182,35 @@ void showOptionsMenu() {
         sprintf(lines[13], "Show swap counter:         ON");
     }
 
+    if (hackOptions.overwriteLevelType > 2) {
+        hackOptions.overwriteLevelType = 0;
+    }
+    if (hackOptions.overwriteLevelType < 0) {
+        hackOptions.overwriteLevelType = 2;
+    }
+    sprintf(lines[14], "Write into level data on get ring:");
+    if (hackOptions.overwriteLevelType == 0) {
+        sprintf(lines[15], "                           off");
+        blockedLines[16] = 0;
+    } else if (hackOptions.overwriteLevelType == 1) {
+        sprintf(lines[15], "                Random numbers");
+    } else {
+        sprintf(lines[15], "                        zeroes");
+    }
 
+    if (hackOptions.overwriteLevelDifficulty > 2) {
+        hackOptions.overwriteLevelDifficulty = 0;
+    }
+    if (hackOptions.overwriteLevelDifficulty < 0) {
+        hackOptions.overwriteLevelDifficulty = 2;
+    }
+    if (hackOptions.overwriteLevelDifficulty == 0) {
+        sprintf(lines[16], "level overwrite difficulty: easy");
+    } else if (hackOptions.overwriteLevelDifficulty == 1) {
+        sprintf(lines[16], "level overwrite difficulty: medium");
+    } else {
+        sprintf(lines[16], "level overwrite difficulty: hard");
+    }
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -1263,11 +1312,13 @@ void showRandomisedGameMenu() {
     for (int i = 0; i < romCount; i++) {
         char fileNameBuf[0x100];
         cartLoader_getRomFileName(i, fileNameBuf);
+        char shortenedBuf[0x100];
+        writeShortenedFileName(fileNameBuf, shortenedBuf, maxFileNameLength);
 
         if (cartLoader_gameIsBlockedFromRandomiser(i)) {
-            sprintf(gameRandomStates[i], "off: %s", fileNameBuf);
+            sprintf(gameRandomStates[i], "off: %s", shortenedBuf);
         } else {
-            sprintf(gameRandomStates[i], "on:  %s", fileNameBuf);
+            sprintf(gameRandomStates[i], "on:  %s", shortenedBuf);
         }   
     }
 
