@@ -19,6 +19,8 @@ static int inGameOptionIndex = 0;
 static int randomisedGameIndex = 0;
 static int persistValuesIndex = 0;
 static int ramDetectiveIndex = 0;
+static int gameSwapOptionIndex = 0;
+static int qualityOfLifeOptionIndex = 0;
 
 static int majorVersion = 0;
 static int minorVersion = 9;
@@ -326,6 +328,7 @@ void applySettingsFromArray256(int array256[]) {
     hackOptions.shouldShowSwapCount = array256[12];
     hackOptions.overwriteLevelType = array256[13];
     hackOptions.overwriteLevelDifficulty = array256[14];
+    hackOptions.swapOrder =  array256[15];
 }
 
 void applyDefaultSettings() {
@@ -344,6 +347,7 @@ void applyDefaultSettings() {
     hackOptions.shouldShowSwapCount = 0;
     hackOptions.overwriteLevelType = 0;
     hackOptions.overwriteLevelDifficulty = 1;
+    hackOptions.swapOrder = 0;
     saveHackOptions();
 }
 
@@ -437,6 +441,14 @@ void menuDisplay_showMenu(int menuNum) {
     if (activeMenu == MENU_LISTING_RAM_DETECTIVE) {
         showRamDetectiveMenu();
     }
+
+    if (activeMenu == MENU_LISTING_GAME_SWAP_OPITONS) {
+        showGameSwapOptionsMenu();
+    }
+
+    if (activeMenu == MENU_LISTING_QUALITY_OF_LIFE) {
+        showQualityOfLifeOptionsMenu(); 
+    }
 }
 
 void menuDisplay_hideMenu() {
@@ -514,41 +526,19 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     }
 
     if (activeMenu == MENU_LISTING_SETTINGS) {
-        if (buttonIndex == INPUT_INDEX_START) {
-            saveHackOptions();
-            if (gameHasStarted == 0) {
-                menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
-            } else {
-                cartLoader_applyHackOptions(gameHasStarted);
-                modConsole_applyHackOptions();
-                menuDisplay_hideMenu();
-            }
-            return 1;
-        }
         if (buttonIndex == INPUT_INDEX_UP) {
             optionsItemIndex--;
-            if (optionsItemIndex == 15) {
-                optionsItemIndex --;
-            }
             refreshMenu();
             return 1;
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             optionsItemIndex++;
-            if (optionsItemIndex == 15) {
-                optionsItemIndex ++;
-            }
             refreshMenu();
             return 1;
         }
 
-        if (buttonIndex == INPUT_INDEX_LEFT || buttonIndex == INPUT_INDEX_B) {
-            incrementOption(-1);
-            refreshMenu();
-            return 1;
-        }
-        if (buttonIndex == INPUT_INDEX_RIGHT || buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C) {
-            incrementOption(1);
+        if (buttonIndex == INPUT_INDEX_RIGHT || buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_START || buttonIndex == INPUT_INDEX_B) {
+            chooseMainMenuOption();
             refreshMenu();
             return 1;
         }
@@ -825,39 +815,24 @@ void activateInGameMenuItem() {
     inGameOptionIndex = 0;
 }
 
-void incrementOption(int byAmount) {
+void chooseMainMenuOption() {
     if (optionsItemIndex == 0) {
-        hackOptions.switchGameType += byAmount;
-    } else if (optionsItemIndex == 1) {
-        hackOptions.cooldownOnSwitch += byAmount;
-    } else if (optionsItemIndex == 2) {
-        hackOptions.copyVram += byAmount;
-    } else if (optionsItemIndex == 3) {
-        hackOptions.speedUpOnRing += byAmount;
-    } else if (optionsItemIndex == 4) {
-        hackOptions.infiniteLives += byAmount;
-    } else if (optionsItemIndex == 5) {
-        hackOptions.infiniteTime += byAmount;
-    } else if (optionsItemIndex == 6) {
-        hackOptions.loadFromSavedState += byAmount;
-    } else if (optionsItemIndex == 7) {
-        hackOptions.automaticallySaveStatesFreq += byAmount;
-    } else if (optionsItemIndex == 8) {
-        menuDisplay_showMenu(MENU_LISTING_PERSIST_VALUES);
-    } else if (optionsItemIndex == 9) {
-        hackOptions.shouldSortColours += byAmount;
-    } else if (optionsItemIndex == 10) {
-        hackOptions.limitedColourType += byAmount;
-    } else if (optionsItemIndex == 11) {
-        hackOptions.shouldHideLayers += byAmount;
-    }  else if (optionsItemIndex == 12) {
-        hackOptions.shouldWriteToLog += byAmount;
-    }  else if (optionsItemIndex == 13) {
-        hackOptions.shouldShowSwapCount += byAmount;
-    }  else if (optionsItemIndex == 14) {
-        hackOptions.overwriteLevelType += byAmount;
-    }  else if (optionsItemIndex == 16) {
-        hackOptions.overwriteLevelDifficulty += byAmount;
+        menuDisplay_showMenu(MENU_LISTING_GAME_SWAP_OPITONS);
+    }
+
+    if (optionsItemIndex == 1) {
+        menuDisplay_showMenu(MENU_LISTING_QUALITY_OF_LIFE);
+    }
+
+    if (optionsItemIndex == 5) {
+        saveHackOptions();
+        if (gameHasStarted == 0) {
+            menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
+        } else {
+            cartLoader_applyHackOptions(gameHasStarted);
+            modConsole_applyHackOptions();
+            menuDisplay_hideMenu();
+        }
     }
 }
 
@@ -970,7 +945,6 @@ void showOptionsMenu() {
 
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
-    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to play ---", 5);
 
     int lineCount = 17;
     char lines[lineCount][0x80];
@@ -986,239 +960,20 @@ void showOptionsMenu() {
         optionsItemIndex = 0;
     }
 
-    if (hackOptions.switchGameType > 4) {
-        hackOptions.switchGameType = 0;
-    }
-    if (hackOptions.switchGameType < 0) {
-        hackOptions.switchGameType = 4;
-    }
-    if (hackOptions.switchGameType == 0) {
-        sprintf(lines[0], "Switch games:            OFF");
-        blockedLines[1] = 1;
-        blockedLines[2] = 1;
-    } else if (hackOptions.switchGameType == 1) {
-        sprintf(lines[0], "Switch games:    ON GET RING");
-    } else if (hackOptions.switchGameType == 2) {
-        sprintf(lines[0], "Switch games:   EVERY 5 secs");
-    } else if (hackOptions.switchGameType == 3) {
-        sprintf(lines[0], "Switch games:  EVERY 10 secs");
-    } else if (hackOptions.switchGameType == 4) {
-        sprintf(lines[0], "Switch games:  EVERY 30 secs");
-    }
-
-    if (hackOptions.cooldownOnSwitch > 3) {
-        hackOptions.cooldownOnSwitch = 0;
-    }
-    if (hackOptions.cooldownOnSwitch < 0) {
-        hackOptions.cooldownOnSwitch = 1;
-    }
-    if (hackOptions.cooldownOnSwitch == 0) {
-        sprintf(lines[1], "Cooldown after switch:   OFF");
-    } else if (hackOptions.cooldownOnSwitch == 1) {
-        sprintf(lines[1], "Cooldown after switch: 0.25 sec");
-    } else if (hackOptions.cooldownOnSwitch == 2) {
-        sprintf(lines[1], "Cooldown after switch: 0.50 sec");
-    } else if (hackOptions.cooldownOnSwitch == 3) {
-        sprintf(lines[1], "Cooldown after switch: 1.00 sec");
-    }
-
-    if (hackOptions.copyVram > 4) {
-        hackOptions.copyVram = 0;
-    }
-    if (hackOptions.copyVram < 0) {
-        hackOptions.copyVram = 3;
-    }
-    if (hackOptions.copyVram == 0) {
-        sprintf(lines[2], "Keep vram on switch:     OFF");
-    } else if (hackOptions.copyVram == 1) {
-        sprintf(lines[2], "Keep vram on switch:   100%%");
-    } else if (hackOptions.copyVram == 2) {
-        sprintf(lines[2], "Keep vram on switch:    50%%");
-    } else if (hackOptions.copyVram == 3) {
-        sprintf(lines[2], "Keep vram on switch:    10%%");
-    } else if (hackOptions.copyVram == 4) {
-        sprintf(lines[2], "Keep vram on switch:     1%%");
-    }
-
-    if (hackOptions.speedUpOnRing > 1) {
-        hackOptions.speedUpOnRing = 0;
-    }
-    if (hackOptions.speedUpOnRing < 0) {
-        hackOptions.speedUpOnRing = 1;
-    }
-    if (hackOptions.speedUpOnRing == 1) {
-        sprintf(lines[3], "Speed up on ring:         ON");
-    } else {
-        sprintf(lines[3], "Speed up on ring:        OFF");
-    }
-
-
-
-    if (hackOptions.infiniteLives > 1) {
-        hackOptions.infiniteLives = 0;
-    }
-    if (hackOptions.infiniteLives < 0) {
-        hackOptions.infiniteLives = 1;
-    }
-    if (hackOptions.infiniteLives == 1) {
-        sprintf(lines[4], "Infinite lives:           ON");
-    } else {
-        sprintf(lines[4], "Infinite lives:          OFF");
-    }
-
-    if (hackOptions.infiniteTime > 1) {
-        hackOptions.infiniteTime = 0;
-    }
-    if (hackOptions.infiniteTime < 0) {
-        hackOptions.infiniteTime = 1;
-    }
-    if (hackOptions.infiniteTime == 1) {
-        sprintf(lines[5], "Infinite time:            ON");
-    } else {
-        sprintf(lines[5], "Infinite time:           OFF");
-    }
-
-    if (hackOptions.loadFromSavedState > 1) {
-        hackOptions.loadFromSavedState = 0;
-    }
-    if (hackOptions.loadFromSavedState < 0) {
-        hackOptions.loadFromSavedState = 1;
-    }
-    if (hackOptions.loadFromSavedState == 0) {
-        sprintf(lines[6], "Begin with saved state:  OFF");
-    } else {
-        sprintf(lines[6], "Begin with saved state:   ON");
-    }
-
-    if (hackOptions.automaticallySaveStatesFreq > 5) {
-        hackOptions.automaticallySaveStatesFreq = 0;
-    }
-    if (hackOptions.automaticallySaveStatesFreq < 0) {
-        hackOptions.automaticallySaveStatesFreq = 5;
-    }
-    if (hackOptions.automaticallySaveStatesFreq == 0) {
-        sprintf(lines[7], "Auto-save state:         OFF");
-    } else if (hackOptions.automaticallySaveStatesFreq == 1) {
-        sprintf(lines[7], "Auto-save state: EVERY 1 min");
-    } else if (hackOptions.automaticallySaveStatesFreq == 2) {
-        sprintf(lines[7], "Auto-save state: EVERY 5 mins");
-    } else if (hackOptions.automaticallySaveStatesFreq == 3) {
-        sprintf(lines[7], "Auto-save state: EVERY 10 min");
-    } else if (hackOptions.automaticallySaveStatesFreq == 4) {
-        sprintf(lines[7], "Auto-save state: EVERY 15 min");
-    } else if (hackOptions.automaticallySaveStatesFreq == 5) {
-        sprintf(lines[7], "Auto-save state: EVERY 5 secs");
-    }
-
-    sprintf(lines[8], "Persist values between games >>");
-
-    if (hackOptions.shouldSortColours > 1) {
-        hackOptions.shouldSortColours = 0;
-    }
-    if (hackOptions.shouldSortColours < 0) {
-        hackOptions.shouldSortColours = 1;
-    }
-    if (hackOptions.shouldSortColours == 0) {
-        sprintf(lines[9], "Sort pixels by colour:    OFF");
-    } else {
-        sprintf(lines[9], "Sort pixels by colour:     ON");
-    }
-
-    if (hackOptions.limitedColourType > 5) {
-        hackOptions.limitedColourType = 0;
-    }
-    if (hackOptions.limitedColourType < 0) {
-        hackOptions.limitedColourType = 5;
-    }
-    if (hackOptions.limitedColourType == 0) {
-        sprintf(lines[10], "Limit palettes:           OFF");
-    } else if (hackOptions.limitedColourType == 1) {
-        sprintf(lines[10], "Limit palettes:     2 COLOURS");
-    } else if (hackOptions.limitedColourType == 2) {
-        sprintf(lines[10], "Limit palettes:     3 COLOURS");
-    } else if (hackOptions.limitedColourType == 3) {
-        sprintf(lines[10], "Limit palettes:     4 COLOURS");
-    } else if (hackOptions.limitedColourType == 4) {
-        sprintf(lines[10], "Limit palettes:     5 COLOURS");
-    } else if (hackOptions.limitedColourType == 5) {
-        sprintf(lines[10], "Limit palettes:    10 COLOURS");
-    }
-
-    if (hackOptions.shouldHideLayers > 2) {
-        hackOptions.shouldHideLayers = 0;
-    }
-    if (hackOptions.shouldHideLayers < 0) {
-        hackOptions.shouldHideLayers = 2;
-    }
-    if (hackOptions.shouldHideLayers == 0) {
-        sprintf(lines[11], "Hide layers:              OFF");
-    } else if (hackOptions.shouldHideLayers == 1) {
-        sprintf(lines[11], "Hide layers:        NO SPRITES");
-    } else if (hackOptions.shouldHideLayers == 2) {
-        sprintf(lines[11], "Hide layers:    NO BACKGROUNDS");
-    }
-
-    if (hackOptions.shouldWriteToLog > 1) {
-        hackOptions.shouldWriteToLog = 0;
-    }
-    if (hackOptions.shouldWriteToLog < 0) {
-        hackOptions.shouldWriteToLog = 1;
-    }
-    if (hackOptions.shouldWriteToLog == 0) {
-        sprintf(lines[12], "Write to debug log:       OFF");
-    } else {
-        sprintf(lines[12], "Write to debug log:        ON"); 
-    }
-
-    if (hackOptions.shouldShowSwapCount > 1) {
-        hackOptions.shouldShowSwapCount = 0;
-    }
-    if (hackOptions.shouldShowSwapCount < 0) {
-        hackOptions.shouldShowSwapCount = 1;
-    }
-    if (hackOptions.shouldShowSwapCount == 0) {
-        sprintf(lines[13], "Show swap counter:        OFF");
-    } else {
-        sprintf(lines[13], "Show swap counter:         ON");
-    }
-
-    if (hackOptions.overwriteLevelType > 2) {
-        hackOptions.overwriteLevelType = 0;
-    }
-    if (hackOptions.overwriteLevelType < 0) {
-        hackOptions.overwriteLevelType = 2;
-    }
-    sprintf(lines[14], "Write into level data on get ring:");
-    if (hackOptions.overwriteLevelType == 0) {
-        sprintf(lines[15], "                           off");
-        blockedLines[16] = 0;
-    } else if (hackOptions.overwriteLevelType == 1) {
-        sprintf(lines[15], "                Random numbers");
-    } else {
-        sprintf(lines[15], "                        zeroes");
-    }
-
-    if (hackOptions.overwriteLevelDifficulty > 2) {
-        hackOptions.overwriteLevelDifficulty = 0;
-    }
-    if (hackOptions.overwriteLevelDifficulty < 0) {
-        hackOptions.overwriteLevelDifficulty = 2;
-    }
-    if (hackOptions.overwriteLevelDifficulty == 0) {
-        sprintf(lines[16], "level overwrite difficulty: easy");
-    } else if (hackOptions.overwriteLevelDifficulty == 1) {
-        sprintf(lines[16], "level overwrite difficulty: medium");
-    } else {
-        sprintf(lines[16], "level overwrite difficulty: hard");
-    }
+    sprintf(lines[0], "Game swapping >");
+    sprintf(lines[1], "Quality of life >");
+    sprintf(lines[2], "Save states >");
+    sprintf(lines[3], "Sonic-specific >");
+    sprintf(lines[4], "Visuals >");
+    sprintf(lines[5], "Start game");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
         char toPrint[0x100];
         if (i == optionsItemIndex) {
-            sprintf(toPrint, "> %s", lines[i]);
+            sprintf(toPrint, ">> %s", lines[i]);
         } else {
-            sprintf(toPrint, "  %s", lines[i]);
+            sprintf(toPrint, " %s", lines[i]);
         }
 
         layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
@@ -1587,6 +1342,447 @@ void showRamDetectiveMenu() {
         }
 
         layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+        yPos += 8;
+    }
+}
+
+void showGameSwapOptionsMenu {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Game swapping", 5);
+
+    int lineCount = 6;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+    }
+
+    if (gameSwapOptionIndex < 0) {
+        gameSwapOptionIndex = lineCount - 1;
+    }
+    if (gameSwapOptionIndex >= lineCount) {
+        gameSwapOptionIndex = 0;
+    }
+
+    if (hackOptions.switchGameType > 4) {
+        hackOptions.switchGameType = 0;
+    }
+    if (hackOptions.switchGameType < 0) {
+        hackOptions.switchGameType = 4;
+    }
+    if (hackOptions.switchGameType == 0) {
+        sprintf(lines[0], "Switch games:            OFF");
+        blockedLines[1] = 1;
+        blockedLines[2] = 1;
+        blockedLines[3] = 1;
+    } else if (hackOptions.switchGameType == 1) {
+        sprintf(lines[0], "Switch games:    ON GET RING");
+    } else if (hackOptions.switchGameType == 2) {
+        sprintf(lines[0], "Switch games:   EVERY 5 secs");
+    } else if (hackOptions.switchGameType == 3) {
+        sprintf(lines[0], "Switch games:  EVERY 10 secs");
+    } else if (hackOptions.switchGameType == 4) {
+        sprintf(lines[0], "Switch games:  EVERY 30 secs");
+    }
+
+    if (hackOptions.cooldownOnSwitch > 3) {
+        hackOptions.cooldownOnSwitch = 0;
+    }
+    if (hackOptions.cooldownOnSwitch < 0) {
+        hackOptions.cooldownOnSwitch = 1;
+    }
+    if (hackOptions.cooldownOnSwitch == 0) {
+        sprintf(lines[1], "Cooldown after switch:   OFF");
+    } else if (hackOptions.cooldownOnSwitch == 1) {
+        sprintf(lines[1], "Cooldown after switch: 0.25 sec");
+    } else if (hackOptions.cooldownOnSwitch == 2) {
+        sprintf(lines[1], "Cooldown after switch: 0.50 sec");
+    } else if (hackOptions.cooldownOnSwitch == 3) {
+        sprintf(lines[1], "Cooldown after switch: 1.00 sec");
+    }
+
+    if (hackOptions.copyVram > 4) {
+        hackOptions.copyVram = 0;
+    }
+    if (hackOptions.copyVram < 0) {
+        hackOptions.copyVram = 3;
+    }
+    if (hackOptions.copyVram == 0) {
+        sprintf(lines[2], "Keep vram on switch:     OFF");
+    } else if (hackOptions.copyVram == 1) {
+        sprintf(lines[2], "Keep vram on switch:   100%%");
+    } else if (hackOptions.copyVram == 2) {
+        sprintf(lines[2], "Keep vram on switch:    50%%");
+    } else if (hackOptions.copyVram == 3) {
+        sprintf(lines[2], "Keep vram on switch:    10%%");
+    } else if (hackOptions.copyVram == 4) {
+        sprintf(lines[2], "Keep vram on switch:     1%%");
+    }
+
+    if (hackOptions.swapOrder > 1) {
+        hackOptions.swapOrder = 0;
+    }
+    if (hackOptions.swapOrder < 0) {
+        hackOptions.swapOrder = 3;
+    }
+    if (hackOptions.swapOrder == 0) {
+        sprintf(lines[3], "Swap order:           random");
+    } else {
+        sprintf(lines[3], "Swap order:     alphabetical");
+    }
+    
+    if (hackOptions.shouldShowSwapCount > 1) {
+        hackOptions.shouldShowSwapCount = 0;
+    }
+    if (hackOptions.shouldShowSwapCount < 0) {
+        hackOptions.shouldShowSwapCount = 1;
+    }
+    if (hackOptions.shouldShowSwapCount == 0) {
+        sprintf(lines[4], "Show swap counter:        OFF");
+    } else {
+        sprintf(lines[4], "Show swap counter:         ON");
+    }
+
+    sprintf(lines[5], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        char toPrint[0x100];
+        if (i == gameSwapOptionIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, " %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+    }
+}
+
+void showQualityOfLifeOptionsMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Quality of life", 5);
+
+    int lineCount = 4;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+    }
+
+    if (gameSwapOptionIndex < 0) {
+        gameSwapOptionIndex = lineCount - 1;
+    }
+    if (gameSwapOptionIndex >= lineCount) {
+        gameSwapOptionIndex = 0;
+    }
+
+    if (hackOptions.infiniteLives > 1) {
+        hackOptions.infiniteLives = 0;
+    }
+    if (hackOptions.infiniteLives < 0) {
+        hackOptions.infiniteLives = 1;
+    }
+    if (hackOptions.infiniteLives == 1) {
+        sprintf(lines[0], "Infinite lives:           ON");
+    } else {
+        sprintf(lines[0], "Infinite lives:          OFF");
+    }
+
+    if (hackOptions.infiniteTime > 1) {
+        hackOptions.infiniteTime = 0;
+    }
+    if (hackOptions.infiniteTime < 0) {
+        hackOptions.infiniteTime = 1;
+    }
+    if (hackOptions.infiniteTime == 1) {
+        sprintf(lines[1], "Infinite time:            ON");
+    } else {
+        sprintf(lines[1], "Infinite time:           OFF");
+    }
+
+    if (hackOptions.shouldWriteToLog > 1) {
+        hackOptions.shouldWriteToLog = 0;
+    }
+    if (hackOptions.shouldWriteToLog < 0) {
+        hackOptions.shouldWriteToLog = 1;
+    }
+    if (hackOptions.shouldWriteToLog == 0) {
+        sprintf(lines[2], "Write to debug log:       OFF");
+    } else {
+        sprintf(lines[2], "Write to debug log:        ON"); 
+    }
+
+    sprintf(lines[3], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        char toPrint[0x100];
+        if (i == qualityOfLifeOptionIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, " %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+    }
+}
+
+void showSaveStateOptionsMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Save states", 5);
+
+    int lineCount = 3;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+    }
+
+    if (gameSwapOptionIndex < 0) {
+        gameSwapOptionIndex = lineCount - 1;
+    }
+    if (gameSwapOptionIndex >= lineCount) {
+        gameSwapOptionIndex = 0;
+    }
+    
+    if (hackOptions.loadFromSavedState > 1) {
+        hackOptions.loadFromSavedState = 0;
+    }
+    if (hackOptions.loadFromSavedState < 0) {
+        hackOptions.loadFromSavedState = 1;
+    }
+    if (hackOptions.loadFromSavedState == 0) {
+        sprintf(lines[0], "Begin with saved state:  OFF");
+    } else {
+        sprintf(lines[0], "Begin with saved state:   ON");
+    }
+
+    if (hackOptions.automaticallySaveStatesFreq > 5) {
+        hackOptions.automaticallySaveStatesFreq = 0;
+    }
+    if (hackOptions.automaticallySaveStatesFreq < 0) {
+        hackOptions.automaticallySaveStatesFreq = 5;
+    }
+    if (hackOptions.automaticallySaveStatesFreq == 0) {
+        sprintf(lines[1], "Auto-save state:         OFF");
+    } else if (hackOptions.automaticallySaveStatesFreq == 1) {
+        sprintf(lines[1], "Auto-save state: EVERY 1 min");
+    } else if (hackOptions.automaticallySaveStatesFreq == 2) {
+        sprintf(lines[1], "Auto-save state: EVERY 5 mins");
+    } else if (hackOptions.automaticallySaveStatesFreq == 3) {
+        sprintf(lines[1], "Auto-save state: EVERY 10 min");
+    } else if (hackOptions.automaticallySaveStatesFreq == 4) {
+        sprintf(lines[1], "Auto-save state: EVERY 15 min");
+    } else if (hackOptions.automaticallySaveStatesFreq == 5) {
+        sprintf(lines[1], "Auto-save state: EVERY 5 secs");
+    }
+
+    sprintf(lines[2], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        char toPrint[0x100];
+        if (i == qualityOfLifeOptionIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, " %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+    }
+}
+
+void showSonicSpecificOptionsMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Sonic-specific options", 5);
+
+    int lineCount = 6;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+    }
+
+    if (gameSwapOptionIndex < 0) {
+        gameSwapOptionIndex = lineCount - 1;
+    }
+    if (gameSwapOptionIndex >= lineCount) {
+        gameSwapOptionIndex = 0;
+    }
+    
+    if (hackOptions.speedUpOnRing > 1) {
+        hackOptions.speedUpOnRing = 0;
+    }
+    if (hackOptions.speedUpOnRing < 0) {
+        hackOptions.speedUpOnRing = 1;
+    }
+    if (hackOptions.speedUpOnRing == 1) {
+        sprintf(lines[0], "Speed up on ring:         ON");
+    } else {
+        sprintf(lines[0], "Speed up on ring:        OFF");
+    }
+
+    sprintf(lines[1], "Persist values between games >>");
+
+    if (hackOptions.overwriteLevelType > 2) {
+        hackOptions.overwriteLevelType = 0;
+    }
+    if (hackOptions.overwriteLevelType < 0) {
+        hackOptions.overwriteLevelType = 2;
+    }
+    sprintf(lines[2], "Write into level data on get ring:");
+    if (hackOptions.overwriteLevelType == 0) {
+        sprintf(lines[3], "                           off");
+        blockedLines[3] = 0;
+    } else if (hackOptions.overwriteLevelType == 1) {
+        sprintf(lines[3], "                Random numbers");
+    } else {
+        sprintf(lines[3], "                        zeroes");
+    }
+
+    if (hackOptions.overwriteLevelDifficulty > 2) {
+        hackOptions.overwriteLevelDifficulty = 0;
+    }
+    if (hackOptions.overwriteLevelDifficulty < 0) {
+        hackOptions.overwriteLevelDifficulty = 2;
+    }
+    if (hackOptions.overwriteLevelDifficulty == 0) {
+        sprintf(lines[4], "level overwrite difficulty: easy");
+    } else if (hackOptions.overwriteLevelDifficulty == 1) {
+        sprintf(lines[4], "level overwrite difficulty: medium");
+    } else {
+        sprintf(lines[4], "level overwrite difficulty: hard");
+    }
+
+    sprintf(lines[5], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        char toPrint[0x100];
+        if (i == qualityOfLifeOptionIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, " %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+    }
+}
+
+void showVisualsOptionsMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Visuals", 5);
+
+    int lineCount = 4;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+    }
+
+    if (gameSwapOptionIndex < 0) {
+        gameSwapOptionIndex = lineCount - 1;
+    }
+    if (gameSwapOptionIndex >= lineCount) {
+        gameSwapOptionIndex = 0;
+    }
+    
+    if (hackOptions.shouldSortColours > 1) {
+        hackOptions.shouldSortColours = 0;
+    }
+    if (hackOptions.shouldSortColours < 0) {
+        hackOptions.shouldSortColours = 1;
+    }
+    if (hackOptions.shouldSortColours == 0) {
+        sprintf(lines[0], "Sort pixels by colour:    OFF");
+    } else {
+        sprintf(lines[0], "Sort pixels by colour:     ON");
+    }
+
+    if (hackOptions.limitedColourType > 5) {
+        hackOptions.limitedColourType = 0;
+    }
+    if (hackOptions.limitedColourType < 0) {
+        hackOptions.limitedColourType = 5;
+    }
+    if (hackOptions.limitedColourType == 0) {
+        sprintf(lines[1], "Limit palettes:           OFF");
+    } else if (hackOptions.limitedColourType == 1) {
+        sprintf(lines[1], "Limit palettes:     2 COLOURS");
+    } else if (hackOptions.limitedColourType == 2) {
+        sprintf(lines[1], "Limit palettes:     3 COLOURS");
+    } else if (hackOptions.limitedColourType == 3) {
+        sprintf(lines[1], "Limit palettes:     4 COLOURS");
+    } else if (hackOptions.limitedColourType == 4) {
+        sprintf(lines[1], "Limit palettes:     5 COLOURS");
+    } else if (hackOptions.limitedColourType == 5) {
+        sprintf(lines[1], "Limit palettes:    10 COLOURS");
+    }
+
+    if (hackOptions.shouldHideLayers > 2) {
+        hackOptions.shouldHideLayers = 0;
+    }
+    if (hackOptions.shouldHideLayers < 0) {
+        hackOptions.shouldHideLayers = 2;
+    }
+    if (hackOptions.shouldHideLayers == 0) {
+        sprintf(lines[2], "Hide layers:              OFF");
+    } else if (hackOptions.shouldHideLayers == 1) {
+        sprintf(lines[2], "Hide layers:        NO SPRITES");
+    } else if (hackOptions.shouldHideLayers == 2) {
+        sprintf(lines[2], "Hide layers:    NO BACKGROUNDS");
+    }
+    sprintf(lines[3], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        char toPrint[0x100];
+        if (i == qualityOfLifeOptionIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, " %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
         yPos += 8;
     }
 }

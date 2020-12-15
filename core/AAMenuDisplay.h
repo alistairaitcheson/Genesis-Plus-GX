@@ -16,6 +16,8 @@
 #define MENU_LISTING_RANDOMISED_ROMS 5
 #define MENU_LISTING_PERSIST_VALUES 6
 #define MENU_LISTING_RAM_DETECTIVE 7
+#define MENU_LISTING_GAME_SWAP_OPITONS 8
+#define MENU_LISTING_QUALITY_OF_LIFE 9
 
 typedef struct {
     int infiniteLives;
@@ -33,6 +35,7 @@ typedef struct {
     int shouldShowSwapCount;
     int overwriteLevelType; // 0 = off,  1 = with random number, 2 = with 0
     int overwriteLevelDifficulty; // 0 = easy (5x), 1 = medium (10x), 2 = hard (20x), 3 = extreme (50x)
+    int swapOrder; // 0 = random, 1 = alphabetical
 } HackOptions;
 
 typedef struct {
@@ -94,6 +97,9 @@ void showInGameOptionsMenu();
 void showRamDetectiveMenu();
 void ramDetectivePressFaceButton(int direction);
 void ramDetectivePressDPadDir(int direction);
+
+void showGameSwapOptionsMenu();
+void showQualityOfLifeOptionsMenu();
 
 void clearLogRamState();
 
