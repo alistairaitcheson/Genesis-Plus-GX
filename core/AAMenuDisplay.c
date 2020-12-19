@@ -26,7 +26,7 @@ static int sonicSpecificOptionIndex = 0;
 static int visualsOptionIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 9;
+static int minorVersion = 10;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -1268,6 +1268,12 @@ void showInGameOptionsMenu() {
     int lineCount = 10;
     char lines[lineCount][0x80];
 
+    int hintLineCount = 5;
+    char hintLines[hintLineCount][0x80];
+    for (int i = 0; i < hintLineCount; i++) {
+        sprintf(hintLines[i], "");
+    }
+
     if (inGameOptionIndex < 0) {
         inGameOptionIndex = 0;
     }
@@ -1280,22 +1286,43 @@ void showInGameOptionsMenu() {
     sprintf(lines[2], "Save all game states to disk");
     sprintf(lines[3], "Load all game states from disk" );
     sprintf(lines[4], "Remove this game from randomiser" );
-    sprintf(lines[5], "Toggle games in randomiser" );
+    sprintf(lines[5], "Toggle games in randomiser >>" );
     sprintf(lines[6], "Kill Sonic");
+    if (inGameOptionIndex == 6) {
+        sprintf(hintLines[0], "* You can also press DOWN + B + START");
+        sprintf(hintLines[1], "  In-game to kill sonic");
+        sprintf(hintLines[2], "* Only works in Sonic 1, 2, 3 and");
+        sprintf(hintLines[3], "  Sonic & Knuckles");
+    }
+
     sprintf(lines[7], "Reset Game");
     sprintf(lines[8], "Ram detective tool >>");
+    if (inGameOptionIndex == 8) {
+        sprintf(hintLines[0], "* Use this to figure out what ram");
+        sprintf(hintLines[1], "  values can be used to get specific");
+        sprintf(hintLines[2], "  game events");
+    }
     sprintf(lines[9], "Back to game");
 
     int yPos = 48;
     for (int i = 0; i < lineCount; i++) {
         char lineBuf[0x100];
+        int colour = 5;
         if (i == inGameOptionIndex) {
             sprintf(lineBuf, ">>   %s", lines[i]);
+            colour = 6;
         } else {
             sprintf(lineBuf, "   %s", lines[i]);
-
         }
-        layerRenderer_writeWord256WithBorder(0, 16, yPos, lineBuf, 5, 1, 0);
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, lineBuf, colour, 1, 0);
+        yPos += 8;
+    }
+
+    yPos += 8;
+
+    for (int i = 0; i < hintLineCount; i++) {
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, hintLines[i], 6, 1, 0);
         yPos += 8;
     }
 }

@@ -383,6 +383,13 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_A) != 0) {
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
+        } else if (
+            // instal-kill!!
+            buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_B) != 0)
+        {
+            modConsole_activatePanic();
         }
 
         // // show what buttons are being pressed!
