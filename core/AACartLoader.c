@@ -1027,7 +1027,8 @@ void copyGameListing(int fromGame, int toGame) {
     gameListings[toGame].valueWriteDuration = gameListings[fromGame].valueWriteDuration;
     gameListings[toGame].isISO = gameListings[fromGame].isISO;
     gameListings[toGame].ringSwitchCooldown = gameListings[fromGame].ringSwitchCooldown;
-
+    gameListings[toGame].accelerationType = gameListings[fromGame].accelerationType;
+    
     for (int i = 0; i < 8; i++) {
         gameListings[toGame].livesBytes[i] = gameListings[fromGame].livesBytes[i];
         gameListings[toGame].livesByteDestinations[i] = gameListings[fromGame].livesByteDestinations[i];
