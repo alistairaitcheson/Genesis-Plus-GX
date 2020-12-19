@@ -1083,7 +1083,8 @@ void chooseMainMenuOption() {
         } else {
             cartLoader_applyHackOptions(gameHasStarted);
             modConsole_applyHackOptions();
-            menuDisplay_hideMenu();
+            // menuDisplay_hideMenu();
+            menuDisplay_showMenu(MENU_LISTING_IN_GAME);
         }
     }
 }
