@@ -584,8 +584,8 @@ unsigned int cartLoader_getRomCount() {
 
 static int loadAttemptCount = 0;
 void cartLoader_loadRandomRom() {
-    // HackOptions hackOpts = menuDisplay_getHackOptions();
-    // if (hackOpts.switchGameType == 0) {
+    HackOptions hackOpts = menuDisplay_getHackOptions();
+    if (hackOpts.swapOrder == 0) {
         int candidates[MAX_ROMS];
         int candidateCount = 0;
         for (int i = 0; i < romCount; i++) {
@@ -605,21 +605,21 @@ void cartLoader_loadRandomRom() {
 
             gameSwapCount++;
         }
-//     } else if (hackOpts.switchGameType == 1) {
-//         int chosenIndex = lastLoadedIndex;
-//         for (int offset = 1; offset < romCount; offset++) {
-//             int candidateIndex = (chosenIndex + offset) % romCount;
-//             if (romsRemovedFromRandomiser[candidateIndex == 0]) {
-//                 chosenIndex = candidateIndex;
-//                 break;
-//             }
-//         }
+    } else if (hackOpts.swapOrder == 1) {
+        int chosenIndex = lastLoadedIndex;
+        for (int offset = 1; offset < romCount; offset++) {
+            int candidateIndex = (chosenIndex + offset) % romCount;
+            if (romsRemovedFromRandomiser[candidateIndex] == 0) {
+                chosenIndex = candidateIndex;
+                break;
+            }
+        }
 
-//         if (chosenIndex != lastLoadedIndex) {
-//             cartLoader_loadRomAtIndex(chosenIndex, 1);
-//             gameSwapCount++;
-//         }
-//     }
+        if (chosenIndex != lastLoadedIndex) {
+            cartLoader_loadRomAtIndex(chosenIndex, 1);
+            gameSwapCount++;
+        }
+    }
 }
 
 int cartLoder_getLastLoadedIndex() {
