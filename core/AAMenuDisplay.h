@@ -18,6 +18,10 @@
 #define MENU_LISTING_RAM_DETECTIVE 7
 #define MENU_LISTING_GAME_SWAP_OPITONS 8
 #define MENU_LISTING_QUALITY_OF_LIFE 9
+#define MENU_LISTING_SAVE_STATE_OPTIONS 10
+#define MENU_LISTING_SONIC_SPECIFIC_OPTIONS 11
+#define MENU_LISTING_VISUALS_OPTIONS 12
+
 
 typedef struct {
     int infiniteLives;
@@ -98,8 +102,19 @@ void showRamDetectiveMenu();
 void ramDetectivePressFaceButton(int direction);
 void ramDetectivePressDPadDir(int direction);
 
+void chooseMainMenuOption();
+
 void showGameSwapOptionsMenu();
 void showQualityOfLifeOptionsMenu();
+void showSaveStateOptionsMenu();
+void showSonicSpecificOptionsMenu();
+void showVisualsOptionsMenu();
+
+void incrementGameSwapOption(int direction);
+void incrementQualityOfLifeOption(int direction);
+void incrementSaveStateOption(int direction);
+void incrementSonicSpecificOption(int direction);
+void incrementVisualsOption(int direction);
 
 void clearLogRamState();
 

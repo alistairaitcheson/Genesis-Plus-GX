@@ -70,4 +70,6 @@ extern int cartLoader_getFoundZipCount();
 int pathIsZip(char *path, int pathLen);
 int fileName256IsCD(char fileName[]);
 
+void zeroAllListings();
+
 #endif

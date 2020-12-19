@@ -23,11 +23,11 @@ static int romsRemovedFromRandomiser[MAX_ROMS];
 static char *logLines[0x100];
 static unsigned int logLineCount;
 
-static AAGameListing gameListings[0x100];
-static AAGameTransferListing gameTransferListings[0x100];
-static AAScoreMonitorListing scoreMonitorListings[0x100];
-static AALevelEditListing levelEditListings[0x100];
-static unsigned char gameAltIds[0x100][0x80];
+static AAGameListing gameListings[MAX_ROMS];
+static AAGameTransferListing gameTransferListings[MAX_ROMS];
+static AAScoreMonitorListing scoreMonitorListings[MAX_ROMS];
+static AALevelEditListing levelEditListings[MAX_ROMS];
+static unsigned char gameAltIds[MAX_ROMS][0x80];
 static int gameListingCount = 0;
 
 static unsigned char romHeaderBuffer[0x20];
@@ -74,6 +74,8 @@ void cartLoader_run() {
     listFiles(folderPath, "/");
 
     cartLoader_appendToLog("Listed files");
+
+    zeroAllListings();
 
     writeStringToArray32("NONE", gameListings[0].gameId);
     gameListings[0].ringByte = 0;
@@ -446,6 +448,43 @@ void cartLoader_run() {
 
     gameListingCount = 27;
     cartLoader_appendToLog("finished cartLoader_run");
+}
+
+void zeroAllListings() {
+    for (int gameIndex = 0; gameIndex < MAX_ROMS; gameIndex++) {
+        gameListings[gameIndex].ringByte = 0;
+        gameListings[gameIndex].specialRingByte = 0;
+        gameListings[gameIndex].valueWriteDuration = 0;
+        gameListings[gameIndex].isISO = 0;
+        gameListings[gameIndex].ringSwitchCooldown = 0;
+
+        for (int i = 0; i < 8; i++) {
+            gameListings[gameIndex].livesBytes[i] = 0;
+            gameListings[gameIndex].livesByteDestinations[i] = 0;
+            gameListings[gameIndex].timeBytes[i] = 0;
+            gameListings[gameIndex].timeByteDestinations[i] = 0;
+            gameListings[gameIndex].panicBytes[i] = 0;
+            gameListings[gameIndex].panicByteDestinations[i] = 0;
+            gameListings[gameIndex].updateHUDFlags[i] = 0;
+
+            gameTransferListings[gameIndex].ringBytesForTransfer[i] = 0;
+            gameTransferListings[gameIndex].speedBytesForTransfer[i] = 0;
+            gameTransferListings[gameIndex].timeBytesForTransfer[i] = 0;
+            gameTransferListings[gameIndex].momentumBytesForTransfer[i] = 0;
+            gameTransferListings[gameIndex].scoreBytesForTransfer[i] = 0;
+        }
+
+        for (int i = 0; i < 8; i++) {
+            scoreMonitorListings[gameIndex].scoreBytes[i] = 0;
+            scoreMonitorListings[gameIndex].scoreBytesP2[i] = 0;
+        }
+        scoreMonitorListings[gameIndex].calculatationType = 0 ;
+        scoreMonitorListings[gameIndex].scoreJumpForTrigger = 0;
+        scoreMonitorListings[gameIndex].blockJumpFromZero = 0;
+
+        levelEditListings[gameIndex].startByte = 0;
+        levelEditListings[gameIndex].endByte = 0;
+    }
 }
 
 void writeStringToArray32(char *source, char dest[]) {

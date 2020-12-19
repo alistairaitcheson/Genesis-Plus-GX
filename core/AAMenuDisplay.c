@@ -21,6 +21,9 @@ static int persistValuesIndex = 0;
 static int ramDetectiveIndex = 0;
 static int gameSwapOptionIndex = 0;
 static int qualityOfLifeOptionIndex = 0;
+static int saveStateOptionIndex = 0;
+static int sonicSpecificOptionIndex = 0;
+static int visualsOptionIndex = 0;
 
 static int majorVersion = 0;
 static int minorVersion = 9;
@@ -449,6 +452,18 @@ void menuDisplay_showMenu(int menuNum) {
     if (activeMenu == MENU_LISTING_QUALITY_OF_LIFE) {
         showQualityOfLifeOptionsMenu(); 
     }
+
+    if (activeMenu == MENU_LISTING_SAVE_STATE_OPTIONS) {
+        showSaveStateOptionsMenu(); 
+    }
+
+    if (activeMenu == MENU_LISTING_SONIC_SPECIFIC_OPTIONS) {
+        showSonicSpecificOptionsMenu(); 
+    }
+
+    if (activeMenu == MENU_LISTING_VISUALS_OPTIONS) {
+        showVisualsOptionsMenu(); 
+    }
 }
 
 void menuDisplay_hideMenu() {
@@ -671,7 +686,223 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
     }
 
+    if (activeMenu == MENU_LISTING_GAME_SWAP_OPITONS) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            gameSwapOptionIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            gameSwapOptionIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_LEFT) {
+            incrementGameSwapOption(-1);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
+            incrementGameSwapOption(1);
+            refreshMenu();
+            return 1;
+        }
+    }
+
+    if (activeMenu == MENU_LISTING_QUALITY_OF_LIFE) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            qualityOfLifeOptionIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            qualityOfLifeOptionIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_LEFT) {
+            incrementQualityOfLifeOption(-1);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
+            incrementQualityOfLifeOption(1);
+            refreshMenu();
+            return 1;
+        }
+    }
+
+    if (activeMenu == MENU_LISTING_SAVE_STATE_OPTIONS) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            saveStateOptionIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            saveStateOptionIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_LEFT) {
+            incrementSaveStateOption(-1);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
+            incrementSaveStateOption(1);
+            refreshMenu();
+            return 1;
+        }
+    }
+
+    if (activeMenu == MENU_LISTING_SONIC_SPECIFIC_OPTIONS) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            sonicSpecificOptionIndex--;
+            if (sonicSpecificOptionIndex == 3) {
+                sonicSpecificOptionIndex --;
+            }
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            sonicSpecificOptionIndex++;
+            if (sonicSpecificOptionIndex == 3) {
+                sonicSpecificOptionIndex ++;
+            }
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_LEFT) {
+            incrementSonicSpecificOption(-1);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
+            incrementSonicSpecificOption(1);
+            refreshMenu();
+            return 1;
+        }
+    }
+
+    if (activeMenu == MENU_LISTING_VISUALS_OPTIONS) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            visualsOptionIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            visualsOptionIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_LEFT) {
+            incrementVisualsOption(-1);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
+            incrementVisualsOption(1);
+            refreshMenu();
+            return 1;
+        }
+    }
+
     return 0;
+}
+
+void incrementGameSwapOption(int direction) {
+    if (gameSwapOptionIndex == 0) {
+        hackOptions.switchGameType += direction;
+    }
+    if (gameSwapOptionIndex == 1) {
+        hackOptions.cooldownOnSwitch += direction;
+    }
+    if (gameSwapOptionIndex == 2) {
+        hackOptions.copyVram += direction;
+    }
+    if (gameSwapOptionIndex == 3) {
+        hackOptions.swapOrder += direction;
+    }
+    if (gameSwapOptionIndex == 4) {
+        hackOptions.shouldShowSwapCount += direction;
+    }
+
+    if (gameSwapOptionIndex == 5) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+    }
+}
+
+void incrementQualityOfLifeOption(int direction) {
+    if (qualityOfLifeOptionIndex == 0) {
+        hackOptions.infiniteLives += direction;
+    }
+    if (qualityOfLifeOptionIndex == 1) {
+        hackOptions.infiniteTime += direction;
+    }
+    if (qualityOfLifeOptionIndex == 2) {
+        hackOptions.shouldWriteToLog += direction;
+    }
+
+    if (qualityOfLifeOptionIndex == 3) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+    }
+}
+
+void incrementSaveStateOption(int direction) {
+    if (saveStateOptionIndex == 0) {
+        hackOptions.loadFromSavedState += direction;
+    }
+    if (saveStateOptionIndex == 1) {
+        hackOptions.automaticallySaveStatesFreq += direction;
+    }
+    if (saveStateOptionIndex == 2) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+    }    
+}
+
+void incrementSonicSpecificOption(int direction) {
+    if (sonicSpecificOptionIndex == 0) {
+        hackOptions.speedUpOnRing += direction;
+    }
+    if (sonicSpecificOptionIndex == 1) {
+        menuDisplay_showMenu(MENU_LISTING_PERSIST_VALUES);
+    }
+    if (sonicSpecificOptionIndex == 2) {
+        hackOptions.overwriteLevelType += direction;
+    }
+    if (sonicSpecificOptionIndex == 4) {
+        hackOptions.overwriteLevelDifficulty += direction;
+    }
+
+    if (sonicSpecificOptionIndex == 5) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+    }
+}
+
+void incrementVisualsOption(int direction) {
+    if (visualsOptionIndex == 0) {
+        hackOptions.shouldSortColours += direction;
+    }
+    if (visualsOptionIndex == 1) {
+        hackOptions.limitedColourType += direction;
+    }
+    if (visualsOptionIndex == 2) {
+        hackOptions.shouldHideLayers += direction;
+    }
+
+    if (visualsOptionIndex == 3) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+    }
 }
 
 void ramDetectivePressFaceButton(int direction) {
@@ -764,6 +995,10 @@ void togglePersistValue(int index) {
     if (index == 5) {
         persistValuesOptions.score = 1 - persistValuesOptions.score;
     }
+
+    if (index == 6) {
+        menuDisplay_showMenu(MENU_LISTING_SONIC_SPECIFIC_OPTIONS);
+    }
 }
 
 void activateInGameMenuItem() {
@@ -817,11 +1052,28 @@ void activateInGameMenuItem() {
 
 void chooseMainMenuOption() {
     if (optionsItemIndex == 0) {
+        gameSwapOptionIndex = 0;
         menuDisplay_showMenu(MENU_LISTING_GAME_SWAP_OPITONS);
     }
 
     if (optionsItemIndex == 1) {
+        qualityOfLifeOptionIndex = 0;
         menuDisplay_showMenu(MENU_LISTING_QUALITY_OF_LIFE);
+    }
+
+    if (optionsItemIndex == 2) {
+        saveStateOptionIndex = 0;
+        menuDisplay_showMenu(MENU_LISTING_SAVE_STATE_OPTIONS);
+    }
+
+    if (optionsItemIndex == 3) {
+        sonicSpecificOptionIndex = 0;
+        menuDisplay_showMenu(MENU_LISTING_SONIC_SPECIFIC_OPTIONS);
+    }
+
+    if (optionsItemIndex == 4) {
+        visualsOptionIndex = 0;
+        menuDisplay_showMenu(MENU_LISTING_VISUALS_OPTIONS);
     }
 
     if (optionsItemIndex == 5) {
@@ -946,7 +1198,7 @@ void showOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
 
-    int lineCount = 17;
+    int lineCount = 6;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -969,6 +1221,10 @@ void showOptionsMenu() {
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "Start game") == 1) {
+            yPos += 8;
+        }
+
         char toPrint[0x100];
         if (i == optionsItemIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
@@ -1110,7 +1366,7 @@ void showPersistValuesMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "persist values between games", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to confirm ---", 5);
 
-    int lineCount = 6;
+    int lineCount = 7;
     char lines[lineCount][0x80];
 
     if (persistValuesIndex < 0) {
@@ -1156,10 +1412,15 @@ void showPersistValuesMenu() {
         sprintf(lines[5], "score:       yes");
     }
 
-
+    sprintf(lines[6], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
+
         char toPrint[0x100];
         if (i == persistValuesIndex) {
             sprintf(toPrint, "> %s", lines[i]);
@@ -1346,7 +1607,7 @@ void showRamDetectiveMenu() {
     }
 }
 
-void showGameSwapOptionsMenu {
+void showGameSwapOptionsMenu() {
     layerRenderer_clearLayer(0);
 
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
@@ -1449,6 +1710,10 @@ void showGameSwapOptionsMenu {
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
         char toPrint[0x100];
         if (i == gameSwapOptionIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
@@ -1479,11 +1744,11 @@ void showQualityOfLifeOptionsMenu() {
         blockedLines[i] = 0;
     }
 
-    if (gameSwapOptionIndex < 0) {
-        gameSwapOptionIndex = lineCount - 1;
+    if (qualityOfLifeOptionIndex < 0) {
+        qualityOfLifeOptionIndex = lineCount - 1;
     }
-    if (gameSwapOptionIndex >= lineCount) {
-        gameSwapOptionIndex = 0;
+    if (qualityOfLifeOptionIndex >= lineCount) {
+        qualityOfLifeOptionIndex = 0;
     }
 
     if (hackOptions.infiniteLives > 1) {
@@ -1526,6 +1791,10 @@ void showQualityOfLifeOptionsMenu() {
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
         char toPrint[0x100];
         if (i == qualityOfLifeOptionIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
@@ -1556,11 +1825,11 @@ void showSaveStateOptionsMenu() {
         blockedLines[i] = 0;
     }
 
-    if (gameSwapOptionIndex < 0) {
-        gameSwapOptionIndex = lineCount - 1;
+    if (saveStateOptionIndex < 0) {
+        saveStateOptionIndex = lineCount - 1;
     }
-    if (gameSwapOptionIndex >= lineCount) {
-        gameSwapOptionIndex = 0;
+    if (saveStateOptionIndex >= lineCount) {
+        saveStateOptionIndex = 0;
     }
     
     if (hackOptions.loadFromSavedState > 1) {
@@ -1599,8 +1868,12 @@ void showSaveStateOptionsMenu() {
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
         char toPrint[0x100];
-        if (i == qualityOfLifeOptionIndex) {
+        if (i == saveStateOptionIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
             sprintf(toPrint, " %s", lines[i]);
@@ -1629,11 +1902,11 @@ void showSonicSpecificOptionsMenu() {
         blockedLines[i] = 0;
     }
 
-    if (gameSwapOptionIndex < 0) {
-        gameSwapOptionIndex = lineCount - 1;
+    if (sonicSpecificOptionIndex < 0) {
+        sonicSpecificOptionIndex = lineCount - 1;
     }
-    if (gameSwapOptionIndex >= lineCount) {
-        gameSwapOptionIndex = 0;
+    if (sonicSpecificOptionIndex >= lineCount) {
+        sonicSpecificOptionIndex = 0;
     }
     
     if (hackOptions.speedUpOnRing > 1) {
@@ -1684,8 +1957,12 @@ void showSonicSpecificOptionsMenu() {
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
         char toPrint[0x100];
-        if (i == qualityOfLifeOptionIndex) {
+        if (i == sonicSpecificOptionIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
             sprintf(toPrint, " %s", lines[i]);
@@ -1714,11 +1991,11 @@ void showVisualsOptionsMenu() {
         blockedLines[i] = 0;
     }
 
-    if (gameSwapOptionIndex < 0) {
-        gameSwapOptionIndex = lineCount - 1;
+    if (visualsOptionIndex < 0) {
+        visualsOptionIndex = lineCount - 1;
     }
-    if (gameSwapOptionIndex >= lineCount) {
-        gameSwapOptionIndex = 0;
+    if (visualsOptionIndex >= lineCount) {
+        visualsOptionIndex = 0;
     }
     
     if (hackOptions.shouldSortColours > 1) {
@@ -1770,8 +2047,12 @@ void showVisualsOptionsMenu() {
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
         char toPrint[0x100];
-        if (i == qualityOfLifeOptionIndex) {
+        if (i == visualsOptionIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
             sprintf(toPrint, " %s", lines[i]);
