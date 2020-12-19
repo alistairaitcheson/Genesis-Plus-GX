@@ -65,9 +65,9 @@ static int INPUT_INDEX_UP = 0;
 static int INPUT_INDEX_DOWN = 1;
 static int INPUT_INDEX_LEFT = 2;
 static int INPUT_INDEX_RIGHT = 3;
-static int INPUT_INDEX_A = 4;
-static int INPUT_INDEX_B = 5;
-static int INPUT_INDEX_C = 6;
+static int INPUT_INDEX_A = 6;
+static int INPUT_INDEX_B = 4;
+static int INPUT_INDEX_C = 5;
 static int INPUT_INDEX_START = 7;
 
 #endif

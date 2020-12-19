@@ -552,10 +552,23 @@ int menuDisplay_onButtonPress(int buttonIndex) {
             return 1;
         }
 
-        if (buttonIndex == INPUT_INDEX_RIGHT || buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_START || buttonIndex == INPUT_INDEX_B) {
+        if (buttonIndex == INPUT_INDEX_RIGHT || buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_B) {
             chooseMainMenuOption();
             refreshMenu();
             return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_START) {
+            saveHackOptions();
+            if (gameHasStarted == 0) {
+                menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
+            } else {
+                cartLoader_applyHackOptions(gameHasStarted);
+                modConsole_applyHackOptions();
+                // menuDisplay_hideMenu();
+                menuDisplay_showMenu(MENU_LISTING_IN_GAME);
+            }
+            return 1;            
         }
     }
 

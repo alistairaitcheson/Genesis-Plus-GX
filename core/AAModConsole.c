@@ -362,6 +362,7 @@ void modConsole_updateFrame() {
             vdp_clearGraphicLayer(2);
         }
 
+
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
         //     buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
         //     buttonStateAtIndex(INPUT_INDEX_A) != 0) {
@@ -383,6 +384,39 @@ void modConsole_updateFrame() {
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
         }
+
+        // // show what buttons are being pressed!
+        // char controlsTextBuf[0x40];
+        // sprintf(controlsTextBuf, "........");
+        // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0) {
+        //     controlsTextBuf[0] = 'U';
+        // }
+        // if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0) {
+        //     controlsTextBuf[1] = 'D';
+        // }
+        // if (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0) {
+        //     controlsTextBuf[2] = 'L';
+        // }
+        // if (buttonStateAtIndex(INPUT_INDEX_RIGHT) != 0) {
+        //     controlsTextBuf[3] = 'R';
+        // }
+        // if (buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+        //     controlsTextBuf[4] = 'A';
+        // }
+        // if (buttonStateAtIndex(INPUT_INDEX_B) != 0) {
+        //     controlsTextBuf[5] = 'B';
+        // }
+        // if (buttonStateAtIndex(INPUT_INDEX_C) != 0) {
+        //     controlsTextBuf[6] = 'C';
+        // }
+        // if (buttonStateAtIndex(INPUT_INDEX_START) != 0) {
+        //     controlsTextBuf[7] = 'S';
+        // }
+
+        vdp_clearGraphicLayer(2);
+        layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
+        layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
+
 
         if (countdownToSummonMenu > 0) {
             countdownToSummonMenu--;
