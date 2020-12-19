@@ -179,6 +179,8 @@ void cartLoader_run() {
     gameTransferListings[3].momentumBytesForTransfer[5] = 0xB01D;
     gameTransferListings[3].momentumBytesForTransfer[6] = 0xB02A;
     gameTransferListings[3].momentumBytesForTransfer[7] = 0xB040;
+    levelEditListings[3].startByte = 0x8008;
+    levelEditListings[3].endByte = 0x9000;
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     copyGameListing(3, 4);

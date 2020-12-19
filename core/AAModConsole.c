@@ -412,10 +412,9 @@ void modConsole_updateFrame() {
         // if (buttonStateAtIndex(INPUT_INDEX_START) != 0) {
         //     controlsTextBuf[7] = 'S';
         // }
-
-        vdp_clearGraphicLayer(2);
-        layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
-        layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
+        // vdp_clearGraphicLayer(2);
+        // layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
+        // layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
 
 
         if (countdownToSummonMenu > 0) {
