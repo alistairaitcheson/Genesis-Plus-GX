@@ -1243,7 +1243,7 @@ void showOptionsMenu() {
         if (i == optionsItemIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
-            sprintf(toPrint, " %s", lines[i]);
+            sprintf(toPrint, "   %s", lines[i]);
         }
 
         layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
@@ -1732,7 +1732,7 @@ void showGameSwapOptionsMenu() {
         if (i == gameSwapOptionIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
-            sprintf(toPrint, " %s", lines[i]);
+            sprintf(toPrint, "   %s", lines[i]);
         }
 
         layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
@@ -1813,7 +1813,7 @@ void showQualityOfLifeOptionsMenu() {
         if (i == qualityOfLifeOptionIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
-            sprintf(toPrint, " %s", lines[i]);
+            sprintf(toPrint, "   %s", lines[i]);
         }
 
         layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
@@ -1890,7 +1890,7 @@ void showSaveStateOptionsMenu() {
         if (i == saveStateOptionIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
-            sprintf(toPrint, " %s", lines[i]);
+            sprintf(toPrint, "   %s", lines[i]);
         }
 
         layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
@@ -1979,7 +1979,7 @@ void showSonicSpecificOptionsMenu() {
         if (i == sonicSpecificOptionIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
-            sprintf(toPrint, " %s", lines[i]);
+            sprintf(toPrint, "   %s", lines[i]);
         }
 
         layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
@@ -2069,7 +2069,7 @@ void showVisualsOptionsMenu() {
         if (i == visualsOptionIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
-            sprintf(toPrint, " %s", lines[i]);
+            sprintf(toPrint, "   %s", lines[i]);
         }
 
         layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
