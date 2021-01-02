@@ -354,7 +354,7 @@ void cartLoader_run() {
     gameListings[21].timeBytes[0] = 0;
     gameListings[21].timeByteDestinations[0] = 1;
     gameListings[21].valueWriteDuration = 0;
-    scoreMonitorListings[21].scoreBytes[0] = 0xFF0B;
+    scoreMonitorListings[21].scoreBytes[0] = 0xFF0B; // have to use score because SoR 1 doesn't show enemy health
     scoreMonitorListings[21].scoreBytes[1] = 0xFF08;
     scoreMonitorListings[21].scoreBytesP2[0] = 0;
     scoreMonitorListings[21].scoreBytesP2[1] = 0;
@@ -370,13 +370,19 @@ void cartLoader_run() {
     gameListings[22].timeBytes[0] = 0;
     gameListings[22].timeByteDestinations[0] = 1;
     gameListings[22].valueWriteDuration = 0;
-    scoreMonitorListings[22].scoreBytes[0] = 0xEF99;
-    scoreMonitorListings[22].scoreBytes[1] = 0xEF96;
-    scoreMonitorListings[22].scoreBytesP2[0] = 0;
-    scoreMonitorListings[22].scoreBytesP2[1] = 0;
-    scoreMonitorListings[22].calculatationType = 1;
-    scoreMonitorListings[22].scoreJumpForTrigger = 99;
+    // scoreMonitorListings[22].scoreBytes[0] = 0xEF99;
+    // scoreMonitorListings[22].scoreBytes[1] = 0xEF96;
+    // scoreMonitorListings[22].scoreBytesP2[0] = 0;
+    // scoreMonitorListings[22].scoreBytesP2[1] = 0;
+    // scoreMonitorListings[22].calculatationType = 1;
+    // scoreMonitorListings[22].scoreJumpForTrigger = 99;
     gameListings[22].ringSwitchCooldown = 2;
+    pixelMonitorListings[22].xCoords[0] = 0x18; // the last pixel of the
+    pixelMonitorListings[22].yCoords[0] = 0x24; // health bar
+    pixelMonitorListings[22].allowedColours[0] = 0x46; // red
+    pixelMonitorListings[22].allowedColours[1] = 0x4D; // yellow
+    pixelMonitorListings[22].changeMustAffectColour = 0x46; // <--- only act when yellow enemy health turns red
+    pixelMonitorListings[22].enabled = 1; 
     
     writeStringToArray32("BAREKNUCKLE3", gameListings[23].gameId); // <-- Streets of Rage 3
     gameListings[23].ringByte = 0;
@@ -386,13 +392,19 @@ void cartLoader_run() {
     gameListings[23].timeBytes[0] = 0;
     gameListings[23].timeByteDestinations[0] = 1;
     gameListings[23].valueWriteDuration = 0;
-    scoreMonitorListings[23].scoreBytes[0] = 0xDF82;
-    scoreMonitorListings[23].scoreBytes[1] = 0xDF83;
-    scoreMonitorListings[23].scoreBytesP2[0] = 0;
-    scoreMonitorListings[23].scoreBytesP2[1] = 0;
-    scoreMonitorListings[23].calculatationType = 0;
-    scoreMonitorListings[23].scoreJumpForTrigger = 99;
+    // scoreMonitorListings[23].scoreBytes[0] = 0xDF82;
+    // scoreMonitorListings[23].scoreBytes[1] = 0xDF83;
+    // scoreMonitorListings[23].scoreBytesP2[0] = 0;
+    // scoreMonitorListings[23].scoreBytesP2[1] = 0;
+    // scoreMonitorListings[23].calculatationType = 0;
+    // scoreMonitorListings[23].scoreJumpForTrigger = 99;
     gameListings[23].ringSwitchCooldown = 2;
+    pixelMonitorListings[23].xCoords[0] = 0x18; // the last pixel of the
+    pixelMonitorListings[23].yCoords[0] = 0x24; // health bar
+    pixelMonitorListings[23].allowedColours[0] = 0x46; // red
+    pixelMonitorListings[23].allowedColours[1] = 0x4D; // yellow
+    pixelMonitorListings[23].changeMustAffectColour = 0x46; // <--- only act when yellow enemy health turns red
+    pixelMonitorListings[23].enabled = 1; 
 
 
     writeStringToArray32("THESUPERSHINOBI2", gameListings[24].gameId); // <-- Shinobi III
@@ -499,6 +511,15 @@ void cartLoader_run() {
     gameListings[29].livesByteDestinations[0] = 0x5; 
     gameListings[29].valueWriteDuration = 300;
 
+    writeStringToArray32("STREETSOFRAGE3", gameListings[30].gameId); // <-- Streets of Rage 3
+    copyGameListing(23, 30);
+
+    writeStringToArray32("STREETSOFRAGE2", gameListings[31].gameId); // <-- Streets of Rage 3
+    copyGameListing(22, 31);
+
+    writeStringToArray32("STREETSOFRAGE", gameListings[32].gameId); // <-- Streets of Rage 3
+    copyGameListing(21, 32);
+
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
     // 15250 = Sonic Chaos GG
@@ -508,7 +529,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 30;
+    gameListingCount = 33;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
