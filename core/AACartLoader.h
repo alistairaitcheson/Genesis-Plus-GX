@@ -72,4 +72,7 @@ int fileName256IsCD(char fileName[]);
 
 void zeroAllListings();
 
+extern void cartLoader_updatePixelTracker(int line, unsigned char linebuf[2][0x200]);
+extern void cartLoader_checkPixelTrackerForStateChange();
+
 #endif

@@ -21,6 +21,7 @@
 #define MENU_LISTING_SAVE_STATE_OPTIONS 10
 #define MENU_LISTING_SONIC_SPECIFIC_OPTIONS 11
 #define MENU_LISTING_VISUALS_OPTIONS 12
+#define MENU_LISTING_PIXEL_DETECTIVE 13
 
 
 typedef struct {
@@ -65,6 +66,12 @@ typedef struct {
     int shouldShowTracker;
 } RamDetectiveOptions;
 
+typedef struct {
+    int coordsListings[8][4];
+    int coordsListingIndex;
+    int shouldShow;
+} PixelDetectiveOptions;
+
 extern void menuDisplay_showMenu(int menuNum);
 extern void menuDisplay_hideMenu();
 extern int menuDisplay_onButtonPress(int buttonIndex);
@@ -76,6 +83,8 @@ extern PersistValuesOptions menuDisplay_getPersistValuesOptions();
 extern void menuDisplay_renderRamDetective();
 extern void menuDisplay_updateRamDetective();
 extern void menuDisplay_logRamStateToTrackedValues();
+extern void menuDisplay_renderPixelDetective();
+extern void menuDisplay_updatePixelDetective(int line, uint8 linebuf[2][0x200]);
 
 void beginGame();
 void showTitleMenu();
@@ -101,6 +110,8 @@ void showInGameOptionsMenu();
 void showRamDetectiveMenu();
 void ramDetectivePressFaceButton(int direction);
 void ramDetectivePressDPadDir(int direction);
+void pixelDetectivePressFaceButton(int direction);
+void pixelDetectivePressDPadDir(int direction);
 
 void chooseMainMenuOption();
 
@@ -109,6 +120,7 @@ void showQualityOfLifeOptionsMenu();
 void showSaveStateOptionsMenu();
 void showSonicSpecificOptionsMenu();
 void showVisualsOptionsMenu();
+void showPixelDetectiveMenu();
 
 void incrementGameSwapOption(int direction);
 void incrementQualityOfLifeOption(int direction);

@@ -65,6 +65,10 @@ void modConsole_flagToSummonMenu() {
     countdownToSummonMenu = 60;
 }
 
+void modConsole_setCountdownUntilRingSwitch(int toValue) {
+    countdownUntilRingSwitch = toValue;
+}
+
 void modConsole_initialise() {
     if (hasInitialised == 0) {
         layerRenderer_populateLetters();
@@ -263,6 +267,7 @@ void modConsole_updateFrame() {
 
         menuDisplay_updateRamDetective();
         menuDisplay_renderRamDetective();
+        menuDisplay_renderPixelDetective();
 
         if (countdownUntilLogRamState > 0) {
             countdownUntilLogRamState --;
@@ -601,6 +606,10 @@ void updateSwitchGameOnRing() {
             promptSwitchGame();
         }
     }
+
+    if (switchAfterTimeCounter <= 0) {
+        cartLoader_checkPixelTrackerForStateChange();
+    }
 }
 
 int ringCountHasChanged() {
@@ -623,6 +632,17 @@ int ringCountHasChanged() {
 
         if (currentRingCount != 0 && currentRingCount != lastRingCount && difference < 6) {
             return 1;
+        }
+    }
+
+    for (int i = 0; i < 8; i++) {
+        if (activeGameListing.bytesToTestForChange[i] != 0) {
+            unsigned int lastVal = aa_genesis_getLastWorkRam(activeGameListing.bytesToTestForChange[i]);
+            unsigned int currentVal = aa_genesis_getWorkRam(activeGameListing.bytesToTestForChange[i]);
+
+            if (lastVal != currentVal) {
+                return 1;
+            }
         }
     }
 
@@ -702,7 +722,24 @@ void modConsole_getMasterSystemProductId(char intoArray[]) {
     sprintf(intoArray, "%02X%02X%01X", getCartValueAtIndex(0x7FFC), getCartValueAtIndex(0x7FFD), getCartValueAtIndex(0x7FFE) / 0x10);
 }
 
+void modConsole_getRomFingerprint(char intoArray[], int location) {
+    for (int i = 0; i < 0x20; i++) {
+        intoArray[i] = getCartValueAtIndex(location + i);
+    }
+}
+
 void modConsole_getRomHeader(char intoArray[]) {
+    // cartLoader_appendToLog("***** modConsole_getRomHeader");
+
+    // if (frameCount > 100) {
+        // for (int i = 0; i < 0x200; i++) {
+        //     uint8 character = getCartValueAtIndex(i);
+        //     char logMsg[0x20];
+        //     sprintf(logMsg, "%02X: %02X", i, character);
+        //     cartLoader_appendToLog(logMsg);
+        // }
+    // }
+
     uint8 tempHeader[0x20];
     for (int i = 0; i < 0x20; i++) {
         tempHeader[i] = 0;
@@ -710,7 +747,7 @@ void modConsole_getRomHeader(char intoArray[]) {
 
     uint8 byteArray[0x20];
     for (int i = 0; i < 0x20; i++) {
-        int index = 0x100 + 0x20 + i;
+        int index = 0x100 + 0x50 + i;
         if (i % 2 == 0) {
             index += 1;
         } else {
@@ -719,10 +756,14 @@ void modConsole_getRomHeader(char intoArray[]) {
         uint8 character = getCartValueAtIndex(index);
         tempHeader[i] = character;
     }
+    // cartLoader_appendToLog(tempHeader);
     
     uint8 tidiedHeader[0x20];
     int tempIndex = 0;
     for (int i = 0; i < 0x20; i++) {
+        // char logMsg[0x20];
+        // sprintf(logMsg, "%02X: %02X", i, tempHeader[i]);
+        // cartLoader_appendToLog(logMsg);
         if (tempHeader[i] != 0 && tempHeader[i] != ' ') {
             tidiedHeader[tempIndex] = tempHeader[i];
             tempIndex++;
@@ -730,6 +771,12 @@ void modConsole_getRomHeader(char intoArray[]) {
     }
     if (tempIndex < 0x20) {
         tidiedHeader[tempIndex] = '\0';
+    }
+
+    // if no luck getting a header, just check a weird location
+    if (tempIndex == 0) {
+        modConsole_getRomFingerprint(tidiedHeader, 0x10000);
+        tempIndex = 0x1C;
     }
 
     for (int i = 0; i < 0x20; i++) {

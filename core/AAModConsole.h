@@ -11,6 +11,7 @@ extern void modConsole_getRomHeader(char intoArray[]);
 extern void modConsole_getMasterSystemProductId(char intoArray[]);
 extern int modconsole_array32sAreEqual(char arrayA[], char arrayB[]);
 extern void modConsole_updateActiveCart();
+void modConsole_getRomFingerprint(char intoArray[], int location);
 
 extern int getButtonState(uint16 whichInput);
 extern int getLastButtonState(uint16 whichInput);
@@ -29,6 +30,7 @@ extern void modConsole_applyHackOptions();
 extern void modConsole_flagToApplyCache();
 extern void modConsole_flagToSummonMenu();
 extern void modConsole_flagToLogRamState();
+extern void modConsole_setCountdownUntilRingSwitch(int toValue);
 
 int lengthOfString256(char string256[]);
 
@@ -38,7 +40,7 @@ void updateLives();
 void updateTime() ;
 void updateSwitchGameOnRing();
 void showRomList();
-void promptSwitchGame();
+extern void promptSwitchGame();
 void switchGame();
 void clearCooldownVisualiser();
 void showCooldownVisualiser();

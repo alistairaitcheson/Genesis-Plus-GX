@@ -27,10 +27,14 @@ static AAGameListing gameListings[MAX_ROMS];
 static AAGameTransferListing gameTransferListings[MAX_ROMS];
 static AAScoreMonitorListing scoreMonitorListings[MAX_ROMS];
 static AALevelEditListing levelEditListings[MAX_ROMS];
+static AAPixelMonitorListing pixelMonitorListings[MAX_ROMS];
 static unsigned char gameAltIds[MAX_ROMS][0x80];
 static int gameListingCount = 0;
 
 static unsigned char romHeaderBuffer[0x20];
+
+static int lastPixelStatesPerGame[MAX_ROMS][0x100];
+static int pixelStatesPerGame[MAX_ROMS][0x100];
 
 static char *completeLog = "";
 
@@ -54,6 +58,8 @@ static unsigned char lastSystemType;
 static int hasBeenNonSMS = 0;
 
 static int foundZipFiles = 0;
+
+static int cachedCartIndex = 0;
 
 void writeFolderPathIntoArray32(char array32[]) {
     writeStringToArray32(folderPath, array32);
@@ -439,6 +445,60 @@ void cartLoader_run() {
     scoreMonitorListings[26].scoreJumpForTrigger = 0;
     gameListings[26].ringSwitchCooldown = 2;
 
+    writeStringToArray32("MICROMACHINESII", gameListings[27].gameId); // <-- SHADOWDANCER
+    pixelMonitorListings[27].xCoords[0] = 0x1C;
+    pixelMonitorListings[27].xCoords[1] = 0x1C;
+    pixelMonitorListings[27].xCoords[2] = 0x1C;
+    pixelMonitorListings[27].xCoords[3] = 0x1C;
+    pixelMonitorListings[27].yCoords[0] = 0x1D; // first helmet
+    pixelMonitorListings[27].yCoords[1] = 0x30; // second helmet
+    pixelMonitorListings[27].yCoords[2] = 0x42; // third helmet
+    pixelMonitorListings[27].yCoords[3] = 0x54; // fourth helmet
+    pixelMonitorListings[27].allowedColours[0] = 0xB3; // blue helmet
+    pixelMonitorListings[27].allowedColours[1] = 0xA3; // green helmet
+    pixelMonitorListings[27].allowedColours[2] = 0xB7; // red helmet
+    pixelMonitorListings[27].allowedColours[3] = 0xA7; // yellow helmet
+    pixelMonitorListings[27].changeMustAffectColour = 0xB7; // <--- only act when red changes position
+    pixelMonitorListings[27].enabled = 1; // not on because it is disappointing
+    gameListings[27].bytesToTestForChange[0] = 0xD964; // swap on new lap
+    gameListings[27].bytesToTestForChange[1] = 0xD77E; // swap on battle score change
+    gameListings[27].ringSwitchCooldown = 15;
+    gameListings[27].livesBytes[0] = 0xF330;
+    gameListings[27].livesByteDestinations[0] = 0x5; 
+
+
+    writeStringToArray32("MicroMachines96", gameListings[28].gameId); // <-- Micro Machines 96 (has no header???)
+    copyGameListing(27, 28);
+    // the below comes from the fingerprint
+    sprintf(gameAltIds[28], "393AFFFF9AE6C18A 052C4548784AA8CF 0667FCCA18000460 FCCA200045000000");
+    gameListings[28].bytesToTestForChange[0] = 0xD164; // swap on new lap
+    gameListings[28].bytesToTestForChange[1] = 0xCF7E; // swap on battle score change
+    gameListings[28].livesBytes[0] = 0xE776;
+    gameListings[28].livesByteDestinations[0] = 0x5; 
+
+    writeStringToArray32("MicroMachines", gameListings[29].gameId); // <-- Micro Machines 96 (has no header???)
+    sprintf(gameAltIds[29], "569A754E0061BAFF B94E000086A73C36 0000F94100001D9F 3C300E003C000000");
+    pixelMonitorListings[29].xCoords[0] = 0x1C;
+    pixelMonitorListings[29].xCoords[1] = 0x1C;
+    pixelMonitorListings[29].xCoords[2] = 0x1C;
+    pixelMonitorListings[29].xCoords[3] = 0x1C;
+    pixelMonitorListings[29].yCoords[0] = 0x26; // first helmet
+    pixelMonitorListings[29].yCoords[1] = 0x36; // second helmet
+    pixelMonitorListings[29].yCoords[2] = 0x46; // third helmet
+    pixelMonitorListings[29].yCoords[3] = 0x56; // fourth helmet
+    pixelMonitorListings[29].allowedColours[0] = 0xA5; // blue helmet
+    pixelMonitorListings[29].allowedColours[1] = 0xB5; // green helmet
+    pixelMonitorListings[29].allowedColours[2] = 0xA9; // red helmet
+    pixelMonitorListings[29].allowedColours[3] = 0xB8; // yellow helmet
+    pixelMonitorListings[29].changeMustAffectColour = 0xB8; // <--- only act when red changes position
+    pixelMonitorListings[29].enabled = 1; // not on because it is disappointing
+    gameListings[29].bytesToTestForChange[0] = 0xA69E; // swap on new lap
+    gameListings[29].bytesToTestForChange[1] = 0xA6C0; // swap on battle score change
+    gameListings[29].ringSwitchCooldown = 15;
+    gameListings[29].livesBytes[0] = 0xA6C6;
+    gameListings[29].livesByteDestinations[0] = 0x5; 
+    gameListings[29].valueWriteDuration = 300;
+
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
     // 15250 = Sonic Chaos GG
@@ -448,7 +508,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 27;
+    gameListingCount = 30;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
@@ -474,6 +534,8 @@ void zeroAllListings() {
             gameTransferListings[gameIndex].timeBytesForTransfer[i] = 0;
             gameTransferListings[gameIndex].momentumBytesForTransfer[i] = 0;
             gameTransferListings[gameIndex].scoreBytesForTransfer[i] = 0;
+
+            gameListings[gameIndex].bytesToTestForChange[i] = 0;
         }
 
         for (int i = 0; i < 8; i++) {
@@ -486,6 +548,16 @@ void zeroAllListings() {
 
         levelEditListings[gameIndex].startByte = 0;
         levelEditListings[gameIndex].endByte = 0;
+
+        pixelMonitorListings[gameIndex].enabled = 0;
+
+        for (int i = 0; i < 0x100; i++) {
+            pixelStatesPerGame[gameIndex][i] = 0;
+            pixelMonitorListings[gameIndex].xCoords[i] = 0;
+            pixelMonitorListings[gameIndex].yCoords[i] = 0;
+            pixelMonitorListings[gameIndex].allowedColours[i] = 0;
+
+        }
     }
 }
 
@@ -751,6 +823,8 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     //     }
     //     lastSystemType = system_hw;
     // }
+
+    cachedCartIndex = cartLoader_getActiveCartIndex();
 }
 
 int fileName256IsCD(char fileName[]) {
@@ -1038,6 +1112,8 @@ void copyGameListing(int fromGame, int toGame) {
         gameListings[toGame].panicByteDestinations[i] = gameListings[fromGame].panicByteDestinations[i];
         gameListings[toGame].updateHUDFlags[i] = gameListings[fromGame].updateHUDFlags[i];
 
+        gameListings[toGame].bytesToTestForChange[i] = gameListings[fromGame].bytesToTestForChange[i];
+
         gameTransferListings[toGame].ringBytesForTransfer[i] = gameTransferListings[fromGame].ringBytesForTransfer[i];
         gameTransferListings[toGame].speedBytesForTransfer[i] = gameTransferListings[fromGame].speedBytesForTransfer[i];
         gameTransferListings[toGame].timeBytesForTransfer[i] = gameTransferListings[fromGame].timeBytesForTransfer[i];
@@ -1055,6 +1131,16 @@ void copyGameListing(int fromGame, int toGame) {
 
     levelEditListings[toGame].startByte = levelEditListings[fromGame].startByte;
     levelEditListings[toGame].endByte = levelEditListings[fromGame].endByte;
+
+    pixelMonitorListings[toGame].enabled = pixelMonitorListings[fromGame].enabled;
+    for (int i = 0; i < 0x100; i++) {
+        pixelMonitorListings[toGame].xCoords[i] = pixelMonitorListings[fromGame].xCoords[i];
+        pixelMonitorListings[toGame].yCoords[i] = pixelMonitorListings[fromGame].yCoords[i];
+        pixelMonitorListings[toGame].allowedColours[i] = pixelMonitorListings[fromGame].allowedColours[i];
+
+    }
+    pixelMonitorListings[toGame].changeMustAffectColour = pixelMonitorListings[fromGame].changeMustAffectColour;
+
 }
 
 void saveSaveStateForCurrentGame() {
@@ -1449,5 +1535,84 @@ void writeShortenedFileName(char source256[], char output256[], int length) {
             buffer[i + 1] = '\0';
         }
         sprintf(output256, "%s.%s", buffer, afterDecimal);
+    }
+}
+
+void cartLoader_updatePixelTracker(int line, unsigned char linebuf[2][0x200]) {
+    if (pixelMonitorListings[cachedCartIndex].enabled == 0) {
+        return;
+    }
+
+    for (int i = 0; i < 0x100; i++) {
+        int xPos = pixelMonitorListings[cachedCartIndex].xCoords[i];
+        int yPos = pixelMonitorListings[cachedCartIndex].yCoords[i];
+
+        if (xPos > 0 || yPos > 0) {
+            if (yPos == line) {
+                pixelStatesPerGame[cachedCartIndex][i] = linebuf[0][0x20 + xPos];
+            }
+        } else {
+            break;
+        }
+    }
+}
+
+
+void cartLoader_checkPixelTrackerForStateChange() {
+    if (pixelMonitorListings[cachedCartIndex].enabled == 0) {
+        return;
+    }
+
+    int allValuesOkay = 1;
+    int aValueHasChanged = 0;
+
+    int targetColourWasChanged = 0;
+    if (pixelMonitorListings[cachedCartIndex].changeMustAffectColour == 0) {
+        targetColourWasChanged = 1;
+    }
+
+    for (int i = 0; i < 0x100; i++) {
+        int xPos = pixelMonitorListings[cachedCartIndex].xCoords[i];
+        int yPos = pixelMonitorListings[cachedCartIndex].yCoords[i];
+
+        if (xPos > 0 || yPos > 0) {
+            if (pixelStatesPerGame[cachedCartIndex][i] != lastPixelStatesPerGame[cachedCartIndex][i]) {
+                aValueHasChanged = 1;
+                int thisPixelAllowed = 0;
+                for (int j = 0; j < 0x100; j++) {
+                    if (pixelMonitorListings[cachedCartIndex].allowedColours[j] == 0) {
+                        break;
+                    }
+                    if (pixelStatesPerGame[cachedCartIndex][i] == pixelMonitorListings[cachedCartIndex].allowedColours[j]) {
+                        thisPixelAllowed = 1;
+                    }
+                }
+
+                if (pixelStatesPerGame[cachedCartIndex][i] == pixelMonitorListings[cachedCartIndex].changeMustAffectColour) {
+                    targetColourWasChanged = 1;
+                }
+
+                if (thisPixelAllowed == 0) {
+                    allValuesOkay = 0;
+                    break;
+                }
+            }
+        } else {
+            break;
+        }
+    }
+
+    if (allValuesOkay == 1 && aValueHasChanged == 1) {
+        for (int i = 0; i < 0x100; i++) {
+            lastPixelStatesPerGame[cachedCartIndex][i] = pixelStatesPerGame[cachedCartIndex][i];
+        }
+
+        if (targetColourWasChanged) {
+            if (cartLoader_getActiveGameListing().ringSwitchCooldown > 0) {
+                modConsole_setCountdownUntilRingSwitch(cartLoader_getActiveGameListing().ringSwitchCooldown);
+            } else {
+                promptSwitchGame();
+            }
+        }
     }
 }

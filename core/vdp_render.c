@@ -44,6 +44,7 @@
 #include "sms_ntsc.h"
 
 #include "AACartLoader.h"
+#include "AAMenuDisplay.h"
 
 #ifndef HAVE_NO_SPRITE_LIMIT
 #define MAX_SPRITES_PER_LINE 20
@@ -4268,6 +4269,8 @@ void render_line(int line)
     /* Render sprite layer */
     render_obj(line & 1);
 
+    menuDisplay_updatePixelDetective(line, linebuf);
+    cartLoader_updatePixelTracker(line, linebuf);
     drawTextLayers(line);
 
     /* Left-most column blanking */

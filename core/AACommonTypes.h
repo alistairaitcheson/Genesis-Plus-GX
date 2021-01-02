@@ -17,6 +17,7 @@ typedef struct
     char gameId[0x20];
     int ringByte;
     int specialRingByte;
+    int bytesToTestForChange[8];
     int updateHUDFlags[8];
     int livesBytes[8];
     int livesByteDestinations[8];
@@ -50,6 +51,16 @@ typedef struct
     int blockJumpFromZero;
     // int significantScoreThresholds[8]; // e.g. switch when your score goes up by [A, B, C, ...] - or when it goes past this threshold? Which is more interesting? Probably the latter
 } AAScoreMonitorListing;
+
+typedef struct
+{
+    int xCoords[0x100];
+    int yCoords[0x100];
+    int allowedColours[0x100];
+    int changeMustAffectColour;
+    int enabled;
+} AAPixelMonitorListing;
+
 
 typedef struct {
     unsigned int startByte;

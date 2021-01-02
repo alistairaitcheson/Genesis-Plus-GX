@@ -24,9 +24,10 @@ static int qualityOfLifeOptionIndex = 0;
 static int saveStateOptionIndex = 0;
 static int sonicSpecificOptionIndex = 0;
 static int visualsOptionIndex = 0;
+static int pixelDetectiveIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 10;
+static int minorVersion = 11;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -39,12 +40,15 @@ static int saveStateWasLoaded = 0;
 static HackOptions hackOptions;
 static PersistValuesOptions persistValuesOptions;
 static RamDetectiveOptions ramDetectiveOptions;
+static PixelDetectiveOptions pixelDetectiveOptions;
 static int logRamStateCounter[0x10000];
 
 static int trackedRamFrameCounts[0x10000];
 // static int trackedRamLocationCount = 0;
 
 static int maxFileNameLength = 28;
+
+static int trackedPixelValues[8];
 
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
@@ -201,6 +205,60 @@ void menuDisplay_renderRamDetective() {
                 y = startY;
                 x += width + 1;
             }
+        }
+    }
+}
+
+void menuDisplay_updatePixelDetective(int line, uint8 linebuf[2][0x200]) {
+    if (pixelDetectiveOptions.shouldShow != 1) {
+        return;
+    }
+
+    for (int i = 0; i < 8; i++) {
+        int xPos = (pixelDetectiveOptions.coordsListings[i][0] * 0x10)
+            + (pixelDetectiveOptions.coordsListings[i][1] * 0x01);
+        int yPos = (pixelDetectiveOptions.coordsListings[i][2] * 0x10)
+            + (pixelDetectiveOptions.coordsListings[i][3] * 0x01);
+
+        if (xPos > 0 || yPos > 0) {
+            if (yPos == line) {
+                trackedPixelValues[i] = linebuf[0][0x20 + xPos];
+            }
+        } else {
+            trackedPixelValues[i] = -1;
+        }
+    }
+}
+
+void menuDisplay_renderPixelDetective() {
+    if (pixelDetectiveOptions.shouldShow != 1) {
+        return;
+    }
+
+    layerRenderer_clearLayer(0);
+
+    int xCoords[8];
+    int yCoords[8];
+
+    for (int i = 0; i < 8; i++) {
+        int xPos = (pixelDetectiveOptions.coordsListings[i][0] * 0x10)
+            + (pixelDetectiveOptions.coordsListings[i][1] * 0x01);
+        int yPos = (pixelDetectiveOptions.coordsListings[i][2] * 0x10)
+            + (pixelDetectiveOptions.coordsListings[i][3] * 0x01);
+        xCoords[i] = xPos;
+        yCoords[i] = yPos;
+    }
+
+    for (int i = 0; i < 8; i++) {
+        if (trackedPixelValues[i] != -1) {
+            layerRenderer_fill(0, xCoords[i]-1, yCoords[i]-1, 1, 3, 0xFF);
+            layerRenderer_fill(0, xCoords[i], yCoords[i]-1, 1, 1, 0xFF);
+            layerRenderer_fill(0, xCoords[i], yCoords[i]+1, 1, 1, 0xFF);
+            layerRenderer_fill(0, xCoords[i]+1, yCoords[i]-1, 1, 3, 0xFF);
+            char pixelText[0x20];
+            sprintf(pixelText, "%02X", trackedPixelValues[i]);
+            layerRenderer_fill(0, xCoords[i]+1, yCoords[i]+1, 16, 8, 0xFF);
+            layerRenderer_writeWord256(0, xCoords[i], yCoords[i], pixelText, 5);
         }
     }
 }
@@ -443,6 +501,10 @@ void menuDisplay_showMenu(int menuNum) {
 
     if (activeMenu == MENU_LISTING_RAM_DETECTIVE) {
         showRamDetectiveMenu();
+    }
+    
+    if (activeMenu == MENU_LISTING_PIXEL_DETECTIVE) {
+        showPixelDetectiveMenu();
     }
 
     if (activeMenu == MENU_LISTING_GAME_SWAP_OPITONS) {
@@ -699,6 +761,92 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
     }
 
+    if (activeMenu == MENU_LISTING_RAM_DETECTIVE) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            ramDetectiveIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            ramDetectiveIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_LEFT) {
+            ramDetectivePressDPadDir(-1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_RIGHT) {
+            ramDetectivePressDPadDir(1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C) {
+            ramDetectivePressFaceButton(1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B) {
+            ramDetectivePressFaceButton(-1);
+            refreshMenu();
+            return 1;
+        }
+
+
+        if (buttonIndex == INPUT_INDEX_START) {
+            menuDisplay_hideMenu();
+            return 1;
+        }
+    }
+
+    if (activeMenu == MENU_LISTING_PIXEL_DETECTIVE) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            pixelDetectiveIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            pixelDetectiveIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_LEFT) {
+            pixelDetectivePressDPadDir(-1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_RIGHT) {
+            pixelDetectivePressDPadDir(1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C) {
+            pixelDetectivePressFaceButton(1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B) {
+            pixelDetectivePressFaceButton(-1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_START) {
+            menuDisplay_hideMenu();
+            return 1;
+        }
+    }
+
+
     if (activeMenu == MENU_LISTING_GAME_SWAP_OPITONS) {
         if (buttonIndex == INPUT_INDEX_UP) {
             gameSwapOptionIndex--;
@@ -954,6 +1102,19 @@ void ramDetectivePressFaceButton(int direction) {
     }
 }
 
+void pixelDetectivePressFaceButton(int direction) {
+    for (int trackerIdx = 0; trackerIdx < 8; trackerIdx++) {
+        if (pixelDetectiveIndex == trackerIdx) {
+            int col = pixelDetectiveOptions.coordsListingIndex;
+            pixelDetectiveOptions.coordsListings[trackerIdx][col] += direction;
+        } 
+    }
+
+    if (pixelDetectiveIndex == 8) {
+        pixelDetectiveOptions.shouldShow += direction;
+    }
+}
+
 void ramDetectivePressDPadDir(int direction) {
     if (ramDetectiveIndex == 0) {
         ramDetectiveOptions.startValueIndex += direction;
@@ -986,6 +1147,18 @@ void ramDetectivePressDPadDir(int direction) {
     }
     if (ramDetectiveIndex == 15) {
         clearLogRamState();
+    }
+}
+
+void pixelDetectivePressDPadDir(int direction) {
+    for (int trackerIdx = 0; trackerIdx < 8; trackerIdx++) {
+        if (pixelDetectiveIndex == trackerIdx) {
+            pixelDetectiveOptions.coordsListingIndex += direction;
+        } 
+    }
+
+    if (pixelDetectiveIndex == 8) {
+        pixelDetectiveOptions.shouldShow += direction;
     }
 }
 
@@ -1058,6 +1231,10 @@ void activateInGameMenuItem() {
             trackedRamFrameCounts[i] = 0;
         }
         queuedMenu = MENU_LISTING_RAM_DETECTIVE;
+    }
+    if (inGameOptionIndex == 9) {
+        pixelDetectiveIndex = 0;
+        queuedMenu = MENU_LISTING_PIXEL_DETECTIVE;
     }
 
     inGameOptionIndex = 0;
@@ -1265,7 +1442,7 @@ void showInGameOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "--- press A/B/C to activate option ---", 5);
 
-    int lineCount = 10;
+    int lineCount = 11;
     char lines[lineCount][0x80];
 
     int hintLineCount = 5;
@@ -1302,7 +1479,8 @@ void showInGameOptionsMenu() {
         sprintf(hintLines[1], "  values can be used to get specific");
         sprintf(hintLines[2], "  game events");
     }
-    sprintf(lines[9], "Back to game");
+    sprintf(lines[9], "Pixel detective tool >>");
+    sprintf(lines[10], "Back to game");
 
     int yPos = 48;
     for (int i = 0; i < lineCount; i++) {
@@ -1647,6 +1825,78 @@ void showRamDetectiveMenu() {
         yPos += 8;
     }
 }
+
+void showPixelDetectiveMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Pixel Detective", 5);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to confirm ---", 5);
+
+    int lineCount = 9;
+    char lines[lineCount][0x80];
+
+    if (pixelDetectiveIndex < 0) {
+        pixelDetectiveIndex = lineCount - 1;
+    }
+    if (pixelDetectiveIndex >= lineCount) {
+        pixelDetectiveIndex = 0;
+    }
+
+    if (pixelDetectiveOptions.coordsListingIndex < 0) {
+        pixelDetectiveOptions.coordsListingIndex = 0;
+    }
+    if (pixelDetectiveOptions.coordsListingIndex > 3) {
+        pixelDetectiveOptions.coordsListingIndex = 3;
+    }
+
+    for (int trackIdx = 0; trackIdx < 8; trackIdx++) {
+        char trackValuesText[4][0x10];
+        int lineIdx = trackIdx;
+        for (int i = 0; i < 4; i++) {
+            if (pixelDetectiveOptions.coordsListings[trackIdx][i] < 0) {
+                pixelDetectiveOptions.coordsListings[trackIdx][i] = 0xF;
+            }
+            if (pixelDetectiveOptions.coordsListings[trackIdx][i] > 0xF) {
+                pixelDetectiveOptions.coordsListings[trackIdx][i] = 0;
+            }
+
+            if (pixelDetectiveIndex == lineIdx && pixelDetectiveOptions.coordsListingIndex == i) {
+                sprintf(trackValuesText[i], "<%X>", pixelDetectiveOptions.coordsListings[trackIdx][i]);
+            } else {
+                sprintf(trackValuesText[i], " %X ", pixelDetectiveOptions.coordsListings[trackIdx][i]);
+            }
+        }
+        sprintf(lines[lineIdx], "Track %i:  X:%s%s, Y:%s%s", trackIdx, trackValuesText[0], trackValuesText[1], trackValuesText[2], trackValuesText[3]);
+    }
+
+    if (pixelDetectiveOptions.shouldShow > 1) {
+        pixelDetectiveOptions.shouldShow = 0;
+    }
+    if (pixelDetectiveOptions.shouldShow < 0) {
+        pixelDetectiveOptions.shouldShow = 1;
+    }
+
+    if (pixelDetectiveOptions.shouldShow == 0) {
+        sprintf(lines[8], "SHOW PIXEL VALUES:   OFF");
+    } else {
+        sprintf(lines[8], "SHOW PIXEL VALUES:    ON");
+    }
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        char toPrint[0x100];
+        if (i == pixelDetectiveIndex) {
+            sprintf(toPrint, "> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "  %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+        yPos += 8;
+    }
+}
+
 
 void showGameSwapOptionsMenu() {
     layerRenderer_clearLayer(0);
