@@ -524,6 +524,19 @@ void cartLoader_run() {
     writeStringToArray32("STREETSOFRAGE", gameListings[32].gameId); // <-- Streets of Rage 3
     copyGameListing(21, 32);
 
+    writeStringToArray32("AfterBurnerII", gameListings[33].gameId);
+    sprintf(gameAltIds[33], "B1CCC0B0CADEB0C5 B049490000000000 0000000000000000 0000000000000000");
+    gameListings[33].ringByte = 0x06C8;
+
+    writeStringToArray32("GUNSTARHEROES", gameListings[34].gameId);
+    scoreMonitorListings[34].scoreBytes[0] = 0xA469;
+    scoreMonitorListings[34].scoreBytes[1] = 0xA466;
+    scoreMonitorListings[34].scoreBytes[2] = 0xA467;
+    scoreMonitorListings[34].calculatationType = 1;
+    scoreMonitorListings[34].scoreJumpForTrigger = 29;
+    gameListings[34].ringSwitchCooldown = 2;
+
+
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
     // 15250 = Sonic Chaos GG
@@ -533,7 +546,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 33;
+    gameListingCount = 35;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
