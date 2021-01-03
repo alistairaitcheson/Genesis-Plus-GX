@@ -29,6 +29,8 @@ typedef struct
     int valueWriteDuration;
     int isISO;
     int ringSwitchCooldown;
+    int unpauseByte;
+    int unpauseByteDestination;
 } AAGameListing;
 
 typedef struct

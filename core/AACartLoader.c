@@ -152,6 +152,8 @@ void cartLoader_run() {
     gameTransferListings[1].scoreBytesForTransfer[3] = 0xFE29;
     levelEditListings[1].startByte = 0xA408;
     levelEditListings[1].endByte = 0xA800;
+    gameListings[1].unpauseByte = 0xF604; //0xF63A;
+    gameListings[1].unpauseByteDestination = 0x80; // 0x1;
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
     copyGameListing(1, 2);
@@ -542,6 +544,7 @@ void zeroAllListings() {
         gameListings[gameIndex].valueWriteDuration = 0;
         gameListings[gameIndex].isISO = 0;
         gameListings[gameIndex].ringSwitchCooldown = 0;
+        gameListings[gameIndex].unpauseByte = 0;
 
         for (int i = 0; i < 8; i++) {
             gameListings[gameIndex].livesBytes[i] = 0;
@@ -1125,7 +1128,8 @@ void copyGameListing(int fromGame, int toGame) {
     gameListings[toGame].isISO = gameListings[fromGame].isISO;
     gameListings[toGame].ringSwitchCooldown = gameListings[fromGame].ringSwitchCooldown;
     gameListings[toGame].accelerationType = gameListings[fromGame].accelerationType;
-    
+    gameListings[toGame].unpauseByte = gameListings[fromGame].unpauseByte;
+
     for (int i = 0; i < 8; i++) {
         gameListings[toGame].livesBytes[i] = gameListings[fromGame].livesBytes[i];
         gameListings[toGame].livesByteDestinations[i] = gameListings[fromGame].livesByteDestinations[i];

@@ -53,6 +53,8 @@ static int countdownUntilRingSwitch = 0;
 
 static int countdownUntilLogRamState = 0;
 
+static int countdownUntilUnpause = 0;
+
 void modConsole_flagToLogRamState() {
     countdownUntilLogRamState = 1;
 }
@@ -335,6 +337,13 @@ void modConsole_updateFrame() {
             }
         }
 
+        if (countdownUntilUnpause > 0) {
+            countdownUntilUnpause --;
+            if (countdownUntilUnpause == 0) {
+                unpauseGame();
+            }
+        }
+
         // if (switchCooldownPeriod > 0) {
         //     showCooldownVisualiser();
         // }
@@ -442,6 +451,16 @@ void modConsole_updateFrame() {
     aa_genesis_updateLastRam();
 }
 
+void unpauseGame() {
+    if (activeGameListing.unpauseByte > 0) {
+        // this doesn't work yet
+        // cartLoader_appendToLog("unpausing");
+        // aa_genesis_setWorkRam(activeGameListing.unpauseByte, activeGameListing.unpauseByteDestination);
+    } else {
+        // cartLoader_appendToLog("did not unpause");
+    }
+}
+
 void overwriteLevelOnRing() {
     if (ringCountHasChanged() != 0) {
         AALevelEditListing levelEdits = cartLoader_getActiveLevelEditListing();
@@ -533,6 +552,8 @@ void modConsole_activatePanic() {
             break;
         }
     }
+
+    countdownUntilUnpause = 5;
 }
 
 void modConsole_queuePanic() {

@@ -46,4 +46,6 @@ void clearCooldownVisualiser();
 void showCooldownVisualiser();
 void overwriteLevelOnRing();
 
+void unpauseGame();
+
 #endif
