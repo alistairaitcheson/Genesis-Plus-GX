@@ -747,7 +747,7 @@ void modConsole_getRomHeader(char intoArray[]) {
 
     uint8 byteArray[0x20];
     for (int i = 0; i < 0x20; i++) {
-        int index = 0x100 + 0x50 + i;
+        int index = 0x100 + 0x20 + i;
         if (i % 2 == 0) {
             index += 1;
         } else {

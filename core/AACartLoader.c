@@ -349,10 +349,10 @@ void cartLoader_run() {
     writeStringToArray32("BAREKNUCKLE", gameListings[21].gameId); // <-- Streets of Rage 1
     gameListings[21].ringByte = 0;
     gameListings[21].specialRingByte = 0;
-    gameListings[21].livesBytes[0] = 0;
+    gameListings[21].livesBytes[0] = 0xFF21;
     gameListings[21].livesByteDestinations[0] = 0x5; 
-    gameListings[21].timeBytes[0] = 0;
-    gameListings[21].timeByteDestinations[0] = 1;
+    gameListings[21].timeBytes[0] = 0xFB00;
+    gameListings[21].timeByteDestinations[0] = 50;
     gameListings[21].valueWriteDuration = 0;
     scoreMonitorListings[21].scoreBytes[0] = 0xFF0B; // have to use score because SoR 1 doesn't show enemy health
     scoreMonitorListings[21].scoreBytes[1] = 0xFF08;
@@ -365,7 +365,7 @@ void cartLoader_run() {
     writeStringToArray32("BAREKNUCKLE2", gameListings[22].gameId); // <-- Streets of Rage 2
     gameListings[22].ringByte = 0;
     gameListings[22].specialRingByte = 0;
-    gameListings[22].livesBytes[0] = 0;
+    gameListings[22].livesBytes[0] = 0xEF82;
     gameListings[22].livesByteDestinations[0] = 0x5; 
     gameListings[22].timeBytes[0] = 0;
     gameListings[22].timeByteDestinations[0] = 1;
@@ -387,7 +387,7 @@ void cartLoader_run() {
     writeStringToArray32("BAREKNUCKLE3", gameListings[23].gameId); // <-- Streets of Rage 3
     gameListings[23].ringByte = 0;
     gameListings[23].specialRingByte = 0;
-    gameListings[23].livesBytes[0] = 0;
+    gameListings[23].livesBytes[0] = 0xDF8A;
     gameListings[23].livesByteDestinations[0] = 0x5; 
     gameListings[23].timeBytes[0] = 0;
     gameListings[23].timeByteDestinations[0] = 1;
@@ -410,8 +410,10 @@ void cartLoader_run() {
     writeStringToArray32("THESUPERSHINOBI2", gameListings[24].gameId); // <-- Shinobi III
     gameListings[24].ringByte = 0;
     gameListings[24].specialRingByte = 0;
-    gameListings[24].livesBytes[0] = 0;
+    gameListings[24].livesBytes[0] = 0x37E1;
+    gameListings[24].livesBytes[1] = 0x37CD;
     gameListings[24].livesByteDestinations[0] = 0x5; 
+    gameListings[24].livesByteDestinations[1] = 0x5; 
     gameListings[24].timeBytes[0] = 0;
     gameListings[24].timeByteDestinations[0] = 1;
     gameListings[24].valueWriteDuration = 0;
@@ -427,7 +429,7 @@ void cartLoader_run() {
     writeStringToArray32("THESUPERSHINOBI", gameListings[25].gameId); // <-- Revenge of Shinobi
     gameListings[25].ringByte = 0;
     gameListings[25].specialRingByte = 0;
-    gameListings[25].livesBytes[0] = 0;
+    gameListings[25].livesBytes[0] = 0xE140;
     gameListings[25].livesByteDestinations[0] = 0x5; 
     gameListings[25].timeBytes[0] = 0;
     gameListings[25].timeByteDestinations[0] = 1;
@@ -444,7 +446,7 @@ void cartLoader_run() {
     sprintf(gameAltIds[26], "534841444F574441 4E434552896582CC 9591000000000000 0000000000000000");
     gameListings[26].ringByte = 0;
     gameListings[26].specialRingByte = 0;
-    gameListings[26].livesBytes[0] = 0;
+    gameListings[26].livesBytes[0] = 0x13DF;
     gameListings[26].livesByteDestinations[0] = 0x5; 
     gameListings[26].timeBytes[0] = 0;
     gameListings[26].timeByteDestinations[0] = 1;
