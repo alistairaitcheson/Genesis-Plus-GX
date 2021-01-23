@@ -25,6 +25,7 @@ static int saveStateOptionIndex = 0;
 static int sonicSpecificOptionIndex = 0;
 static int visualsOptionIndex = 0;
 static int pixelDetectiveIndex = 0;
+static int networkingOptionsIndex = 0;
 
 static int majorVersion = 0;
 static int minorVersion = 11;
@@ -41,6 +42,7 @@ static HackOptions hackOptions;
 static PersistValuesOptions persistValuesOptions;
 static RamDetectiveOptions ramDetectiveOptions;
 static PixelDetectiveOptions pixelDetectiveOptions;
+static NetworkOptions networkOptions;
 static int logRamStateCounter[0x10000];
 
 static int trackedRamFrameCounts[0x10000];
@@ -57,6 +59,11 @@ HackOptions menuDisplay_getHackOptions() {
 PersistValuesOptions menuDisplay_getPersistValuesOptions() {
     return persistValuesOptions;
 }
+
+NetworkOptions menuDisplay_getNetworkOptions() {
+    return networkOptions;
+}
+
 
 int menuDisplay_isShowing() {
     if (activeMenu == MENU_LISTING_NONE) {
@@ -95,6 +102,16 @@ void menuDisplay_initialise() {
     }
 
     applyDefaultRamDetectiveValues();
+
+    FILE *networkValuesReader = fopen("_magicbox/__networkOptions.data", "rb");
+    if (networkValuesReader) {
+        int networkBuffer[0x100];
+        fread(networkBuffer, sizeof(int), 0x100, networkValuesReader);
+        fclose(networkValuesReader);
+        applyNetworkOptionsFromArray256(networkBuffer);
+    } else {
+        applyNetworkOptionsDefaultValues();
+    }
 }
 
 // void addRamLocationToTracker(int location) {
@@ -332,6 +349,20 @@ void applyPersistValuesFromArray256(int array256[]) {
     persistValuesOptions.score = array256[5];
 }
 
+void applyNetworkOptionsFromArray256(int array256[]) {
+    for (int i = 0; i < 0x100; i++) {
+        if (array256[i] != 0 && i != 3) {
+            array256[i] = 1;
+        }
+    }
+
+    networkOptions.networkingIsActive = array256[0];
+    networkOptions.sendSwitchGame = array256[1];
+    networkOptions.sendSpeedUp = array256[2];
+    networkOptions.sendWriteIntoLevelDifficulty = array256[3];
+    networkOptions.sendRandomiseVelocity = array256[4];
+}
+
 void applyDefaultPersistValues() {
     persistValuesOptions.lives = 0;
     persistValuesOptions.rings = 0;
@@ -370,6 +401,14 @@ void applyDefaultRamDetectiveValues() {
     }
 
     ramDetectiveOptions.shouldShowTracker = 0;
+}
+
+void applyNetworkOptionsDefaultValues() {
+    networkOptions.networkingIsActive = 0;
+    networkOptions.sendSwitchGame = 0;
+    networkOptions.sendSpeedUp = 0;
+    networkOptions.sendWriteIntoLevelDifficulty = 0;
+    networkOptions.sendRandomiseVelocity = 0;
 }
 
 
@@ -463,6 +502,24 @@ void saveHackOptions() {
         fwrite(persistValues, sizeof(int), 0x100, persistValuesWriter);
     }
     fclose(persistValuesWriter);
+
+    
+    int networkValues[0x100];
+    for (int i = 0; i < 0x100; i++) {
+        networkValues[i] = 0;
+    }
+    networkValues[0] = networkOptions.networkingIsActive;
+    networkValues[1] = networkOptions.sendSwitchGame;
+    networkValues[2] = networkOptions.sendSpeedUp;
+    networkValues[3] = networkOptions.sendWriteIntoLevelDifficulty;
+    networkValues[4] = networkOptions.sendRandomiseVelocity;
+
+    remove("_magicbox/__networkOptions.data");
+    FILE *networkOptionsWriter = fopen("_magicbox/__networkOptions.data", "wb");
+    for (int i = 0; i < 0x100; i++) {
+        fwrite(networkValues, sizeof(int), 0x100, networkOptionsWriter);
+    }
+    fclose(networkOptionsWriter);
 }
 
 void menuDisplay_showMenu(int menuNum) {
@@ -526,6 +583,10 @@ void menuDisplay_showMenu(int menuNum) {
     if (activeMenu == MENU_LISTING_VISUALS_OPTIONS) {
         showVisualsOptionsMenu(); 
     }
+
+    if (activeMenu == MENU_LISTING_NETWORKING) {
+        showNetworkingOptionsMenu(); 
+    }
 }
 
 void menuDisplay_hideMenu() {
@@ -566,6 +627,7 @@ void beginGame() {
     aa_ym2612_unmute();
     cartLoader_applyHackOptions(gameHasStarted);
     modConsole_applyHackOptions();
+    modConsole_applyNetworkOptions();
     cartLoader_loadRomAtIndex(chosenGameIndex, 0);
 
     gameHasStarted = 1;
@@ -627,6 +689,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
             } else {
                 cartLoader_applyHackOptions(gameHasStarted);
                 modConsole_applyHackOptions();
+                modConsole_applyNetworkOptions();
                 // menuDisplay_hideMenu();
                 menuDisplay_showMenu(MENU_LISTING_IN_GAME);
             }
@@ -977,8 +1040,61 @@ int menuDisplay_onButtonPress(int buttonIndex) {
             return 1;
         }
     }
+    
+    if (activeMenu == MENU_LISTING_NETWORKING) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            networkingOptionsIndex--;
+            while (networkingOptionsIndex == 1 || networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 8) {
+                networkingOptionsIndex --;
+            }
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            networkingOptionsIndex++;
+            while (networkingOptionsIndex == 1 || networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 8) {
+                networkingOptionsIndex ++;
+            }
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_LEFT) {
+            incrementNetworkOption(-1);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
+            incrementNetworkOption(1);
+            refreshMenu();
+            return 1;
+        }
+    }
 
     return 0;
+}
+
+void incrementNetworkOption(int direction) {
+    if (networkingOptionsIndex == 0) {
+        networkOptions.networkingIsActive += direction;
+    }
+    if (networkingOptionsIndex == 4) {
+        networkOptions.sendSwitchGame += direction;
+    }
+    if (networkingOptionsIndex == 5) {
+        networkOptions.sendSpeedUp += direction;
+    }
+    if (networkingOptionsIndex == 6) {
+        networkOptions.sendRandomiseVelocity += direction;
+    }
+    if (networkingOptionsIndex == 7) {
+        networkOptions.sendWriteIntoLevelDifficulty += direction;
+    }
+
+    if (networkingOptionsIndex == 9) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+    }
 }
 
 void incrementGameSwapOption(int direction) {
@@ -1265,14 +1381,20 @@ void chooseMainMenuOption() {
         visualsOptionIndex = 0;
         menuDisplay_showMenu(MENU_LISTING_VISUALS_OPTIONS);
     }
-
+    
     if (optionsItemIndex == 5) {
+        networkingOptionsIndex = 0;
+        menuDisplay_showMenu(MENU_LISTING_NETWORKING);
+    }
+
+    if (optionsItemIndex == 6) {
         saveHackOptions();
         if (gameHasStarted == 0) {
             menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
         } else {
             cartLoader_applyHackOptions(gameHasStarted);
             modConsole_applyHackOptions();
+            modConsole_applyNetworkOptions();
             // menuDisplay_hideMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
         }
@@ -1389,7 +1511,7 @@ void showOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
 
-    int lineCount = 6;
+    int lineCount = 7;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -1408,7 +1530,8 @@ void showOptionsMenu() {
     sprintf(lines[2], "Save states >");
     sprintf(lines[3], "Sonic-specific >");
     sprintf(lines[4], "Visuals >");
-    sprintf(lines[5], "Start game");
+    sprintf(lines[5], "Networking >");
+    sprintf(lines[6], "Start game");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -2344,6 +2467,127 @@ void showVisualsOptionsMenu() {
 
         char toPrint[0x100];
         if (i == visualsOptionIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "   %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+    }
+}
+
+void showNetworkingOptionsMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Networking", 5);
+
+    int lineCount = 10;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+    }
+    if (networkOptions.networkingIsActive == 0) {
+        blockedLines[4] = 1;
+        blockedLines[5] = 1;
+        blockedLines[6] = 1;
+        blockedLines[7] = 1;
+    }
+
+    if (networkingOptionsIndex < 0) {
+        networkingOptionsIndex = lineCount - 1;
+    }
+    if (networkingOptionsIndex >= lineCount) {
+        networkingOptionsIndex = 0;
+    }
+    
+    if (networkOptions.networkingIsActive > 1) {
+        networkOptions.networkingIsActive = 0;
+    }
+    if (networkOptions.networkingIsActive < 0) {
+        networkOptions.networkingIsActive = 1;
+    }
+    if (networkOptions.networkingIsActive == 0) {
+        sprintf(lines[0], "Networked play:           OFF");
+    } else {
+        sprintf(lines[0], "Networked play:           ON");
+    }
+
+    sprintf(lines[1], "");
+    sprintf(lines[2], "When you get a ring");
+    sprintf(lines[3], "it will...");
+
+    if (networkOptions.sendSwitchGame > 1) {
+        networkOptions.sendSwitchGame = 0;
+    }
+    if (networkOptions.sendSwitchGame < 0) {
+        networkOptions.sendSwitchGame = 1;
+    }
+    if (networkOptions.sendSwitchGame == 0) {
+        sprintf(lines[4], "  Switch opponent's game:  OFF");
+    } else {
+        sprintf(lines[4], "  Switch opponent's game:   ON");
+    }
+
+    if (networkOptions.sendSpeedUp > 1) {
+        networkOptions.sendSpeedUp = 0;
+    }
+    if (networkOptions.sendSpeedUp < 0) {
+        networkOptions.sendSpeedUp = 1;
+    }
+    if (networkOptions.sendSpeedUp == 0) {
+        sprintf(lines[5], "  Speed up opponent:       OFF");
+    } else {
+        sprintf(lines[5], "  Speed up opponent:        ON");
+    }
+
+    if (networkOptions.sendRandomiseVelocity > 1) {
+        networkOptions.sendRandomiseVelocity = 0;
+    }
+    if (networkOptions.sendRandomiseVelocity < 0) {
+        networkOptions.sendRandomiseVelocity = 1;
+    }
+    if (networkOptions.sendRandomiseVelocity == 0) {
+        sprintf(lines[6], "  Randomise oppt velocity: OFF");
+    } else {
+        sprintf(lines[6], "  Randomise oppt velocity:  ON");
+    }
+
+    if (networkOptions.sendWriteIntoLevelDifficulty > 3) {
+        networkOptions.sendWriteIntoLevelDifficulty = 0;
+    }
+    if (networkOptions.sendWriteIntoLevelDifficulty < 0) {
+        networkOptions.sendWriteIntoLevelDifficulty = 1;
+    }
+    if (networkOptions.sendWriteIntoLevelDifficulty == 0) {
+        sprintf(lines[7], "  Scramble oppt level:     OFF");
+    } else if (networkOptions.sendWriteIntoLevelDifficulty == 1) {
+        sprintf(lines[7], "  Scramble oppt level:   A BIT");
+    } else if (networkOptions.sendWriteIntoLevelDifficulty == 2) {
+        sprintf(lines[7], "  Scramble oppt level:   A LOT");
+    } else if (networkOptions.sendWriteIntoLevelDifficulty == 3) {
+        sprintf(lines[7], "  Scramble oppt level:   LOADS");
+    }
+
+
+    sprintf(lines[8], "");
+    sprintf(lines[9], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
+        char toPrint[0x100];
+        if (i == networkingOptionsIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
             sprintf(toPrint, "   %s", lines[i]);

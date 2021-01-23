@@ -1,6 +1,13 @@
 #ifndef _AAMODCONSOLE_H_
 #define _AAMODCONSOLE_H_
 
+#define NETWORK_MSG_SWITCH_GAME 'Q';
+#define NETWORK_MSG_SPEED_UP 'W';
+#define NETWORK_MSG_SCRAMBLE_LEVEL_EASY 'E';
+#define NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM 'R';
+#define NETWORK_MSG_SCRAMBLE_LEVEL_HARD 'T';
+#define NETWORK_MSG_RANDOMISE_VELOCITY 'Y';
+
 #include "AACommonTypes.h"
 
 extern void modConsole_initialise();
@@ -27,10 +34,14 @@ extern void modConsole_activateReset();
 extern void modConsole_queuePanic();
 
 extern void modConsole_applyHackOptions();
+extern void modConsole_applyNetworkOptions();
 extern void modConsole_flagToApplyCache();
 extern void modConsole_flagToSummonMenu();
 extern void modConsole_flagToLogRamState();
 extern void modConsole_setCountdownUntilRingSwitch(int toValue);
+extern void modConsole_processNetworkEvent(char eventId);
+void queueNetworkMessage(char eventId);
+void sendQueuedNetworkMessage();
 
 int lengthOfString256(char string256[]);
 
@@ -45,7 +56,10 @@ void switchGame();
 void clearCooldownVisualiser();
 void showCooldownVisualiser();
 void overwriteLevelOnRing();
+void overwriteLevel(int cycleCount, int overwriteType);
 
 void unpauseGame();
+void fireSnapEffect();
+extern int modConsole_getSnapOffsetForRowIndex(int rowIndex)
 
 #endif

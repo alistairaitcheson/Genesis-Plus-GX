@@ -22,7 +22,7 @@
 #define MENU_LISTING_SONIC_SPECIFIC_OPTIONS 11
 #define MENU_LISTING_VISUALS_OPTIONS 12
 #define MENU_LISTING_PIXEL_DETECTIVE 13
-
+#define MENU_LISTING_NETWORKING 14
 
 typedef struct {
     int infiniteLives;
@@ -72,6 +72,14 @@ typedef struct {
     int shouldShow;
 } PixelDetectiveOptions;
 
+typedef struct {
+    int networkingIsActive;
+    int sendSwitchGame;
+    int sendSpeedUp;
+    int sendWriteIntoLevelDifficulty;
+    int sendRandomiseVelocity;
+} NetworkOptions;
+
 extern void menuDisplay_showMenu(int menuNum);
 extern void menuDisplay_hideMenu();
 extern int menuDisplay_onButtonPress(int buttonIndex);
@@ -85,6 +93,7 @@ extern void menuDisplay_updateRamDetective();
 extern void menuDisplay_logRamStateToTrackedValues();
 extern void menuDisplay_renderPixelDetective();
 extern void menuDisplay_updatePixelDetective(int line, uint8 linebuf[2][0x200]);
+extern NetworkOptions menuDisplay_getNetworkOptions();
 
 void beginGame();
 void showTitleMenu();
@@ -100,6 +109,8 @@ void applyPersistValuesFromArray256(int array256[]);
 void applyDefaultPersistValues();
 
 void applyDefaultRamDetectiveValues();
+void applyNetworkOptionsDefaultValues();
+void applyNetworkOptionsFromArray256(int array256[]);
 
 void applySettingsFromArray256(int array256[]);
 void applyDefaultSettings();
@@ -121,12 +132,14 @@ void showSaveStateOptionsMenu();
 void showSonicSpecificOptionsMenu();
 void showVisualsOptionsMenu();
 void showPixelDetectiveMenu();
+void showNetworkingOptionsMenu();
 
 void incrementGameSwapOption(int direction);
 void incrementQualityOfLifeOption(int direction);
 void incrementSaveStateOption(int direction);
 void incrementSonicSpecificOption(int direction);
 void incrementVisualsOption(int direction);
+void incrementNetworkOption(int direction);
 
 void clearLogRamState();
 

@@ -45,6 +45,7 @@
 
 #include "AACartLoader.h"
 #include "AAMenuDisplay.h"
+#include "AAModConsole.h"
 
 #ifndef HAVE_NO_SPRITE_LIMIT
 #define MAX_SPRITES_PER_LINE 20
@@ -4272,6 +4273,19 @@ void render_line(int line)
     menuDisplay_updatePixelDetective(line, linebuf);
     cartLoader_updatePixelTracker(line, linebuf);
     drawTextLayers(line);
+
+    int snapOffset = modConsole_getSnapOffsetForRowIndex();
+    if (snapOffset > 0) {
+      char snappedLine[0x200];
+      for (int i = 0; i < bitmap.viewport.w; i++) {
+        int snappedIndex = (i + snapOffset) % bitmap.viewport.w;
+        snappedLine[snappedIndex] = linebuf[0][0x20 + i];
+      }
+
+      for (int i = 0; i < bitmap.viewport.w; i++) {
+        linebuf[0][0x20 + i] = snappedLine[i];
+      }
+    }
 
     /* Left-most column blanking */
     if (reg[0] & 0x20)

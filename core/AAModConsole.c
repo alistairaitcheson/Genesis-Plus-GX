@@ -2,7 +2,7 @@
 
 Open Terminal
 
-cd C:\Users\agait\OneDrive\Documents\Development\GenesisPlusGX\Genesis-Plus-GX
+cd C:\Users\agait\Documents\Development\GenesisPlusGX\Genesis-Plus-GX
 cls
 "C:\Program Files (x86)\GnuWin32\bin\make.exe" -f Makefile.libretro
 
@@ -54,6 +54,18 @@ static int countdownUntilRingSwitch = 0;
 static int countdownUntilLogRamState = 0;
 
 static int countdownUntilUnpause = 0;
+
+static char queuedNetworkMessage[0x100];
+static int networkMessageLength = 0;
+
+static int snapEffectTime;
+static int snapEffectMaxTime = 10;
+static int snapEffectHeight = 10;
+static int snapEffectWidth = 20;
+
+void fireSnapEffect() {
+    snapEffectTime = snapEffectMaxTime;
+}
 
 void modConsole_flagToLogRamState() {
     countdownUntilLogRamState = 1;
@@ -204,9 +216,36 @@ void modConsole_applyHackOptions() {
     }
 }
 
+void modConsole_applyNetworkOptions() {
+    NetworkOptions networkOptions = menuDisplay_getNetworkOptions();
+
+    if (networkOptions.networkingIsActive) {
+        cartloader_initialiseNetworkDirectories();
+    }
+}
+
+int modConsole_getSnapOffsetForRowIndex(int rowIndex) {
+    if (snapEffectTime <= 0) {
+        return 0;
+    }
+
+    double relativeTime = ((double) snapEffectTime) / snapEffectMaxTime;
+
+    double relativeIndex = (((double)rowIndex) / snapEffectHeight);
+    double floatOff = sin(relativeIndex * M_PI * 2);
+
+    double roundedValue = round(floatOff * snapEffectWidth * relativeTime);
+
+    return (int)roundedValue;
+}
+
 void modConsole_updateFrame() {
     lastPadState = padState;
     padState = input.pad[0];
+
+    if (snapEffectTime > 0) {
+        snapEffectTime--;
+    }
 
     if (menuDisplay_isShowing() != 0) {
         // vdp_clearGraphicLayer(1);
@@ -254,6 +293,11 @@ void modConsole_updateFrame() {
         // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
 
     } else {
+        networkMessageLength = 0;
+        for (int i = 0; i < 0x100; i++) {
+            queuedNetworkMessage[i] = 0;
+        }
+
         if (shouldApplyCacheNextFrame > 0) {
             shouldApplyCacheNextFrame--;
             cartLoader_restoreCarriedOverData();
@@ -437,6 +481,11 @@ void modConsole_updateFrame() {
         // layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
         // layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
 
+        NetworkOptions networkOptions = menuDisplay_getNetworkOptions();
+        if (networkOptions.networkingIsActive) {
+            sendQueuedNetworkMessage();
+            cartLoader_checkNetworkForActions();
+        }
 
         if (countdownToSummonMenu > 0) {
             countdownToSummonMenu--;
@@ -451,6 +500,52 @@ void modConsole_updateFrame() {
     aa_genesis_updateLastRam();
 }
 
+void queueNetworkMessage(char eventId) {
+    queuedNetworkMessage[networkMessageLength] = eventId;
+    networkMessageLength++;
+}
+
+void sendQueuedNetworkMessage() {
+    if (networkMessageLength > 0) {
+        cartLoader_writeActionToNetwork(queuedNetworkMessage);
+    }
+}
+
+void modConsole_processNetworkEvent(char eventId) {
+    // do a SNAP effect!
+    fireSnapEffect();
+
+    if (eventId == NETWORK_MSG_SWITCH_GAME) {
+        promptSwitchGame();
+    }
+
+    if (eventId == NETWORK_MSG_SPEED_UP) {
+        if (cartLoader_getActiveGameListing().accelerationType == 1) {
+            cartLoader_appendToLog("Increasing Sonic 2D speed from network");
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
+        }
+    }
+
+    if (eventId == NETWORK_MSG_RANDOMISE_VELOCITY) {
+        // still to add this
+    }
+
+    int scrambleLevelCount = 0;
+    if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_EASY) {
+        scrambleLevelCount = 10;
+    }
+    if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM) {
+        scrambleLevelCount = 20;
+    }
+    if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_HARD) {
+        scrambleLevelCount = 50;
+    }
+    if (scrambleLevelCount > 0) {
+        overwriteLevel(scrambleLevelCount, 1);
+    }
+}
+
 void unpauseGame() {
     if (activeGameListing.unpauseByte > 0) {
         // this doesn't work yet
@@ -463,29 +558,32 @@ void unpauseGame() {
 
 void overwriteLevelOnRing() {
     if (ringCountHasChanged() != 0) {
-        AALevelEditListing levelEdits = cartLoader_getActiveLevelEditListing();
         HackOptions hackOpts = menuDisplay_getHackOptions();
-        if (levelEdits.endByte > 0 && levelEdits.endByte > levelEdits.startByte) {
-            int cycleCount = 10;
-            if (hackOpts.overwriteLevelDifficulty == 1) {
-                cycleCount = 20;
-            }
-            if (hackOpts.overwriteLevelDifficulty == 2) {
-                cycleCount = 50;
-            }
-
-            for (int i = 0; i < cycleCount; i++) {
-                unsigned int value = 0;
-                if (hackOpts.overwriteLevelType == 1) {
-                    value = rand() % 0x100;
-                }
-                unsigned int index = (rand() % (levelEdits.endByte - levelEdits.startByte)) + levelEdits.startByte;
-                aa_genesis_setWorkRam(index, value);
-            }
+        int cycleCount = 10;
+        if (hackOpts.overwriteLevelDifficulty == 1) {
+            cycleCount = 20;
         }
+        if (hackOpts.overwriteLevelDifficulty == 2) {
+            cycleCount = 50;
+        }
+
+        overwriteLevel(cycleCount, hackOpts.overwriteLevelType);
     }
 }
 
+void overwriteLevel(int cycleCount, int overwriteType) {
+    AALevelEditListing levelEdits = cartLoader_getActiveLevelEditListing();
+    if (levelEdits.endByte > 0 && levelEdits.endByte > levelEdits.startByte) {
+        for (int i = 0; i < cycleCount; i++) {
+            unsigned int value = 0;
+            if (overwriteType == 1) {
+                value = rand() % 0x100;
+            }
+            unsigned int index = (rand() % (levelEdits.endByte - levelEdits.startByte)) + levelEdits.startByte;
+            aa_genesis_setWorkRam(index, value);
+        }
+    }
+}
 
 void promptSwitchGame() {
     // shouldSwitchAfterCooldown = 1;

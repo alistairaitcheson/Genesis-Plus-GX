@@ -75,4 +75,8 @@ void zeroAllListings();
 extern void cartLoader_updatePixelTracker(int line, unsigned char linebuf[2][0x200]);
 extern void cartLoader_checkPixelTrackerForStateChange();
 
+extern void cartloader_initialiseNetworkDirectories();
+extern void cartLoader_checkNetworkForActions();
+extern void cartLoader_writeActionToNetwork(char action256[]);
+
 #endif

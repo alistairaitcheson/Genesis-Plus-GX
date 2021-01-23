@@ -1096,6 +1096,66 @@ void initialiseDirectory() {
     }
 }
 
+
+void cartloader_initialiseNetworkDirectories() {
+    char sendPath[0x100];
+    sprintf(sendPath, "%s/send", folderPath);
+    remove(sendPath);
+
+    char sendCommand[0x100];
+    sprintf(sendCommand, "mkdir %s", sendPath);
+    system(sendCommand);
+
+    char receivePath[0x100];
+    sprintf(receivePath, "%s/recv", folderPath);
+    remove(receivePath);
+
+    char recvCommand[0x100];
+    sprintf(recvCommand, "mkdir %s", receivePath);
+    system(recvCommand);
+}
+
+void cartLoader_checkNetworkForActions() {
+    char receivePath[0x100];
+    sprintf(receivePath, "%s/recv", folderPath);
+
+    struct dirent *dp;
+    DIR *dir = opendir(receivePath);
+
+    char filesToRemove[0x1000][0x100];
+    int oldFiles = 0;
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        char pathThisFile[0x100];
+        sprintf(pathThisFile, "%s/%s", receivePath, dp->d_name);
+        FILE *reader = fopen(pathThisFile, "r");
+        int actionBuffer[0x100];
+        fread(actionBuffer, sizeof(int), 0x100, reader);
+        fclose(reader);
+
+        for (int i = 0; i < 0x100; i++) {
+            if (actionBuffer[i] == 0) {
+                break;
+            } else {
+                modConsole_processNetworkEvent(actionBuffer[i]);
+            }
+        }
+
+        filesToRemove[oldFiles] = pathThisFile;
+        oldFiles++;
+    }
+    closedir(dir);
+
+    for (int i = 0; i < oldFiles; i++) {
+        remove(filesToRemove[i]);
+    }
+}
+
+void cartLoader_writeActionToNetwork(char action256[]) {
+
+}
+
 void cartLoader_appendToLog(char *text) {
     initialiseDirectory();
     if (menuDisplay_getHackOptions().shouldWriteToLog == 0) {
