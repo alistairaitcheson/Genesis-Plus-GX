@@ -527,6 +527,8 @@ void cartLoader_run() {
     writeStringToArray32("AfterBurnerII", gameListings[33].gameId);
     sprintf(gameAltIds[33], "B1CCC0B0CADEB0C5 B049490000000000 0000000000000000 0000000000000000");
     gameListings[33].ringByte = 0x06C8;
+    gameListings[33].livesBytes[0] = 0x06C2;
+    gameListings[33].livesByteDestinations[0] = 0x5; 
 
     writeStringToArray32("GUNSTARHEROES", gameListings[34].gameId);
     scoreMonitorListings[34].scoreBytes[0] = 0xA469;
