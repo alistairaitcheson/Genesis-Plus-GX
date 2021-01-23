@@ -60,6 +60,7 @@ void overwriteLevel(int cycleCount, int overwriteType);
 
 void unpauseGame();
 void fireSnapEffect();
+void shuffleSnapValues();
 extern int modConsole_getSnapOffsetForRowIndex(int rowIndex);
 
 #endif

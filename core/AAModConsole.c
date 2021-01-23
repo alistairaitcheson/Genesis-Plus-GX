@@ -60,8 +60,9 @@ static int networkMessageLength = 0;
 
 static int snapEffectTime;
 static int snapEffectMaxTime = 10;
-static int snapEffectHeight = 10;
-static int snapEffectWidth = 20;
+static int snapEffectHeight[0x10];
+static int snapEffectWidth[0x10];
+static int snapEffectOffset[0x10];
 
 void fireSnapEffect() {
     snapEffectTime = snapEffectMaxTime;
@@ -229,14 +230,25 @@ int modConsole_getSnapOffsetForRowIndex(int rowIndex) {
         return 0;
     }
 
+    int totalValue = 0;
     double relativeTime = ((double) snapEffectTime) / snapEffectMaxTime;
 
-    double relativeIndex = (((double)rowIndex) / snapEffectHeight);
-    double floatOff = sin(relativeIndex * M_PI * 2);
+    for (int i = 0; i < 0x10; i++) {
+        double relativeIndex = (((double)(rowIndex + snapEffectOffset[i])) / snapEffectHeight[i]);
+        double floatOff = sin(relativeIndex * M_PI * 2);
+        double roundedValue = round(floatOff * snapEffectWidth[i] * relativeTime);
+        totalValue += (int) roundedValue;
+    }
 
-    double roundedValue = round(floatOff * snapEffectWidth * relativeTime);
+    return totalValue;
+}
 
-    return (int)roundedValue;
+void shuffleSnapValues() {
+    for (int i = 0; i < 0x10; i++) {
+        snapEffectHeight[i] = (rand() % 100) + 10;
+        snapEffectWidth[i] = (rand() % 10) + 5;
+        snapEffectOffset[i] = (rand() % 100);
+    }
 }
 
 void modConsole_updateFrame() {
@@ -245,6 +257,8 @@ void modConsole_updateFrame() {
 
     if (snapEffectTime > 0) {
         snapEffectTime--;
+    } else {
+        shuffleSnapValues();
     }
 
     if (menuDisplay_isShowing() != 0) {
@@ -667,6 +681,8 @@ void modConsole_activateReset() {
 void updateSpeedUpOnRing() {
     if (ringCountHasChanged() != 0) {
         if (cartLoader_getActiveGameListing().accelerationType == 1) {
+            fireSnapEffect();
+
             cartLoader_appendToLog("Increasing Sonic 2D speed");
 
             // speed
