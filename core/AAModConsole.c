@@ -380,6 +380,8 @@ void modConsole_updateFrame() {
             overwriteLevelOnRing();
         }
 
+        sendNetworkMessageOnGetRing();
+
         if (hackOpts.switchGameType > 1) {
             switchAfterTimeCounter++;
             if (switchAfterTimeCounter >= switchAfterTimePeriod) {
@@ -582,6 +584,33 @@ void overwriteLevelOnRing() {
         }
 
         overwriteLevel(cycleCount, hackOpts.overwriteLevelType);
+    }
+}
+
+void sendNetworkMessageOnGetRing() {
+    if (ringCountHasChanged() != 0) {
+        NetworkOptions networkOpts = menuDisplay_getNetworkOptions();
+        if (networkOpts.networkingIsActive != 0) {
+            if (networkOpts.sendSwitchGame != 0) {
+                queueNetworkMessage(NETWORK_MSG_SWITCH_GAME);
+            }
+            if (networkOpts.sendSpeedUp != 0) {
+                queueNetworkMessage(NETWORK_MSG_SPEED_UP);
+            }
+            if (networkOpts.sendRandomiseVelocity != 0) {
+                queueNetworkMessage(NETWORK_MSG_RANDOMISE_VELOCITY);
+            }
+
+            if (networkOpts.sendWriteIntoLevelDifficulty == 1) {
+                queueNetworkMessage(NETWORK_MSG_SCRAMBLE_LEVEL_EASY);
+            }
+            if (networkOpts.sendWriteIntoLevelDifficulty == 2) {
+                queueNetworkMessage(NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM);
+            }
+            if (networkOpts.sendWriteIntoLevelDifficulty == 3) {
+                queueNetworkMessage(NETWORK_MSG_SCRAMBLE_LEVEL_HARD);
+            }
+        }
     }
 }
 

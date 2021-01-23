@@ -57,6 +57,7 @@ void clearCooldownVisualiser();
 void showCooldownVisualiser();
 void overwriteLevelOnRing();
 void overwriteLevel(int cycleCount, int overwriteType);
+void sendNetworkMessageOnGetRing();
 
 void unpauseGame();
 void fireSnapEffect();

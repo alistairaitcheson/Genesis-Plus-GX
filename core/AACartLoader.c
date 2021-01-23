@@ -1131,7 +1131,7 @@ void clearSendDirectory() {
     {
         if(dp->d_name[0] != '.') {
             char pathThisFile[0x100];
-            sprintf(pathThisFile, "%s/%s", sendPath, dp->d_name);
+            sprintf(pathThisFile, "%s%s", sendPath, dp->d_name);
             sprintf(filesToRemove[oldFiles], "%s", pathThisFile);
             oldFiles++;
         }
@@ -1162,7 +1162,7 @@ void clearRecvDirectory() {
     {
         if(dp->d_name[0] != '.') {
             char pathThisFile[0x100];
-            sprintf(pathThisFile, "%s/%s", receivePath, dp->d_name);
+            sprintf(pathThisFile, "%s%s", receivePath, dp->d_name);
             sprintf(filesToRemove[oldFiles], "%s", pathThisFile);
             oldFiles++;
         }
@@ -1178,8 +1178,6 @@ void clearRecvDirectory() {
 }
 
 void cartLoader_checkNetworkForActions() {
-    return;
-
     char receivePath[0x100];
     sprintf(receivePath, "%s/recv/", folderPath);
 
@@ -1193,7 +1191,7 @@ void cartLoader_checkNetworkForActions() {
     {
         if(dp->d_name[0] != '.') {
             char pathThisFile[0x100];
-            sprintf(pathThisFile, "%s/%s", receivePath, dp->d_name);
+            sprintf(pathThisFile, "%s%s", receivePath, dp->d_name);
             FILE *reader = fopen(pathThisFile, "r");
             int actionBuffer[0x100];
             fread(actionBuffer, sizeof(int), 0x100, reader);
@@ -1219,7 +1217,20 @@ void cartLoader_checkNetworkForActions() {
 }
 
 void cartLoader_writeActionToNetwork(char action256[]) {
+    int eventNumberA = rand() % 0x100;
+    int eventNumberB = rand() % 0x100;
+    int eventNumberC = rand() % 0x100;
+    int eventNumberD = rand() % 0x100;
+    int eventNumberE = rand() % 0x100;
+    int eventNumberF = rand() % 0x100;
+    char eventName[0x100];
+    sprintf(eventName, "%02X-%02X-%02X-%02X-%02X-%02X", eventNumberA, eventNumberB, eventNumberC, eventNumberD, eventNumberE, eventNumberF);
+    char sendPath[0x100];
+    sprintf(sendPath, "%s/send/%s.amb", folderPath, eventName);
 
+    FILE *writer = fopen(sendPath, "w");
+    fprintf(writer, action256);
+    fclose(writer);
 }
 
 void cartLoader_appendToLog(char *text) {
