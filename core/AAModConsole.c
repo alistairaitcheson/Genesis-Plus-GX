@@ -681,7 +681,7 @@ void modConsole_activateReset() {
 void updateSpeedUpOnRing() {
     if (ringCountHasChanged() != 0) {
         if (cartLoader_getActiveGameListing().accelerationType == 1) {
-            fireSnapEffect();
+            // fireSnapEffect();
 
             cartLoader_appendToLog("Increasing Sonic 2D speed");
 

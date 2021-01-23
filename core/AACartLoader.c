@@ -1098,26 +1098,59 @@ void initialiseDirectory() {
 
 
 void cartloader_initialiseNetworkDirectories() {
-    char sendPath[0x100];
-    sprintf(sendPath, "%s/send", folderPath);
-    remove(sendPath);
+    initialiseDirectory();
 
-    char sendCommand[0x100];
-    sprintf(sendCommand, "mkdir %s", sendPath);
-    system(sendCommand);
+    cartLoader_appendToLog("cartloader_initialiseNetworkDirectories - BEGINS");
 
-    char receivePath[0x100];
-    sprintf(receivePath, "%s/recv", folderPath);
-    remove(receivePath);
+    cartLoader_appendToLog("making directories");
 
-    char recvCommand[0x100];
-    sprintf(recvCommand, "mkdir %s", receivePath);
-    system(recvCommand);
+    char command[0x100];
+    sprintf(command, "cd %s && mkdir send && mkdir recv && cd ..", folderPath);
+    cartLoader_appendToLog(command);
+    system(command);
+
+    clearRecvDirectory();
+    clearSendDirectory();
+
+    cartLoader_appendToLog("cartloader_initialiseNetworkDirectories - DONE");
 }
 
-void cartLoader_checkNetworkForActions() {
+void clearSendDirectory() {
+    cartLoader_appendToLog("clearSendDirectory");
+
+    char sendPath[0x100];
+    sprintf(sendPath, "%s/send/", folderPath);
+
+    struct dirent *dp;
+    DIR *dir = opendir(sendPath);
+
+    char filesToRemove[0x1000][0x100];
+    int oldFiles = 0;
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if(dp->d_name[0] != '.') {
+            char pathThisFile[0x100];
+            sprintf(pathThisFile, "%s/%s", sendPath, dp->d_name);
+            sprintf(filesToRemove[oldFiles], "%s", pathThisFile);
+            oldFiles++;
+        }
+    }
+    closedir(dir);
+
+    for (int i = 0; i < oldFiles; i++) {
+        char logMessage[0x100];
+        sprintf(logMessage, "Deleting from SEND: %s", filesToRemove[i]); 
+        cartLoader_appendToLog(logMessage);
+        remove(filesToRemove[i]);
+    }
+}
+
+void clearRecvDirectory() {
+    cartLoader_appendToLog("clearRecvDirectory");
+
     char receivePath[0x100];
-    sprintf(receivePath, "%s/recv", folderPath);
+    sprintf(receivePath, "%s/recv/", folderPath);
 
     struct dirent *dp;
     DIR *dir = opendir(receivePath);
@@ -1127,23 +1160,56 @@ void cartLoader_checkNetworkForActions() {
 
     while ((dp = readdir(dir)) != NULL)
     {
-        char pathThisFile[0x100];
-        sprintf(pathThisFile, "%s/%s", receivePath, dp->d_name);
-        FILE *reader = fopen(pathThisFile, "r");
-        int actionBuffer[0x100];
-        fread(actionBuffer, sizeof(int), 0x100, reader);
-        fclose(reader);
-
-        for (int i = 0; i < 0x100; i++) {
-            if (actionBuffer[i] == 0) {
-                break;
-            } else {
-                modConsole_processNetworkEvent(actionBuffer[i]);
-            }
+        if(dp->d_name[0] != '.') {
+            char pathThisFile[0x100];
+            sprintf(pathThisFile, "%s/%s", receivePath, dp->d_name);
+            sprintf(filesToRemove[oldFiles], "%s", pathThisFile);
+            oldFiles++;
         }
+    }
+    closedir(dir);
 
-        sprintf(filesToRemove[oldFiles], "%s", pathThisFile);
-        oldFiles++;
+    for (int i = 0; i < oldFiles; i++) {
+        char logMessage[0x100];
+        sprintf(logMessage, "Deleting from SEND: %s", filesToRemove[i]); 
+        cartLoader_appendToLog(logMessage);
+        remove(filesToRemove[i]);
+    }
+}
+
+void cartLoader_checkNetworkForActions() {
+    return;
+
+    char receivePath[0x100];
+    sprintf(receivePath, "%s/recv/", folderPath);
+
+    struct dirent *dp;
+    DIR *dir = opendir(receivePath);
+
+    char filesToRemove[0x1000][0x100];
+    int oldFiles = 0;
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if(dp->d_name[0] != '.') {
+            char pathThisFile[0x100];
+            sprintf(pathThisFile, "%s/%s", receivePath, dp->d_name);
+            FILE *reader = fopen(pathThisFile, "r");
+            int actionBuffer[0x100];
+            fread(actionBuffer, sizeof(int), 0x100, reader);
+            fclose(reader);
+
+            for (int i = 0; i < 0x100; i++) {
+                if (actionBuffer[i] == 0) {
+                    break;
+                } else {
+                    modConsole_processNetworkEvent(actionBuffer[i]);
+                }
+            }
+
+            sprintf(filesToRemove[oldFiles], "%s", pathThisFile);
+            oldFiles++;
+        }
     }
     closedir(dir);
 

@@ -79,4 +79,7 @@ extern void cartloader_initialiseNetworkDirectories();
 extern void cartLoader_checkNetworkForActions();
 extern void cartLoader_writeActionToNetwork(char action256[]);
 
+void clearSendDirectory();
+void clearRecvDirectory();
+
 #endif
