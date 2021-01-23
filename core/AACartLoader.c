@@ -1142,7 +1142,7 @@ void cartLoader_checkNetworkForActions() {
             }
         }
 
-        filesToRemove[oldFiles] = pathThisFile;
+        sprintf(filesToRemove[oldFiles], "%s", pathThisFile);
         oldFiles++;
     }
     closedir(dir);

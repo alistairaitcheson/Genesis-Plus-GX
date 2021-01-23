@@ -1,12 +1,12 @@
 #ifndef _AAMODCONSOLE_H_
 #define _AAMODCONSOLE_H_
 
-#define NETWORK_MSG_SWITCH_GAME 'Q';
-#define NETWORK_MSG_SPEED_UP 'W';
-#define NETWORK_MSG_SCRAMBLE_LEVEL_EASY 'E';
-#define NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM 'R';
-#define NETWORK_MSG_SCRAMBLE_LEVEL_HARD 'T';
-#define NETWORK_MSG_RANDOMISE_VELOCITY 'Y';
+#define NETWORK_MSG_SWITCH_GAME 'Q'
+#define NETWORK_MSG_SPEED_UP 'W'
+#define NETWORK_MSG_SCRAMBLE_LEVEL_EASY 'E'
+#define NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM 'R'
+#define NETWORK_MSG_SCRAMBLE_LEVEL_HARD 'T'
+#define NETWORK_MSG_RANDOMISE_VELOCITY 'Y'
 
 #include "AACommonTypes.h"
 
@@ -60,6 +60,6 @@ void overwriteLevel(int cycleCount, int overwriteType);
 
 void unpauseGame();
 void fireSnapEffect();
-extern int modConsole_getSnapOffsetForRowIndex(int rowIndex)
+extern int modConsole_getSnapOffsetForRowIndex(int rowIndex);
 
 #endif

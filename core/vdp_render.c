@@ -4274,7 +4274,7 @@ void render_line(int line)
     cartLoader_updatePixelTracker(line, linebuf);
     drawTextLayers(line);
 
-    int snapOffset = modConsole_getSnapOffsetForRowIndex();
+    int snapOffset = modConsole_getSnapOffsetForRowIndex(line);
     if (snapOffset > 0) {
       char snappedLine[0x200];
       for (int i = 0; i < bitmap.viewport.w; i++) {
