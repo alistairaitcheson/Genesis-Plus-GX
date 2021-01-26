@@ -66,6 +66,7 @@ static int snapEffectOffset[0x10];
 
 void fireSnapEffect() {
     snapEffectTime = snapEffectMaxTime;
+    shuffleSnapValues();
 }
 
 void modConsole_flagToLogRamState() {
@@ -257,8 +258,6 @@ void modConsole_updateFrame() {
 
     if (snapEffectTime > 0) {
         snapEffectTime--;
-    } else {
-        shuffleSnapValues();
     }
 
     if (menuDisplay_isShowing() != 0) {

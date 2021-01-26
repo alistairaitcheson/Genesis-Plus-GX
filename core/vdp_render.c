@@ -4275,10 +4275,13 @@ void render_line(int line)
     drawTextLayers(line);
 
     int snapOffset = modConsole_getSnapOffsetForRowIndex(line);
-    if (snapOffset > 0) {
+    if (snapOffset != 0) {
       char snappedLine[0x200];
       for (int i = 0; i < bitmap.viewport.w; i++) {
         int snappedIndex = (i + snapOffset) % bitmap.viewport.w;
+        if (snappedIndex < 0) {
+          snappedIndex += bitmap.viewport.w;
+        }
         snappedLine[snappedIndex] = linebuf[0][0x20 + i];
       }
 
