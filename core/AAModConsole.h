@@ -63,5 +63,7 @@ void unpauseGame();
 void fireSnapEffect();
 void shuffleSnapValues();
 extern int modConsole_getSnapOffsetForRowIndex(int rowIndex);
+void applyRandomiseVelocity();
+void updateRandomiseVelocityOnRing();
 
 #endif

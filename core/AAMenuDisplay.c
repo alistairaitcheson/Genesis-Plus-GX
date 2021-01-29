@@ -429,6 +429,7 @@ void applySettingsFromArray256(int array256[]) {
     hackOptions.overwriteLevelType = array256[13];
     hackOptions.overwriteLevelDifficulty = array256[14];
     hackOptions.swapOrder =  array256[15];
+    hackOptions.randomiseVelocityOnRing = array256[16];
 }
 
 void applyDefaultSettings() {
@@ -448,6 +449,7 @@ void applyDefaultSettings() {
     hackOptions.overwriteLevelType = 0;
     hackOptions.overwriteLevelDifficulty = 1;
     hackOptions.swapOrder = 0;
+    hackOptions.randomiseVelocityOnRing = 0;
     saveHackOptions();
 }
 
@@ -471,6 +473,8 @@ void saveHackOptions() {
     options[12] = hackOptions.shouldShowSwapCount;
     options[13] = hackOptions.overwriteLevelType;
     options[14] = hackOptions.overwriteLevelDifficulty;
+    options[15] = hackOptions.swapOrder;
+    options[16] = hackOptions.randomiseVelocityOnRing;
 
     // char path[0x100];
     // char folder[0x10];
@@ -1160,8 +1164,11 @@ void incrementSonicSpecificOption(int direction) {
     if (sonicSpecificOptionIndex == 4) {
         hackOptions.overwriteLevelDifficulty += direction;
     }
-
     if (sonicSpecificOptionIndex == 5) {
+        hackOptions.randomiseVelocityOnRing += direction;
+    }
+
+    if (sonicSpecificOptionIndex == 6) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -2309,7 +2316,7 @@ void showSonicSpecificOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Sonic-specific options", 5);
 
-    int lineCount = 6;
+    int lineCount = 7;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -2343,14 +2350,14 @@ void showSonicSpecificOptionsMenu() {
     if (hackOptions.overwriteLevelType < 0) {
         hackOptions.overwriteLevelType = 2;
     }
-    sprintf(lines[2], "Write into level data on get ring:");
+    sprintf(lines[2], "Write into level data on");
     if (hackOptions.overwriteLevelType == 0) {
-        sprintf(lines[3], "                           off");
+        sprintf(lines[3], "    get ring:              off");
         blockedLines[3] = 0;
     } else if (hackOptions.overwriteLevelType == 1) {
-        sprintf(lines[3], "                Random numbers");
+        sprintf(lines[3], "    get ring:   Random numbers");
     } else {
-        sprintf(lines[3], "                        zeroes");
+        sprintf(lines[3], "    get ring:           zeroes");
     }
 
     if (hackOptions.overwriteLevelDifficulty > 2) {
@@ -2360,14 +2367,27 @@ void showSonicSpecificOptionsMenu() {
         hackOptions.overwriteLevelDifficulty = 2;
     }
     if (hackOptions.overwriteLevelDifficulty == 0) {
-        sprintf(lines[4], "level overwrite difficulty: easy");
+        sprintf(lines[4], "level write difficulty:   easy");
     } else if (hackOptions.overwriteLevelDifficulty == 1) {
-        sprintf(lines[4], "level overwrite difficulty: medium");
+        sprintf(lines[4], "level write difficulty: medium");
     } else {
-        sprintf(lines[4], "level overwrite difficulty: hard");
+        sprintf(lines[4], "level write difficulty:   hard");
     }
 
-    sprintf(lines[5], "back >");
+    if (hackOptions.randomiseVelocityOnRing > 1) {
+        hackOptions.randomiseVelocityOnRing = 0;
+    }
+    if (hackOptions.randomiseVelocityOnRing < 0) {
+        hackOptions.randomiseVelocityOnRing = 1;
+    }
+    if (hackOptions.randomiseVelocityOnRing == 1) {
+        sprintf(lines[5], "Randomise velocity on ring:   ON");
+    } else {
+        sprintf(lines[5], "Randomise velocity on ring:  OFF");
+    }
+
+
+    sprintf(lines[6], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

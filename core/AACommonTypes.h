@@ -74,6 +74,15 @@ typedef struct {
     int populated;
 } LetterListing;
 
+typedef struct {
+    int xByteStart;
+    int yByteStart;
+    int inertiaByte;
+    int radius;
+    int inertiaMin;
+    int inertiaMax;
+} MomentumControlListing;
+
 static int INPUT_INDEX_UP = 0;
 static int INPUT_INDEX_DOWN = 1;
 static int INPUT_INDEX_LEFT = 2;

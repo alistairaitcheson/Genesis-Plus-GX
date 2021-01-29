@@ -41,6 +41,7 @@ typedef struct {
     int overwriteLevelType; // 0 = off,  1 = with random number, 2 = with 0
     int overwriteLevelDifficulty; // 0 = easy (5x), 1 = medium (10x), 2 = hard (20x), 3 = extreme (50x)
     int swapOrder; // 0 = random, 1 = alphabetical
+    int randomiseVelocityOnRing;
 } HackOptions;
 
 typedef struct {

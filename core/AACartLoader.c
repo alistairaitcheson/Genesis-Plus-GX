@@ -28,6 +28,7 @@ static AAGameTransferListing gameTransferListings[MAX_ROMS];
 static AAScoreMonitorListing scoreMonitorListings[MAX_ROMS];
 static AALevelEditListing levelEditListings[MAX_ROMS];
 static AAPixelMonitorListing pixelMonitorListings[MAX_ROMS];
+static MomentumControlListing momentumControlListings[MAX_ROMS];
 static unsigned char gameAltIds[MAX_ROMS][0x80];
 static int gameListingCount = 0;
 
@@ -154,6 +155,12 @@ void cartLoader_run() {
     levelEditListings[1].endByte = 0xA800;
     gameListings[1].unpauseByte = 0xF604; //0xF63A;
     gameListings[1].unpauseByteDestination = 0x80; // 0x1;
+    momentumControlListings[1].radius = 0x08;
+    momentumControlListings[1].xByteStart = 0xD011;
+    momentumControlListings[1].yByteStart = 0xD013;
+    momentumControlListings[1].inertiaByte = 0xD015;
+    momentumControlListings[1].inertiaMin = 0x6;
+    momentumControlListings[1].inertiaByte = 0xA;
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
     copyGameListing(1, 2);
@@ -171,6 +178,9 @@ void cartLoader_run() {
     gameTransferListings[2].momentumBytesForTransfer[7] = 0xB03C;
     levelEditListings[2].startByte = 0x8008;
     levelEditListings[2].endByte = 0x9000;
+    momentumControlListings[2].xByteStart = 0xB011;
+    momentumControlListings[2].yByteStart = 0xB013;
+    momentumControlListings[2].inertiaByte = 0xB015;
 
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
     copyGameListing(1, 3);
@@ -189,6 +199,9 @@ void cartLoader_run() {
     gameTransferListings[3].momentumBytesForTransfer[7] = 0xB040;
     levelEditListings[3].startByte = 0x8008;
     levelEditListings[3].endByte = 0x9000;
+    momentumControlListings[3].xByteStart = 0xB019;
+    momentumControlListings[3].yByteStart = 0xB01B;
+    momentumControlListings[3].inertiaByte = 0xB01D;
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     copyGameListing(3, 4);
@@ -578,6 +591,13 @@ void zeroAllListings() {
 
             gameListings[gameIndex].bytesToTestForChange[i] = 0;
         }
+
+        momentumControlListings[gameIndex].radius = 0;
+        momentumControlListings[gameIndex].xByteStart = 0;
+        momentumControlListings[gameIndex].yByteStart = 0;
+        momentumControlListings[gameIndex].inertiaByte = 0;
+        momentumControlListings[gameIndex].inertiaMin = 0;
+        momentumControlListings[gameIndex].inertiaMax = 0;
 
         for (int i = 0; i < 8; i++) {
             scoreMonitorListings[gameIndex].scoreBytes[i] = 0;
@@ -1036,6 +1056,10 @@ AALevelEditListing cartLoader_getActiveLevelEditListing() {
     return levelEditListings[cartLoader_getActiveCartIndex()];
 }
 
+MomentumControlListing cartLoader_getMomentumControlListing() {
+    return momentumControlListings[cartLoader_getActiveCartIndex()];
+}
+
 
 // void addRomListing(char *path) {
 //     cartLoader_appendToLog("addRomListing");
@@ -1299,6 +1323,13 @@ void copyGameListing(int fromGame, int toGame) {
         gameTransferListings[toGame].momentumBytesForTransfer[i] = gameTransferListings[fromGame].momentumBytesForTransfer[i];
         gameTransferListings[toGame].scoreBytesForTransfer[i] = gameTransferListings[fromGame].scoreBytesForTransfer[i];
     }
+
+    momentumControlListings[toGame].radius = momentumControlListings[fromGame].radius;
+    momentumControlListings[toGame].xByteStart = momentumControlListings[fromGame].xByteStart;
+    momentumControlListings[toGame].yByteStart = momentumControlListings[fromGame].yByteStart;
+    momentumControlListings[toGame].inertiaByte = momentumControlListings[fromGame].inertiaByte;
+    momentumControlListings[toGame].inertiaMin = momentumControlListings[fromGame].inertiaMin;
+    momentumControlListings[toGame].inertiaMax = momentumControlListings[fromGame].inertiaMax;
 
     for (int i = 0; i < 8; i++) {
         scoreMonitorListings[toGame].scoreBytes[i] = scoreMonitorListings[fromGame].scoreBytes[i];

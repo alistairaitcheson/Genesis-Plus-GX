@@ -247,7 +247,7 @@ int modConsole_getSnapOffsetForRowIndex(int rowIndex) {
 void shuffleSnapValues() {
     for (int i = 0; i < 0x10; i++) {
         snapEffectHeight[i] = (rand() % 100) + 10;
-        snapEffectWidth[i] = (rand() % 10) + 5;
+        snapEffectWidth[i] = (rand() % 3) + 1;
         snapEffectOffset[i] = (rand() % 100);
     }
 }
@@ -373,6 +373,9 @@ void modConsole_updateFrame() {
         }
         if (hackOpts.switchGameType == 1) {
             updateSwitchGameOnRing();
+        }
+        if (hackOpts.randomiseVelocityOnRing != 0) {
+            updateRandomiseVelocityOnRing();
         }
 
         if (hackOpts.overwriteLevelType > 0) {
@@ -704,6 +707,52 @@ void modConsole_queuePanic() {
 void modConsole_activateReset() {
     system_reset();
     aa_genesis_updateLastRam();
+}
+
+void applyRandomiseVelocity() {
+    // cartLoader_appendToLog("Will apply random velocity");
+    MomentumControlListing momentumDef = cartLoader_getMomentumControlListing();
+    if (momentumDef.radius > 0) {
+        // cartLoader_appendToLog("Am happy with radius");
+        double angle = ((double)(rand() % 360) / 360) * M_PI * 2;
+        int xVel = abs((int)(momentumDef.radius * sin(angle)));
+        int yVel = abs((int)(momentumDef.radius * cos(angle)));
+
+        int inertiaDiff = 0;
+        if (momentumDef.inertiaMax > momentumDef.inertiaMin) {
+            inertiaDiff = (rand() % (momentumDef.inertiaMin - momentumDef.inertiaMax));
+        }
+        if (momentumDef.inertiaMax < momentumDef.inertiaMin) {
+            inertiaDiff = (rand() % (momentumDef.inertiaMax - momentumDef.inertiaMin));
+        }
+        int inertia = momentumDef.inertiaMin + inertiaDiff;
+
+        if (rand() % 100 < 50 && xVel > 0) {
+            xVel = 0x100 - xVel;
+        }
+        if (rand() % 100 < 50 && yVel > 0) {
+            yVel = 0x100 - yVel;
+        }
+        if (rand() % 100 < 50 && inertia > 0) {
+            inertia = 0x100 - inertia;
+        }
+
+        char logMessage1[0x100];
+        sprintf(logMessage1, "angle: %0.4f, xVel: %02X, yVel %02X, inertia %02X", angle, xVel, yVel, inertia);
+        cartLoader_appendToLog(logMessage1);
+
+        aa_genesis_setWorkRam(momentumDef.xByteStart, xVel);
+        aa_genesis_setWorkRam(momentumDef.inertiaByte, inertia);
+        aa_genesis_setWorkRam(momentumDef.yByteStart, yVel);
+    } else {
+        // cartLoader_appendToLog("Did not apply random velocity because of radius");
+    }
+}
+
+void updateRandomiseVelocityOnRing() {
+    if (ringCountHasChanged() != 0) {
+        applyRandomiseVelocity();
+    }
 }
 
 void updateSpeedUpOnRing() {
