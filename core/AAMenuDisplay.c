@@ -2352,12 +2352,12 @@ void showSonicSpecificOptionsMenu() {
     }
     sprintf(lines[2], "Write into level data on");
     if (hackOptions.overwriteLevelType == 0) {
-        sprintf(lines[3], "    get ring:              off");
+        sprintf(lines[3], "    get ring:   off");
         blockedLines[3] = 0;
     } else if (hackOptions.overwriteLevelType == 1) {
         sprintf(lines[3], "    get ring:   Random numbers");
     } else {
-        sprintf(lines[3], "    get ring:           zeroes");
+        sprintf(lines[3], "    get ring:   zeroes");
     }
 
     if (hackOptions.overwriteLevelDifficulty > 2) {
@@ -2381,9 +2381,9 @@ void showSonicSpecificOptionsMenu() {
         hackOptions.randomiseVelocityOnRing = 1;
     }
     if (hackOptions.randomiseVelocityOnRing == 1) {
-        sprintf(lines[5], "Randomise velocity on ring:   ON");
+        sprintf(lines[5], "Random velocity on ring:    ON");
     } else {
-        sprintf(lines[5], "Randomise velocity on ring:  OFF");
+        sprintf(lines[5], "Random velocity on ring:   OFF");
     }
 
 
