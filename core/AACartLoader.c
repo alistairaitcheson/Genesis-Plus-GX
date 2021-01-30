@@ -159,8 +159,8 @@ void cartLoader_run() {
     momentumControlListings[1].xByteStart = 0xD011;
     momentumControlListings[1].yByteStart = 0xD013;
     momentumControlListings[1].inertiaByte = 0xD015;
-    momentumControlListings[1].inertiaMin = 0x6;
-    momentumControlListings[1].inertiaByte = 0xA;
+    momentumControlListings[1].inertiaMin = 0x2;
+    momentumControlListings[1].inertiaMax = 0xC;
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
     copyGameListing(1, 2);

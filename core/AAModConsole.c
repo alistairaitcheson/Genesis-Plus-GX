@@ -59,7 +59,7 @@ static char queuedNetworkMessage[0x100];
 static int networkMessageLength = 0;
 
 static int snapEffectTime;
-static int snapEffectMaxTime = 10;
+static int snapEffectMaxTime = 6;
 static int snapEffectHeight[0x10];
 static int snapEffectWidth[0x10];
 static int snapEffectOffset[0x10];
@@ -547,6 +547,7 @@ void modConsole_processNetworkEvent(char eventId) {
 
     if (eventId == NETWORK_MSG_RANDOMISE_VELOCITY) {
         // still to add this
+        applyRandomiseVelocity();
     }
 
     int scrambleLevelCount = 0;
@@ -733,13 +734,23 @@ void applyRandomiseVelocity() {
         if (rand() % 100 < 50 && yVel > 0) {
             yVel = 0x100 - yVel;
         }
-        if (rand() % 100 < 50 && inertia > 0) {
-            inertia = 0x100 - inertia;
+        if (aa_genesis_getWorkRam(momentumDef.inertiaByte) > 0) {
+            // player is moving
+            // if player is going right, force them to go left
+            if (aa_genesis_getWorkRam(momentumDef.inertiaByte) < 128 && inertia > 0) {
+                inertia = 0x100 - inertia;
+            }
+        } else {
+            // player is standing still
+            // set inertia to a random direction
+            if (rand() % 100 < 50 && inertia > 0) {
+                inertia = 0x100 - inertia;
+            }
         }
 
-        char logMessage1[0x100];
-        sprintf(logMessage1, "angle: %0.4f, xVel: %02X, yVel %02X, inertia %02X", angle, xVel, yVel, inertia);
-        cartLoader_appendToLog(logMessage1);
+        // char logMessage1[0x100];
+        // sprintf(logMessage1, "angle: %0.4f, xVel: %02X, yVel %02X, inertia %02X", angle, xVel, yVel, inertia);
+        // cartLoader_appendToLog(logMessage1);
 
         aa_genesis_setWorkRam(momentumDef.xByteStart, xVel);
         aa_genesis_setWorkRam(momentumDef.inertiaByte, inertia);
