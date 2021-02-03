@@ -2122,9 +2122,9 @@ void showGameSwapOptionsMenu() {
         hackOptions.shouldShowSwapCount = 1;
     }
     if (hackOptions.shouldShowSwapCount == 0) {
-        sprintf(lines[4], "Show swap counter:        OFF");
+        sprintf(lines[4], "Show swap counter:       OFF");
     } else {
-        sprintf(lines[4], "Show swap counter:         ON");
+        sprintf(lines[4], "Show swap counter:        ON");
     }
 
     sprintf(lines[5], "back >");
@@ -2203,9 +2203,9 @@ void showQualityOfLifeOptionsMenu() {
         hackOptions.shouldWriteToLog = 1;
     }
     if (hackOptions.shouldWriteToLog == 0) {
-        sprintf(lines[2], "Write to debug log:       OFF");
+        sprintf(lines[2], "Write to debug log:      OFF");
     } else {
-        sprintf(lines[2], "Write to debug log:        ON"); 
+        sprintf(lines[2], "Write to debug log:       ON"); 
     }
 
     sprintf(lines[3], "back >");
@@ -2319,8 +2319,10 @@ void showSonicSpecificOptionsMenu() {
     int lineCount = 7;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
+    int linesWithBreakAfter[lineCount];
     for (int i = 0; i < lineCount; i++) {
         blockedLines[i] = 0;
+        linesWithBreakAfter[i] = 0;
     }
 
     if (sonicSpecificOptionIndex < 0) {
@@ -2341,8 +2343,10 @@ void showSonicSpecificOptionsMenu() {
     } else {
         sprintf(lines[0], "Speed up on ring:        OFF");
     }
+    linesWithBreakAfter[0] = 1;
 
     sprintf(lines[1], "Persist values between games >>");
+    linesWithBreakAfter[1] = 1;
 
     if (hackOptions.overwriteLevelType > 2) {
         hackOptions.overwriteLevelType = 0;
@@ -2352,13 +2356,14 @@ void showSonicSpecificOptionsMenu() {
     }
     sprintf(lines[2], "Write into level data on");
     if (hackOptions.overwriteLevelType == 0) {
-        sprintf(lines[3], "    get ring:   off");
+        sprintf(lines[3], "             get ring:     off");
         blockedLines[3] = 0;
     } else if (hackOptions.overwriteLevelType == 1) {
         sprintf(lines[3], "    get ring:   Random numbers");
     } else {
-        sprintf(lines[3], "    get ring:   zeroes");
+        sprintf(lines[3], "             get ring:  zeroes");
     }
+    linesWithBreakAfter[3] = 1;
 
     if (hackOptions.overwriteLevelDifficulty > 2) {
         hackOptions.overwriteLevelDifficulty = 0;
@@ -2373,6 +2378,7 @@ void showSonicSpecificOptionsMenu() {
     } else {
         sprintf(lines[4], "level write difficulty:   hard");
     }
+    linesWithBreakAfter[4] = 1;
 
     if (hackOptions.randomiseVelocityOnRing > 1) {
         hackOptions.randomiseVelocityOnRing = 0;
@@ -2385,7 +2391,7 @@ void showSonicSpecificOptionsMenu() {
     } else {
         sprintf(lines[5], "Random velocity on ring:   OFF");
     }
-
+    linesWithBreakAfter[5] = 1;
 
     sprintf(lines[6], "back >");
 
@@ -2409,6 +2415,9 @@ void showSonicSpecificOptionsMenu() {
         }
 
         yPos += 8;
+        if (linesWithBreakAfter[i] != 0) {
+            yPos += 8;
+        }
     }
 }
 
@@ -2514,12 +2523,6 @@ void showNetworkingOptionsMenu() {
     for (int i = 0; i < lineCount; i++) {
         blockedLines[i] = 0;
     }
-    if (networkOptions.networkingIsActive == 0) {
-        blockedLines[4] = 1;
-        blockedLines[5] = 1;
-        blockedLines[6] = 1;
-        blockedLines[7] = 1;
-    }
 
     if (networkingOptionsIndex < 0) {
         networkingOptionsIndex = lineCount - 1;
@@ -2538,6 +2541,13 @@ void showNetworkingOptionsMenu() {
         sprintf(lines[0], "Networked play:           OFF");
     } else {
         sprintf(lines[0], "Networked play:           ON");
+    }
+
+    if (networkOptions.networkingIsActive == 0) {
+        blockedLines[4] = 1;
+        blockedLines[5] = 1;
+        blockedLines[6] = 1;
+        blockedLines[7] = 1;
     }
 
     sprintf(lines[1], "");
@@ -2584,7 +2594,7 @@ void showNetworkingOptionsMenu() {
         networkOptions.sendWriteIntoLevelDifficulty = 0;
     }
     if (networkOptions.sendWriteIntoLevelDifficulty < 0) {
-        networkOptions.sendWriteIntoLevelDifficulty = 1;
+        networkOptions.sendWriteIntoLevelDifficulty = 3;
     }
     if (networkOptions.sendWriteIntoLevelDifficulty == 0) {
         sprintf(lines[7], "  Scramble oppt level:     OFF");
