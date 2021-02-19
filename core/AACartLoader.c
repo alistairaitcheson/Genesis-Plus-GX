@@ -161,6 +161,15 @@ void cartLoader_run() {
     momentumControlListings[1].inertiaByte = 0xD015;
     momentumControlListings[1].inertiaMin = 0x2;
     momentumControlListings[1].inertiaMax = 0xC;
+    gameTransferListings[1].gameStateByte = 0xF601;
+    gameTransferListings[1].gameStatesToBlockSwitch[0] = 0x00; // SEGA SCREEN
+    gameTransferListings[1].gameStatesToBlockSwitch[1] = 0x04; // TITLE SCREEN
+    gameTransferListings[1].gameStatesToBlockSwitch[2] = 0x14; // CONTINUE SCREEN
+    gameTransferListings[1].gameStatesToBlockScramble[0] = 0x00; // SEGA SCREEN
+    gameTransferListings[1].gameStatesToBlockScramble[1] = 0x04; // TITLE SCREEN
+    gameTransferListings[1].gameStatesToBlockScramble[2] = 0x10; // SPECIAL STAGE
+    gameTransferListings[1].gameStatesToBlockScramble[3] = 0x14; // CONTINUE SCREEN
+
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
     copyGameListing(1, 2);
@@ -202,6 +211,34 @@ void cartLoader_run() {
     momentumControlListings[3].xByteStart = 0xB019;
     momentumControlListings[3].yByteStart = 0xB01B;
     momentumControlListings[3].inertiaByte = 0xB01D;
+    gameTransferListings[3].gameStateByte = 0xF601;
+    // when to block game switch (i.e. menu screens)
+    gameTransferListings[3].gameStatesToBlockSwitch[0] = 0x00; // SEGA SCREEN
+    gameTransferListings[3].gameStatesToBlockSwitch[1] = 0x04; // TITLE SCREEN
+    gameTransferListings[3].gameStatesToBlockSwitch[2] = 0x14; // CONTINUE SCREEN
+    gameTransferListings[3].gameStatesToBlockSwitch[3] = 0x1C; // LEVEL SELECT
+    gameTransferListings[3].gameStatesToBlockSwitch[4] = 0x24; // LEVEL SELECT
+    gameTransferListings[3].gameStatesToBlockSwitch[5] = 0x28; // LEVEL SELECT
+    gameTransferListings[3].gameStatesToBlockSwitch[6] = 0x38; // VS MODE MENU
+    gameTransferListings[3].gameStatesToBlockSwitch[7] = 0x3C; // VS MODE MENU
+    gameTransferListings[3].gameStatesToBlockSwitch[8] = 0x40; // VS MODE MENU
+    gameTransferListings[3].gameStatesToBlockSwitch[9] = 0x44; // VS MODE MENU
+    gameTransferListings[3].gameStatesToBlockSwitch[10] = 0x4C; // FILE SELECT
+    // when to block game scramble (i.e. menu screens and special stages)
+    gameTransferListings[3].gameStatesToBlockScramble[0] = 0x00; // SEGA SCREEN
+    gameTransferListings[3].gameStatesToBlockScramble[1] = 0x04; // TITLE SCREEN
+    gameTransferListings[3].gameStatesToBlockScramble[2] = 0x14; // CONTINUE SCREEN
+    gameTransferListings[3].gameStatesToBlockScramble[3] = 0x1C; // LEVEL SELECT
+    gameTransferListings[3].gameStatesToBlockScramble[4] = 0x24; // LEVEL SELECT
+    gameTransferListings[3].gameStatesToBlockScramble[5] = 0x28; // LEVEL SELECT
+    gameTransferListings[3].gameStatesToBlockScramble[6] = 0x38; // VS MODE MENU
+    gameTransferListings[3].gameStatesToBlockScramble[7] = 0x3C; // VS MODE MENU
+    gameTransferListings[3].gameStatesToBlockScramble[8] = 0x40; // VS MODE MENU
+    gameTransferListings[3].gameStatesToBlockScramble[9] = 0x44; // VS MODE MENU
+    gameTransferListings[3].gameStatesToBlockScramble[10] = 0x2C; // BLUE SPHERES
+    gameTransferListings[3].gameStatesToBlockScramble[11] = 0x34; // SPECIAL STAGE
+    gameTransferListings[3].gameStatesToBlockScramble[11] = 0x48; // SPECIAL STAGE RESULTS
+    gameTransferListings[3].gameStatesToBlockScramble[12] = 0x4C; // FILE SELECT
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     copyGameListing(3, 4);
@@ -590,6 +627,12 @@ void zeroAllListings() {
             gameTransferListings[gameIndex].scoreBytesForTransfer[i] = 0;
 
             gameListings[gameIndex].bytesToTestForChange[i] = 0;
+        }
+
+        gameTransferListings[gameIndex].gameStateByte = 0;
+        for (int i = 0; i < 0x10; i++) {
+            gameTransferListings[gameIndex].gameStatesToBlockScramble[i] = -1;
+            gameTransferListings[gameIndex].gameStatesToBlockSwitch[i] = -1;
         }
 
         momentumControlListings[gameIndex].radius = 0;
@@ -1217,14 +1260,22 @@ void cartLoader_checkNetworkForActions() {
             char pathThisFile[0x100];
             sprintf(pathThisFile, "%s%s", receivePath, dp->d_name);
             FILE *reader = fopen(pathThisFile, "r");
-            int actionBuffer[0x100];
-            fread(actionBuffer, sizeof(int), 0x100, reader);
+            char actionBuffer[0x100];
+            fread(actionBuffer, sizeof(char), 0x100, reader);
             fclose(reader);
+
+            cartLoader_appendToLog("---ENACING NETWORK EFFECTS");
+            cartLoader_appendToLog(actionBuffer);
 
             for (int i = 0; i < 0x100; i++) {
                 if (actionBuffer[i] == 0) {
+                    cartLoader_appendToLog("---END OF EVENTS");
                     break;
                 } else {
+                    char testLog[2];
+                    testLog[0] = actionBuffer[i];
+                    testLog[1] = 0;
+                    cartLoader_appendToLog(testLog);
                     modConsole_processNetworkEvent(actionBuffer[i]);
                 }
             }
@@ -1322,6 +1373,12 @@ void copyGameListing(int fromGame, int toGame) {
         gameTransferListings[toGame].timeBytesForTransfer[i] = gameTransferListings[fromGame].timeBytesForTransfer[i];
         gameTransferListings[toGame].momentumBytesForTransfer[i] = gameTransferListings[fromGame].momentumBytesForTransfer[i];
         gameTransferListings[toGame].scoreBytesForTransfer[i] = gameTransferListings[fromGame].scoreBytesForTransfer[i];
+    }
+
+    gameTransferListings[toGame].gameStateByte = gameTransferListings[fromGame].gameStateByte;
+    for (int i = 0; i < 0x10; i++) {
+        gameTransferListings[toGame].gameStatesToBlockScramble[i] = gameTransferListings[fromGame].gameStatesToBlockScramble[i];
+        gameTransferListings[toGame].gameStatesToBlockSwitch[i] = gameTransferListings[fromGame].gameStatesToBlockSwitch[i];
     }
 
     momentumControlListings[toGame].radius = momentumControlListings[fromGame].radius;

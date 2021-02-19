@@ -28,7 +28,7 @@ static int pixelDetectiveIndex = 0;
 static int networkingOptionsIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 12;
+static int minorVersion = 13;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -71,6 +71,74 @@ int menuDisplay_isShowing() {
     } else {
         return 1;
     }
+}
+
+int menuDisplay_areSoloEffectsAllowed() {
+    if (networkOptions.allowSoloEffectswhenNetworked != 0 || networkOptions.networkingIsActive == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int menuDisplay_shouldGameSwapOptionsShowAsOn() {
+    if (hackOptions.switchGameType != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int menuDisplay_shouldQualityOfLifeOptionsShowAsOn() {
+    if (hackOptions.infiniteLives != 0 || hackOptions.infiniteTime != 0 || hackOptions.shouldWriteToLog != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int menuDisplay_shouldPersistValueOptionsShowAsOn() {
+    if (persistValuesOptions.lives != 0 || 
+        persistValuesOptions.momentum != 0 ||
+        persistValuesOptions.rings != 0 ||
+        persistValuesOptions.score != 0 ||
+        persistValuesOptions.time != 0 ||
+        persistValuesOptions.topSpeed != 0) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int menuDisplay_shouldSonicSpecificOptionsShowAsOn() {
+    if (menuDisplay_areSoloEffectsAllowed() == 0) {
+        return 0;
+    }
+    if (hackOptions.speedUpOnRing != 0 || hackOptions.randomiseVelocityOnRing != 0 || hackOptions.overwriteLevelType != 0) {
+        return 1;
+    }
+    if (menuDisplay_shouldPersistValueOptionsShowAsOn()) {
+        return 1;
+    }
+    return 0;
+}
+
+int menuDisplay_shouldVisualsOptionsShowAsOn() {
+    if (hackOptions.shouldSortColours != 0 || hackOptions.limitedColourType != 0 || hackOptions.copyVram != 0 || hackOptions.shouldHideLayers != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int menuDisplay_shouldNetworkingOptionsShowAsOn() {
+    if (hackOptions.switchGameType != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int menuDisplay_shouldSaveStateOptionsShowAsOn() {
+    if (hackOptions.automaticallySaveStatesFreq != 0) {
+        return 1;
+    }
+    return 0;
 }
 
 void menuDisplay_initialise() {
@@ -361,6 +429,7 @@ void applyNetworkOptionsFromArray256(int array256[]) {
     networkOptions.sendSpeedUp = array256[2];
     networkOptions.sendWriteIntoLevelDifficulty = array256[3];
     networkOptions.sendRandomiseVelocity = array256[4];
+    networkOptions.allowSoloEffectswhenNetworked = array256[5];
 }
 
 void applyDefaultPersistValues() {
@@ -409,6 +478,7 @@ void applyNetworkOptionsDefaultValues() {
     networkOptions.sendSpeedUp = 0;
     networkOptions.sendWriteIntoLevelDifficulty = 0;
     networkOptions.sendRandomiseVelocity = 0;
+    networkOptions.allowSoloEffectswhenNetworked = 0;
 }
 
 
@@ -517,6 +587,7 @@ void saveHackOptions() {
     networkValues[2] = networkOptions.sendSpeedUp;
     networkValues[3] = networkOptions.sendWriteIntoLevelDifficulty;
     networkValues[4] = networkOptions.sendRandomiseVelocity;
+    networkValues[5] = networkOptions.allowSoloEffectswhenNetworked;
 
     remove("_magicbox/__networkOptions.data");
     FILE *networkOptionsWriter = fopen("_magicbox/__networkOptions.data", "wb");
@@ -1048,7 +1119,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_NETWORKING) {
         if (buttonIndex == INPUT_INDEX_UP) {
             networkingOptionsIndex--;
-            while (networkingOptionsIndex == 1 || networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 8) {
+            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 9) {
                 networkingOptionsIndex --;
             }
             refreshMenu();
@@ -1056,7 +1127,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             networkingOptionsIndex++;
-            while (networkingOptionsIndex == 1 || networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 8) {
+            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 9) {
                 networkingOptionsIndex ++;
             }
             refreshMenu();
@@ -1083,20 +1154,23 @@ void incrementNetworkOption(int direction) {
     if (networkingOptionsIndex == 0) {
         networkOptions.networkingIsActive += direction;
     }
-    if (networkingOptionsIndex == 4) {
-        networkOptions.sendSwitchGame += direction;
-    }
-    if (networkingOptionsIndex == 5) {
-        networkOptions.sendSpeedUp += direction;
+    if (networkingOptionsIndex == 2) {
+        networkOptions.allowSoloEffectswhenNetworked += direction;
     }
     if (networkingOptionsIndex == 6) {
-        networkOptions.sendRandomiseVelocity += direction;
+        networkOptions.sendSwitchGame += direction;
     }
     if (networkingOptionsIndex == 7) {
+        networkOptions.sendSpeedUp += direction;
+    }
+    if (networkingOptionsIndex == 8) {
+        networkOptions.sendRandomiseVelocity += direction;
+    }
+    if (networkingOptionsIndex == 9) {
         networkOptions.sendWriteIntoLevelDifficulty += direction;
     }
 
-    if (networkingOptionsIndex == 9) {
+    if (networkingOptionsIndex == 11) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -1532,12 +1606,46 @@ void showOptionsMenu() {
         optionsItemIndex = 0;
     }
 
-    sprintf(lines[0], "Game swapping >");
-    sprintf(lines[1], "Quality of life >");
-    sprintf(lines[2], "Save states >");
-    sprintf(lines[3], "Sonic-specific >");
-    sprintf(lines[4], "Visuals >");
-    sprintf(lines[5], "Networking >");
+    if (menuDisplay_shouldGameSwapOptionsShowAsOn() != 0) {
+        sprintf(lines[0], "[ON] Game swapping >");
+    } else {
+        if (networkOptions.allowSoloEffectswhenNetworked != 0) {
+            sprintf(lines[0], "[BLOCKED] Game swapping >");
+        } else {
+            sprintf(lines[0], "Game swapping >");
+        }
+    }
+    
+    if (menuDisplay_shouldQualityOfLifeOptionsShowAsOn() != 0) {
+        sprintf(lines[1], "[ON] Quality of life >");
+    } else {
+        sprintf(lines[1], "Quality of life >");
+    }
+
+    if (menuDisplay_shouldSaveStateOptionsShowAsOn() != 0) {
+        sprintf(lines[2], "[ON] Save states >");
+    } else {
+        sprintf(lines[2], "Save states >");
+    }
+
+    if (menuDisplay_shouldSonicSpecificOptionsShowAsOn() != 0) {
+        sprintf(lines[3], "[ON] Sonic-specific >");
+    } else {
+        sprintf(lines[3], "Sonic-specific >");
+    }
+
+    if (menuDisplay_shouldVisualsOptionsShowAsOn() != 0) {
+        sprintf(lines[4], "[ON] Visuals >");
+    } else {
+        sprintf(lines[4], "Visuals >");
+    }
+    
+    if (menuDisplay_shouldNetworkingOptionsShowAsOn() != 0) {
+        sprintf(lines[5], "[ON] Networking >");
+    } else {
+        sprintf(lines[5], "Networking >");
+    }
+    
     sprintf(lines[6], "Start game");
 
     int yPos = 32;
@@ -2517,7 +2625,7 @@ void showNetworkingOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Networking", 5);
 
-    int lineCount = 10;
+    int lineCount = 12;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -2543,16 +2651,30 @@ void showNetworkingOptionsMenu() {
         sprintf(lines[0], "Networked play:           ON");
     }
 
-    if (networkOptions.networkingIsActive == 0) {
-        blockedLines[4] = 1;
-        blockedLines[5] = 1;
-        blockedLines[6] = 1;
-        blockedLines[7] = 1;
+    sprintf(lines[1], "Enable single-player effects");
+    if (networkOptions.allowSoloEffectswhenNetworked > 1) {
+        networkOptions.allowSoloEffectswhenNetworked = 0;
+    }
+    if (networkOptions.allowSoloEffectswhenNetworked < 0) {
+        networkOptions.allowSoloEffectswhenNetworked = 1;
+    }
+    if (networkOptions.allowSoloEffectswhenNetworked == 0) {
+        sprintf(lines[2], "    during networked play:  NO");
+    } else {
+        sprintf(lines[2], "    during networked play: YES");
     }
 
-    sprintf(lines[1], "");
-    sprintf(lines[2], "When you get a ring");
-    sprintf(lines[3], "it will...");
+
+    if (networkOptions.networkingIsActive == 0) {
+        blockedLines[6] = 1;
+        blockedLines[7] = 1;
+        blockedLines[8] = 1;
+        blockedLines[9] = 1;
+    }
+
+    sprintf(lines[3], "");
+    sprintf(lines[4], "When you get a ring");
+    sprintf(lines[5], "it will...");
 
     if (networkOptions.sendSwitchGame > 1) {
         networkOptions.sendSwitchGame = 0;
@@ -2561,9 +2683,9 @@ void showNetworkingOptionsMenu() {
         networkOptions.sendSwitchGame = 1;
     }
     if (networkOptions.sendSwitchGame == 0) {
-        sprintf(lines[4], "  Switch opponent's game:  OFF");
+        sprintf(lines[6], "  Switch opponent's game:  OFF");
     } else {
-        sprintf(lines[4], "  Switch opponent's game:   ON");
+        sprintf(lines[6], "  Switch opponent's game:   ON");
     }
 
     if (networkOptions.sendSpeedUp > 1) {
@@ -2573,9 +2695,9 @@ void showNetworkingOptionsMenu() {
         networkOptions.sendSpeedUp = 1;
     }
     if (networkOptions.sendSpeedUp == 0) {
-        sprintf(lines[5], "  Speed up opponent:       OFF");
+        sprintf(lines[7], "  Speed up opponent:       OFF");
     } else {
-        sprintf(lines[5], "  Speed up opponent:        ON");
+        sprintf(lines[7], "  Speed up opponent:        ON");
     }
 
     if (networkOptions.sendRandomiseVelocity > 1) {
@@ -2585,9 +2707,9 @@ void showNetworkingOptionsMenu() {
         networkOptions.sendRandomiseVelocity = 1;
     }
     if (networkOptions.sendRandomiseVelocity == 0) {
-        sprintf(lines[6], "  Randomise oppt velocity: OFF");
+        sprintf(lines[8], "  Randomise oppt velocity: OFF");
     } else {
-        sprintf(lines[6], "  Randomise oppt velocity:  ON");
+        sprintf(lines[8], "  Randomise oppt velocity:  ON");
     }
 
     if (networkOptions.sendWriteIntoLevelDifficulty > 3) {
@@ -2597,18 +2719,18 @@ void showNetworkingOptionsMenu() {
         networkOptions.sendWriteIntoLevelDifficulty = 3;
     }
     if (networkOptions.sendWriteIntoLevelDifficulty == 0) {
-        sprintf(lines[7], "  Scramble oppt level:     OFF");
+        sprintf(lines[9], "  Scramble oppt level:     OFF");
     } else if (networkOptions.sendWriteIntoLevelDifficulty == 1) {
-        sprintf(lines[7], "  Scramble oppt level:   A BIT");
+        sprintf(lines[9], "  Scramble oppt level:   A BIT");
     } else if (networkOptions.sendWriteIntoLevelDifficulty == 2) {
-        sprintf(lines[7], "  Scramble oppt level:   A LOT");
+        sprintf(lines[9], "  Scramble oppt level:   A LOT");
     } else if (networkOptions.sendWriteIntoLevelDifficulty == 3) {
-        sprintf(lines[7], "  Scramble oppt level:   LOADS");
+        sprintf(lines[9], "  Scramble oppt level:   LOADS");
     }
 
 
-    sprintf(lines[8], "");
-    sprintf(lines[9], "back >");
+    sprintf(lines[10], "");
+    sprintf(lines[11], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

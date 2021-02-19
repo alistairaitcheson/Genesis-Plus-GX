@@ -40,6 +40,9 @@ typedef struct
     int timeBytesForTransfer[8];
     int momentumBytesForTransfer[8];
     int scoreBytesForTransfer[8];
+    int gameStateByte;
+    int gameStatesToBlockSwitch[0x10];
+    int gameStatesToBlockScramble[0x10];
 } AAGameTransferListing;
 
 typedef struct

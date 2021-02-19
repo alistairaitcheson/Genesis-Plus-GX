@@ -368,18 +368,20 @@ void modConsole_updateFrame() {
         // layerRenderer_clearLayer(0);
         // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
 
-        if (hackOpts.speedUpOnRing != 0) {
-            updateSpeedUpOnRing();
-        }
-        if (hackOpts.switchGameType == 1) {
-            updateSwitchGameOnRing();
-        }
-        if (hackOpts.randomiseVelocityOnRing != 0) {
-            updateRandomiseVelocityOnRing();
-        }
+        if (menuDisplay_areSoloEffectsAllowed() != 0) {
+            if (hackOpts.speedUpOnRing != 0) {
+                updateSpeedUpOnRing();
+            }
+            if (hackOpts.switchGameType == 1) {
+                updateSwitchGameOnRing();
+            }
+            if (hackOpts.randomiseVelocityOnRing != 0) {
+                updateRandomiseVelocityOnRing();
+            }
 
-        if (hackOpts.overwriteLevelType > 0) {
-            overwriteLevelOnRing();
+            if (hackOpts.overwriteLevelType > 0) {
+                overwriteLevelOnRing();
+            }
         }
 
         sendNetworkMessageOnGetRing();
@@ -460,7 +462,7 @@ void modConsole_updateFrame() {
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
         } else if (
-            // instal-kill!!
+            // insta-kill!!
             buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
@@ -534,7 +536,24 @@ void modConsole_processNetworkEvent(char eventId) {
     fireSnapEffect();
 
     if (eventId == NETWORK_MSG_SWITCH_GAME) {
-        promptSwitchGame();
+        int switchingIsAllowed = 1
+        // check in case we're in a gamestate where switching game would be dangerous/annoying
+        // (e.g. in a menu)
+        AAGameTransferListing transfer = cartLoader_getActiveGameTransferListing();
+        if (transfer.gameStateByte != 0) {
+            unsigned int value = aa_genesis_getWorkRam(transfer.gameStateByte);
+            for (int i = 0; i < 0x10; i++) {
+                if (transfer.gameStatesToBlockSwitch[i] >= 0) {
+                    //the top bit is used for something in Sonic 3
+                    if (value % 0x80 == transfer.gameStatesToBlockSwitch[i]) {
+                        switchingIsAllowed = 0;
+                    }
+                }
+            }
+        }
+        if (switchingIsAllowed > 0) {
+            promptSwitchGame();
+        }
     }
 
     if (eventId == NETWORK_MSG_SPEED_UP) {
@@ -552,13 +571,13 @@ void modConsole_processNetworkEvent(char eventId) {
 
     int scrambleLevelCount = 0;
     if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_EASY) {
-        scrambleLevelCount = 10;
+        scrambleLevelCount = 1; // was 10
     }
     if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM) {
-        scrambleLevelCount = 20;
+        scrambleLevelCount = 2; // was 20
     }
     if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_HARD) {
-        scrambleLevelCount = 50;
+        scrambleLevelCount = 5; // was 50
     }
     if (scrambleLevelCount > 0) {
         overwriteLevel(scrambleLevelCount, 1);
@@ -618,6 +637,21 @@ void sendNetworkMessageOnGetRing() {
 }
 
 void overwriteLevel(int cycleCount, int overwriteType) {
+    // check in case we're in a gamestate where scrambling would be dangerous
+    AAGameTransferListing transfer = cartLoader_getActiveGameTransferListing();
+    if (transfer.gameStateByte != 0) {
+        unsigned int value = aa_genesis_getWorkRam(transfer.gameStateByte);
+        for (int i = 0; i < 0x10; i++) {
+            if (transfer.gameStatesToBlockScramble[i] >= 0) {
+                //the top bit is used for something in Sonic 3
+                if (value % 0x80 == transfer.gameStatesToBlockScramble[i]) {
+                    return;
+                }
+            }
+        }
+    }
+
+    // If we got to here, it's safe!
     AALevelEditListing levelEdits = cartLoader_getActiveLevelEditListing();
     if (levelEdits.endByte > 0 && levelEdits.endByte > levelEdits.startByte) {
         for (int i = 0; i < cycleCount; i++) {

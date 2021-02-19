@@ -79,6 +79,7 @@ typedef struct {
     int sendSpeedUp;
     int sendWriteIntoLevelDifficulty;
     int sendRandomiseVelocity;
+    int allowSoloEffectswhenNetworked;
 } NetworkOptions;
 
 extern void menuDisplay_showMenu(int menuNum);
@@ -95,6 +96,7 @@ extern void menuDisplay_logRamStateToTrackedValues();
 extern void menuDisplay_renderPixelDetective();
 extern void menuDisplay_updatePixelDetective(int line, uint8 linebuf[2][0x200]);
 extern NetworkOptions menuDisplay_getNetworkOptions();
+extern int menuDisplay_areSoloEffectsAllowed();
 
 void beginGame();
 void showTitleMenu();
