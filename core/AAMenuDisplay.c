@@ -64,6 +64,75 @@ NetworkOptions menuDisplay_getNetworkOptions() {
     return networkOptions;
 }
 
+void menuDisplay_sendNetworkOptionsToOpponent() {
+    char message[0x100];
+    sprintf(message, "");
+    
+    message[0] = NETWORK_MSG_INTERPRET_AS_RULES;
+
+    message[1] = networkOptions.sendSwitchGame != 0 ? NETWORK_MSG_INTERPRET_AS_POSITIVE : NETWORK_MSG_INTERPRET_AS_NEGATIVE;
+    message[2] = NETWORK_MSG_SWITCH_GAME;
+
+    message[3] = networkOptions.sendSpeedUp != 0 ? NETWORK_MSG_INTERPRET_AS_POSITIVE : NETWORK_MSG_INTERPRET_AS_NEGATIVE;
+    message[4] = NETWORK_MSG_SPEED_UP;
+    
+    message[5] = networkOptions.sendRandomiseVelocity != 0 ? NETWORK_MSG_INTERPRET_AS_POSITIVE : NETWORK_MSG_INTERPRET_AS_NEGATIVE;
+    message[6] = NETWORK_MSG_RANDOMISE_VELOCITY;
+        
+    message[7] = networkOptions.sendWriteIntoLevelDifficulty != 0 ? NETWORK_MSG_INTERPRET_AS_POSITIVE : NETWORK_MSG_INTERPRET_AS_NEGATIVE;
+    message[8] = NETWORK_MSG_SCRAMBLE_LEVEL_EASY;
+    if (networkOptions.sendWriteIntoLevelDifficulty == 1) {
+        message[8] = NETWORK_MSG_SCRAMBLE_LEVEL_EASY;
+    }
+    if (networkOptions.sendWriteIntoLevelDifficulty == 2) {
+        message[8] = NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM;
+    }    
+    if (networkOptions.sendWriteIntoLevelDifficulty == 3) {
+        message[8] = NETWORK_MSG_SCRAMBLE_LEVEL_HARD;
+    }
+
+    cartLoader_writeActionToNetwork(message);
+}
+
+void menuDisplay_applyNetworkOptionSwitch(char command, int asPositive) {
+    if (command == NETWORK_MSG_SWITCH_GAME) {
+        networkOptions.sendSwitchGame = asPositive; 
+    }
+    if (command == NETWORK_MSG_SPEED_UP) {
+        networkOptions.sendSpeedUp = asPositive; 
+    }
+    if (command == NETWORK_MSG_RANDOMISE_VELOCITY) {
+        networkOptions.sendRandomiseVelocity = asPositive; 
+    }
+    if (command == NETWORK_MSG_SCRAMBLE_LEVEL_EASY) {
+        if (asPositive == 0) {
+            networkOptions.sendWriteIntoLevelDifficulty = 0; 
+        } else {
+            networkOptions.sendWriteIntoLevelDifficulty = 1; 
+        }
+    }
+    if (command == NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM) {
+        if (asPositive == 0) {
+            networkOptions.sendWriteIntoLevelDifficulty = 0; 
+        } else {
+            networkOptions.sendWriteIntoLevelDifficulty = 2; 
+        }
+    }
+    if (command == NETWORK_MSG_SCRAMBLE_LEVEL_HARD) {
+        if (asPositive == 0) {
+            networkOptions.sendWriteIntoLevelDifficulty = 0; 
+        } else {
+            networkOptions.sendWriteIntoLevelDifficulty = 3; 
+        }
+    }
+
+    networkOptions.awaitingOpponentSettingsState = 2;
+
+    // make sure to refresh the network menu if it's showing!
+    if (menuDisplay_isShowing() != 0) {
+        menuDisplay_showMenu(activeMenu);
+    }
+}
 
 int menuDisplay_isShowing() {
     if (activeMenu == MENU_LISTING_NONE) {
@@ -128,7 +197,7 @@ int menuDisplay_shouldVisualsOptionsShowAsOn() {
 }
 
 int menuDisplay_shouldNetworkingOptionsShowAsOn() {
-    if (hackOptions.switchGameType != 0) {
+    if (networkOptions.networkingIsActive != 0) {
         return 1;
     }
     return 0;
@@ -1119,7 +1188,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_NETWORKING) {
         if (buttonIndex == INPUT_INDEX_UP) {
             networkingOptionsIndex--;
-            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 9) {
+            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 5 || networkingOptionsIndex == 10 || networkingOptionsIndex == 12) {
                 networkingOptionsIndex --;
             }
             refreshMenu();
@@ -1127,7 +1196,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             networkingOptionsIndex++;
-            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 9) {
+            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 5 || networkingOptionsIndex == 10 || networkingOptionsIndex == 12) {
                 networkingOptionsIndex ++;
             }
             refreshMenu();
@@ -1154,7 +1223,7 @@ void incrementNetworkOption(int direction) {
     if (networkingOptionsIndex == 0) {
         networkOptions.networkingIsActive += direction;
     }
-    if (networkingOptionsIndex == 2) {
+    if (networkingOptionsIndex == 1) {
         networkOptions.allowSoloEffectswhenNetworked += direction;
     }
     if (networkingOptionsIndex == 6) {
@@ -1171,6 +1240,17 @@ void incrementNetworkOption(int direction) {
     }
 
     if (networkingOptionsIndex == 11) {
+        char action[0x100];
+        sprintf(action, "");
+        action[0] = NETWORK_MSG_REQUEST_RULES;
+        cartLoader_writeActionToNetwork(action);
+
+        networkOptions.awaitingOpponentSettingsState = 1;
+    }
+
+
+    if (networkingOptionsIndex == 13) {
+        networkOptions.awaitingOpponentSettingsState = 0;
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -1612,40 +1692,40 @@ void showOptionsMenu() {
         if (networkOptions.allowSoloEffectswhenNetworked != 0) {
             sprintf(lines[0], "[BLOCKED] Game swapping >");
         } else {
-            sprintf(lines[0], "Game swapping >");
+            sprintf(lines[0], "     Game swapping >");
         }
     }
     
     if (menuDisplay_shouldQualityOfLifeOptionsShowAsOn() != 0) {
         sprintf(lines[1], "[ON] Quality of life >");
     } else {
-        sprintf(lines[1], "Quality of life >");
+        sprintf(lines[1], "     Quality of life >");
     }
 
     if (menuDisplay_shouldSaveStateOptionsShowAsOn() != 0) {
         sprintf(lines[2], "[ON] Save states >");
     } else {
-        sprintf(lines[2], "Save states >");
+        sprintf(lines[2], "     Save states >");
     }
 
     if (menuDisplay_shouldSonicSpecificOptionsShowAsOn() != 0) {
         sprintf(lines[3], "[ON] Sonic-specific >");
     } else {
-        sprintf(lines[3], "Sonic-specific >");
+        sprintf(lines[3], "     Sonic-specific >");
     }
 
     if (menuDisplay_shouldVisualsOptionsShowAsOn() != 0) {
         sprintf(lines[4], "[ON] Visuals >");
     } else {
-        sprintf(lines[4], "Visuals >");
+        sprintf(lines[4], "     Visuals >");
     }
     
     if (menuDisplay_shouldNetworkingOptionsShowAsOn() != 0) {
         sprintf(lines[5], "[ON] Networking >");
     } else {
-        sprintf(lines[5], "Networking >");
+        sprintf(lines[5], "     Networking >");
     }
-    
+
     sprintf(lines[6], "Start game");
 
     int yPos = 32;
@@ -2453,7 +2533,11 @@ void showSonicSpecificOptionsMenu() {
     }
     linesWithBreakAfter[0] = 1;
 
-    sprintf(lines[1], "Persist values between games >>");
+    if (menuDisplay_shouldPersistValueOptionsShowAsOn() != 0) {
+        sprintf(lines[1], "[ON] Persist values between games >>");
+    } else {
+        sprintf(lines[1], "Persist values between games >>");
+    }
     linesWithBreakAfter[1] = 1;
 
     if (hackOptions.overwriteLevelType > 2) {
@@ -2625,7 +2709,7 @@ void showNetworkingOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Networking", 5);
 
-    int lineCount = 12;
+    int lineCount = 14;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -2728,9 +2812,17 @@ void showNetworkingOptionsMenu() {
         sprintf(lines[9], "  Scramble oppt level:   LOADS");
     }
 
-
     sprintf(lines[10], "");
-    sprintf(lines[11], "back >");
+    if (networkOptions.awaitingOpponentSettingsState == 0) {
+        sprintf(lines[11], "Get opponent's settings");
+    } else if (networkOptions.awaitingOpponentSettingsState == 1) {
+        sprintf(lines[11], "Get opponent's settings (getting)");
+    } else if (networkOptions.awaitingOpponentSettingsState == 2) {
+        sprintf(lines[11], "Get opponent's settings (done!)");
+    } 
+
+    sprintf(lines[12], "");
+    sprintf(lines[13], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

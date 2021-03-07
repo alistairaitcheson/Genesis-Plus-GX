@@ -237,8 +237,8 @@ void cartLoader_run() {
     gameTransferListings[3].gameStatesToBlockScramble[9] = 0x44; // VS MODE MENU
     gameTransferListings[3].gameStatesToBlockScramble[10] = 0x2C; // BLUE SPHERES
     gameTransferListings[3].gameStatesToBlockScramble[11] = 0x34; // SPECIAL STAGE
-    gameTransferListings[3].gameStatesToBlockScramble[11] = 0x48; // SPECIAL STAGE RESULTS
-    gameTransferListings[3].gameStatesToBlockScramble[12] = 0x4C; // FILE SELECT
+    gameTransferListings[3].gameStatesToBlockScramble[12] = 0x48; // SPECIAL STAGE RESULTS
+    gameTransferListings[3].gameStatesToBlockScramble[13] = 0x4C; // FILE SELECT
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     copyGameListing(3, 4);
@@ -1264,19 +1264,50 @@ void cartLoader_checkNetworkForActions() {
             fread(actionBuffer, sizeof(char), 0x100, reader);
             fclose(reader);
 
-            cartLoader_appendToLog("---ENACING NETWORK EFFECTS");
-            cartLoader_appendToLog(actionBuffer);
+            // cartLoader_appendToLog("---ENACING NETWORK EFFECTS");
+            // cartLoader_appendToLog(actionBuffer);
+
+            //the below are used for reading "set these settings for the user"
+            int interpretType = NETWORK_INTERPRET_TYPE_ACTION;
+            int assignNextAsPositive = 0;
 
             for (int i = 0; i < 0x100; i++) {
                 if (actionBuffer[i] == 0) {
-                    cartLoader_appendToLog("---END OF EVENTS");
+                    // cartLoader_appendToLog("---END OF EVENTS");
                     break;
                 } else {
-                    char testLog[2];
-                    testLog[0] = actionBuffer[i];
-                    testLog[1] = 0;
-                    cartLoader_appendToLog(testLog);
-                    modConsole_processNetworkEvent(actionBuffer[i]);
+                    if (actionBuffer[i] == NETWORK_MSG_INTERPRET_AS_ACTIONS) {
+                        interpretType = NETWORK_INTERPRET_TYPE_ACTION;
+                    }
+                    if (actionBuffer[i] == NETWORK_MSG_INTERPRET_AS_RULES) {
+                        interpretType = NETWORK_INTERPRET_TYPE_ASSIGN_RULES;
+                    }
+
+                    if (actionBuffer[i] == NETWORK_MSG_INTERPRET_AS_POSITIVE) {
+                        assignNextAsPositive = 1;
+                    }
+                    if (actionBuffer[i] == NETWORK_MSG_INTERPRET_AS_NEGATIVE) {
+                        assignNextAsPositive = 0;
+                    }
+
+                    // char testLog[2];
+                    // testLog[0] = actionBuffer[i];
+                    // testLog[1] = 0;
+                    // cartLoader_appendToLog(testLog);
+
+                    if (actionBuffer[i] == NETWORK_MSG_REQUEST_RULES) {
+                        menuDisplay_sendNetworkOptionsToOpponent();
+                        continue;
+                    }
+
+                    // only interpret actions when the menu is NOT showing!!
+                    if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {
+                        modConsole_processNetworkEvent(actionBuffer[i]);
+                    }
+
+                    if (interpretType == NETWORK_INTERPRET_TYPE_ASSIGN_RULES) {
+                        menuDisplay_applyNetworkOptionSwitch(actionBuffer[i], assignNextAsPositive);
+                    }
                 }
             }
 

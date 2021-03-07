@@ -8,6 +8,17 @@
 #define NETWORK_MSG_SCRAMBLE_LEVEL_HARD 'T'
 #define NETWORK_MSG_RANDOMISE_VELOCITY 'Y'
 
+#define NETWORK_MSG_INTERPRET_AS_ACTIONS 'A' // prefix with this to convey "I am actioning"
+#define NETWORK_MSG_INTERPRET_AS_RULES 'S' // prefix with this to convey "I am switching rules on and off"
+#define NETWORK_MSG_INTERPRET_AS_POSITIVE 'D' // prefix with this to convey "Set the next setting you see to ON"
+#define NETWORK_MSG_INTERPRET_AS_NEGATIVE 'F' // prefix with this to convey "Set the next setting you see to OFF"
+
+#define NETWORK_MSG_REQUEST_RULES 'Z' // TO-DO:  implement this in NETWORK menu!
+
+#define NETWORK_INTERPRET_TYPE_ACTION 0
+#define NETWORK_INTERPRET_TYPE_ASSIGN_RULES 1
+
+
 #include "AACommonTypes.h"
 
 extern void modConsole_initialise();

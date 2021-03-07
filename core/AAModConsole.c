@@ -260,7 +260,15 @@ void modConsole_updateFrame() {
         snapEffectTime--;
     }
 
+    NetworkOptions networkOptions = menuDisplay_getNetworkOptions();
+    if (networkOptions.networkingIsActive != 0) {
+        sendQueuedNetworkMessage();
+        cartLoader_checkNetworkForActions();
+    }
+
     if (menuDisplay_isShowing() != 0) {
+
+
         // vdp_clearGraphicLayer(1);
         // for (int i = 0; i < 8; i++) {
         //     if (buttonWasPressedAtIndex(i)) {
@@ -501,12 +509,6 @@ void modConsole_updateFrame() {
         // layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
         // layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
 
-        NetworkOptions networkOptions = menuDisplay_getNetworkOptions();
-        if (networkOptions.networkingIsActive) {
-            sendQueuedNetworkMessage();
-            cartLoader_checkNetworkForActions();
-        }
-
         if (countdownToSummonMenu > 0) {
             countdownToSummonMenu--;
             if (countdownToSummonMenu == 0) {
@@ -536,7 +538,7 @@ void modConsole_processNetworkEvent(char eventId) {
     fireSnapEffect();
 
     if (eventId == NETWORK_MSG_SWITCH_GAME) {
-        int switchingIsAllowed = 1
+        int switchingIsAllowed = 1;
         // check in case we're in a gamestate where switching game would be dangerous/annoying
         // (e.g. in a menu)
         AAGameTransferListing transfer = cartLoader_getActiveGameTransferListing();
@@ -565,7 +567,6 @@ void modConsole_processNetworkEvent(char eventId) {
     }
 
     if (eventId == NETWORK_MSG_RANDOMISE_VELOCITY) {
-        // still to add this
         applyRandomiseVelocity();
     }
 
@@ -641,14 +642,27 @@ void overwriteLevel(int cycleCount, int overwriteType) {
     AAGameTransferListing transfer = cartLoader_getActiveGameTransferListing();
     if (transfer.gameStateByte != 0) {
         unsigned int value = aa_genesis_getWorkRam(transfer.gameStateByte);
+        char logMsg[0x100];
+        sprintf(logMsg, "Value at transfer.gameStateByte %04X is %02X", transfer.gameStateByte, value);
+        cartLoader_appendToLog(logMsg);
+
         for (int i = 0; i < 0x10; i++) {
             if (transfer.gameStatesToBlockScramble[i] >= 0) {
+                char logMsg2[0x100];
+                sprintf(logMsg2, "Checking transfer.gameStatesToBlockScramble[%i] valye %02X", i, transfer.gameStatesToBlockScramble[i]);
+                cartLoader_appendToLog(logMsg2);
                 //the top bit is used for something in Sonic 3
                 if (value % 0x80 == transfer.gameStatesToBlockScramble[i]) {
+                    cartLoader_appendToLog("Found this value as a SKIP_ME");
                     return;
                 }
             }
         }
+        cartLoader_appendToLog("Did NOT find this value as a SKIP_ME");
+    } else {
+        char logMsg[0x100];
+        sprintf(logMsg, "transfer.gameStateByte is zero");
+        cartLoader_appendToLog(logMsg);
     }
 
     // If we got to here, it's safe!
