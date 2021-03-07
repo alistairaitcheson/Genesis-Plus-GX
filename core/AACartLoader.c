@@ -1261,6 +1261,7 @@ void cartLoader_checkNetworkForActions() {
             sprintf(pathThisFile, "%s%s", receivePath, dp->d_name);
             FILE *reader = fopen(pathThisFile, "r");
             char actionBuffer[0x100];
+            sprintf(actionBuffer, "");
             fread(actionBuffer, sizeof(char), 0x100, reader);
             fclose(reader);
 
@@ -1272,8 +1273,13 @@ void cartLoader_checkNetworkForActions() {
             int assignNextAsPositive = 0;
 
             for (int i = 0; i < 0x100; i++) {
-                if (actionBuffer[i] == 0) {
-                    // cartLoader_appendToLog("---END OF EVENTS");
+                char testLog[2];
+                testLog[0] = actionBuffer[i];
+                testLog[1] = 0;
+                cartLoader_appendToLog(testLog);
+
+                if (actionBuffer[i] == 0 || actionBuffer[i] == '!') {
+                    cartLoader_appendToLog("---END OF EVENTS");
                     break;
                 } else {
                     if (actionBuffer[i] == NETWORK_MSG_INTERPRET_AS_ACTIONS) {
@@ -1289,11 +1295,6 @@ void cartLoader_checkNetworkForActions() {
                     if (actionBuffer[i] == NETWORK_MSG_INTERPRET_AS_NEGATIVE) {
                         assignNextAsPositive = 0;
                     }
-
-                    // char testLog[2];
-                    // testLog[0] = actionBuffer[i];
-                    // testLog[1] = 0;
-                    // cartLoader_appendToLog(testLog);
 
                     if (actionBuffer[i] == NETWORK_MSG_REQUEST_RULES) {
                         menuDisplay_sendNetworkOptionsToOpponent();

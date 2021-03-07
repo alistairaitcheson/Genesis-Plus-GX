@@ -554,7 +554,10 @@ void modConsole_processNetworkEvent(char eventId) {
             }
         }
         if (switchingIsAllowed > 0) {
+            cartLoader_appendToLog("Switching game from network");
             promptSwitchGame();
+        } else {
+            cartLoader_appendToLog("Switching game from network (blocked!)");
         }
     }
 
@@ -567,6 +570,7 @@ void modConsole_processNetworkEvent(char eventId) {
     }
 
     if (eventId == NETWORK_MSG_RANDOMISE_VELOCITY) {
+        cartLoader_appendToLog("Randomising velocity from network");
         applyRandomiseVelocity();
     }
 
@@ -581,6 +585,7 @@ void modConsole_processNetworkEvent(char eventId) {
         scrambleLevelCount = 5; // was 50
     }
     if (scrambleLevelCount > 0) {
+        cartLoader_appendToLog("Scrambling level from network");
         overwriteLevel(scrambleLevelCount, 1);
     }
 }
@@ -642,27 +647,27 @@ void overwriteLevel(int cycleCount, int overwriteType) {
     AAGameTransferListing transfer = cartLoader_getActiveGameTransferListing();
     if (transfer.gameStateByte != 0) {
         unsigned int value = aa_genesis_getWorkRam(transfer.gameStateByte);
-        char logMsg[0x100];
-        sprintf(logMsg, "Value at transfer.gameStateByte %04X is %02X", transfer.gameStateByte, value);
-        cartLoader_appendToLog(logMsg);
+        // char logMsg[0x100];
+        // sprintf(logMsg, "Value at transfer.gameStateByte %04X is %02X", transfer.gameStateByte, value);
+        // cartLoader_appendToLog(logMsg);
 
         for (int i = 0; i < 0x10; i++) {
             if (transfer.gameStatesToBlockScramble[i] >= 0) {
-                char logMsg2[0x100];
-                sprintf(logMsg2, "Checking transfer.gameStatesToBlockScramble[%i] valye %02X", i, transfer.gameStatesToBlockScramble[i]);
-                cartLoader_appendToLog(logMsg2);
+                // char logMsg2[0x100];
+                // sprintf(logMsg2, "Checking transfer.gameStatesToBlockScramble[%i] valye %02X", i, transfer.gameStatesToBlockScramble[i]);
+                // cartLoader_appendToLog(logMsg2);
                 //the top bit is used for something in Sonic 3
                 if (value % 0x80 == transfer.gameStatesToBlockScramble[i]) {
-                    cartLoader_appendToLog("Found this value as a SKIP_ME");
+                    // cartLoader_appendToLog("Found this value as a SKIP_ME");
                     return;
                 }
             }
         }
-        cartLoader_appendToLog("Did NOT find this value as a SKIP_ME");
+        // cartLoader_appendToLog("Did NOT find this value as a SKIP_ME");
     } else {
-        char logMsg[0x100];
-        sprintf(logMsg, "transfer.gameStateByte is zero");
-        cartLoader_appendToLog(logMsg);
+        // char logMsg[0x100];
+        // sprintf(logMsg, "transfer.gameStateByte is zero");
+        // cartLoader_appendToLog(logMsg);
     }
 
     // If we got to here, it's safe!
