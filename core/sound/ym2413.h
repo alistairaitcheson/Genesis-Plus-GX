@@ -20,4 +20,11 @@ extern unsigned int YM2413Read(void);
 extern unsigned char *YM2413GetContextPtr(void);
 extern unsigned int YM2413GetContextSize(void);
 
+// ALISTAIR
+extern void aa_ym2413_mute();
+extern void aa_ym2413_unmute();
+
+extern void aa_ym2413_setAllowCrunch(int _shouldAllow);
+extern void aa_ym2413_setCrunchProbability(int _proba);
+
 #endif /*_H_YM2413_*/

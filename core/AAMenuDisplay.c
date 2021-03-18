@@ -753,6 +753,7 @@ void menuDisplay_showMenu(int menuNum) {
     vdp_setShouldRandomiseColours(1);
     aa_psg_mute();
     aa_ym2612_mute();
+    aa_ym2413_mute();
 
     if (activeMenu == MENU_LISTING_TITLE) {
         showTitleMenu();
@@ -817,6 +818,7 @@ void menuDisplay_hideMenu() {
     vdp_setShouldRandomiseColours(0);
     aa_psg_unmute();
     aa_ym2612_unmute();
+    aa_ym2413_unmute();
 
     layerRenderer_clearLayer(0);
 
@@ -847,6 +849,7 @@ void beginGame() {
     vdp_setShouldRandomiseColours(0);
     aa_psg_unmute();
     aa_ym2612_unmute();
+    aa_ym2413_unmute();
     cartLoader_applyHackOptions(gameHasStarted);
     modConsole_applyHackOptions();
     modConsole_applyNetworkOptions();
@@ -945,6 +948,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
             vdp_setShouldRandomiseColours(0);
             aa_psg_unmute();
             aa_ym2612_unmute();
+            aa_ym2413_unmute();
 
             int romIndex = cartLoder_getLastLoadedIndex();
             if (cartLoader_gameIsBlockedFromRandomiser(romIndex) != 0) {
@@ -1564,6 +1568,7 @@ void activateInGameMenuItem() {
     vdp_setShouldRandomiseColours(0);
     aa_psg_unmute();
     aa_ym2612_unmute();
+    aa_ym2413_unmute();
 
     if (inGameOptionIndex == 1) {
         optionsItemIndex = 0;

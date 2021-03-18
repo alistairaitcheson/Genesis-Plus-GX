@@ -223,6 +223,7 @@ void modConsole_applyHackOptions() {
 
     aa_psg_setAllowCrunch(menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio);
     aa_ym2612_setAllowCrunch(menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio);
+    aa_ym2413_setAllowCrunch(menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio);
 }
 
 void modConsole_applyNetworkOptions() {
@@ -553,6 +554,7 @@ void modConsole_updateFrame() {
         if (menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio == 1) {
             aa_psg_setCrunchProbability(vdp_getTotalRemovedColours());
             aa_ym2612_setCrunchProbability(vdp_getTotalRemovedColours());
+            aa_ym2413_setCrunchProbability(vdp_getTotalRemovedColours());
         }
 
         if (countdownToSummonMenu > 0) {

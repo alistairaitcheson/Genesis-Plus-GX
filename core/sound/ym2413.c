@@ -62,6 +62,29 @@ to do:
 #define EG_REL      1
 #define EG_OFF      0
 
+static int aa_ym2413_muted = 0;
+void aa_ym2413_mute() {
+  aa_ym2413_muted = 1;
+}
+void aa_ym2413_unmute() {
+  aa_ym2413_muted = 0;
+}
+
+static int aa_ym2413_allowCrunch = 0;
+void aa_ym2413_setAllowCrunch(int _shouldAllow) {
+  aa_ym2413_allowCrunch = _shouldAllow;
+}
+
+static int aa_ym2413_crunchProbability = 0;
+static int crunchDuration2413 = 0;
+static int maxCrunchDuration2413 = 60;
+// from 0x00 = no crunch to 0xFF = all crunch;
+void aa_ym2413_setCrunchProbability(int _proba) {
+  aa_ym2413_crunchProbability = _proba;
+}
+
+static int heldValues2413[2];
+
 typedef struct 
 {
   UINT32  ar;       /* attack rate: AR<<2           */
@@ -1698,6 +1721,41 @@ void YM2413Update(int *buffer, int length)
     {
       rhythm_calc(&ym2413.P_CH[0], (ym2413.noise_rng>>0)&1 );
     }
+
+    if (aa_ym2413_muted != 0) {
+      output[0] = 0;
+      output[1] = 0;
+    }
+    
+    // ALISTAIR - make some noise based on crunched audio 
+  // NOTE: I DON'T THINK THIS DOES ANYTHING!!
+    if (aa_ym2413_allowCrunch != 0 && aa_ym2413_muted == 0) {
+        int successfulRolls = 0;
+        for (int i = 0; i < 3; i++) {
+          if (rand() % 0x100 < aa_ym2413_crunchProbability) {
+            successfulRolls++;
+          }
+        }
+
+        if (successfulRolls >= 3) {
+          crunchDuration2413 = rand() % maxCrunchDuration2413;
+        }
+        if (crunchDuration2413 > 0) {
+          for (int i = 0; i < 2; i++) {
+            output[i] = heldValues2413[i];
+          }
+          crunchDuration2413--;
+        } else {
+          for (int i = 0; i < 2; i++) {
+            heldValues2413[i] = output[i];
+          }
+        }
+    } else {
+      for (int i = 0; i < 2; i++) {
+        heldValues2413[i] = 0;
+      }
+    }
+
 
     /* Melody (MO) & Rythm (RO) outputs mixing & amplification (latched bit controls FM output) */
     out = (output[0] + (output[1] * 2)) * 2 * ym2413.status;
