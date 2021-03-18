@@ -17,7 +17,6 @@ cls
 #include "input.h"
 #include "AALayerRenderer.h"
 #include "AAMenuDisplay.h"
-#include "vdp_render.h"
 
 static AAModType activeModType = AAMODTYPE_SWITCH_GAME;
 
@@ -64,9 +63,6 @@ static int snapEffectMaxTime = 6;
 static int snapEffectHeight[0x10];
 static int snapEffectWidth[0x10];
 static int snapEffectOffset[0x10];
-
-static int removeColourTimer = 0;
-static int healColourTimer = 0;
 
 void fireSnapEffect() {
     snapEffectTime = snapEffectMaxTime;
@@ -220,8 +216,6 @@ void modConsole_applyHackOptions() {
         vdp_setShouldLimitColourPalettes(1);
         vdp_generateAlistairSortedColours(10);
     }
-
-    // aa_psg_setAllowCrunch(menuDisplay_getHackOptions().colourDeleteAffectsAudio);
 }
 
 void modConsole_applyNetworkOptions() {
@@ -515,43 +509,6 @@ void modConsole_updateFrame() {
         // layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
         // layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
 
-        if (hackOpts.colourDeleteTrigger == 1) {
-            removeColourOnRing(1);
-        } else if (hackOpts.colourDeleteTrigger == 2) {
-            removeColourOnRing(10);
-        } else if (hackOpts.colourDeleteTrigger == 3) {
-            removeColourTimer++;
-            if (removeColourTimer >= 6) {
-                vdp_reduceColours();
-                removeColourTimer = 0;
-            }
-        } else if (hackOpts.colourDeleteTrigger == 4) {
-            removeColourTimer++;
-            if (removeColourTimer >= 60) {
-                vdp_reduceColours();
-                removeColourTimer = 0;
-            }
-        } else if (hackOpts.colourDeleteTrigger == 5) {
-            removeColourTimer++;
-            if (removeColourTimer >= 60 * 10) {
-                vdp_reduceColours();
-                removeColourTimer = 0;
-            }
-        }
-        if (hackOpts.colourDeleteAffectsAudio == 1) {
-            // aa_psg_setCrunchProbability(vdp_getTotalRemovedColours());
-        }
-
-        if (hackOpts.colourDeleteHealRate == 3) {
-            healColoursOnRing(1);
-        } else if (hackOpts.colourDeleteHealRate == 4) {
-            healColoursOnRing(5);
-        } else if (hackOpts.colourDeleteHealRate == 5) {
-            healColoursOnRing(20);
-        } else if (hackOpts.colourDeleteHealRate <= 2) {
-            healColoursByTime();
-        }
-
         if (countdownToSummonMenu > 0) {
             countdownToSummonMenu--;
             if (countdownToSummonMenu == 0) {
@@ -563,68 +520,6 @@ void modConsole_updateFrame() {
     frameCount++;
 
     aa_genesis_updateLastRam();
-} 
-
-void healColoursByTime() {
-    healColourTimer++;
-
-    int difficultyMultiplier = 1;
-    int framesForHeal = 60;
-    if (menuDisplay_getHackOptions().colourDeleteHealRate == 0) {
-        // easy
-        difficultyMultiplier = 1;
-    }
-    if (menuDisplay_getHackOptions().colourDeleteHealRate == 1) {
-        // medium
-        difficultyMultiplier = 10;
-    }
-    if (menuDisplay_getHackOptions().colourDeleteHealRate == 2) {
-        // hard
-        difficultyMultiplier = 100;
-    }
-
-    framesForHeal *= difficultyMultiplier;
-
-    int totalLostColours = vdp_getTotalRemovedColours();
-    if (totalLostColours > 128) {
-        framesForHeal /= 2;
-    }
-    if (totalLostColours > 128 + 64) {
-        framesForHeal /= 2;
-    }
-    if (totalLostColours > 128 + 64 + 32) {
-        framesForHeal /= 2;
-    }
-    if (totalLostColours > 128 + 64 + 32 + 16) {
-        framesForHeal /= 2;
-    }
-    if (totalLostColours > 128 + 64 + 32 + 16 + 8) {
-        framesForHeal /= 2;
-    }
-    if (totalLostColours > 128 + 64 + 32 + 16 + 8 + 4) {
-        framesForHeal /= 2;
-    }
-
-    if (healColourTimer > framesForHeal) {
-        vdp_healReducedColour();
-        healColourTimer = 0;
-    }
-}
-
-void healColoursOnRing(int count) {
-    if (ringCountHasChanged() != 0) {
-        for (int i = 0; i < count; i++) {
-            vdp_healReducedColour();
-        }
-    }
-}
-
-void removeColourOnRing(int count) {
-    if (ringCountHasChanged() != 0) {
-        for (int i = 0; i < count; i++) {
-            vdp_reduceColours();
-        }
-    }
 }
 
 void queueNetworkMessage(char eventId) {
@@ -693,15 +588,6 @@ void modConsole_processNetworkEvent(char eventId) {
         cartLoader_appendToLog("Scrambling level from network");
         overwriteLevel(scrambleLevelCount, 1);
     }
-
-    if (eventId == NETWORK_MSG_REMOVE_COLOUR) {
-        vdp_reduceColours();
-    }
-    if (eventId == NETWORK_MSG_REMOVE_10_COLOURS) {
-        for (int i = 0; i < 10; i++) {
-            vdp_reduceColours();
-        }
-    }
 }
 
 void unpauseGame() {
@@ -751,13 +637,6 @@ void sendNetworkMessageOnGetRing() {
             }
             if (networkOpts.sendWriteIntoLevelDifficulty == 3) {
                 queueNetworkMessage(NETWORK_MSG_SCRAMBLE_LEVEL_HARD);
-            }
-
-            if (networkOpts.sendRemoveColour == 1) {
-                queueNetworkMessage(NETWORK_MSG_REMOVE_COLOUR);
-            }
-            if (networkOpts.sendRemoveColour == 2) {
-                queueNetworkMessage(NETWORK_MSG_REMOVE_10_COLOURS);
             }
         }
     }
@@ -870,8 +749,6 @@ void modConsole_activatePanic() {
             break;
         }
     }
-
-    vdp_healAllColours();
 
     countdownUntilUnpause = 5;
 }

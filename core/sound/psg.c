@@ -57,17 +57,6 @@ void aa_psg_unmute() {
   aa_psg_muted = 0;
 }
 
-static int aa_psg_allowCrunch = 0;
-void aa_psg_setAllowCrunch(int _shouldAllow) {
-  aa_psg_allowCrunch = _shouldAllow;
-}
-
-static int aa_psg_crunchProbability = 0;
-// from 0x00 = no crunch to 0xFF = all crunch;
-void aa_psg_setCrunchProbability(int _proba) {
-  aa_psg_crunchProbability = _proba;
-}
-
 static const uint8 noiseShiftWidth[2] = {14,15};
 
 static const uint8 noiseBitMask[2] = {0x6,0x9};
@@ -397,16 +386,6 @@ void psg_write(unsigned int clocks, unsigned int data)
       psg.chanOut[i][1] = 0;
     }
   }
-
-    // // ALISTAIR - make some noise based on crunched audio
-    // if (aa_psg_allowCrunch != 0 && aa_psg_muted == 0) {
-    //     if (rand() % 0x100 < aa_psg_crunchProbability) {
-    //         for (int i = 0; i < 4; i++) {
-    //             psg.chanOut[i][0] = rand() % 2000;
-    //             psg.chanOut[i][1] = rand() % 2000;
-    //         }
-    //     }
-    // }
 
   /* save register value */
   psg.regs[index] = data;

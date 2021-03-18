@@ -2146,13 +2146,6 @@ void YM2612Update(int *buffer, int length)
     *buffer++ = lt;
     *buffer++ = rt;
 
-    // // Alistair Magic
-    // if (true) {
-    //   *buffer++ = lt;
-    //   *buffer++ = rt;
-    //   i++;
-    // }
-
     /* CSM mode: if CSM Key ON has occurred, CSM Key OFF need to be sent      */
     /* only if Timer A does not overflow again (i.e CSM Key ON not set again) */
     ym2612.OPN.SL3.key_csm <<= 1;
