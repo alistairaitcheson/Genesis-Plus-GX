@@ -221,6 +221,8 @@ void modConsole_applyHackOptions() {
         vdp_generateAlistairSortedColours(10);
     }
 
+    aa_psg_setAllowCrunch(menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio);
+    aa_ym2612_setAllowCrunch(menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio);
 }
 
 void modConsole_applyNetworkOptions() {
@@ -543,9 +545,14 @@ void modConsole_updateFrame() {
         } else if (hackOpts.colourDeleteHealRate == 4) {
             healColoursOnRing(5);
         } else if (hackOpts.colourDeleteHealRate == 5) {
-            healColoursOnRing(20);
+            healColoursOnRing(10);
         } else if (hackOpts.colourDeleteHealRate <= 2) {
             healColoursByTime();
+        }
+
+        if (menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio == 1) {
+            aa_psg_setCrunchProbability(vdp_getTotalRemovedColours());
+            aa_ym2612_setCrunchProbability(vdp_getTotalRemovedColours());
         }
 
         if (countdownToSummonMenu > 0) {
@@ -565,40 +572,26 @@ void healColoursByTime() {
     healColourTimer++;
 
     int difficultyMultiplier = 1;
-    int framesForHeal = 60;
+    int framesForHeal = 300;
+    int spacing = 1;
     if (menuDisplay_getHackOptions().colourDeleteHealRate == 0) {
         // easy
-        difficultyMultiplier = 1;
+        spacing = 4;
     }
     if (menuDisplay_getHackOptions().colourDeleteHealRate == 1) {
         // medium
-        difficultyMultiplier = 10;
+        spacing = 8;
     }
     if (menuDisplay_getHackOptions().colourDeleteHealRate == 2) {
         // hard
-        difficultyMultiplier = 100;
+        spacing = 16;
     }
-
-    framesForHeal *= difficultyMultiplier;
 
     int totalLostColours = vdp_getTotalRemovedColours();
-    if (totalLostColours > 128) {
-        framesForHeal /= 2;
-    }
-    if (totalLostColours > 128 + 64) {
-        framesForHeal /= 2;
-    }
-    if (totalLostColours > 128 + 64 + 32) {
-        framesForHeal /= 2;
-    }
-    if (totalLostColours > 128 + 64 + 32 + 16) {
-        framesForHeal /= 2;
-    }
-    if (totalLostColours > 128 + 64 + 32 + 16 + 8) {
-        framesForHeal /= 2;
-    }
-    if (totalLostColours > 128 + 64 + 32 + 16 + 8 + 4) {
-        framesForHeal /= 2;
+    for (int i = 0; i < 0xFF; i += spacing) {
+        if (totalLostColours > spacing * i) {
+            framesForHeal /= 2;
+        }
     }
 
     if (healColourTimer > framesForHeal) {

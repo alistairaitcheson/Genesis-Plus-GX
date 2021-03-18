@@ -43,6 +43,7 @@ static PersistValuesOptions persistValuesOptions;
 static RamDetectiveOptions ramDetectiveOptions;
 static PixelDetectiveOptions pixelDetectiveOptions;
 static NetworkOptions networkOptions;
+static SecondaryHackOptions secondaryHackOptions;
 static int logRamStateCounter[0x10000];
 
 static int trackedRamFrameCounts[0x10000];
@@ -54,6 +55,10 @@ static int trackedPixelValues[8];
 
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
+}
+
+SecondaryHackOptions menuDisplay_getSecondaryHackOptions() {
+    return secondaryHackOptions;
 }
 
 PersistValuesOptions menuDisplay_getPersistValuesOptions() {
@@ -251,6 +256,17 @@ void menuDisplay_initialise() {
         applySettingsFromArray256(prefsBuffer);
     } else {
         applyDefaultSettings();
+    }
+    
+    FILE *secondaryPrefsReader = fopen("_magicbox/__secondaryPrefs.data", "rb");
+
+    if (secondaryPrefsReader) {
+        int prefsBuffer[0x100];
+        fread(prefsBuffer, sizeof(int), 0x100, secondaryPrefsReader);
+        fclose(prefsReader);
+        applySecondaryHacksFromArray256(prefsBuffer);
+    } else {
+        applySecondaryHacksDefaultValues();
     }
 
     FILE *persistValuesReader = fopen("_magicbox/__persistValues.data", "rb");
@@ -575,6 +591,13 @@ void applyNetworkOptionsDefaultValues() {
     networkOptions.allowSoloEffectswhenNetworked = 0;
 }
 
+void applySecondaryHacksDefaultValues() {
+    secondaryHackOptions.colourDeleteAffectsAudio = 0;
+}
+
+void applySecondaryHacksFromArray256(int array256[]) {
+    secondaryHackOptions.colourDeleteAffectsAudio = array256[0];
+}
 
 void applySettingsFromArray256(int array256[]) {
     hackOptions.infiniteLives = array256[0];
@@ -664,6 +687,23 @@ void saveHackOptions() {
         fwrite(options, sizeof(int), 0x100, prefsWriter);
     }
     fclose(prefsWriter);
+
+
+
+    int secondaryPrefs[0x100];
+    for (int i = 0; i < 0x100; i++) {
+        secondaryPrefs[i] = 0;
+    }
+    secondaryPrefs[0] = secondaryHackOptions.colourDeleteAffectsAudio;
+
+    remove("_magicbox/__secondaryPrefs.data");
+    FILE *secondaryPrefsWriter = fopen("_magicbox/__secondaryPrefs.data", "wb");
+
+    for (int i = 0; i < 0x100; i++) {
+        fwrite(secondaryPrefs, sizeof(int), 0x100, secondaryPrefsWriter);
+    }
+    fclose(secondaryPrefsWriter);
+
 
     int persistValues[0x100];
     for (int i = 0; i < 0x100; i++) {
@@ -1387,6 +1427,10 @@ void incrementVisualsOption(int direction) {
     }
     if (visualsOptionIndex == 5) {
         hackOptions.colourDeleteHealRate += direction;
+    }
+
+    if (visualsOptionIndex == 6) {
+        secondaryHackOptions.colourDeleteAffectsAudio += direction;
     }
 
     if (visualsOptionIndex == 7) {
@@ -2790,9 +2834,21 @@ void showVisualsOptionsMenu() {
     } else if (hackOptions.colourDeleteHealRate == 4) {
         sprintf(lines[5], "Colour heal: 5 COLOURS PER RING");
     } else if (hackOptions.colourDeleteHealRate == 5) {
-        sprintf(lines[5], "Colour heal: 20 COLOURS PER RING");
+        sprintf(lines[5], "Colour heal: 10 COLOURS PER RING");
     } else if (hackOptions.colourDeleteHealRate == 6) {
         sprintf(lines[5], "Colour heal:               OFF");
+    }
+
+    if (secondaryHackOptions.colourDeleteAffectsAudio > 1) {
+        secondaryHackOptions.colourDeleteAffectsAudio = 0;
+    }
+    if (secondaryHackOptions.colourDeleteAffectsAudio < 0) {
+        secondaryHackOptions.colourDeleteAffectsAudio = 1;
+    }
+    if (secondaryHackOptions.colourDeleteAffectsAudio == 0) {
+        sprintf(lines[6], "Lost colour affects sound: OFF");
+    } else if (secondaryHackOptions.colourDeleteAffectsAudio == 1) {
+        sprintf(lines[6], "Lost colour affects sound:  ON");
     }
 
     linesWithBreakAfter[6] = 1;
@@ -2876,6 +2932,7 @@ void showNetworkingOptionsMenu() {
         blockedLines[7] = 1;
         blockedLines[8] = 1;
         blockedLines[9] = 1;
+        blockedLines[10] = 1;
     }
 
     sprintf(lines[3], "");

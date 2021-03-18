@@ -34,5 +34,7 @@ extern int YM2612SaveContext(unsigned char *state);
 // alistair
 extern void aa_ym2612_mute();
 extern void aa_ym2612_unmute();
+extern void aa_ym2612_setAllowCrunch(int _shouldAllow);
+extern void aa_ym2612_setCrunchProbability(int _proba);
 
 #endif /* _YM2612_ */

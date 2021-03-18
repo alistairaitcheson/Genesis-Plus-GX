@@ -398,15 +398,15 @@ void psg_write(unsigned int clocks, unsigned int data)
     }
   }
 
-    // // ALISTAIR - make some noise based on crunched audio
-    // if (aa_psg_allowCrunch != 0 && aa_psg_muted == 0) {
-    //     if (rand() % 0x100 < aa_psg_crunchProbability) {
-    //         for (int i = 0; i < 4; i++) {
-    //             psg.chanOut[i][0] = rand() % 2000;
-    //             psg.chanOut[i][1] = rand() % 2000;
-    //         }
-    //     }
-    // }
+    // ALISTAIR - make some noise based on crunched audio
+    if (aa_psg_allowCrunch != 0 && aa_psg_muted == 0) {
+        if (rand() % 0x100 < aa_psg_crunchProbability) {
+            for (int i = 0; i < 4; i++) {
+                psg.chanOut[i][0] = rand() % 2000;
+                psg.chanOut[i][1] = rand() % 2000;
+            }
+        }
+    }
 
   /* save register value */
   psg.regs[index] = data;

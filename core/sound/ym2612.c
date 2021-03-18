@@ -155,6 +155,21 @@ void aa_ym2612_unmute() {
   aa_ym2612_muted = 0;
 }
 
+static int aa_ym2612_allowCrunch = 0;
+void aa_ym2612_setAllowCrunch(int _shouldAllow) {
+  aa_ym2612_allowCrunch = _shouldAllow;
+}
+
+static int aa_ym2612_crunchProbability = 0;
+static int crunchDuration = 0;
+static int maxCrunchDuration = 60;
+// from 0x00 = no crunch to 0xFF = all crunch;
+void aa_ym2612_setCrunchProbability(int _proba) {
+  aa_ym2612_crunchProbability = _proba;
+}
+
+static int32 heldValues[6];
+
 /* envelope generator */
 #define ENV_BITS    10
 #define ENV_LEN      (1<<ENV_BITS)
@@ -2089,6 +2104,34 @@ void YM2612Update(int *buffer, int length)
         for (int i = 0; i < 6; i++) {
             out_fm[i] = 0;
         }
+    }
+    
+    // ALISTAIR - make some noise based on crunched audio
+    if (aa_ym2612_allowCrunch != 0 && aa_ym2612_muted == 0) {
+        int successfulRolls = 0;
+        for (int i = 0; i < 3; i++) {
+          if (rand() % 0x100 < aa_ym2612_crunchProbability) {
+            successfulRolls++;
+          }
+        }
+
+        if (successfulRolls >= 3) {
+          crunchDuration = rand() % maxCrunchDuration;
+        }
+        if (crunchDuration > 0) {
+          for (int i = 0; i < 6; i++) {
+            out_fm[i] = heldValues[i];
+          }
+          crunchDuration --;
+        } else {
+          for (int i = 0; i < 6; i++) {
+            heldValues[i] = out_fm[i] / 4;
+          }
+        }
+    } else {
+      for (int i = 0; i < 6; i++) {
+        heldValues[i] = 0;
+      }
     }
 
     /* channels accumulator output clipping (14-bit max) */

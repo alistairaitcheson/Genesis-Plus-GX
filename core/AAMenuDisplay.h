@@ -48,6 +48,10 @@ typedef struct {
 } HackOptions;
 
 typedef struct {
+    int colourDeleteAffectsAudio; // 0 = off, 1 = on
+} SecondaryHackOptions;
+
+typedef struct {
     int lives;
     int rings;
     int topSpeed;
@@ -104,6 +108,9 @@ extern NetworkOptions menuDisplay_getNetworkOptions();
 extern int menuDisplay_areSoloEffectsAllowed();
 extern void menuDisplay_applyNetworkOptionSwitch(char command, int asPositive);
 extern void menuDisplay_sendNetworkOptionsToOpponent();
+extern SecondaryHackOptions menuDisplay_getSecondaryHackOptions();
+void applySecondaryHacksFromArray256(int array256[]);
+void applySecondaryHacksDefaultValues();
 
 void beginGame();
 void showTitleMenu();
