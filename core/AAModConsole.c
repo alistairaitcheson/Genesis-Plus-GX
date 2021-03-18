@@ -221,7 +221,6 @@ void modConsole_applyHackOptions() {
         vdp_generateAlistairSortedColours(10);
     }
 
-    // aa_psg_setAllowCrunch(menuDisplay_getHackOptions().colourDeleteAffectsAudio);
 }
 
 void modConsole_applyNetworkOptions() {
@@ -537,9 +536,6 @@ void modConsole_updateFrame() {
                 vdp_reduceColours();
                 removeColourTimer = 0;
             }
-        }
-        if (hackOpts.colourDeleteAffectsAudio == 1) {
-            // aa_psg_setCrunchProbability(vdp_getTotalRemovedColours());
         }
 
         if (hackOpts.colourDeleteHealRate == 3) {

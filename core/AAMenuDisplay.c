@@ -598,7 +598,6 @@ void applySettingsFromArray256(int array256[]) {
     hackOptions.colourDeleteTrigger = array256[17];
     hackOptions.colourDeletePattern = array256[18];
     hackOptions.colourDeleteHealRate = array256[19];
-    hackOptions.colourDeleteAffectsAudio = array256[20];
 }
 
 void applyDefaultSettings() {
@@ -623,7 +622,7 @@ void applyDefaultSettings() {
     hackOptions.colourDeleteTrigger = 0;
     hackOptions.colourDeletePattern = 0;
     hackOptions.colourDeleteHealRate = 0;
-    hackOptions.colourDeleteAffectsAudio = 1;
+
     saveHackOptions();
 }
 
@@ -653,7 +652,6 @@ void saveHackOptions() {
     options[17] = hackOptions.colourDeleteTrigger;
     options[18] = hackOptions.colourDeletePattern;
     options[19] = hackOptions.colourDeleteHealRate;
-    options[20] = hackOptions.colourDeleteAffectsAudio;
 
     // char path[0x100];
     // char folder[0x10];
@@ -1390,10 +1388,6 @@ void incrementVisualsOption(int direction) {
     if (visualsOptionIndex == 5) {
         hackOptions.colourDeleteHealRate += direction;
     }
-    if (visualsOptionIndex == 6) {
-        hackOptions.colourDeleteAffectsAudio += direction;
-    }
-
 
     if (visualsOptionIndex == 7) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
@@ -2799,18 +2793,6 @@ void showVisualsOptionsMenu() {
         sprintf(lines[5], "Colour heal: 20 COLOURS PER RING");
     } else if (hackOptions.colourDeleteHealRate == 6) {
         sprintf(lines[5], "Colour heal:               OFF");
-    }
-
-    if (hackOptions.colourDeleteAffectsAudio > 1) {
-        hackOptions.colourDeleteAffectsAudio = 0;
-    }
-    if (hackOptions.colourDeleteAffectsAudio < 0) {
-        hackOptions.colourDeleteAffectsAudio = 1;
-    }
-    if (hackOptions.colourDeleteAffectsAudio == 0) {
-        sprintf(lines[6], "Lost colour affects sound: OFF");
-    } else if (hackOptions.colourDeleteAffectsAudio == 1) {
-        sprintf(lines[6], "Lost colour affects sound:  ON");
     }
 
     linesWithBreakAfter[6] = 1;
