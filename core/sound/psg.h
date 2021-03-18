@@ -60,5 +60,7 @@ extern void psg_end_frame(unsigned int clocks);
 // alistair
 extern void aa_psg_mute();
 extern void aa_psg_unmute();
+extern void aa_psg_setAllowCrunch(int _shouldAllow);
+extern void aa_psg_setCrunchProbability(int _proba);
 
 #endif /* _PSG_H_ */
