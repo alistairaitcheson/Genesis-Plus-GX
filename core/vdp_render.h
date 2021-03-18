@@ -172,4 +172,10 @@ void vdp_setAlistairScale(int numerator, int denominator);
 extern int vdp_getScaledViewportHeight();
 extern int vdp_getSourceLineForScaledYPos(int yPos);
 
+extern void vdp_reduceColours();
+extern void vdp_healReducedColour();
+extern void vdp_applyReducedColours();
+extern int vdp_getTotalRemovedColours();
+extern void vdp_healAllColours();
+
 #endif /* _RENDER_H_ */

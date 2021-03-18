@@ -7,6 +7,8 @@
 #define NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM 'R'
 #define NETWORK_MSG_SCRAMBLE_LEVEL_HARD 'T'
 #define NETWORK_MSG_RANDOMISE_VELOCITY 'Y'
+#define NETWORK_MSG_REMOVE_COLOUR 'U'
+#define NETWORK_MSG_REMOVE_10_COLOURS 'I'
 
 #define NETWORK_MSG_INTERPRET_AS_ACTIONS 'A' // prefix with this to convey "I am actioning"
 #define NETWORK_MSG_INTERPRET_AS_RULES 'S' // prefix with this to convey "I am switching rules on and off"
@@ -76,5 +78,9 @@ void shuffleSnapValues();
 extern int modConsole_getSnapOffsetForRowIndex(int rowIndex);
 void applyRandomiseVelocity();
 void updateRandomiseVelocityOnRing();
+
+void healColoursByTime();
+void healColoursOnRing(int count);
+void removeColourOnRing(int count);
 
 #endif

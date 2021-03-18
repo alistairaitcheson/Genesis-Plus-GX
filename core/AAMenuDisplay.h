@@ -42,6 +42,10 @@ typedef struct {
     int overwriteLevelDifficulty; // 0 = easy (5x), 1 = medium (10x), 2 = hard (20x), 3 = extreme (50x)
     int swapOrder; // 0 = random, 1 = alphabetical
     int randomiseVelocityOnRing;
+    int colourDeleteTrigger; // 0 = off, 1 = on ring, 2 = 10 seconds, 3 = 60 seconds, 
+    int colourDeletePattern; // 0 = black hole, 1 = collapse inwards, 2 = none
+    int colourDeleteHealRate; // 0 = easy, 1 = medium, 2 = hard, 3 = off
+    int colourDeleteAffectsAudio; // 0 = off, 1 = on
 } HackOptions;
 
 typedef struct {
@@ -81,6 +85,7 @@ typedef struct {
     int sendRandomiseVelocity;
     int allowSoloEffectswhenNetworked;
     int awaitingOpponentSettingsState;
+    int sendRemoveColour;
 } NetworkOptions;
 
 extern void menuDisplay_showMenu(int menuNum);

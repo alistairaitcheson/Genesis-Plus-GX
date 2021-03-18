@@ -28,7 +28,7 @@ static int pixelDetectiveIndex = 0;
 static int networkingOptionsIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 13;
+static int minorVersion = 14;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -91,6 +91,15 @@ void menuDisplay_sendNetworkOptionsToOpponent() {
         message[8] = NETWORK_MSG_SCRAMBLE_LEVEL_HARD;
     }
 
+    message[9] = networkOptions.sendRemoveColour != 0 ? NETWORK_MSG_INTERPRET_AS_POSITIVE : NETWORK_MSG_INTERPRET_AS_NEGATIVE;
+    message[10] = NETWORK_MSG_REMOVE_COLOUR;
+    if (networkOptions.sendRemoveColour == 1) {
+        message[10] = NETWORK_MSG_REMOVE_COLOUR;
+    }
+    if (networkOptions.sendRemoveColour == 2) {
+        message[10] = NETWORK_MSG_REMOVE_10_COLOURS;
+    }
+
     cartLoader_writeActionToNetwork(message);
 }
 
@@ -104,6 +113,7 @@ void menuDisplay_applyNetworkOptionSwitch(char command, int asPositive) {
     if (command == NETWORK_MSG_RANDOMISE_VELOCITY) {
         networkOptions.sendRandomiseVelocity = asPositive; 
     }
+
     if (command == NETWORK_MSG_SCRAMBLE_LEVEL_EASY) {
         if (asPositive == 0) {
             networkOptions.sendWriteIntoLevelDifficulty = 0; 
@@ -123,6 +133,21 @@ void menuDisplay_applyNetworkOptionSwitch(char command, int asPositive) {
             networkOptions.sendWriteIntoLevelDifficulty = 0; 
         } else {
             networkOptions.sendWriteIntoLevelDifficulty = 3; 
+        }
+    }
+
+    if (command == NETWORK_MSG_REMOVE_COLOUR) {
+        if (asPositive == 0) {
+            networkOptions.sendRemoveColour = 0;
+        } else {
+            networkOptions.sendRemoveColour = 1;
+        }
+    }
+    if (command == NETWORK_MSG_REMOVE_10_COLOURS) {
+        if (asPositive == 0) {
+            networkOptions.sendRemoveColour = 0;
+        } else {
+            networkOptions.sendRemoveColour = 2;
         }
     }
 
@@ -190,7 +215,7 @@ int menuDisplay_shouldSonicSpecificOptionsShowAsOn() {
 }
 
 int menuDisplay_shouldVisualsOptionsShowAsOn() {
-    if (hackOptions.shouldSortColours != 0 || hackOptions.limitedColourType != 0 || hackOptions.copyVram != 0 || hackOptions.shouldHideLayers != 0) {
+    if (hackOptions.shouldSortColours != 0 || hackOptions.limitedColourType != 0 || hackOptions.copyVram != 0 || hackOptions.shouldHideLayers != 0 || hackOptions.colourDeleteTrigger != 0) {
         return 1;
     }
     return 0;
@@ -569,6 +594,11 @@ void applySettingsFromArray256(int array256[]) {
     hackOptions.overwriteLevelDifficulty = array256[14];
     hackOptions.swapOrder =  array256[15];
     hackOptions.randomiseVelocityOnRing = array256[16];
+
+    hackOptions.colourDeleteTrigger = array256[17];
+    hackOptions.colourDeletePattern = array256[18];
+    hackOptions.colourDeleteHealRate = array256[19];
+    hackOptions.colourDeleteAffectsAudio = array256[20];
 }
 
 void applyDefaultSettings() {
@@ -589,6 +619,11 @@ void applyDefaultSettings() {
     hackOptions.overwriteLevelDifficulty = 1;
     hackOptions.swapOrder = 0;
     hackOptions.randomiseVelocityOnRing = 0;
+
+    hackOptions.colourDeleteTrigger = 0;
+    hackOptions.colourDeletePattern = 0;
+    hackOptions.colourDeleteHealRate = 0;
+    hackOptions.colourDeleteAffectsAudio = 1;
     saveHackOptions();
 }
 
@@ -614,6 +649,11 @@ void saveHackOptions() {
     options[14] = hackOptions.overwriteLevelDifficulty;
     options[15] = hackOptions.swapOrder;
     options[16] = hackOptions.randomiseVelocityOnRing;
+
+    options[17] = hackOptions.colourDeleteTrigger;
+    options[18] = hackOptions.colourDeletePattern;
+    options[19] = hackOptions.colourDeleteHealRate;
+    options[20] = hackOptions.colourDeleteAffectsAudio;
 
     // char path[0x100];
     // char folder[0x10];
@@ -1188,7 +1228,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_NETWORKING) {
         if (buttonIndex == INPUT_INDEX_UP) {
             networkingOptionsIndex--;
-            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 5 || networkingOptionsIndex == 10 || networkingOptionsIndex == 12) {
+            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 5 || networkingOptionsIndex == 11 || networkingOptionsIndex == 13) {
                 networkingOptionsIndex --;
             }
             refreshMenu();
@@ -1196,7 +1236,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             networkingOptionsIndex++;
-            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 5 || networkingOptionsIndex == 10 || networkingOptionsIndex == 12) {
+            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 5 || networkingOptionsIndex == 11 || networkingOptionsIndex == 13) {
                 networkingOptionsIndex ++;
             }
             refreshMenu();
@@ -1238,8 +1278,11 @@ void incrementNetworkOption(int direction) {
     if (networkingOptionsIndex == 9) {
         networkOptions.sendWriteIntoLevelDifficulty += direction;
     }
+    if (networkingOptionsIndex == 10) {
+        networkOptions.sendRemoveColour += direction;
+    }
 
-    if (networkingOptionsIndex == 11) {
+    if (networkingOptionsIndex == 12) {
         char action[0x100];
         sprintf(action, "");
         action[0] = NETWORK_MSG_REQUEST_RULES;
@@ -1249,7 +1292,7 @@ void incrementNetworkOption(int direction) {
     }
 
 
-    if (networkingOptionsIndex == 13) {
+    if (networkingOptionsIndex == 14) {
         networkOptions.awaitingOpponentSettingsState = 0;
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
@@ -1339,6 +1382,20 @@ void incrementVisualsOption(int direction) {
     }
 
     if (visualsOptionIndex == 3) {
+        hackOptions.colourDeleteTrigger += direction;
+    }
+    if (visualsOptionIndex == 4) {
+        hackOptions.colourDeletePattern += direction;
+    }
+    if (visualsOptionIndex == 5) {
+        hackOptions.colourDeleteHealRate += direction;
+    }
+    if (visualsOptionIndex == 6) {
+        hackOptions.colourDeleteAffectsAudio += direction;
+    }
+
+
+    if (visualsOptionIndex == 7) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -1500,6 +1557,7 @@ void activateInGameMenuItem() {
     if (inGameOptionIndex == 7) {
         cartLoader_loadSaveStateForQuitMenu();
         modConsole_activateReset();
+        vdp_healAllColours();
         saveStateWasLoaded = 1;
     }
     if (inGameOptionIndex == 8) {
@@ -1512,6 +1570,10 @@ void activateInGameMenuItem() {
     if (inGameOptionIndex == 9) {
         pixelDetectiveIndex = 0;
         queuedMenu = MENU_LISTING_PIXEL_DETECTIVE;
+    }
+
+    if (inGameOptionIndex == 10) {
+        vdp_healAllColours();
     }
 
     inGameOptionIndex = 0;
@@ -1760,7 +1822,7 @@ void showInGameOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "--- press A/B/C to activate option ---", 5);
 
-    int lineCount = 11;
+    int lineCount = 12;
     char lines[lineCount][0x80];
 
     int hintLineCount = 5;
@@ -1798,7 +1860,8 @@ void showInGameOptionsMenu() {
         sprintf(hintLines[2], "  game events");
     }
     sprintf(lines[9], "Pixel detective tool >>");
-    sprintf(lines[10], "Back to game");
+    sprintf(lines[10], "Heal all lost colours");
+    sprintf(lines[11], "Back to game");
 
     int yPos = 48;
     for (int i = 0; i < lineCount; i++) {
@@ -2619,11 +2682,13 @@ void showVisualsOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Visuals", 5);
 
-    int lineCount = 4;
+    int lineCount = 8;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
+    int linesWithBreakAfter[lineCount];
     for (int i = 0; i < lineCount; i++) {
         blockedLines[i] = 0;
+        linesWithBreakAfter[i] = 0;
     }
 
     if (visualsOptionIndex < 0) {
@@ -2678,7 +2743,78 @@ void showVisualsOptionsMenu() {
     } else if (hackOptions.shouldHideLayers == 2) {
         sprintf(lines[2], "Hide layers:    NO BACKGROUNDS");
     }
-    sprintf(lines[3], "back >");
+    linesWithBreakAfter[2] = 1;
+
+    if (hackOptions.colourDeleteTrigger > 5) {
+        hackOptions.shouldHideLayers = 0;
+    }
+    if (hackOptions.colourDeleteTrigger < 0) {
+        hackOptions.colourDeleteTrigger = 5;
+    }
+    if (hackOptions.colourDeleteTrigger == 0) {
+        sprintf(lines[3], "Remove colour:             OFF");
+    } else if (hackOptions.colourDeleteTrigger == 1) {
+        sprintf(lines[3], "Remove colour:     ON GET RING");
+    } else if (hackOptions.colourDeleteTrigger == 2) {
+        sprintf(lines[3], "Remove colour: 10x ON GET RING");
+    } else if (hackOptions.colourDeleteTrigger == 3) {
+        sprintf(lines[3], "Remove colour:     10x per SEC");
+    } else if (hackOptions.colourDeleteTrigger == 4) {
+        sprintf(lines[3], "Remove colour:      1x per SEC");
+    } else if (hackOptions.colourDeleteTrigger == 5) {
+        sprintf(lines[3], "Remove colour:  1x per 10 SECS");
+    }
+    
+    if (hackOptions.colourDeletePattern > 2) {
+        hackOptions.colourDeletePattern = 0;
+    }
+    if (hackOptions.colourDeletePattern < 0) {
+        hackOptions.colourDeletePattern = 2;
+    }
+    if (hackOptions.colourDeletePattern == 0) {
+        sprintf(lines[4], "Colour delete pattern:  INWARD");
+    } else if (hackOptions.colourDeletePattern == 1) {
+        sprintf(lines[4], "Colour delete pattern: OUTWARD");
+    } else if (hackOptions.colourDeletePattern == 2) {
+        sprintf(lines[4], "Colour delete pattern:    NONE");
+    }
+
+    if (hackOptions.colourDeleteHealRate > 6) {
+        hackOptions.colourDeleteHealRate = 0;
+    }
+    if (hackOptions.colourDeleteHealRate < 0) {
+        hackOptions.colourDeleteHealRate = 6;
+    }
+    if (hackOptions.colourDeleteHealRate == 0) {
+        sprintf(lines[5], "Colour heal:       TIMED, EASY");
+    } else if (hackOptions.colourDeleteHealRate == 1) {
+        sprintf(lines[5], "Colour heal:     TIMED, MEDIUM");
+    } else if (hackOptions.colourDeleteHealRate == 2) {
+        sprintf(lines[5], "Colour heal:       TIMED, HARD");
+    } else if (hackOptions.colourDeleteHealRate == 3) {
+        sprintf(lines[5], "Colour heal: 1 COLOUR PER RING");
+    } else if (hackOptions.colourDeleteHealRate == 4) {
+        sprintf(lines[5], "Colour heal: 5 COLOURS PER RING");
+    } else if (hackOptions.colourDeleteHealRate == 5) {
+        sprintf(lines[5], "Colour heal: 20 COLOURS PER RING");
+    } else if (hackOptions.colourDeleteHealRate == 6) {
+        sprintf(lines[5], "Colour heal:               OFF");
+    }
+
+    if (hackOptions.colourDeleteAffectsAudio > 1) {
+        hackOptions.colourDeleteAffectsAudio = 0;
+    }
+    if (hackOptions.colourDeleteAffectsAudio < 0) {
+        hackOptions.colourDeleteAffectsAudio = 1;
+    }
+    if (hackOptions.colourDeleteAffectsAudio == 0) {
+        sprintf(lines[6], "Lost colour affects sound: OFF");
+    } else if (hackOptions.colourDeleteAffectsAudio == 1) {
+        sprintf(lines[6], "Lost colour affects sound:  ON");
+    }
+
+    linesWithBreakAfter[6] = 1;
+    sprintf(lines[7], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -2700,6 +2836,10 @@ void showVisualsOptionsMenu() {
         }
 
         yPos += 8;
+
+        if (linesWithBreakAfter[i] != 0) {
+            yPos += 8;
+        }
     }
 }
 
@@ -2709,7 +2849,7 @@ void showNetworkingOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Networking", 5);
 
-    int lineCount = 14;
+    int lineCount = 15;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -2812,17 +2952,31 @@ void showNetworkingOptionsMenu() {
         sprintf(lines[9], "  Scramble oppt level:   LOADS");
     }
 
-    sprintf(lines[10], "");
+    if (networkOptions.sendRemoveColour > 2) {
+        networkOptions.sendRemoveColour = 0;
+    }
+    if (networkOptions.sendRemoveColour < 0) {
+        networkOptions.sendRemoveColour = 2;
+    }
+    if (networkOptions.sendRemoveColour == 0) {
+        sprintf(lines[10], "  Remove oppt colour:      OFF");
+    } else if (networkOptions.sendRemoveColour == 1) {
+        sprintf(lines[10], "  Remove oppt colour:    A BIT");
+    } else if (networkOptions.sendRemoveColour == 2) {
+        sprintf(lines[10], "  Remove oppt colour:    A LOT");
+    }
+
+    sprintf(lines[11], "");
     if (networkOptions.awaitingOpponentSettingsState == 0) {
-        sprintf(lines[11], "Get opponent's settings");
+        sprintf(lines[12], "Get opponent's settings");
     } else if (networkOptions.awaitingOpponentSettingsState == 1) {
-        sprintf(lines[11], "Get opponent's settings (getting)");
+        sprintf(lines[12], "Get opponent's settings (getting)");
     } else if (networkOptions.awaitingOpponentSettingsState == 2) {
-        sprintf(lines[11], "Get opponent's settings (done!)");
+        sprintf(lines[12], "Get opponent's settings (done!)");
     } 
 
-    sprintf(lines[12], "");
-    sprintf(lines[13], "back >");
+    sprintf(lines[13], "");
+    sprintf(lines[14], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

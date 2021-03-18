@@ -3,6 +3,7 @@
         "cstdlib": "c",
         "list": "cpp",
         "ostream": "cpp",
-        "xlocmon": "cpp"
+        "xlocmon": "cpp",
+        "vdp_render.h": "c"
     }
 }
