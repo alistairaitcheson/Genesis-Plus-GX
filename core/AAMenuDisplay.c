@@ -28,7 +28,7 @@ static int pixelDetectiveIndex = 0;
 static int networkingOptionsIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 14;
+static int minorVersion = 15;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;

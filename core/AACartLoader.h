@@ -37,6 +37,9 @@ extern void cartLoader_getRomFilePrefix(int index, char intoArray[]);
 extern void writeFolderPathIntoArray32(char array32[]);
 extern void writeShortenedFileName(char source256[], char output256[], int length);
 
+extern int cartLoader_base10Array32ToInt(char array32[]);
+extern int cartLoader_base10CharToInt(char character);
+
 extern void cartLoader_loadAllSaveStatesFromDisk();
 extern void cartLoader_saveAllSaveStatesToDisk();
 extern void cartLoader_applyHackOptions(int gameHasStarted);

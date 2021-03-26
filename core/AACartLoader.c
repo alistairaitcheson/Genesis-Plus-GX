@@ -62,6 +62,60 @@ static int foundZipFiles = 0;
 
 static int cachedCartIndex = 0;
 
+int cartLoader_base10CharToInt(char character) {
+    if (character == '0') {
+        return 0;
+    }
+    if (character == '1') {
+        return 1;
+    }
+    if (character == '2') {
+        return 2;
+    }
+    if (character == '3') {
+        return 3;
+    }
+    if (character == '4') {
+        return 4;
+    }
+    if (character == '5') {
+        return 5;
+    }
+    if (character == '6') {
+        return 6;
+    }
+    if (character == '7') {
+        return 7;
+    }
+    if (character == '8') {
+        return 8;
+    }
+    if (character == '9') {
+        return 9;
+    }
+}
+
+int cartLoader_base10Array32ToInt(char array32[]) {
+    int length = 0;
+    for (int i = 0; i < 32; i++) {
+        if (array32[i] == 0 || array32[0] == '\0') {
+            length = i + 1;
+            break;
+        }
+    }
+
+    int runningValue = 0;
+    for (int i = length - 1; i >= 0; i--) {
+        int placeValue = 1;
+        for (int j = 0; j < i; j++) {
+            placeValue *= 10;
+        }
+        runningValue = placeValue * cartLoader_charToInt(array32[i]);
+    }
+
+    return runningValue;
+}
+
 void writeFolderPathIntoArray32(char array32[]) {
     writeStringToArray32(folderPath, array32);
 }
