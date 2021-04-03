@@ -629,7 +629,7 @@ void sendQueuedNetworkMessage() {
     }
 }
 
-void modConsole_processNetworkEvent(char eventId) {
+void modConsole_processNetworkEvent(char eventId, int eventCount) {
     // do a SNAP effect!
     fireSnapEffect();
 
@@ -660,8 +660,10 @@ void modConsole_processNetworkEvent(char eventId) {
     if (eventId == NETWORK_MSG_SPEED_UP) {
         if (cartLoader_getActiveGameListing().accelerationType == 1) {
             cartLoader_appendToLog("Increasing Sonic 2D speed from network");
-            aa_genesis_incrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
-            aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
+            for (int i = 0; i < eventCount; i++) {
+                aa_genesis_incrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
+                aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
+            }
         }
     }
 
@@ -682,15 +684,43 @@ void modConsole_processNetworkEvent(char eventId) {
     }
     if (scrambleLevelCount > 0) {
         cartLoader_appendToLog("Scrambling level from network");
-        overwriteLevel(scrambleLevelCount, 1);
+        overwriteLevel(scrambleLevelCount * eventCount, 1);
     }
 
     if (eventId == NETWORK_MSG_REMOVE_COLOUR) {
-        vdp_reduceColours();
+        for (int i = 0; i < eventCount; i++) {
+            vdp_reduceColours();
+        }
     }
     if (eventId == NETWORK_MSG_REMOVE_10_COLOURS) {
         for (int i = 0; i < 10; i++) {
             vdp_reduceColours();
+        }
+    }
+
+    if (eventId == NETWORK_MSG_TOGGLE_LAYER) {
+        if (menuDisplay_getHackOptions().shouldHideLayers == 0) {
+            menuDisplay_getHackOptions().shouldHideLayers = 1 + (rand() % 2);
+        } else {
+            menuDisplay_getHackOptions().shouldHideLayers = 0;
+        }
+    }
+
+    if (eventId == NETWORK_MSG_WRITE_TO_RAM) {
+        int maxValue = 0x10000;
+        if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM || cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR) {
+            maxValue = 0x2000;
+        }
+        for (int i = 0; i < eventCount; i++) {
+            int index = rand() % maxValue;
+            aa_genesis_setWorkRam(index, rand() % 0x100);
+        }
+    }
+
+    if (eventId == NETWORK_MSG_WRITE_TO_CART) {
+        for (int i = 0; i < eventCount; i++) {
+            int index = rand() % MAXROMSIZE;
+            setCartValueAtIndex(index, rand() % 0x100);
         }
     }
 }

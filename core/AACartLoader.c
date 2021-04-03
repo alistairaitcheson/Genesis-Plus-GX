@@ -93,6 +93,8 @@ int cartLoader_base10CharToInt(char character) {
     if (character == '9') {
         return 9;
     }
+
+    return -1;
 }
 
 int cartLoader_base10Array32ToInt(char array32[]) {
@@ -1326,6 +1328,8 @@ void cartLoader_checkNetworkForActions() {
             int interpretType = NETWORK_INTERPRET_TYPE_ACTION;
             int assignNextAsPositive = 0;
 
+            int runningNumber = 0;
+
             for (int i = 0; i < 0x100; i++) {
                 char testLog[2];
                 testLog[0] = actionBuffer[i];
@@ -1357,12 +1361,23 @@ void cartLoader_checkNetworkForActions() {
 
                     // only interpret actions when the menu is NOT showing!!
                     if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {
-                        modConsole_processNetworkEvent(actionBuffer[i]);
+                        int eventCount = 1;
+                        if (runningNumber > 0) {
+                            eventCount = runningNumber;
+                        }
+                        modConsole_processNetworkEvent(actionBuffer[i], eventCount);
                     }
 
                     if (interpretType == NETWORK_INTERPRET_TYPE_ASSIGN_RULES) {
                         menuDisplay_applyNetworkOptionSwitch(actionBuffer[i], assignNextAsPositive);
                     }
+                }
+
+                if (cartLoader_base10CharToInt(actionBuffer[i]) > -1) {
+                    runningNumber *= 10;
+                    runningNumber += cartLoader_base10CharToInt(actionBuffer[i]);
+                } else {
+                    runningNumber = 0;
                 }
             }
 

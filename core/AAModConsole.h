@@ -9,6 +9,9 @@
 #define NETWORK_MSG_RANDOMISE_VELOCITY 'Y'
 #define NETWORK_MSG_REMOVE_COLOUR 'U'
 #define NETWORK_MSG_REMOVE_10_COLOURS 'I'
+#define NETWORK_MSG_WRITE_TO_RAM 'q'
+#define NETWORK_MSG_TOGGLE_LAYER 'w'
+#define NETWORK_MSG_WRITE_TO_CART 'e'
 
 #define NETWORK_MSG_INTERPRET_AS_ACTIONS 'A' // prefix with this to convey "I am actioning"
 #define NETWORK_MSG_INTERPRET_AS_RULES 'S' // prefix with this to convey "I am switching rules on and off"
@@ -52,7 +55,7 @@ extern void modConsole_flagToApplyCache();
 extern void modConsole_flagToSummonMenu();
 extern void modConsole_flagToLogRamState();
 extern void modConsole_setCountdownUntilRingSwitch(int toValue);
-extern void modConsole_processNetworkEvent(char eventId);
+extern void modConsole_processNetworkEvent(char eventId, int eventCount);
 void queueNetworkMessage(char eventId);
 void sendQueuedNetworkMessage();
 
