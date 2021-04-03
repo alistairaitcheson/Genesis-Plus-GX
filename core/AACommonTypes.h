@@ -31,6 +31,7 @@ typedef struct
     int ringSwitchCooldown;
     int unpauseByte;
     int unpauseByteDestination;
+    int postRingEffectCooldown;
 } AAGameListing;
 
 typedef struct

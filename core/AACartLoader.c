@@ -428,7 +428,9 @@ void cartLoader_run() {
     scoreMonitorListings[18].calculatationType = 0;
     scoreMonitorListings[18].scoreJumpForTrigger = 39;
     scoreMonitorListings[18].blockJumpFromZero = 1;
-    gameListings[18].ringSwitchCooldown = 2;
+    // gameListings[18].ringSwitchCooldown = 2;
+    gameListings[18].postRingEffectCooldown = 10;
+
 
     writeStringToArray32("Puyo Puyo (JP)", gameListings[19].gameId); // <-- puyo puyo
     copyGameListing(18, 19);
@@ -452,7 +454,8 @@ void cartLoader_run() {
     scoreMonitorListings[20].calculatationType = 0;
     scoreMonitorListings[20].scoreJumpForTrigger = 39;
     scoreMonitorListings[20].blockJumpFromZero = 1;
-    gameListings[20].ringSwitchCooldown = 2;
+    // gameListings[20].ringSwitchCooldown = 2;
+    gameListings[20].postRingEffectCooldown = 10;
 
     writeStringToArray32("BAREKNUCKLE", gameListings[21].gameId); // <-- Streets of Rage 1
     gameListings[21].ringByte = 0;
@@ -666,6 +669,7 @@ void zeroAllListings() {
         gameListings[gameIndex].isISO = 0;
         gameListings[gameIndex].ringSwitchCooldown = 0;
         gameListings[gameIndex].unpauseByte = 0;
+        gameListings[gameIndex].postRingEffectCooldown = 0;
 
         for (int i = 0; i < 8; i++) {
             gameListings[gameIndex].livesBytes[i] = 0;
@@ -1457,6 +1461,7 @@ void copyGameListing(int fromGame, int toGame) {
     gameListings[toGame].ringSwitchCooldown = gameListings[fromGame].ringSwitchCooldown;
     gameListings[toGame].accelerationType = gameListings[fromGame].accelerationType;
     gameListings[toGame].unpauseByte = gameListings[fromGame].unpauseByte;
+    gameListings[toGame].postRingEffectCooldown = gameListings[fromGame].postRingEffectCooldown;
 
     for (int i = 0; i < 8; i++) {
         gameListings[toGame].livesBytes[i] = gameListings[fromGame].livesBytes[i];

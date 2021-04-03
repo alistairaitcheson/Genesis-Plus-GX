@@ -68,6 +68,8 @@ static int snapEffectOffset[0x10];
 static int removeColourTimer = 0;
 static int healColourTimer = 0;
 
+static int postRingEffectCooldownTimePerGame[0x1000];
+
 void fireSnapEffect() {
     snapEffectTime = snapEffectMaxTime;
     shuffleSnapValues();
@@ -91,6 +93,10 @@ void modConsole_setCountdownUntilRingSwitch(int toValue) {
 
 void modConsole_initialise() {
     if (hasInitialised == 0) {
+        for (int i = 0; i < 0x1000; i++) {
+            postRingEffectCooldownTimePerGame[i] = 0;
+        }
+
         layerRenderer_populateLetters();
         menuDisplay_initialise();
         cartLoader_run();
@@ -326,6 +332,10 @@ void modConsole_updateFrame() {
         // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
 
     } else {
+        if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0) {
+            postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()]--;
+        }
+
         networkMessageLength = 0;
         for (int i = 0; i < 0x100; i++) {
             queuedNetworkMessage[i] = 0;
@@ -406,27 +416,6 @@ void modConsole_updateFrame() {
 
         sendNetworkMessageOnGetRing();
 
-        if (hackOpts.switchGameType > 1) {
-            switchAfterTimeCounter++;
-            if (switchAfterTimeCounter >= switchAfterTimePeriod) {
-                switchAfterTimeCounter = 0;
-                promptSwitchGame();
-            }
-        }
-
-        if (countdownUntilRingSwitch > 0) {
-            countdownUntilRingSwitch--;
-            if (countdownUntilRingSwitch == 0) {
-                promptSwitchGame();
-            }
-        }
-
-        if (countdownUntilUnpause > 0) {
-            countdownUntilUnpause --;
-            if (countdownUntilUnpause == 0) {
-                unpauseGame();
-            }
-        }
 
         // if (switchCooldownPeriod > 0) {
         //     showCooldownVisualiser();
@@ -559,6 +548,37 @@ void modConsole_updateFrame() {
             aa_psg_setCrunchProbability(vdp_getTotalRemovedColours());
             aa_ym2612_setCrunchProbability(vdp_getTotalRemovedColours());
             aa_ym2413_setCrunchProbability(vdp_getTotalRemovedColours());
+        }
+
+        // Puyo games need to wait a few frames after a ring effect before activating another,
+        // otherwise the game-end countdown counts as many rings!
+        if (cartLoader_getActiveGameListing().postRingEffectCooldown > 0) {
+            if (ringCountHasChanged()) {
+                postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] = cartLoader_getActiveGameListing().postRingEffectCooldown;
+            }
+        }
+
+        // game switching needs to come at the end for per-game cooldown to work
+        if (hackOpts.switchGameType > 1) {
+            switchAfterTimeCounter++;
+            if (switchAfterTimeCounter >= switchAfterTimePeriod) {
+                switchAfterTimeCounter = 0;
+                promptSwitchGame();
+            }
+        }
+
+        if (countdownUntilRingSwitch > 0) {
+            countdownUntilRingSwitch--;
+            if (countdownUntilRingSwitch == 0) {
+                promptSwitchGame();
+            }
+        }
+
+        if (countdownUntilUnpause > 0) {
+            countdownUntilUnpause --;
+            if (countdownUntilUnpause == 0) {
+                unpauseGame();
+            }
         }
 
         if (countdownToSummonMenu > 0) {
@@ -1036,6 +1056,10 @@ void updateSwitchGameOnRing() {
 }
 
 int ringCountHasChanged() {
+    if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0) {
+        return 0;
+    }
+
     if (activeGameListing.ringByte > 0) {
         unsigned int lastRingCount = aa_genesis_getLastWorkRam(activeGameListing.ringByte);
         unsigned int currentRingCount = aa_genesis_getWorkRam(activeGameListing.ringByte);
