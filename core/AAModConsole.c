@@ -191,16 +191,7 @@ void modConsole_applyHackOptions() {
         vdp_setShouldSortPixels(0);
     }
 
-    if (menuDisplay_getHackOptions().shouldHideLayers == 0) {
-        vdp_setShouldHideSprites(0);
-        vdp_setShouldHideBackgrounds(0);
-    } else if (menuDisplay_getHackOptions().shouldHideLayers == 1) {
-        vdp_setShouldHideSprites(1);
-        vdp_setShouldHideBackgrounds(0);
-    } else if (menuDisplay_getHackOptions().shouldHideLayers == 2) {
-        vdp_setShouldHideSprites(0);
-        vdp_setShouldHideBackgrounds(1);
-    }
+    applyLayerHidingOptions();
 
     if (menuDisplay_getHackOptions().limitedColourType == 0) {
         vdp_setShouldLimitColourPalettes(0);
@@ -224,6 +215,19 @@ void modConsole_applyHackOptions() {
     aa_psg_setAllowCrunch(menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio);
     aa_ym2612_setAllowCrunch(menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio);
     aa_ym2413_setAllowCrunch(menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio);
+}
+
+void applyLayerHidingOptions() {
+    if (menuDisplay_getHackOptions().shouldHideLayers == 0) {
+        vdp_setShouldHideSprites(0);
+        vdp_setShouldHideBackgrounds(0);
+    } else if (menuDisplay_getHackOptions().shouldHideLayers == 1) {
+        vdp_setShouldHideSprites(1);
+        vdp_setShouldHideBackgrounds(0);
+    } else if (menuDisplay_getHackOptions().shouldHideLayers == 2) {
+        vdp_setShouldHideSprites(0);
+        vdp_setShouldHideBackgrounds(1);
+    }
 }
 
 void modConsole_applyNetworkOptions() {
@@ -699,11 +703,8 @@ void modConsole_processNetworkEvent(char eventId, int eventCount) {
     }
 
     if (eventId == NETWORK_MSG_TOGGLE_LAYER) {
-        if (menuDisplay_getHackOptions().shouldHideLayers == 0) {
-            menuDisplay_getHackOptions().shouldHideLayers = 1 + (rand() % 2);
-        } else {
-            menuDisplay_getHackOptions().shouldHideLayers = 0;
-        }
+        menuDisplay_toggleVisibleLayers();
+        applyLayerHidingOptions();
     }
 
     if (eventId == NETWORK_MSG_WRITE_TO_RAM) {

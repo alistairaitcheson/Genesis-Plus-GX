@@ -57,6 +57,11 @@ HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
 }
 
+void menuDisplay_toggleVisibleLayers() {
+    hackOptions.shouldHideLayers += 1 + (rand() % 2);
+    hackOptions.shouldHideLayers = hackOptions.shouldHideLayers % 3;
+}
+
 SecondaryHackOptions menuDisplay_getSecondaryHackOptions() {
     return secondaryHackOptions;
 }

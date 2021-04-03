@@ -112,7 +112,7 @@ int cartLoader_base10Array32ToInt(char array32[]) {
         for (int j = 0; j < i; j++) {
             placeValue *= 10;
         }
-        runningValue = placeValue * cartLoader_charToInt(array32[i]);
+        runningValue = placeValue * cartLoader_base10CharToInt(array32[i]);
     }
 
     return runningValue;

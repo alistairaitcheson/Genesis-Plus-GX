@@ -112,6 +112,8 @@ extern SecondaryHackOptions menuDisplay_getSecondaryHackOptions();
 void applySecondaryHacksFromArray256(int array256[]);
 void applySecondaryHacksDefaultValues();
 
+extern void menuDisplay_toggleVisibleLayers();
+
 void beginGame();
 void showTitleMenu();
 void refreshMenu();
