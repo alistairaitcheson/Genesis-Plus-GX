@@ -755,6 +755,8 @@ void sendNetworkMessageOnGetRing() {
     if (ringCountHasChanged() != 0) {
         NetworkOptions networkOpts = menuDisplay_getNetworkOptions();
         if (networkOpts.networkingIsActive != 0) {
+            queueNetworkMessage(NETWORK_MSG_DUMMY_TWTICH_MESSAGE);
+
             if (networkOpts.sendSwitchGame != 0) {
                 queueNetworkMessage(NETWORK_MSG_SWITCH_GAME);
             }

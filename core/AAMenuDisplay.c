@@ -1831,9 +1831,9 @@ void showOptionsMenu() {
     }
     
     if (menuDisplay_shouldNetworkingOptionsShowAsOn() != 0) {
-        sprintf(lines[5], "[ON] Networking >");
+        sprintf(lines[5], "[ON] Networking/Twitch >");
     } else {
-        sprintf(lines[5], "     Networking >");
+        sprintf(lines[5], "     Networking/Twitch >");
     }
 
     sprintf(lines[6], "Start game");
@@ -2895,7 +2895,7 @@ void showNetworkingOptionsMenu() {
     layerRenderer_clearLayer(0);
 
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
-    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Networking", 5);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Networking and Twitch", 5);
 
     int lineCount = 15;
     char lines[lineCount][0x80];
@@ -2918,9 +2918,9 @@ void showNetworkingOptionsMenu() {
         networkOptions.networkingIsActive = 1;
     }
     if (networkOptions.networkingIsActive == 0) {
-        sprintf(lines[0], "Networked play:           OFF");
+        sprintf(lines[0], "Network/Twitch play:           OFF");
     } else {
-        sprintf(lines[0], "Networked play:           ON");
+        sprintf(lines[0], "Network/Twitch play:           ON");
     }
 
     sprintf(lines[1], "Enable single-player effects");
