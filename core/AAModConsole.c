@@ -79,7 +79,7 @@ static int postRingEffectCooldownTimePerGame[MAX_ROMS];
 // static uint8 rewindStepIndexPerGame[MAX_ROMS];
 
 static int rewindFrameCounter = 0;
-static int framesBetweenRewindCache = 300;
+static int framesBetweenRewindCache = 120;
 static int framesHeldDownRewindButtons = 0;
 
 void initialiseRewindRAM() {
@@ -570,7 +570,7 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
         {
-            if (framesHeldDownRewindButtons % 15 == 0) {
+            if (framesHeldDownRewindButtons % 30 == 0) {
                 stepBackRewindRAM();
             }
             framesHeldDownRewindButtons ++;

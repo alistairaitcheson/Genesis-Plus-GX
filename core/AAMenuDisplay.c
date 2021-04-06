@@ -1625,9 +1625,7 @@ void activateInGameMenuItem() {
     }
 
     if (inGameOptionIndex == 11) {
-        for (int i = 0; i < 5; i++) {
-            stepBackRewindRAM();
-        }
+        stepBackRewindRAM();
     }
 
 
