@@ -12,7 +12,7 @@
 #include "genesis.h"
 #include "AAMenuDisplay.h"
 
-#define MAX_ROMS 0x20
+#define MAX_ROMS 0x80
 
 static unsigned int romCount;
 static char *folderPath = "_magicbox";
@@ -61,6 +61,10 @@ static int hasBeenNonSMS = 0;
 static int foundZipFiles = 0;
 
 static int cachedCartIndex = 0;
+
+static int maxRewindStatesPerGame = 0x10;
+static int rewindStateMinimumPerGame[MAX_ROMS];
+static int rewindStateCounterPerGame[MAX_ROMS];
 
 int cartLoader_base10CharToInt(char character) {
     if (character == '0') {
@@ -126,6 +130,8 @@ void cartLoader_run() {
     for (int i = 0; i < MAX_ROMS; i++) {
         hasCachedSaveState[i] = 0;
         romsRemovedFromRandomiser[i] = 0;
+        rewindStateMinimumPerGame[i] = 0;
+        rewindStateCounterPerGame[i] = 0;
     }
     
     cartLoader_appendToLog("cartLoader_run");
@@ -1223,6 +1229,23 @@ void initialiseDirectory() {
     }
 }
 
+void cartloader_initialiseRewindDirectory() {
+        initialiseDirectory();
+
+    cartLoader_appendToLog("cartloader_initialiseRewindDirectory - BEGINS");
+
+    cartLoader_appendToLog("making directory");
+
+    char command[0x100];
+    sprintf(command, "cd %s && mkdir .rewind && cd ..", folderPath);
+    cartLoader_appendToLog(command);
+    system(command);
+
+    clearRewindDirectory();
+
+    cartLoader_appendToLog("cartloader_initialiseRewindDirectory - DONE");
+}
+
 
 void cartloader_initialiseNetworkDirectories() {
     initialiseDirectory();
@@ -1299,6 +1322,37 @@ void clearRecvDirectory() {
     for (int i = 0; i < oldFiles; i++) {
         char logMessage[0x100];
         sprintf(logMessage, "Deleting from SEND: %s", filesToRemove[i]); 
+        cartLoader_appendToLog(logMessage);
+        remove(filesToRemove[i]);
+    }
+}
+
+void clearRewindDirectory() {
+    cartLoader_appendToLog("clearRewindDirectory");
+
+    char rewindPath[0x100];
+    sprintf(rewindPath, "%s/.rewind/", folderPath);
+
+    struct dirent *dp;
+    DIR *dir = opendir(rewindPath);
+
+    char filesToRemove[0x1000][0x100];
+    int oldFiles = 0;
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if(dp->d_name[0] != '.') {
+            char pathThisFile[0x100];
+            sprintf(pathThisFile, "%s%s", rewindPath, dp->d_name);
+            sprintf(filesToRemove[oldFiles], "%s", pathThisFile);
+            oldFiles++;
+        }
+    }
+    closedir(dir);
+
+    for (int i = 0; i < oldFiles; i++) {
+        char logMessage[0x100];
+        sprintf(logMessage, "Deleting from REWIND: %s", filesToRemove[i]); 
         cartLoader_appendToLog(logMessage);
         remove(filesToRemove[i]);
     }
@@ -1546,6 +1600,81 @@ void cartLoader_loadSaveStateForQuitMenu() {
     state_load(saveStateBeforeMenu);
 }
 
+void cartLoader_saveRewindStateForCurrentGame() {
+    cartLoader_appendToLog("cartLoader_saveRewindStateForCurrentGame");
+
+    // get the current save state
+    uint8 saveState[STATE_SIZE];
+    state_save(saveState);
+
+    int stepIndex = rewindStateCounterPerGame[lastLoadedIndex];
+    char path[256];
+    sprintf(path, "%s/.rewind/%i_%i.savestate", folderPath, lastLoadedIndex, stepIndex);
+    
+    char tempLog[256];
+    sprintf(tempLog,"Saving rewind save state (game %i, step %i)", lastLoadedIndex, stepIndex);
+    cartLoader_appendToLog(tempLog);
+    cartLoader_appendToLog(path);
+
+    FILE *f = fopen(path,"wb");
+    if (f)
+    {
+        fwrite(&saveState, STATE_SIZE, 1, f);
+        fclose(f);
+        cartLoader_appendToLog("success!");
+        rewindStateCounterPerGame[lastLoadedIndex]++;
+        if (rewindStateMinimumPerGame[lastLoadedIndex] < rewindStateCounterPerGame[lastLoadedIndex] - maxRewindStatesPerGame) {
+            deleteRewindState(lastLoadedIndex, rewindStateMinimumPerGame[lastLoadedIndex]);
+            rewindStateMinimumPerGame[lastLoadedIndex] = rewindStateCounterPerGame[lastLoadedIndex] - maxRewindStatesPerGame;
+        }
+    } else {
+        cartLoader_appendToLog("no state found");
+    }
+}
+
+void deleteRewindState(int gameIndex, int stateIndex) {
+    char path[256];
+    sprintf(path, "%s/.rewind/%i_%i.savestate", folderPath, gameIndex, stateIndex);
+
+    char tempLog[256];
+    sprintf(tempLog,"Deleting rewind save state (game %i, step %i)", gameIndex, stateIndex);
+    cartLoader_appendToLog(tempLog);
+    cartLoader_appendToLog(path);
+
+    remove(path);
+}
+
+void cartLoader_loadRewindStateForCurrentGame() {
+    cartLoader_appendToLog("cartLoader_loadRewindStateForCurrentGame");
+
+    if (rewindStateCounterPerGame[lastLoadedIndex] > rewindStateMinimumPerGame[lastLoadedIndex]) {
+        int previousStep = rewindStateCounterPerGame[lastLoadedIndex] - 1;
+
+        char path[256];
+        sprintf(path, "%s/.rewind/%i_%i.savestate", folderPath, lastLoadedIndex, previousStep);
+
+        char tempLog[256];
+        sprintf(tempLog,"Loading rewind save state (game %i, step %i)", lastLoadedIndex, previousStep);
+        cartLoader_appendToLog(tempLog);
+        cartLoader_appendToLog(path);
+
+        uint8 saveState[STATE_SIZE];
+
+        FILE *f = fopen(path,"rb");
+        if (f)
+        {
+            fread(&saveState, STATE_SIZE, 1, f);
+            fclose(f);
+            cartLoader_appendToLog("success!");
+
+            rewindStateCounterPerGame[lastLoadedIndex] = previousStep;
+            state_load(saveState);
+        } else {
+            cartLoader_appendToLog("no state found");
+        }
+    }
+}
+
 void cartLoader_saveAllSaveStatesToDisk() {
     cartLoader_appendToLog("cartLoader_saveAllSaveStatesToDisk");
 
@@ -1555,7 +1684,7 @@ void cartLoader_saveAllSaveStatesToDisk() {
             sprintf(path, "%s%s_%s.savestate", folderPath, romFilePrefixes[i], romFileNames[i]);
             
             char tempLog[256];
-            sprintf(tempLog,"Loading save state %d", i);
+            sprintf(tempLog,"Saving save state %d", i);
             cartLoader_appendToLog(tempLog);
             cartLoader_appendToLog(path);
 
@@ -1566,7 +1695,7 @@ void cartLoader_saveAllSaveStatesToDisk() {
                 fclose(f);
                 cartLoader_appendToLog("success!");
             } else {
-                cartLoader_appendToLog("no state found");
+                cartLoader_appendToLog("not found - could not load");
             }
         } else {
             char tempLog[256];
@@ -1583,7 +1712,7 @@ void cartLoader_loadAllSaveStatesFromDisk() {
         sprintf(path, "%s%s_%s.savestate", folderPath, romFilePrefixes[i], romFileNames[i]);
 
         char tempLog[256];
-        sprintf(tempLog,"Saving save state %d", i);
+        sprintf(tempLog,"Loading save state %d", i);
         cartLoader_appendToLog(tempLog);
         cartLoader_appendToLog(path);
         
@@ -1595,7 +1724,7 @@ void cartLoader_loadAllSaveStatesFromDisk() {
             cartLoader_appendToLog("success!");
             hasCachedSaveState[i] = 1;
         } else {
-            cartLoader_appendToLog("not found - could not load");
+            cartLoader_appendToLog("no state found");
         }
         cartLoader_appendToLog(" -- ");
     }

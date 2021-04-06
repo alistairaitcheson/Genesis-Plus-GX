@@ -80,10 +80,16 @@ extern void cartLoader_updatePixelTracker(int line, unsigned char linebuf[2][0x2
 extern void cartLoader_checkPixelTrackerForStateChange();
 
 extern void cartloader_initialiseNetworkDirectories();
+extern void cartloader_initialiseRewindDirectory();
 extern void cartLoader_checkNetworkForActions();
 extern void cartLoader_writeActionToNetwork(char action256[]);
 
 void clearSendDirectory();
 void clearRecvDirectory();
+void clearRewindDirectory();
+
+extern void cartLoader_saveRewindStateForCurrentGame();
+extern void cartLoader_loadRewindStateForCurrentGame();
+void deleteRewindState(int gameIndex, int stateIndex);
 
 #endif

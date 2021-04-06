@@ -73,69 +73,77 @@ static int healColourTimer = 0;
 
 static int postRingEffectCooldownTimePerGame[MAX_ROMS];
 
-static uint8 rewindWorkRAMPerGame[MAX_ROMS][MAX_REWIND_STEPS][0x10001]; // final byte is "AM I USED?"
-static uint8 rewindVRAMPerGame[MAX_ROMS][MAX_REWIND_STEPS][0x10000]; // final byte is "AM I USED?"
-static uint8 rewindStepIndexPerGame[MAX_ROMS];
+// static uint8 rewindStepIsSet[MAX_ROMS][MAX_REWIND_STEPS];
+// static uint8 rewindWorkRAMPerGame[MAX_ROMS][MAX_REWIND_STEPS][0x10000];
+// static uint8 rewindVRAMPerGame[MAX_ROMS][MAX_REWIND_STEPS][0x10000];
+// static uint8 rewindStepIndexPerGame[MAX_ROMS];
 
 static int rewindFrameCounter = 0;
-static int framesBetweenRewindCache = 120;
+static int framesBetweenRewindCache = 300;
+static int framesHeldDownRewindButtons = 0;
 
 void initialiseRewindRAM() {
-    for (int romIndex = 0; romIndex < MAX_ROMS; romIndex++) {
-        for (int rewindStep = 0; rewindStep < MAX_REWIND_STEPS; rewindStep++) {
-            for (int i = 0; i < 0x1000 + 1; i++) {
-                rewindWorkRAMPerGame[romIndex][rewindStep][i] = 0; 
-                rewindVRAMPerGame[romIndex][rewindStep][i] = 0; 
-            }
-        }
-    }
+    cartloader_initialiseRewindDirectory();
+    // for (int romIndex = 0; romIndex < MAX_ROMS; romIndex++) {
+    //     for (int rewindStep = 0; rewindStep < MAX_REWIND_STEPS; rewindStep++) {
+    //         for (int i = 0; i < 0x10000; i++) {
+    //             rewindWorkRAMPerGame[romIndex][rewindStep][i] = 0; 
+    //             rewindVRAMPerGame[romIndex][rewindStep][i] = 0; 
+    //         }
+    //         rewindStepIsSet[romIndex][rewindStep] = 0;
+    //     }
+    // }
 }
 
 void cacheRewindRAM() {
-    int currentGameIndex = cartLoader_getActiveCartIndex();
-    int stepIndex = rewindStepIndexPerGame[currentGameIndex];
+    // int currentGameIndex = cartLoader_getActiveCartIndex();
+    // int stepIndex = rewindStepIndexPerGame[currentGameIndex];
 
-    for (int i = 0; i < 0x1000; i++) {
-        rewindWorkRAMPerGame[currentGameIndex][stepIndex][i] = aa_genesis_getWorkRam(i); 
-        rewindVRAMPerGame[currentGameIndex][stepIndex][i] = aa_genesis_getVRamValue(i); 
-    }
-    // set the final value to say "I am being used"
-    rewindWorkRAMPerGame[currentGameIndex][stepIndex][0x10000] = 1;
+    // for (int i = 0; i < 0x10000; i++) {
+    //     rewindWorkRAMPerGame[currentGameIndex][stepIndex][i] = aa_genesis_getWorkRam(i); 
+    //     rewindVRAMPerGame[currentGameIndex][stepIndex][i] = aa_genesis_getVRamValue(i); 
+    // }
+    // // set the final value to say "I am being used"
+    // rewindStepIsSet[currentGameIndex][stepIndex] = 1;
 
-    char logMsg[0x100];
-    sprintf(logMsg, "Caching game %i step %i", currentGameIndex, stepIndex);
-    cartLoader_appendToLog(logMsg);
+    // char logMsg[0x100];
+    // sprintf(logMsg, "Caching game %i step %i", currentGameIndex, stepIndex);
+    // cartLoader_appendToLog(logMsg);
 
-    rewindStepIndexPerGame[currentGameIndex]++;
-    if (rewindStepIndexPerGame[currentGameIndex] >= MAX_REWIND_STEPS) {
-        rewindStepIndexPerGame[currentGameIndex] = 0;
-    }
+    // rewindStepIndexPerGame[currentGameIndex]++;
+    // if (rewindStepIndexPerGame[currentGameIndex] >= MAX_REWIND_STEPS) {
+    //     rewindStepIndexPerGame[currentGameIndex] = 0;
+    // }
+    // // make sure the next step is "the end of time"
+    // rewindStepIsSet[currentGameIndex][rewindStepIndexPerGame[currentGameIndex]] = 0;
+    cartLoader_saveRewindStateForCurrentGame();
 }
 
 void stepBackRewindRAM() {
-    int currentGameIndex = cartLoader_getActiveCartIndex();
-    int previousStepIndex = rewindStepIndexPerGame[currentGameIndex] - 1;
-    if (previousStepIndex < 0) {
-        previousStepIndex = MAX_REWIND_STEPS - 1;
-    }
+    // int currentGameIndex = cartLoader_getActiveCartIndex();
+    // int previousStepIndex = rewindStepIndexPerGame[currentGameIndex] - 1;
+    // if (previousStepIndex < 0) {
+    //     previousStepIndex = MAX_REWIND_STEPS - 1;
+    // }
 
-    if (rewindWorkRAMPerGame[currentGameIndex][previousStepIndex][0x10000] == 1) {
-        char logMsg[0x100];
-        sprintf(logMsg, "Rewinding game %i to step %i", currentGameIndex, previousStepIndex);
-        cartLoader_appendToLog(logMsg);
+    // if (rewindStepIsSet[currentGameIndex][previousStepIndex] == 1) {
+    //     char logMsg[0x100];
+    //     sprintf(logMsg, "Rewinding game %i to step %i", currentGameIndex, previousStepIndex);
+    //     cartLoader_appendToLog(logMsg);
 
-        rewindStepIndexPerGame[currentGameIndex] = previousStepIndex;
+    //     rewindStepIndexPerGame[currentGameIndex] = previousStepIndex;
 
-        for (int i = 0; i < 0x1000; i++) {
-            aa_genesis_setWorkRam(i, rewindWorkRAMPerGame[currentGameIndex][previousStepIndex][i]); 
-            aa_genesis_setVRamValue(i, rewindVRAMPerGame[currentGameIndex][previousStepIndex][i]); 
-        }
-    } else {
-        // cannot rewind further than this!
-        char logMsg[0x100];
-        sprintf(logMsg, "Cannot rewind game %i to unused step %i", currentGameIndex, previousStepIndex);
-        cartLoader_appendToLog(logMsg);
-    }
+    //     for (int i = 0; i < 0x10000; i++) {
+    //         aa_genesis_setWorkRam(i, rewindWorkRAMPerGame[currentGameIndex][previousStepIndex][i]); 
+    //         aa_genesis_setVRamValue(i, rewindVRAMPerGame[currentGameIndex][previousStepIndex][i]); 
+    //     }
+    // } else {
+    //     // cannot rewind further than this!
+    //     char logMsg[0x100];
+    //     sprintf(logMsg, "Cannot rewind game %i to unused step %i", currentGameIndex, previousStepIndex);
+    //     cartLoader_appendToLog(logMsg);
+    // }
+    cartLoader_loadRewindStateForCurrentGame();
 }
 
 void fireSnapEffect() {
@@ -554,16 +562,20 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
         {
             modConsole_activatePanic();
-        } else if (
+        }
+        
+        if (
             // rewind!
             buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
         {
-            if (rewindFrameCounter % 5 == 0) {
+            if (framesHeldDownRewindButtons % 15 == 0) {
                 stepBackRewindRAM();
-                rewindFrameCounter = 0;
             }
+            framesHeldDownRewindButtons ++;
+        } else {
+            framesHeldDownRewindButtons = 0;
         }
 
         // // show what buttons are being pressed!
