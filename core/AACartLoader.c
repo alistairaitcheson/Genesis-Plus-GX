@@ -429,7 +429,7 @@ void cartLoader_run() {
     scoreMonitorListings[18].scoreJumpForTrigger = 39;
     scoreMonitorListings[18].blockJumpFromZero = 1;
     // gameListings[18].ringSwitchCooldown = 2;
-    gameListings[18].postRingEffectCooldown = 10;
+    gameListings[18].postRingEffectCooldown = 20;
 
 
     writeStringToArray32("Puyo Puyo (JP)", gameListings[19].gameId); // <-- puyo puyo
@@ -455,7 +455,7 @@ void cartLoader_run() {
     scoreMonitorListings[20].scoreJumpForTrigger = 39;
     scoreMonitorListings[20].blockJumpFromZero = 1;
     // gameListings[20].ringSwitchCooldown = 2;
-    gameListings[20].postRingEffectCooldown = 10;
+    gameListings[20].postRingEffectCooldown = 20;
 
     writeStringToArray32("BAREKNUCKLE", gameListings[21].gameId); // <-- Streets of Rage 1
     gameListings[21].ringByte = 0;

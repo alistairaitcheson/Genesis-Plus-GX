@@ -332,8 +332,9 @@ void modConsole_updateFrame() {
         // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
 
     } else {
-        if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0) {
-            postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()]--;
+        int cartIndex = cartLoader_getActiveCartIndex();
+        if (postRingEffectCooldownTimePerGame[cartIndex] > 0) {
+            postRingEffectCooldownTimePerGame[cartIndex]--;
         }
 
         networkMessageLength = 0;
@@ -553,9 +554,19 @@ void modConsole_updateFrame() {
         // Puyo games need to wait a few frames after a ring effect before activating another,
         // otherwise the game-end countdown counts as many rings!
         if (cartLoader_getActiveGameListing().postRingEffectCooldown > 0) {
+            // some complicated wrangling so that every successive ring in that time resets the counter back to max
+            int cachedCooldown = postRingEffectCooldownTimePerGame[cartIndex];
+            postRingEffectCooldownTimePerGame[cartIndex] = 0;
             if (ringCountHasChanged()) {
-                postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] = cartLoader_getActiveGameListing().postRingEffectCooldown;
-            }
+                postRingEffectCooldownTimePerGame[cartIndex] = cartLoader_getActiveGameListing().postRingEffectCooldown;
+                // cartLoader_appendToLog("Got ring during cooldown");
+            } else {
+                postRingEffectCooldownTimePerGame[cartIndex] = cachedCooldown - 1;
+            }            
+
+            // char logMsgRing[0x100];
+            // sprintf(logMsgRing, "postRingEffectCooldownTimePerGame[%i] = %i", cartIndex, postRingEffectCooldownTimePerGame[cartIndex]);
+            // cartLoader_appendToLog(logMsgRing);
         }
 
         // game switching needs to come at the end for per-game cooldown to work
@@ -653,6 +664,17 @@ void sendQueuedNetworkMessage() {
     }
 }
 
+// deals with the fact that the rand() function only goes up to 0x7FFF
+// the largest integer possible is 0x7FFFFFFF
+int getBigRandomNumber(int maxValue) {
+    int runningNumber = rand() % 0x8;
+    for (int i = 0; i < 7; i++) {
+        runningNumber *= 0x10;
+        runningNumber += rand() % 0x10;
+    }
+    return runningNumber % maxValue;
+}
+
 void modConsole_processNetworkEvent(char eventId, int eventCount) {
     // do a SNAP effect!
     fireSnapEffect();
@@ -731,10 +753,18 @@ void modConsole_processNetworkEvent(char eventId, int eventCount) {
         int maxValue = 0x10000;
         if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM || cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR) {
             maxValue = 0x2000;
+            // cartLoader_appendToLog("Is MS or GG so max is 0x1FFF");
+        } else {
+            // cartLoader_appendToLog("Is MD so max is 0xFFFF");
         }
         for (int i = 0; i < eventCount; i++) {
-            int index = rand() % maxValue;
-            aa_genesis_setWorkRam(index, rand() % 0x100);
+            int index = getBigRandomNumber(maxValue);
+            int value = rand() % 0x100;
+            // char logMsg[0x100];
+            // sprintf(logMsg, "setting byte %04X to %02X", index, value);
+            // cartLoader_appendToLog(logMsg);
+
+            aa_genesis_setWorkRam(index, value);
         }
     }
 

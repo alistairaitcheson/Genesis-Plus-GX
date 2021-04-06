@@ -60,6 +60,7 @@ extern void modConsole_processNetworkEvent(char eventId, int eventCount);
 void queueNetworkMessage(char eventId);
 void sendQueuedNetworkMessage();
 extern void applyLayerHidingOptions();
+extern int getBigRandomNumber(int maxValue);
 
 int lengthOfString256(char string256[]);
 
