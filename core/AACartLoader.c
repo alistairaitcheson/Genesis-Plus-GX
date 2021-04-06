@@ -1669,6 +1669,8 @@ void cartLoader_loadRewindStateForCurrentGame() {
 
             rewindStateCounterPerGame[lastLoadedIndex] = previousStep;
             state_load(saveState);
+            // and copy this to the pause screen cache just in case!
+            state_save(saveStateBeforeMenu);
         } else {
             cartLoader_appendToLog("no state found");
         }
