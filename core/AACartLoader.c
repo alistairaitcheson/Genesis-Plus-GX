@@ -12,7 +12,7 @@
 #include "genesis.h"
 #include "AAMenuDisplay.h"
 
-#define MAX_ROMS 0x100
+#define MAX_ROMS 0x20
 
 static unsigned int romCount;
 static char *folderPath = "_magicbox";

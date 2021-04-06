@@ -19,7 +19,7 @@ cls
 #include "AAMenuDisplay.h"
 #include "vdp_render.h"
 
-#define MAX_ROMS 0x100
+#define MAX_ROMS 0x80
 #define MAX_REWIND_STEPS 0x20
 
 static AAModType activeModType = AAMODTYPE_SWITCH_GAME;
@@ -102,6 +102,10 @@ void cacheRewindRAM() {
     // set the final value to say "I am being used"
     rewindWorkRAMPerGame[currentGameIndex][stepIndex][0x10000] = 1;
 
+    char logMsg[0x100];
+    sprintf(logMsg, "Caching game %i step %i", currentGameIndex, stepIndex);
+    cartLoader_appendToLog(logMsg);
+
     rewindStepIndexPerGame[currentGameIndex]++;
     if (rewindStepIndexPerGame[currentGameIndex] >= MAX_REWIND_STEPS) {
         rewindStepIndexPerGame[currentGameIndex] = 0;
@@ -115,7 +119,11 @@ void stepBackRewindRAM() {
         previousStepIndex = MAX_REWIND_STEPS - 1;
     }
 
-    if (rewindWorkRAMPerGame[currentGameIndex][previousStepIndex][0x1000] == 1) {
+    if (rewindWorkRAMPerGame[currentGameIndex][previousStepIndex][0x10000] == 1) {
+        char logMsg[0x100];
+        sprintf(logMsg, "Rewinding game %i to step %i", currentGameIndex, previousStepIndex);
+        cartLoader_appendToLog(logMsg);
+
         rewindStepIndexPerGame[currentGameIndex] = previousStepIndex;
 
         for (int i = 0; i < 0x1000; i++) {
@@ -124,6 +132,9 @@ void stepBackRewindRAM() {
         }
     } else {
         // cannot rewind further than this!
+        char logMsg[0x100];
+        sprintf(logMsg, "Cannot rewind game %i to unused step %i", currentGameIndex, previousStepIndex);
+        cartLoader_appendToLog(logMsg);
     }
 }
 
@@ -549,7 +560,10 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
         {
-            stepBackRewindRAM();
+            if (rewindFrameCounter % 5 == 0) {
+                stepBackRewindRAM();
+                rewindFrameCounter = 0;
+            }
         }
 
         // // show what buttons are being pressed!
