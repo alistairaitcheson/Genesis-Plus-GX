@@ -19,6 +19,9 @@ cls
 #include "AAMenuDisplay.h"
 #include "vdp_render.h"
 
+#define MAX_ROMS 0x100
+#define MAX_REWIND_STEPS 0x20
+
 static AAModType activeModType = AAMODTYPE_SWITCH_GAME;
 
 static unsigned int frameCount = 0;
@@ -68,7 +71,61 @@ static int snapEffectOffset[0x10];
 static int removeColourTimer = 0;
 static int healColourTimer = 0;
 
-static int postRingEffectCooldownTimePerGame[0x1000];
+static int postRingEffectCooldownTimePerGame[MAX_ROMS];
+
+static uint8 rewindWorkRAMPerGame[MAX_ROMS][MAX_REWIND_STEPS][0x10001]; // final byte is "AM I USED?"
+static uint8 rewindVRAMPerGame[MAX_ROMS][MAX_REWIND_STEPS][0x10000]; // final byte is "AM I USED?"
+static uint8 rewindStepIndexPerGame[MAX_ROMS];
+
+static int rewindFrameCounter = 0;
+static int framesBetweenRewindCache = 120;
+
+void initialiseRewindRAM() {
+    for (int romIndex = 0; romIndex < MAX_ROMS; romIndex++) {
+        for (int rewindStep = 0; rewindStep < MAX_REWIND_STEPS; rewindStep++) {
+            for (int i = 0; i < 0x1000 + 1; i++) {
+                rewindWorkRAMPerGame[romIndex][rewindStep][i] = 0; 
+                rewindVRAMPerGame[romIndex][rewindStep][i] = 0; 
+            }
+        }
+    }
+}
+
+void cacheRewindRAM() {
+    int currentGameIndex = cartLoader_getActiveCartIndex();
+    int stepIndex = rewindStepIndexPerGame[currentGameIndex];
+
+    for (int i = 0; i < 0x1000; i++) {
+        rewindWorkRAMPerGame[currentGameIndex][stepIndex][i] = aa_genesis_getWorkRam(i); 
+        rewindVRAMPerGame[currentGameIndex][stepIndex][i] = aa_genesis_getVRamValue(i); 
+    }
+    // set the final value to say "I am being used"
+    rewindWorkRAMPerGame[currentGameIndex][stepIndex][0x10000] = 1;
+
+    rewindStepIndexPerGame[currentGameIndex]++;
+    if (rewindStepIndexPerGame[currentGameIndex] >= MAX_REWIND_STEPS) {
+        rewindStepIndexPerGame[currentGameIndex] = 0;
+    }
+}
+
+void stepBackRewindRAM() {
+    int currentGameIndex = cartLoader_getActiveCartIndex();
+    int previousStepIndex = rewindStepIndexPerGame[currentGameIndex] - 1;
+    if (previousStepIndex < 0) {
+        previousStepIndex = MAX_REWIND_STEPS - 1;
+    }
+
+    if (rewindWorkRAMPerGame[currentGameIndex][previousStepIndex][0x1000] == 1) {
+        rewindStepIndexPerGame[currentGameIndex] = previousStepIndex;
+
+        for (int i = 0; i < 0x1000; i++) {
+            aa_genesis_setWorkRam(i, rewindWorkRAMPerGame[currentGameIndex][previousStepIndex][i]); 
+            aa_genesis_setVRamValue(i, rewindVRAMPerGame[currentGameIndex][previousStepIndex][i]); 
+        }
+    } else {
+        // cannot rewind further than this!
+    }
+}
 
 void fireSnapEffect() {
     snapEffectTime = snapEffectMaxTime;
@@ -93,9 +150,10 @@ void modConsole_setCountdownUntilRingSwitch(int toValue) {
 
 void modConsole_initialise() {
     if (hasInitialised == 0) {
-        for (int i = 0; i < 0x1000; i++) {
+        for (int i = 0; i < MAX_ROMS; i++) {
             postRingEffectCooldownTimePerGame[i] = 0;
         }
+        initialiseRewindRAM();
 
         layerRenderer_populateLetters();
         menuDisplay_initialise();
@@ -331,10 +389,17 @@ void modConsole_updateFrame() {
         // layerRenderer_clearLayer(0);
         // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
 
+        rewindFrameCounter = 0;
     } else {
         int cartIndex = cartLoader_getActiveCartIndex();
         if (postRingEffectCooldownTimePerGame[cartIndex] > 0) {
             postRingEffectCooldownTimePerGame[cartIndex]--;
+        }
+
+        rewindFrameCounter++;
+        if (rewindFrameCounter >= framesBetweenRewindCache) {
+            rewindFrameCounter = 0;
+            cacheRewindRAM();
         }
 
         networkMessageLength = 0;
@@ -478,6 +543,13 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
         {
             modConsole_activatePanic();
+        } else if (
+            // rewind!
+            buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_B) != 0)
+        {
+            stepBackRewindRAM();
         }
 
         // // show what buttons are being pressed!

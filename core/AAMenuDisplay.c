@@ -1624,6 +1624,13 @@ void activateInGameMenuItem() {
         vdp_healAllColours();
     }
 
+    if (inGameOptionIndex == 11) {
+        for (int i = 0; i < 5; i++) {
+            stepBackRewindRAM();
+        }
+    }
+
+
     inGameOptionIndex = 0;
 }
 
@@ -1870,7 +1877,7 @@ void showInGameOptionsMenu() {
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "--- press A/B/C to activate option ---", 5);
 
-    int lineCount = 12;
+    int lineCount = 13;
     char lines[lineCount][0x80];
 
     int hintLineCount = 5;
@@ -1909,7 +1916,12 @@ void showInGameOptionsMenu() {
     }
     sprintf(lines[9], "Pixel detective tool >>");
     sprintf(lines[10], "Heal all lost colours");
-    sprintf(lines[11], "Back to game");
+    sprintf(lines[11], "Rewind game state");
+    if (inGameOptionIndex == 11) {
+        sprintf(hintLines[0], "* You can also press LEFT + B + START");
+        sprintf(hintLines[1], "  In-game to rewind in 2-second steps");
+    }
+    sprintf(lines[12], "Back to game");
 
     int yPos = 48;
     for (int i = 0; i < lineCount; i++) {
@@ -2794,7 +2806,7 @@ void showVisualsOptionsMenu() {
     linesWithBreakAfter[2] = 1;
 
     if (hackOptions.colourDeleteTrigger > 5) {
-        hackOptions.shouldHideLayers = 0;
+        hackOptions.colourDeleteTrigger = 0;
     }
     if (hackOptions.colourDeleteTrigger < 0) {
         hackOptions.colourDeleteTrigger = 5;

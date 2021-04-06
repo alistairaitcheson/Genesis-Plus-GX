@@ -89,4 +89,8 @@ void healColoursByTime();
 void healColoursOnRing(int count);
 void removeColourOnRing(int count);
 
+void initialiseRewindRAM();
+void cacheRewindRAM();
+extern void stepBackRewindRAM();
+
 #endif
