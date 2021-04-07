@@ -9,7 +9,13 @@
 #define NETWORK_MSG_RANDOMISE_VELOCITY 'Y'
 #define NETWORK_MSG_REMOVE_COLOUR 'U'
 #define NETWORK_MSG_REMOVE_10_COLOURS 'I'
+
 #define NETWORK_MSG_DUMMY_TWTICH_MESSAGE 'P'
+#define NETWORK_MSG_SEND_GAME_INDEX_START '['
+#define NETWORK_MSG_SEND_GAME_INDEX_END ']'
+#define NETWORK_MSG_IS_FROM_TWITCH '@'
+#define NETWORK_MSG_IS_SET_VRAM_STATE 'a'
+
 #define NETWORK_MSG_WRITE_TO_RAM 'q'
 #define NETWORK_MSG_TOGGLE_LAYER 'w'
 #define NETWORK_MSG_WRITE_TO_CART 'e'
@@ -19,7 +25,7 @@
 #define NETWORK_MSG_INTERPRET_AS_POSITIVE 'D' // prefix with this to convey "Set the next setting you see to ON"
 #define NETWORK_MSG_INTERPRET_AS_NEGATIVE 'F' // prefix with this to convey "Set the next setting you see to OFF"
 
-#define NETWORK_MSG_REQUEST_RULES 'Z' // TO-DO:  implement this in NETWORK menu!
+#define NETWORK_MSG_REQUEST_RULES 'Z'
 
 #define NETWORK_INTERPRET_TYPE_ACTION 0
 #define NETWORK_INTERPRET_TYPE_ASSIGN_RULES 1
@@ -56,7 +62,7 @@ extern void modConsole_flagToApplyCache();
 extern void modConsole_flagToSummonMenu();
 extern void modConsole_flagToLogRamState();
 extern void modConsole_setCountdownUntilRingSwitch(int toValue);
-extern void modConsole_processNetworkEvent(char eventId, int eventCount);
+extern void modConsole_processNetworkEvent(char eventId, int eventCount, int isFromTwitch);
 void queueNetworkMessage(char eventId);
 void sendQueuedNetworkMessage();
 extern void applyLayerHidingOptions();
@@ -79,8 +85,8 @@ void overwriteLevel(int cycleCount, int overwriteType);
 void sendNetworkMessageOnGetRing();
 
 void unpauseGame();
-void fireSnapEffect();
-void shuffleSnapValues();
+void fireSnapEffect(int isFromTwitch);
+void shuffleSnapValues(int isFromTwitch);
 extern int modConsole_getSnapOffsetForRowIndex(int rowIndex);
 void applyRandomiseVelocity();
 void updateRandomiseVelocityOnRing();

@@ -113,6 +113,7 @@ void applySecondaryHacksFromArray256(int array256[]);
 void applySecondaryHacksDefaultValues();
 
 extern void menuDisplay_toggleVisibleLayers();
+extern void menuDisplay_showAllVisibleLayers();
 
 void beginGame();
 void showTitleMenu();
@@ -161,5 +162,7 @@ void incrementVisualsOption(int direction);
 void incrementNetworkOption(int direction);
 
 void clearLogRamState();
+
+extern void menudisplay_applyToggleVRAMState(int vramState);
 
 #endif

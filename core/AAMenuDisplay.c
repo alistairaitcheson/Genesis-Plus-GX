@@ -62,6 +62,15 @@ void menuDisplay_toggleVisibleLayers() {
     hackOptions.shouldHideLayers = hackOptions.shouldHideLayers % 3;
 }
 
+void menuDisplay_showAllVisibleLayers() {
+    hackOptions.shouldHideLayers = 0;
+}
+
+void menudisplay_applyToggleVRAMState(int vramState) {
+    hackOptions.copyVram = vramState;
+}
+
+
 SecondaryHackOptions menuDisplay_getSecondaryHackOptions() {
     return secondaryHackOptions;
 }

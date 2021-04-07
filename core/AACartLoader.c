@@ -995,6 +995,13 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     // }
 
     cachedCartIndex = cartLoader_getActiveCartIndex();
+
+    // Tell the network which game we've switched to
+    if (menuDisplay_getNetworkOptions().networkingIsActive != 0) {
+        char currentLevelMsg[0x100];
+        sprintf(currentLevelMsg, "%s%i%s", NETWORK_MSG_SEND_GAME_INDEX_START, cachedCartIndex, NETWORK_MSG_SEND_GAME_INDEX_END);
+        cartLoader_writeActionToNetwork(currentLevelMsg);
+    }
 }
 
 int fileName256IsCD(char fileName[]) {
@@ -1387,6 +1394,7 @@ void cartLoader_checkNetworkForActions() {
             int assignNextAsPositive = 0;
 
             int runningNumber = 0;
+            int isFromTwitch = 0;
 
             for (int i = 0; i < 0x100; i++) {
                 char testLog[2];
@@ -1411,6 +1419,13 @@ void cartLoader_checkNetworkForActions() {
                     if (actionBuffer[i] == NETWORK_MSG_INTERPRET_AS_NEGATIVE) {
                         assignNextAsPositive = 0;
                     }
+                    if (actionBuffer[i] == NETWORK_MSG_IS_FROM_TWITCH) {
+                        isFromTwitch = 1;
+                    }
+
+                    if (actionBuffer[i] == NETWORK_MSG_IS_SET_VRAM_STATE) {
+                        menudisplay_applyToggleVRAMState(runningNumber);
+                    }
 
                     if (actionBuffer[i] == NETWORK_MSG_REQUEST_RULES) {
                         menuDisplay_sendNetworkOptionsToOpponent();
@@ -1423,7 +1438,7 @@ void cartLoader_checkNetworkForActions() {
                         if (runningNumber > 0) {
                             eventCount = runningNumber;
                         }
-                        modConsole_processNetworkEvent(actionBuffer[i], eventCount);
+                        modConsole_processNetworkEvent(actionBuffer[i], eventCount, isFromTwitch);
                     }
 
                     if (interpretType == NETWORK_INTERPRET_TYPE_ASSIGN_RULES) {

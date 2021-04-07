@@ -146,9 +146,9 @@ void stepBackRewindRAM() {
     cartLoader_loadRewindStateForCurrentGame();
 }
 
-void fireSnapEffect() {
+void fireSnapEffect(int isFromTwitch) {
     snapEffectTime = snapEffectMaxTime;
-    shuffleSnapValues();
+    shuffleSnapValues(isFromTwitch);
 }
 
 void modConsole_flagToLogRamState() {
@@ -339,10 +339,14 @@ int modConsole_getSnapOffsetForRowIndex(int rowIndex) {
     return totalValue;
 }
 
-void shuffleSnapValues() {
+void shuffleSnapValues(int isFromTwitch) {
     for (int i = 0; i < 0x10; i++) {
         snapEffectHeight[i] = (rand() % 100) + 10;
         snapEffectWidth[i] = (rand() % 3) + 1;
+        if (isFromTwitch != 0) {
+            snapEffectHeight[i] *= 4;
+            snapEffectWidth[i] *= 4;
+        }
         snapEffectOffset[i] = (rand() % 100);
     }
 }
@@ -773,11 +777,11 @@ int getBigRandomNumber(int maxValue) {
     return runningNumber % maxValue;
 }
 
-void modConsole_processNetworkEvent(char eventId, int eventCount) {
-    // do a SNAP effect!
-    fireSnapEffect();
+void modConsole_processNetworkEvent(char eventId, int eventCount, int isFromTwitch) {
+    // do a SNAP effect ONLY if character actually matches an effect
 
     if (eventId == NETWORK_MSG_SWITCH_GAME) {
+        fireSnapEffect(isFromTwitch);
         int switchingIsAllowed = 1;
         // check in case we're in a gamestate where switching game would be dangerous/annoying
         // (e.g. in a menu)
@@ -802,6 +806,7 @@ void modConsole_processNetworkEvent(char eventId, int eventCount) {
     }
 
     if (eventId == NETWORK_MSG_SPEED_UP) {
+        fireSnapEffect(isFromTwitch);
         if (cartLoader_getActiveGameListing().accelerationType == 1) {
             cartLoader_appendToLog("Increasing Sonic 2D speed from network");
             for (int i = 0; i < eventCount; i++) {
@@ -812,6 +817,7 @@ void modConsole_processNetworkEvent(char eventId, int eventCount) {
     }
 
     if (eventId == NETWORK_MSG_RANDOMISE_VELOCITY) {
+        fireSnapEffect(isFromTwitch);
         cartLoader_appendToLog("Randomising velocity from network");
         applyRandomiseVelocity();
     }
@@ -827,27 +833,36 @@ void modConsole_processNetworkEvent(char eventId, int eventCount) {
         scrambleLevelCount = 5; // was 50
     }
     if (scrambleLevelCount > 0) {
+        fireSnapEffect(isFromTwitch);
         cartLoader_appendToLog("Scrambling level from network");
         overwriteLevel(scrambleLevelCount * eventCount, 1);
     }
 
     if (eventId == NETWORK_MSG_REMOVE_COLOUR) {
+        fireSnapEffect(isFromTwitch);
         for (int i = 0; i < eventCount; i++) {
             vdp_reduceColours();
         }
     }
     if (eventId == NETWORK_MSG_REMOVE_10_COLOURS) {
+        fireSnapEffect(isFromTwitch);
         for (int i = 0; i < 10; i++) {
             vdp_reduceColours();
         }
     }
 
     if (eventId == NETWORK_MSG_TOGGLE_LAYER) {
-        menuDisplay_toggleVisibleLayers();
+        fireSnapEffect(isFromTwitch);
+        if (eventCount == 0) {
+            menuDisplay_showAllVisibleLayers();
+        } else {
+            menuDisplay_toggleVisibleLayers();
+        }
         applyLayerHidingOptions();
     }
 
     if (eventId == NETWORK_MSG_WRITE_TO_RAM) {
+        fireSnapEffect(isFromTwitch);
         int maxValue = 0x10000;
         if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM || cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR) {
             maxValue = 0x2000;
@@ -867,6 +882,7 @@ void modConsole_processNetworkEvent(char eventId, int eventCount) {
     }
 
     if (eventId == NETWORK_MSG_WRITE_TO_CART) {
+        fireSnapEffect(isFromTwitch);
         for (int i = 0; i < eventCount; i++) {
             int index = rand() % MAXROMSIZE;
             setCartValueAtIndex(index, rand() % 0x100);
