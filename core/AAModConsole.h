@@ -13,12 +13,16 @@
 #define NETWORK_MSG_DUMMY_TWTICH_MESSAGE 'P'
 #define NETWORK_MSG_SEND_GAME_INDEX_START '['
 #define NETWORK_MSG_SEND_GAME_INDEX_END ']'
+#define NETWORK_MSG_GAME_IS_MS '#'
+#define NETWORK_MSG_GAME_IS_GENESIS '$'
 #define NETWORK_MSG_IS_FROM_TWITCH '@'
 #define NETWORK_MSG_IS_SET_VRAM_STATE 'a'
 
 #define NETWORK_MSG_WRITE_TO_RAM 'q'
 #define NETWORK_MSG_TOGGLE_LAYER 'w'
 #define NETWORK_MSG_WRITE_TO_CART 'e'
+#define NETWORK_MSG_WRITE_SPECIFIC_TO_RAM 'r'
+#define NETWORK_MSG_USE_ACTIVE_NUM_AS_LOCATION 't'
 
 #define NETWORK_MSG_INTERPRET_AS_ACTIONS 'A' // prefix with this to convey "I am actioning"
 #define NETWORK_MSG_INTERPRET_AS_RULES 'S' // prefix with this to convey "I am switching rules on and off"
@@ -62,7 +66,7 @@ extern void modConsole_flagToApplyCache();
 extern void modConsole_flagToSummonMenu();
 extern void modConsole_flagToLogRamState();
 extern void modConsole_setCountdownUntilRingSwitch(int toValue);
-extern void modConsole_processNetworkEvent(char eventId, int eventCount, int isFromTwitch);
+extern void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocation, int isFromTwitch);
 void queueNetworkMessage(char eventId);
 void sendQueuedNetworkMessage();
 extern void applyLayerHidingOptions();

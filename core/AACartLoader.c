@@ -996,12 +996,17 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
 
     cachedCartIndex = cartLoader_getActiveCartIndex();
 
+    char cartTypeChar = NETWORK_MSG_GAME_IS_GENESIS;
+    if (system_hw == SYSTEM_GG || system_hw == SYSTEM_SMS) {
+        cartTypeChar = NETWORK_MSG_GAME_IS_MS;
+    }
     // Tell the network which game we've switched to
     if (menuDisplay_getNetworkOptions().networkingIsActive != 0) {
         char currentLevelMsg[0x100];
-        sprintf(currentLevelMsg, "%s%i%s", NETWORK_MSG_SEND_GAME_INDEX_START, cachedCartIndex, NETWORK_MSG_SEND_GAME_INDEX_END);
+        sprintf(currentLevelMsg, "%s%i%s%s", NETWORK_MSG_SEND_GAME_INDEX_START, cachedCartIndex, NETWORK_MSG_SEND_GAME_INDEX_END, cartTypeChar);
         cartLoader_writeActionToNetwork(currentLevelMsg);
     }
+
 }
 
 int fileName256IsCD(char fileName[]) {
@@ -1395,6 +1400,7 @@ void cartLoader_checkNetworkForActions() {
 
             int runningNumber = 0;
             int isFromTwitch = 0;
+            int eventLocation = 0;
 
             for (int i = 0; i < 0x100; i++) {
                 char testLog[2];
@@ -1432,13 +1438,18 @@ void cartLoader_checkNetworkForActions() {
                         continue;
                     }
 
+                    if (actionBuffer[i] == NETWORK_MSG_USE_ACTIVE_NUM_AS_LOCATION) {
+                        eventLocation = runningNumber;
+                        runningNumber = 0;
+                    }
+
                     // only interpret actions when the menu is NOT showing!!
                     if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {
                         int eventCount = 1;
                         if (runningNumber > 0) {
                             eventCount = runningNumber;
                         }
-                        modConsole_processNetworkEvent(actionBuffer[i], eventCount, isFromTwitch);
+                        modConsole_processNetworkEvent(actionBuffer[i], eventCount, eventLocation, isFromTwitch);
                     }
 
                     if (interpretType == NETWORK_INTERPRET_TYPE_ASSIGN_RULES) {
