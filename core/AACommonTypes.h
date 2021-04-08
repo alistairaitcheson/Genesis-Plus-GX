@@ -6,6 +6,8 @@
 #include <string.h>
 #include <math.h>
 
+#define MAX_ROMS 0x100
+
 typedef enum {
     AAMODTYPE_NONE,
     AAMODTYPE_SPEED_UP_ON_RING,

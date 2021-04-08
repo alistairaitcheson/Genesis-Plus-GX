@@ -12,8 +12,6 @@
 #include "genesis.h"
 #include "AAMenuDisplay.h"
 
-#define MAX_ROMS 0x80
-
 static unsigned int romCount;
 static char *folderPath = "_magicbox";
 static char romFileNames[MAX_ROMS][0x100];
@@ -1003,7 +1001,7 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     // Tell the network which game we've switched to
     if (menuDisplay_getNetworkOptions().networkingIsActive != 0) {
         char currentLevelMsg[0x100];
-        sprintf(currentLevelMsg, "%s%i%s%s", NETWORK_MSG_SEND_GAME_INDEX_START, cachedCartIndex, NETWORK_MSG_SEND_GAME_INDEX_END, cartTypeChar);
+        sprintf(currentLevelMsg, "%c%i%c%c", NETWORK_MSG_SEND_GAME_INDEX_START, cachedCartIndex, NETWORK_MSG_SEND_GAME_INDEX_END, cartTypeChar);
         cartLoader_writeActionToNetwork(currentLevelMsg);
     }
 
