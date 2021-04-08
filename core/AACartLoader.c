@@ -1399,6 +1399,7 @@ void cartLoader_checkNetworkForActions() {
             int runningNumber = 0;
             int isFromTwitch = 0;
             int eventLocation = 0;
+            int eventDistance = 0;
 
             for (int i = 0; i < 0x100; i++) {
                 char testLog[2];
@@ -1441,13 +1442,18 @@ void cartLoader_checkNetworkForActions() {
                         runningNumber = 0;
                     }
 
+                    if (actionBuffer[i] == NETWORK_MSG_USE_ACTIVE_NUM_AS_DISTANCE) {
+                        eventDistance = runningNumber;
+                        runningNumber = 0;
+                    }
+
                     // only interpret actions when the menu is NOT showing!!
                     if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {
                         int eventCount = 1;
                         if (runningNumber > 0) {
                             eventCount = runningNumber;
                         }
-                        modConsole_processNetworkEvent(actionBuffer[i], eventCount, eventLocation, isFromTwitch);
+                        modConsole_processNetworkEvent(actionBuffer[i], eventCount, eventLocation, eventDistance, isFromTwitch);
                     }
 
                     if (interpretType == NETWORK_INTERPRET_TYPE_ASSIGN_RULES) {

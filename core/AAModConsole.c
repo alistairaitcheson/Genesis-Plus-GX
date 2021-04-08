@@ -717,7 +717,7 @@ int getBigRandomNumber(int maxValue) {
     return runningNumber % maxValue;
 }
 
-void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocation, int isFromTwitch) {
+void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocation, int eventDistance, int isFromTwitch) {
     // do a SNAP effect ONLY if character actually matches an effect
 
     if (eventId == NETWORK_MSG_SWITCH_GAME) {
@@ -837,7 +837,13 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
 
     if (eventId == NETWORK_MSG_WRITE_SPECIFIC_TO_RAM) {
         fireSnapEffect(isFromTwitch);
-        aa_genesis_setWorkRam(eventLocation, eventCount);
+        if (eventDistance == 0) {
+            aa_genesis_setWorkRam(eventLocation, eventCount);
+        } else {
+            for (int i = 0; i < eventDistance; i++) {
+                aa_genesis_setWorkRam(eventLocation + i, eventCount);
+            }
+        }
     }
 }
 
