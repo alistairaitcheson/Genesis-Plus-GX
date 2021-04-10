@@ -74,6 +74,8 @@ static int rewindFrameCounter = 0;
 static int framesBetweenRewindCache = 120;
 static int framesHeldDownRewindButtons = 0;
 
+static int rewindSymbolColour = 0x10;
+
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
 }
@@ -82,8 +84,8 @@ void cacheRewindRAM() {
     cartLoader_saveRewindStateForCurrentGame();
 }
 
-void stepBackRewindRAM() {
-    cartLoader_loadRewindStateForCurrentGame();
+int stepBackRewindRAM() {
+    return cartLoader_loadRewindStateForCurrentGame();
 }
 
 void fireSnapEffect(int isFromTwitch) {
@@ -514,11 +516,19 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
         {
+            showRewindSymbol();
             if (framesHeldDownRewindButtons % 30 == 0) {
-                stepBackRewindRAM();
+                int rewindSuccess = stepBackRewindRAM();
+                rewindSymbolColour = (rand() % 0x20) + 1;
+                if (rewindSuccess == 0) {
+                    rewindSymbolColour = 0;
+                }
             }
             framesHeldDownRewindButtons ++;
         } else {
+            if (framesHeldDownRewindButtons > 0) {
+                hideRewindSymbol();
+            }
             framesHeldDownRewindButtons = 0;
         }
 
@@ -646,6 +656,22 @@ void modConsole_updateFrame() {
 
     aa_genesis_updateLastRam();
 } 
+
+void showRewindSymbol() {
+    int midX = bitmap.viewport.w / 2;
+    int midY = bitmap.viewport.h / 2;
+
+    int startX = midX - 40;
+    int startY = midY - 20;
+    for (int i = 0; i < 40; i++) {
+        layerRenderer_fill(2, startX + i, startY + (40 - i), 1, i * 2, rewindSymbolColour);
+        layerRenderer_fill(2, startX + 40 + i, startY + (40 - i), 1, i * 2, rewindSymbolColour);
+    }
+}
+
+void hideRewindSymbol() {
+    layerRenderer_clearLayer(2);
+}
 
 void healColoursByTime() {
     healColourTimer++;
@@ -838,12 +864,29 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
     if (eventId == NETWORK_MSG_WRITE_SPECIFIC_TO_RAM) {
         fireSnapEffect(isFromTwitch);
         if (eventDistance == 0) {
-            aa_genesis_setWorkRam(eventLocation, eventCount);
+            int valueToWrite = eventCount;
+            if (eventCount >= 0x100) {
+                valueToWrite = rand() % 0x100;
+            }
+            aa_genesis_setWorkRam(eventLocation, valueToWrite);
         } else {
+            int cartSize = 0x10000;
+            if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM || cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR) {
+                cartSize = 0x2000;
+            }
             for (int i = 0; i < eventDistance; i++) {
-                aa_genesis_setWorkRam(eventLocation + i, eventCount);
+                int valueToWrite = eventCount;
+                if (eventCount >= 0x100) {
+                    valueToWrite = rand() % 0x100;
+                }
+                int location = (eventLocation + i) % cartSize;
+                aa_genesis_setWorkRam(location, valueToWrite);
             }
         }
+    }
+
+    if (eventId == NETWORK_MSG_HEAL_COLOURS) {
+        vdp_healAllColours();
     }
 }
 

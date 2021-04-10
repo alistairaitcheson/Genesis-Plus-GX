@@ -1400,6 +1400,7 @@ void cartLoader_checkNetworkForActions() {
             int isFromTwitch = 0;
             int eventLocation = 0;
             int eventDistance = 0;
+            int usedNumber = 0;
 
             for (int i = 0; i < 0x100; i++) {
                 char testLog[2];
@@ -1450,7 +1451,7 @@ void cartLoader_checkNetworkForActions() {
                     // only interpret actions when the menu is NOT showing!!
                     if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {
                         int eventCount = 1;
-                        if (runningNumber > 0) {
+                        if (usedNumber != 0) {
                             eventCount = runningNumber;
                         }
                         modConsole_processNetworkEvent(actionBuffer[i], eventCount, eventLocation, eventDistance, isFromTwitch);
@@ -1464,6 +1465,9 @@ void cartLoader_checkNetworkForActions() {
                 if (cartLoader_base10CharToInt(actionBuffer[i]) > -1) {
                     runningNumber *= 10;
                     runningNumber += cartLoader_base10CharToInt(actionBuffer[i]);
+
+                    // flag "a number has been typed!"
+                    usedNumber = 1;
                 } else {
                     runningNumber = 0;
                 }
@@ -1674,8 +1678,10 @@ void deleteRewindState(int gameIndex, int stateIndex) {
     remove(path);
 }
 
-void cartLoader_loadRewindStateForCurrentGame() {
+int cartLoader_loadRewindStateForCurrentGame() {
     cartLoader_appendToLog("cartLoader_loadRewindStateForCurrentGame");
+
+    int success = 0;
 
     if (rewindStateCounterPerGame[lastLoadedIndex] > rewindStateMinimumPerGame[lastLoadedIndex]) {
         int previousStep = rewindStateCounterPerGame[lastLoadedIndex] - 1;
@@ -1701,10 +1707,13 @@ void cartLoader_loadRewindStateForCurrentGame() {
             state_load(saveState);
             // and copy this to the pause screen cache just in case!
             state_save(saveStateBeforeMenu);
+
+            success = 1;
         } else {
             cartLoader_appendToLog("no state found");
         }
     }
+    return success;
 }
 
 void cartLoader_saveAllSaveStatesToDisk() {

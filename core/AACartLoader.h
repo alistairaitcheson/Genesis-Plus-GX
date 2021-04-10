@@ -89,7 +89,7 @@ void clearRecvDirectory();
 void clearRewindDirectory();
 
 extern void cartLoader_saveRewindStateForCurrentGame();
-extern void cartLoader_loadRewindStateForCurrentGame();
+extern int cartLoader_loadRewindStateForCurrentGame();
 void deleteRewindState(int gameIndex, int stateIndex);
 
 #endif

@@ -9,6 +9,7 @@
 #define NETWORK_MSG_RANDOMISE_VELOCITY 'Y'
 #define NETWORK_MSG_REMOVE_COLOUR 'U'
 #define NETWORK_MSG_REMOVE_10_COLOURS 'I'
+#define NETWORK_MSG_HEAL_COLOURS 'L'
 
 #define NETWORK_MSG_DUMMY_TWTICH_MESSAGE 'P'
 #define NETWORK_MSG_SEND_GAME_INDEX_START '['
@@ -102,6 +103,9 @@ void removeColourOnRing(int count);
 
 void initialiseRewindRAM();
 void cacheRewindRAM();
-extern void stepBackRewindRAM();
+extern int stepBackRewindRAM();
+
+void showRewindSymbol();
+void hideRewindSymbol();
 
 #endif
