@@ -652,6 +652,34 @@ void cartLoader_run() {
     gameListings[34].ringSwitchCooldown = 2;
 
 
+    writeStringToArray32("26700", gameListings[35].gameId); // Monster World II (Wonder Boy III?)
+    scoreMonitorListings[35].scoreBytes[0] = 0x0F55;
+    scoreMonitorListings[35].scoreBytes[1] = 0x0F56;
+    scoreMonitorListings[35].scoreBytes[2] = 0x0F57;
+    scoreMonitorListings[35].scoreBytes[3] = 0x0F58;
+    scoreMonitorListings[35].scoreBytes[4] = 0x0F59;
+    scoreMonitorListings[35].scoreBytes[5] = 0x0F5A;
+    scoreMonitorListings[35].calculatationType = 2;
+    scoreMonitorListings[35].scoreJumpForTrigger = 0;
+
+    writeStringToArray32("72700", gameListings[36].gameId); // Lucky Dime Caper
+    scoreMonitorListings[36].scoreBytes[0] = 0x0005;
+    scoreMonitorListings[36].scoreBytes[0] = 0x0005;
+    scoreMonitorListings[36].scoreBytes[1] = 0x0004;
+    scoreMonitorListings[36].scoreBytes[2] = 0x0003;
+    scoreMonitorListings[36].scoreBytes[3] = 0x0002;
+    scoreMonitorListings[36].scoreBytes[4] = 0x0001;
+    scoreMonitorListings[36].calculatationType = 2;
+    scoreMonitorListings[36].scoreJumpForTrigger = 0;
+
+    writeStringToArray32("53700", gameListings[37].gameId); // Castle of Illusion
+    scoreMonitorListings[37].scoreBytes[0] = 0x0088;
+    scoreMonitorListings[37].scoreBytes[1] = 0x0089;
+    scoreMonitorListings[37].scoreBytes[2] = 0x008A;
+    scoreMonitorListings[37].calculatationType = 1;
+    scoreMonitorListings[37].scoreJumpForTrigger = 1;
+
+
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
     // 15250 = Sonic Chaos GG
@@ -661,7 +689,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 35;
+    gameListingCount = 38;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
@@ -1635,7 +1663,7 @@ void cartLoader_loadSaveStateForQuitMenu() {
 }
 
 void cartLoader_saveRewindStateForCurrentGame() {
-    cartLoader_appendToLog("cartLoader_saveRewindStateForCurrentGame");
+    // cartLoader_appendToLog("cartLoader_saveRewindStateForCurrentGame");
 
     // get the current save state
     uint8 saveState[STATE_SIZE];
@@ -1645,24 +1673,24 @@ void cartLoader_saveRewindStateForCurrentGame() {
     char path[256];
     sprintf(path, "%s/.rewind/%i_%i.savestate", folderPath, lastLoadedIndex, stepIndex);
     
-    char tempLog[256];
-    sprintf(tempLog,"Saving rewind save state (game %i, step %i)", lastLoadedIndex, stepIndex);
-    cartLoader_appendToLog(tempLog);
-    cartLoader_appendToLog(path);
+    // char tempLog[256];
+    // sprintf(tempLog,"Saving rewind save state (game %i, step %i)", lastLoadedIndex, stepIndex);
+    // cartLoader_appendToLog(tempLog);
+    // cartLoader_appendToLog(path);
 
     FILE *f = fopen(path,"wb");
     if (f)
     {
         fwrite(&saveState, STATE_SIZE, 1, f);
         fclose(f);
-        cartLoader_appendToLog("success!");
+        // cartLoader_appendToLog("success!");
         rewindStateCounterPerGame[lastLoadedIndex]++;
         if (rewindStateMinimumPerGame[lastLoadedIndex] < rewindStateCounterPerGame[lastLoadedIndex] - maxRewindStatesPerGame) {
             deleteRewindState(lastLoadedIndex, rewindStateMinimumPerGame[lastLoadedIndex]);
             rewindStateMinimumPerGame[lastLoadedIndex] = rewindStateCounterPerGame[lastLoadedIndex] - maxRewindStatesPerGame;
         }
     } else {
-        cartLoader_appendToLog("no state found");
+        // cartLoader_appendToLog("no state found");
     }
 }
 
@@ -1670,10 +1698,10 @@ void deleteRewindState(int gameIndex, int stateIndex) {
     char path[256];
     sprintf(path, "%s/.rewind/%i_%i.savestate", folderPath, gameIndex, stateIndex);
 
-    char tempLog[256];
-    sprintf(tempLog,"Deleting rewind save state (game %i, step %i)", gameIndex, stateIndex);
-    cartLoader_appendToLog(tempLog);
-    cartLoader_appendToLog(path);
+    // char tempLog[256];
+    // sprintf(tempLog,"Deleting rewind save state (game %i, step %i)", gameIndex, stateIndex);
+    // cartLoader_appendToLog(tempLog);
+    // cartLoader_appendToLog(path);
 
     remove(path);
 }

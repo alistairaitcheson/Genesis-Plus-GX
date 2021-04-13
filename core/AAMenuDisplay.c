@@ -28,7 +28,7 @@ static int pixelDetectiveIndex = 0;
 static int networkingOptionsIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 16;
+static int minorVersion = 17;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -759,9 +759,9 @@ void saveHackOptions() {
 }
 
 void menuDisplay_showMenu(int menuNum) {
-    char tempLog[256];
-    sprintf(tempLog, "menuDisplay_showMenu %d", menuNum);
-    cartLoader_appendToLog(tempLog);
+    // char tempLog[256];
+    // sprintf(tempLog, "menuDisplay_showMenu %d", menuNum);
+    // cartLoader_appendToLog(tempLog);
 
     activeMenu = menuNum;
     vdp_setShouldRandomiseColours(1);
@@ -1876,7 +1876,7 @@ void showOptionsMenu() {
 }
 
 void showInGameOptionsMenu() {
-    cartLoader_appendToLog("showInGameOptionsMenu");
+    // cartLoader_appendToLog("showInGameOptionsMenu");
 
     layerRenderer_clearLayer(0);
 

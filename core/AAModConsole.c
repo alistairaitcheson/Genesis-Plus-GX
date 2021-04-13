@@ -1262,6 +1262,11 @@ int ringCountHasChanged() {
                 lastScore += (lastScoreLowDigit + (10 * lastScoreHighDigit)) * multiplier;
                 currentScore += (currentScoreLowDigit + (10 * currentScoreHighDigit)) * multiplier;
                 multiplier *= 100;
+            } else if (scoreListing.calculatationType == 2) {
+                // single digits in decimal (Lucky Dime Caper) - each byte is a decimal digit
+                lastScore += lastScoreVal * multiplier;
+                currentScore += currentScoreVal * multiplier;
+                multiplier *= 10;
             }
         } else {
             break;
