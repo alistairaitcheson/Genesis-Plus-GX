@@ -81,6 +81,9 @@ static int playerDeathCount = 0;
 static uint8 holdValues[0x10000]; 
 static int holdDurations[0x10000]; 
 
+static int holdEffectFramesLeft = 0;
+static int holdEffectDuration = 300;
+
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
 }
@@ -506,6 +509,13 @@ void modConsole_updateFrame() {
             yOffset += 8;
         } 
 
+        if (holdEffectFramesLeft > 0) {
+            int barSize = ((vdp_getScreenWidth() - 8) * holdEffectFramesLeft) / holdEffectDuration;
+            barSize /= 8;
+            barSize *= 8;
+            layerRenderer_fill(2, 4, 4, barSize, 8, 0x08);
+        }
+
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
         //     buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
         //     buttonStateAtIndex(INPUT_INDEX_A) != 0) {
@@ -683,10 +693,19 @@ void modConsole_updateFrame() {
 } 
 
 void applyHeldValues() {
+    holdEffectFramesLeft = 0;
     for (int i = 0; i < 0x10000; i++) {
         if (holdDurations[i] > 0) {
             holdDurations[i]--;
             aa_genesis_setWorkRam(i, holdValues[i]);
+
+            // char logMsg[0x100];
+            // sprintf(logMsg, "APPLYING HELD VALUE: %04X at %02X (%i frames left)", i, holdValues[i], holdDurations[i]);
+            // cartLoader_appendToLog(logMsg);
+
+            if (holdEffectFramesLeft < holdDurations[i]) {
+                holdEffectFramesLeft = holdDurations[i];
+            }
         }
     }
 }
@@ -915,10 +934,20 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
                 }
                 int location = (eventLocation + i) % cartSize;
                 if (holdDuration == 0) {
+                    char logMsg[0x100];
+                    sprintf(logMsg, "SETTING %04X at %02X", location, valueToWrite);
+                    cartLoader_appendToLog(logMsg);
+
                     aa_genesis_setWorkRam(location, valueToWrite);
                 } else {
+                    // char logMsg[0x100];
+                    // sprintf(logMsg, "HOLDING %04X at %02X for %i frames", location, valueToWrite, holdDuration);
+                    // cartLoader_appendToLog(logMsg);
+
                     holdDurations[location] = holdDuration;
                     holdValues[location] = valueToWrite;
+
+                    holdEffectDuration = holdDuration;
                 }
             }
         }
