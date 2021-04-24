@@ -190,7 +190,6 @@ void cartLoader_run() {
     gameListings[1].panicBytes[2] = 0xF75C;
     gameListings[1].panicByteDestinations[2] = 0;
     gameListings[1].accelerationType = 1;
-    gameListings[1].valueWriteDuration = 0;
     gameTransferListings[1].speedBytesForTransfer[0] = 0xF760;
     gameTransferListings[1].speedBytesForTransfer[1] = 0xF761;
     gameTransferListings[1].speedBytesForTransfer[2] = 0xF762;
@@ -229,6 +228,7 @@ void cartLoader_run() {
     gameTransferListings[1].gameStatesToBlockScramble[1] = 0x04; // TITLE SCREEN
     gameTransferListings[1].gameStatesToBlockScramble[2] = 0x10; // SPECIAL STAGE
     gameTransferListings[1].gameStatesToBlockScramble[3] = 0x14; // CONTINUE SCREEN
+    gameListings[1].valueWriteDuration = 0;//60;
 
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
@@ -326,7 +326,6 @@ void cartLoader_run() {
     gameListings[8].specialRingByte = 0;    
     gameListings[8].livesBytes[0] = 0x1298;
     gameListings[8].livesByteDestinations[0] = 0x5; 
-    gameListings[8].valueWriteDuration = 0;
     gameListings[8].timeBytes[0] = 0x12B9;
     gameListings[8].timeByteDestinations[0] = 1;
     gameListings[8].timeBytes[1] = 0x12BA;
@@ -349,7 +348,6 @@ void cartLoader_run() {
     gameListings[10].livesByteDestinations[0] = 0x5; 
     gameListings[10].timeBytes[0] = 0x12C0;
     gameListings[10].timeByteDestinations[0] = 1;
-    gameListings[10].valueWriteDuration = 0;
     gameListings[10].valueWriteDuration = 60;
 
     writeStringToArray32("73250", gameListings[11].gameId); // Sonic Blast MS <-- still need to find lives and time
@@ -359,7 +357,6 @@ void cartLoader_run() {
     gameListings[11].livesByteDestinations[0] = 0x5; 
     gameListings[11].timeBytes[0] = 0;
     gameListings[11].timeByteDestinations[0] = 1;
-    gameListings[11].valueWriteDuration = 0;
     gameListings[11].valueWriteDuration = 60;
     gameListings[11].ringSwitchCooldown = 8;
 
@@ -370,7 +367,6 @@ void cartLoader_run() {
     gameListings[12].livesByteDestinations[0] = 0x5; 
     gameListings[12].timeBytes[0] = 0x12BA;
     gameListings[12].timeByteDestinations[0] = 1;
-    gameListings[12].valueWriteDuration = 0;
     gameListings[12].valueWriteDuration = 60;    
 
     writeStringToArray32("08240", gameListings[13].gameId); // Sonic 1 GG
@@ -380,7 +376,6 @@ void cartLoader_run() {
     gameListings[13].livesByteDestinations[0] = 0x5; 
     gameListings[13].timeBytes[0] = 0x12CF;
     gameListings[13].timeByteDestinations[0] = 1;
-    gameListings[13].valueWriteDuration = 0;
     gameListings[13].valueWriteDuration = 60;   
 
     writeStringToArray32("15250", gameListings[14].gameId); // Sonic Chaos GG
@@ -390,7 +385,6 @@ void cartLoader_run() {
     gameListings[14].livesByteDestinations[0] = 0x5; 
     gameListings[14].timeBytes[0] = 0x12C2;
     gameListings[14].timeByteDestinations[0] = 1;
-    gameListings[14].valueWriteDuration = 0;
     gameListings[14].valueWriteDuration = 60;   
 
     writeStringToArray32("73250", gameListings[15].gameId); // Sonic Blast GG <-- still need to find lives and time (identical to SMS)
@@ -413,7 +407,6 @@ void cartLoader_run() {
     gameListings[17].livesByteDestinations[0] = 0x5; 
     gameListings[17].timeBytes[0] = 0;
     gameListings[17].timeByteDestinations[0] = 1;
-    gameListings[17].valueWriteDuration = 0;
     gameListings[17].valueWriteDuration = 60;   
     gameListings[17].isISO = 1;  // <-- I plan to use this as a way to detect CD games for the time being...
     
@@ -468,7 +461,7 @@ void cartLoader_run() {
     gameListings[21].livesByteDestinations[0] = 0x5; 
     gameListings[21].timeBytes[0] = 0xFB00;
     gameListings[21].timeByteDestinations[0] = 50;
-    gameListings[21].valueWriteDuration = 0;
+    gameListings[21].valueWriteDuration = 60;
     scoreMonitorListings[21].scoreBytes[0] = 0xFF0B; // have to use score because SoR 1 doesn't show enemy health
     scoreMonitorListings[21].scoreBytes[1] = 0xFF08;
     scoreMonitorListings[21].scoreBytesP2[0] = 0;
@@ -484,7 +477,7 @@ void cartLoader_run() {
     gameListings[22].livesByteDestinations[0] = 0x5; 
     gameListings[22].timeBytes[0] = 0;
     gameListings[22].timeByteDestinations[0] = 1;
-    gameListings[22].valueWriteDuration = 0;
+    gameListings[22].valueWriteDuration = 60;
     // scoreMonitorListings[22].scoreBytes[0] = 0xEF99;
     // scoreMonitorListings[22].scoreBytes[1] = 0xEF96;
     // scoreMonitorListings[22].scoreBytesP2[0] = 0;
@@ -506,7 +499,7 @@ void cartLoader_run() {
     gameListings[23].livesByteDestinations[0] = 0x5; 
     gameListings[23].timeBytes[0] = 0;
     gameListings[23].timeByteDestinations[0] = 1;
-    gameListings[23].valueWriteDuration = 0;
+    gameListings[23].valueWriteDuration = 60;
     // scoreMonitorListings[23].scoreBytes[0] = 0xDF82;
     // scoreMonitorListings[23].scoreBytes[1] = 0xDF83;
     // scoreMonitorListings[23].scoreBytesP2[0] = 0;
@@ -531,7 +524,7 @@ void cartLoader_run() {
     gameListings[24].livesByteDestinations[1] = 0x5; 
     gameListings[24].timeBytes[0] = 0;
     gameListings[24].timeByteDestinations[0] = 1;
-    gameListings[24].valueWriteDuration = 0;
+    gameListings[24].valueWriteDuration = 60;
     scoreMonitorListings[24].scoreBytes[0] = 0x37B4;
     scoreMonitorListings[24].scoreBytes[1] = 0x37B5;
     scoreMonitorListings[24].scoreBytes[2] = 0x37B6;
@@ -548,7 +541,7 @@ void cartLoader_run() {
     gameListings[25].livesByteDestinations[0] = 0x5; 
     gameListings[25].timeBytes[0] = 0;
     gameListings[25].timeByteDestinations[0] = 1;
-    gameListings[25].valueWriteDuration = 0;
+    gameListings[25].valueWriteDuration = 60;
     scoreMonitorListings[25].scoreBytes[0] = 0xFF12;
     scoreMonitorListings[25].scoreBytes[1] = 0xFF13;
     scoreMonitorListings[25].scoreBytesP2[0] = 0;
@@ -565,7 +558,7 @@ void cartLoader_run() {
     gameListings[26].livesByteDestinations[0] = 0x5; 
     gameListings[26].timeBytes[0] = 0;
     gameListings[26].timeByteDestinations[0] = 1;
-    gameListings[26].valueWriteDuration = 0;
+    gameListings[26].valueWriteDuration = 60;
     scoreMonitorListings[26].scoreBytes[0] = 0x13E3;
     scoreMonitorListings[26].scoreBytes[1] = 0x13E0;
     scoreMonitorListings[26].scoreBytesP2[0] = 0;
@@ -1431,6 +1424,7 @@ void cartLoader_checkNetworkForActions() {
             int eventLocation = 0;
             int eventDistance = 0;
             int usedNumber = 0;
+            int holdDuration = 0;
 
             for (int i = 0; i < 0x100; i++) {
                 char testLog[2];
@@ -1478,13 +1472,18 @@ void cartLoader_checkNetworkForActions() {
                         runningNumber = 0;
                     }
 
+                    if (actionBuffer[i] == NETWORK_MSG_USE_ACTIVE_NUM_AS_HOLD_DURATION) {
+                        holdDuration = runningNumber;
+                        runningNumber = 0;
+                    }
+
                     // only interpret actions when the menu is NOT showing!!
                     if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {
                         int eventCount = 1;
                         if (usedNumber != 0) {
                             eventCount = runningNumber;
                         }
-                        modConsole_processNetworkEvent(actionBuffer[i], eventCount, eventLocation, eventDistance, isFromTwitch);
+                        modConsole_processNetworkEvent(actionBuffer[i], eventCount, eventLocation, eventDistance, isFromTwitch, holdDuration);
                     }
 
                     if (interpretType == NETWORK_INTERPRET_TYPE_ASSIGN_RULES) {

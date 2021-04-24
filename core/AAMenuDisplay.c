@@ -2462,9 +2462,9 @@ void showGameSwapOptionsMenu() {
         hackOptions.shouldShowDeathCount = 1;
     }
     if (hackOptions.shouldShowDeathCount == 0) {
-        sprintf(lines[6], "Show death counter:      OFF");
+        sprintf(lines[5], "Show death counter:      OFF");
     } else {
-        sprintf(lines[6], "Show death counter:       ON");
+        sprintf(lines[5], "Show death counter:       ON");
     }
 
 

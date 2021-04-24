@@ -78,6 +78,9 @@ static int rewindSymbolColour = 0x10;
 
 static int playerDeathCount = 0;
 
+static uint8 holdValues[0x10000]; 
+static int holdDurations[0x10000]; 
+
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
 }
@@ -115,6 +118,9 @@ void modConsole_initialise() {
     if (hasInitialised == 0) {
         for (int i = 0; i < MAX_ROMS; i++) {
             postRingEffectCooldownTimePerGame[i] = 0;
+        }
+        for (int i = 0; i < 0x10000; i++) {
+            holdDurations[i] = 0;
         }
         initialiseRewindRAM();
 
@@ -358,6 +364,9 @@ void modConsole_updateFrame() {
 
         rewindFrameCounter = 0;
     } else {
+        checkDeathCounter();
+        applyHeldValues();
+
         int cartIndex = cartLoader_getActiveCartIndex();
         if (postRingEffectCooldownTimePerGame[cartIndex] > 0) {
             postRingEffectCooldownTimePerGame[cartIndex]--;
@@ -468,13 +477,15 @@ void modConsole_updateFrame() {
             if (hackOpts.infiniteTime != 0) {
                 updateTime();
             }
+            valueWriteTimeCounter = 0;
         }
 
         int yOffset = 0;
         int hasShownCount = 0;
+        vdp_clearGraphicLayer(2);
         if (hackOpts.shouldShowSwapCount != 0) {
             char counterText[0x40];
-            sprintf(counterText, " SWAPS: %06d", cartLoader_getSwapCount());
+            sprintf(counterText, "  SWAPS: %06d", cartLoader_getSwapCount());
             int lengthOfText = lengthOfString256(counterText);
 
             layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8 - yOffset, 8 * lengthOfText, 8, 0xFF);
@@ -483,9 +494,9 @@ void modConsole_updateFrame() {
             hasShownCount = 1;
             yOffset += 8;
         } 
-        if (hackOpts.shouldShowSwapCount != 0) {
+        if (hackOpts.shouldShowDeathCount != 0) {
             char counterText[0x40];
-            sprintf(counterText, "DEATHS: %06d", playerDeathCount);
+            sprintf(counterText, " DEATHS: %06d", playerDeathCount);
             int lengthOfText = lengthOfString256(counterText);
 
             layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8 - yOffset, 8 * lengthOfText, 8, 0xFF);
@@ -494,10 +505,6 @@ void modConsole_updateFrame() {
             hasShownCount = 1;
             yOffset += 8;
         } 
-        if (hasShownCount == 0) {
-            vdp_clearGraphicLayer(2);
-        }
-
 
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
         //     buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
@@ -675,6 +682,15 @@ void modConsole_updateFrame() {
     aa_genesis_updateLastRam();
 } 
 
+void applyHeldValues() {
+    for (int i = 0; i < 0x10000; i++) {
+        if (holdDurations[i] > 0) {
+            holdDurations[i]--;
+            aa_genesis_setWorkRam(i, holdValues[i]);
+        }
+    }
+}
+
 void showRewindSymbol() {
     int midX = bitmap.viewport.w / 2;
     int midY = bitmap.viewport.h / 2;
@@ -761,7 +777,7 @@ int getBigRandomNumber(int maxValue) {
     return runningNumber % maxValue;
 }
 
-void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocation, int eventDistance, int isFromTwitch) {
+void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocation, int eventDistance, int isFromTwitch, int holdDuration) {
     // do a SNAP effect ONLY if character actually matches an effect
 
     if (eventId == NETWORK_MSG_SWITCH_GAME) {
@@ -898,7 +914,12 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
                     valueToWrite = rand() % 0x100;
                 }
                 int location = (eventLocation + i) % cartSize;
-                aa_genesis_setWorkRam(location, valueToWrite);
+                if (holdDuration == 0) {
+                    aa_genesis_setWorkRam(location, valueToWrite);
+                } else {
+                    holdDurations[location] = holdDuration;
+                    holdValues[location] = valueToWrite;
+                }
             }
         }
     }
@@ -1042,11 +1063,18 @@ void showCooldownVisualiser() {
 
 void checkDeathCounter() {
     int shouldIncrement = 0;
-    if (activeGameListing.livesBytes[0] != 0) {
-        int lastVal = aa_genesis_getLastWorkRam(activeGameListing.livesBytes[0]]);
-        int nowVal = aa_genesis_getWorkRam(activeGameListing.livesBytes[0]]);
-        if (lastVal > nowVal) {
-            shouldIncrement = 1;
+
+    // this uses the assumption that bytes 0 and 1 are a life counter, and byte 2 is an "update plz" trigger so we shouldn't track it
+    for (int i = 0; i < 2; i++) {
+        if (cartLoader_getActiveGameListing().livesBytes[i] != 0) {
+            int lastVal = aa_genesis_getLastWorkRam(cartLoader_getActiveGameListing().livesBytes[i]);
+            int nowVal = aa_genesis_getWorkRam(cartLoader_getActiveGameListing().livesBytes[i]);
+            if (abs(lastVal - nowVal) == 1) {
+                char logMsg[0x100];
+                sprintf(logMsg, "counted death %i (%04X): lastVal %02X, nowVal %02X", i, cartLoader_getActiveGameListing().livesBytes[i], lastVal, nowVal);
+                cartLoader_appendToLog(logMsg);
+                shouldIncrement = 1;
+            }
         }
     }
 

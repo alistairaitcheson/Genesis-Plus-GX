@@ -1921,7 +1921,7 @@ void render_bg_m5_vs(int line)
   if (shouldLimitColourPalette != 0) {
     replaceColoursInLineWithShuffledColours();
   }
-  drawTextLayers(mod_activeLineIndex);
+  // drawTextLayers(mod_activeLineIndex);
 
   /* Merge background layers */
   merge(&linebuf[1][0x20], &linebuf[0][0x20], &linebuf[0][0x20], lut[(reg[12] & 0x08) >> 2], bitmap.viewport.w);
@@ -3275,7 +3275,7 @@ void render_obj_m5(int line)
     if (shouldLimitColourPalette != 0) {
       replaceColoursInLineWithShuffledColours();
     }
-    drawTextLayers(mod_activeLineIndex);
+    // drawTextLayers(mod_activeLineIndex);
     return;
   }
 
@@ -3392,7 +3392,7 @@ void render_obj_m5(int line)
   if (shouldLimitColourPalette != 0) {
     replaceColoursInLineWithShuffledColours();
   }
-  drawTextLayers(mod_activeLineIndex);
+  // drawTextLayers(mod_activeLineIndex);
 
   /* Clear sprite masking for next line  */
   spr_ovr = 0;
