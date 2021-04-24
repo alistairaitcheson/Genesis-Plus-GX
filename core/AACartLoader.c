@@ -664,13 +664,14 @@ void cartLoader_run() {
 
     writeStringToArray32("72700", gameListings[36].gameId); // Lucky Dime Caper
     scoreMonitorListings[36].scoreBytes[0] = 0x0005;
-    scoreMonitorListings[36].scoreBytes[0] = 0x0005;
     scoreMonitorListings[36].scoreBytes[1] = 0x0004;
     scoreMonitorListings[36].scoreBytes[2] = 0x0003;
     scoreMonitorListings[36].scoreBytes[3] = 0x0002;
     scoreMonitorListings[36].scoreBytes[4] = 0x0001;
     scoreMonitorListings[36].calculatationType = 2;
     scoreMonitorListings[36].scoreJumpForTrigger = 0;
+    gameListings[36].livesBytes[0] = 0x0069;
+    gameListings[36].livesByteDestinations[0] = 0x5; 
 
     writeStringToArray32("53700", gameListings[37].gameId); // Castle of Illusion
     scoreMonitorListings[37].scoreBytes[0] = 0x0088;
@@ -678,7 +679,8 @@ void cartLoader_run() {
     scoreMonitorListings[37].scoreBytes[2] = 0x008A;
     scoreMonitorListings[37].calculatationType = 1;
     scoreMonitorListings[37].scoreJumpForTrigger = 1;
-
+    gameListings[37].livesBytes[0] = 0x00C8;
+    gameListings[37].livesByteDestinations[0] = 0x5; 
 
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG

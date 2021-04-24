@@ -76,6 +76,8 @@ static int framesHeldDownRewindButtons = 0;
 
 static int rewindSymbolColour = 0x10;
 
+static int playerDeathCount = 0;
+
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
 }
@@ -468,15 +470,31 @@ void modConsole_updateFrame() {
             }
         }
 
+        int yOffset = 0;
+        int hasShownCount = 0;
         if (hackOpts.shouldShowSwapCount != 0) {
             char counterText[0x40];
-            sprintf(counterText, "SWAPS: %08d", cartLoader_getSwapCount());
+            sprintf(counterText, " SWAPS: %06d", cartLoader_getSwapCount());
             int lengthOfText = lengthOfString256(counterText);
 
-            vdp_clearGraphicLayer(2);
-            layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8, 8 * lengthOfText, 8, 0xFF);
-            layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8, counterText, 0x5);
-        } else {
+            layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8 - yOffset, 8 * lengthOfText, 8, 0xFF);
+            layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8 - yOffset, counterText, 0x5);
+
+            hasShownCount = 1;
+            yOffset += 8;
+        } 
+        if (hackOpts.shouldShowSwapCount != 0) {
+            char counterText[0x40];
+            sprintf(counterText, "DEATHS: %06d", playerDeathCount);
+            int lengthOfText = lengthOfString256(counterText);
+
+            layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8 - yOffset, 8 * lengthOfText, 8, 0xFF);
+            layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8 - yOffset, counterText, 0x5);
+
+            hasShownCount = 1;
+            yOffset += 8;
+        } 
+        if (hasShownCount == 0) {
             vdp_clearGraphicLayer(2);
         }
 
@@ -1019,6 +1037,21 @@ void showCooldownVisualiser() {
         layerRenderer_fill(1, 0, 0, vdp_getScreenWidth(), 8, 0xFF);
         layerRenderer_fill(1, 2, 2, (vdp_getScreenWidth() - 4), 4, 3);
         layerRenderer_fill(1, 2, 2, width, 4, 4);
+    }
+}
+
+void checkDeathCounter() {
+    int shouldIncrement = 0;
+    if (activeGameListing.livesBytes[0] != 0) {
+        int lastVal = aa_genesis_getLastWorkRam(activeGameListing.livesBytes[0]]);
+        int nowVal = aa_genesis_getWorkRam(activeGameListing.livesBytes[0]]);
+        if (lastVal > nowVal) {
+            shouldIncrement = 1;
+        }
+    }
+
+    if (shouldIncrement != 0) {
+        playerDeathCount++;
     }
 }
 

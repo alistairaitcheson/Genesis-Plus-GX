@@ -635,6 +635,8 @@ void applySettingsFromArray256(int array256[]) {
     hackOptions.colourDeleteTrigger = array256[17];
     hackOptions.colourDeletePattern = array256[18];
     hackOptions.colourDeleteHealRate = array256[19];
+
+    hackOptions.shouldShowDeathCount = array256[20];
 }
 
 void applyDefaultSettings() {
@@ -659,6 +661,8 @@ void applyDefaultSettings() {
     hackOptions.colourDeleteTrigger = 0;
     hackOptions.colourDeletePattern = 0;
     hackOptions.colourDeleteHealRate = 0;
+
+    hackOptions.shouldShowDeathCount = 0;
 
     saveHackOptions();
 }
@@ -689,6 +693,8 @@ void saveHackOptions() {
     options[17] = hackOptions.colourDeleteTrigger;
     options[18] = hackOptions.colourDeletePattern;
     options[19] = hackOptions.colourDeleteHealRate;
+
+    options[20] = hackOptions.shouldShowDeathCount;
 
     // char path[0x100];
     // char folder[0x10];
@@ -1372,6 +1378,10 @@ void incrementGameSwapOption(int direction) {
     }
 
     if (gameSwapOptionIndex == 5) {
+        hackOptions.shouldShowDeathCount += direction;
+    }
+
+    if (gameSwapOptionIndex == 6) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -2352,7 +2362,7 @@ void showGameSwapOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Game swapping", 5);
 
-    int lineCount = 6;
+    int lineCount = 7;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -2445,7 +2455,20 @@ void showGameSwapOptionsMenu() {
         sprintf(lines[4], "Show swap counter:        ON");
     }
 
-    sprintf(lines[5], "back >");
+    if (hackOptions.shouldShowDeathCount > 1) {
+        hackOptions.shouldShowDeathCount = 0;
+    }
+    if (hackOptions.shouldShowDeathCount < 0) {
+        hackOptions.shouldShowDeathCount = 1;
+    }
+    if (hackOptions.shouldShowDeathCount == 0) {
+        sprintf(lines[6], "Show death counter:      OFF");
+    } else {
+        sprintf(lines[6], "Show death counter:       ON");
+    }
+
+
+    sprintf(lines[6], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
