@@ -1489,6 +1489,19 @@ void cartLoader_checkNetworkForActions() {
                     if (interpretType == NETWORK_INTERPRET_TYPE_ASSIGN_RULES) {
                         menuDisplay_applyNetworkOptionSwitch(actionBuffer[i], assignNextAsPositive);
                     }
+
+                    if (interpretType == NETWORK_MSG_REQUEST_RAM_STATE) {
+                        int cartSize = 0x10000;
+                        if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM || cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR) {
+                            cartSize = 0x2000;
+                        }
+                        int location = runningNumber % cartSize;
+
+                        uint8 readValue = aa_genesis_getWorkRam(location);
+                        char reportRamState[0x100];
+                        sprintf(reportRamState, "RAM:%i=%i", runningNumber, readValue);
+                        cartLoader_writeActionToNetwork(reportRamState);
+                    }
                 }
 
                 if (cartLoader_base10CharToInt(actionBuffer[i]) > -1) {
