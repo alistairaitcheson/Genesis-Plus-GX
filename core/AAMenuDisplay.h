@@ -23,6 +23,7 @@
 #define MENU_LISTING_VISUALS_OPTIONS 12
 #define MENU_LISTING_PIXEL_DETECTIVE 13
 #define MENU_LISTING_NETWORKING 14
+#define MENU_LISTING_RAM_EDITING 15
 
 typedef struct {
     int infiniteLives;
@@ -51,6 +52,9 @@ typedef struct {
 typedef struct {
     int colourDeleteAffectsAudio; // 0 = off, 1 = on
     int screenSnapOnGetRing; // 0 = off, 1 = on
+    int ramWritesPerRing; // 0 = off, 1 = 1x, 2 = 5x, 3 = 25x, 4 = 100x
+    int ramWriteStartLoc[4];
+    int ramWriteEndLoc[4];
 } SecondaryHackOptions;
 
 typedef struct {

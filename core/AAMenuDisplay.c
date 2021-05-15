@@ -26,6 +26,8 @@ static int sonicSpecificOptionIndex = 0;
 static int visualsOptionIndex = 0;
 static int pixelDetectiveIndex = 0;
 static int networkingOptionsIndex = 0;
+static int ramEditingOptionsIndex = 0;
+static int ramEditingLocationIndex = 0;
 
 static int majorVersion = 0;
 static int minorVersion = 18;
@@ -195,6 +197,13 @@ int menuDisplay_areSoloEffectsAllowed() {
 
 int menuDisplay_shouldGameSwapOptionsShowAsOn() {
     if (hackOptions.switchGameType != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int menuDisplay_shouldRamEffectOptionsShowAsOn() {
+    if (secondaryHackOptions.ramWritesPerRing != 0) {
         return 1;
     }
     return 0;
@@ -608,11 +617,31 @@ void applyNetworkOptionsDefaultValues() {
 void applySecondaryHacksDefaultValues() {
     secondaryHackOptions.colourDeleteAffectsAudio = 0;
     secondaryHackOptions.screenSnapOnGetRing = 1;
+    secondaryHackOptions.ramWritesPerRing = 0;
+    secondaryHackOptions.ramWriteStartLoc[0] = 0;
+    secondaryHackOptions.ramWriteStartLoc[1] = 0;
+    secondaryHackOptions.ramWriteStartLoc[2] = 0;
+    secondaryHackOptions.ramWriteStartLoc[3] = 0;
+    secondaryHackOptions.ramWriteEndLoc[0] = 0xF;
+    secondaryHackOptions.ramWriteEndLoc[1] = 0xF;
+    secondaryHackOptions.ramWriteEndLoc[2] = 0xF;
+    secondaryHackOptions.ramWriteEndLoc[3] = 0xF;
 }
 
 void applySecondaryHacksFromArray256(int array256[]) {
     secondaryHackOptions.colourDeleteAffectsAudio = array256[0];
-    secondaryHackOptions.colourDeleteAffectsAudio = array256[1];
+    secondaryHackOptions.screenSnapOnGetRing = array256[1];
+    secondaryHackOptions.ramWritesPerRing = array256[2];
+
+    secondaryHackOptions.ramWriteStartLoc[0] = array256[3];
+    secondaryHackOptions.ramWriteStartLoc[1] = array256[4];
+    secondaryHackOptions.ramWriteStartLoc[2] = array256[5];
+    secondaryHackOptions.ramWriteStartLoc[3] = array256[6];
+
+    secondaryHackOptions.ramWriteEndLoc[0] = array256[7];
+    secondaryHackOptions.ramWriteEndLoc[1] = array256[8];
+    secondaryHackOptions.ramWriteEndLoc[2] = array256[9];
+    secondaryHackOptions.ramWriteEndLoc[3] = array256[10];
 }
 
 void applySettingsFromArray256(int array256[]) {
@@ -718,6 +747,17 @@ void saveHackOptions() {
     }
     secondaryPrefs[0] = secondaryHackOptions.colourDeleteAffectsAudio;
     secondaryPrefs[1] = secondaryHackOptions.screenSnapOnGetRing;
+    secondaryPrefs[2] = secondaryHackOptions.ramWritesPerRing;
+
+    secondaryPrefs[3] = secondaryHackOptions.ramWriteStartLoc[0];
+    secondaryPrefs[4] = secondaryHackOptions.ramWriteStartLoc[1];
+    secondaryPrefs[5] = secondaryHackOptions.ramWriteStartLoc[2];
+    secondaryPrefs[6] = secondaryHackOptions.ramWriteStartLoc[3];
+    
+    secondaryPrefs[7] = secondaryHackOptions.ramWriteEndLoc[0];
+    secondaryPrefs[8] = secondaryHackOptions.ramWriteEndLoc[1];
+    secondaryPrefs[9] = secondaryHackOptions.ramWriteEndLoc[2];
+    secondaryPrefs[10] = secondaryHackOptions.ramWriteEndLoc[3];
 
     remove("_magicbox/__secondaryPrefs.data");
     FILE *secondaryPrefsWriter = fopen("_magicbox/__secondaryPrefs.data", "wb");
@@ -832,6 +872,10 @@ void menuDisplay_showMenu(int menuNum) {
 
     if (activeMenu == MENU_LISTING_NETWORKING) {
         showNetworkingOptionsMenu(); 
+    }
+    
+    if (activeMenu == MENU_LISTING_RAM_EDITING) {
+        showRamEditingOptionsMenu(); 
     }
 }
 
@@ -1290,6 +1334,43 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
     }
     
+    if (activeMenu == MENU_LISTING_RAM_EDITING) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            ramEditingOptionsIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            ramEditingOptionsIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_LEFT) {
+            incrementRamEditingOptionWithDPad(-1);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_RIGHT) {
+            incrementRamEditingOptionWithDPad(1);
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B) {
+            incrementRamEditingOptionWithFaceButton(-1);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C) {
+            incrementRamEditingOptionWithFaceButton(1);
+            refreshMenu();
+            return 1;
+        }
+    }
+
     if (activeMenu == MENU_LISTING_NETWORKING) {
         if (buttonIndex == INPUT_INDEX_UP) {
             networkingOptionsIndex--;
@@ -1691,6 +1772,11 @@ void chooseMainMenuOption() {
     }
 
     if (optionsItemIndex == 6) {
+        networkingOptionsIndex = 0;
+        menuDisplay_showMenu(MENU_LISTING_RAM_EDITING);
+    }
+
+    if (optionsItemIndex == 7) {
         saveHackOptions();
         if (gameHasStarted == 0) {
             menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
@@ -1703,6 +1789,39 @@ void chooseMainMenuOption() {
         }
     }
 }
+
+void incrementRamEditingOptionWithDPad(int direction) {
+    if (ramEditingOptionsIndex == 0) {
+        secondaryHackOptions.ramWritesPerRing += direction;
+    }
+
+    if (ramEditingOptionsIndex == 1 || ramEditingOptionsIndex == 2) {
+        ramEditingLocationIndex += direction;
+    }
+
+    if (ramEditingOptionsIndex == 3) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+    }
+}
+
+void incrementRamEditingOptionWithFaceButton(int direction) {
+    if (ramEditingOptionsIndex == 0) {
+        secondaryHackOptions.ramWritesPerRing += direction;
+    }
+
+    if (ramEditingOptionsIndex == 1) {
+        secondaryHackOptions.ramWriteStartLoc[ramEditingLocationIndex] += direction;
+    }
+
+    if (ramEditingOptionsIndex == 2) {
+        secondaryHackOptions.ramWriteEndLoc[ramEditingLocationIndex] += direction;
+    }
+
+    if (ramEditingOptionsIndex == 3) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+    }
+}
+
 
 void showTitleMenu() {
     layerRenderer_clearLayer(0);
@@ -1829,13 +1948,13 @@ void showOptionsMenu() {
     }
 
     if (menuDisplay_shouldGameSwapOptionsShowAsOn() != 0) {
-        sprintf(lines[0], "[ON] Game swapping >");
-    } else {
         if (networkOptions.allowSoloEffectswhenNetworked != 0) {
             sprintf(lines[0], "[BLOCKED] Game swapping >");
         } else {
-            sprintf(lines[0], "     Game swapping >");
+            sprintf(lines[0], "[ON] Game swapping >");
         }
+    } else {
+        sprintf(lines[0], "     Game swapping >");
     }
     
     if (menuDisplay_shouldQualityOfLifeOptionsShowAsOn() != 0) {
@@ -1868,7 +1987,13 @@ void showOptionsMenu() {
         sprintf(lines[5], "     Networking/Twitch >");
     }
 
-    sprintf(lines[6], "Start game");
+    if (menuDisplay_shouldRamEditingOptionsShowAsOn() != 0) {
+        sprintf(lines[6], "[ON] RAM Editing >");
+    } else {
+        sprintf(lines[6], "     RAM Editing >");
+    }
+
+    sprintf(lines[7], "Start game");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -3109,5 +3234,116 @@ void showNetworkingOptionsMenu() {
         }
 
         yPos += 8;
+    }
+}
+
+void showRamEditingOptionsMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "RAM Editing", 5);
+
+    int lineCount = 4;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    int linesWithBreakAfter[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+        linesWithBreakAfter[i] = 0;
+    }
+
+
+    if (ramEditingOptionsIndex < 0) {
+        ramEditingOptionsIndex = lineCount - 1;
+    }
+    if (ramEditingOptionsIndex >= lineCount) {
+        ramEditingOptionsIndex = 0;
+    }
+
+    if (ramEditingLocationIndex > 3) {
+        ramEditingLocationIndex = 3;
+    }
+    if (ramEditingLocationIndex < 0) {
+        ramEditingLocationIndex = 0;
+    }
+    
+    if (secondaryHackOptions.ramWriteEndLoc > 4) {
+        secondaryHackOptions.ramWriteEndLoc = 0;
+    }
+    if (secondaryHackOptions.ramWriteEndLoc < 0) {
+        secondaryHackOptions.ramWriteEndLoc = 1;
+    }
+    if (secondaryHackOptions.ramWriteEndLoc == 0) {
+        sprintf(lines[0], "Write random to ram on ring:  OFF");
+    } else if (secondaryHackOptions.ramWriteEndLoc == 1) {
+        sprintf(lines[0], "Write random to ram on ring:   1x");
+    } else if (secondaryHackOptions.ramWriteEndLoc == 2) {
+        sprintf(lines[0], "Write random to ram on ring:   5x");
+    } else if (secondaryHackOptions.ramWriteEndLoc == 3) {
+        sprintf(lines[0], "Write random to ram on ring:  25x");
+    } else if (secondaryHackOptions.ramWriteEndLoc == 4) {
+        sprintf(lines[0], "Write random to ram on ring: 100x");
+    }
+
+    char startValuesText[4][0x10];
+    for (int i = 0; i < 4; i++) {
+        if (secondaryHackOptions.ramWriteStartLoc[i] < 0) {
+            secondaryHackOptions.ramWriteStartLoc[i] = 0xF;
+        }
+        if (secondaryHackOptions.ramWriteStartLoc[i] > 0xF) {
+            secondaryHackOptions.ramWriteStartLoc[i] = 0;
+        }
+
+        if (ramEditingOptionsIndex == 1 && ramEditingLocationIndex == i) {
+            sprintf(startValuesText[i], "<%X>", secondaryHackOptions.ramWriteStartLoc[i]);
+        } else {
+            sprintf(startValuesText[i], " %X ", secondaryHackOptions.ramWriteStartLoc[i]);
+        }
+    }
+    sprintf(lines[1], "START: %s%s%s%s", startValuesText[0], startValuesText[1], startValuesText[2], startValuesText[3]);
+
+    char endValuesText[4][0x10];
+    for (int i = 0; i < 4; i++) {
+        if (secondaryHackOptions.ramWriteEndLoc[i] < 0) {
+            secondaryHackOptions.ramWriteEndLoc[i] = 0xF;
+        }
+        if (secondaryHackOptions.ramWriteEndLoc[i] > 0xF) {
+            secondaryHackOptions.ramWriteEndLoc[i] = 0;
+        }
+
+        if (ramEditingOptionsIndex == 2 && ramEditingLocationIndex == i) {
+            sprintf(endValuesText[i], "<%X>", secondaryHackOptions.ramWriteEndLoc[i]);
+        } else {
+            sprintf(endValuesText[i], " %X ", secondaryHackOptions.ramWriteEndLoc[i]);
+        }
+    }
+    sprintf(lines[2], "END:   %s%s%s%s", endValuesText[0], endValuesText[1], endValuesText[2], endValuesText[3]);
+
+    linesWithBreakAfter[2] = 1;
+    sprintf(lines[3], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
+        char toPrint[0x100];
+        if (i == sonicSpecificOptionIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "   %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+        if (linesWithBreakAfter[i] != 0) {
+            yPos += 8;
+        }
     }
 }
