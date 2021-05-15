@@ -429,6 +429,26 @@ void modConsole_updateFrame() {
             }
         }
 
+
+        // Puyo games need to wait a few frames after a ring effect before activating another,
+        // otherwise the game-end countdown counts as many rings!
+        // This must occur before anything that uses ring count
+        if (cartLoader_getActiveGameListing().postRingEffectCooldown > 0) {
+            // some complicated wrangling so that every successive ring in that time resets the counter back to max
+            int cachedCooldown = postRingEffectCooldownTimePerGame[cartIndex];
+            postRingEffectCooldownTimePerGame[cartIndex] = 0;
+            if (ringCountHasChanged()) {
+                postRingEffectCooldownTimePerGame[cartIndex] = cartLoader_getActiveGameListing().postRingEffectCooldown;
+                // cartLoader_appendToLog("Got ring during cooldown");
+            } else {
+                postRingEffectCooldownTimePerGame[cartIndex] = cachedCooldown - 1;
+            }            
+
+            // char logMsgRing[0x100];
+            // sprintf(logMsgRing, "postRingEffectCooldownTimePerGame[%i] = %i", cartIndex, postRingEffectCooldownTimePerGame[cartIndex]);
+            // cartLoader_appendToLog(logMsgRing);
+        }
+
         // char optionsDisplay[0x10];
         // sprintf(optionsDisplay, "%d %d %d %d %d %d\n+++ %d %d",
         //     hackOpts.switchGameType,
@@ -636,24 +656,6 @@ void modConsole_updateFrame() {
             aa_psg_setCrunchProbability(vdp_getTotalRemovedColours());
             aa_ym2612_setCrunchProbability(vdp_getTotalRemovedColours());
             aa_ym2413_setCrunchProbability(vdp_getTotalRemovedColours());
-        }
-
-        // Puyo games need to wait a few frames after a ring effect before activating another,
-        // otherwise the game-end countdown counts as many rings!
-        if (cartLoader_getActiveGameListing().postRingEffectCooldown > 0) {
-            // some complicated wrangling so that every successive ring in that time resets the counter back to max
-            int cachedCooldown = postRingEffectCooldownTimePerGame[cartIndex];
-            postRingEffectCooldownTimePerGame[cartIndex] = 0;
-            if (ringCountHasChanged()) {
-                postRingEffectCooldownTimePerGame[cartIndex] = cartLoader_getActiveGameListing().postRingEffectCooldown;
-                // cartLoader_appendToLog("Got ring during cooldown");
-            } else {
-                postRingEffectCooldownTimePerGame[cartIndex] = cachedCooldown - 1;
-            }            
-
-            // char logMsgRing[0x100];
-            // sprintf(logMsgRing, "postRingEffectCooldownTimePerGame[%i] = %i", cartIndex, postRingEffectCooldownTimePerGame[cartIndex]);
-            // cartLoader_appendToLog(logMsgRing);
         }
 
         // game switching needs to come at the end for per-game cooldown to work
