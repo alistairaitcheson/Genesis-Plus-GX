@@ -50,6 +50,7 @@ typedef struct {
 
 typedef struct {
     int colourDeleteAffectsAudio; // 0 = off, 1 = on
+    int screenSnapOnGetRing; // 0 = off, 1 = on
 } SecondaryHackOptions;
 
 typedef struct {

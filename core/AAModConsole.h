@@ -111,5 +111,6 @@ extern int stepBackRewindRAM();
 
 void showRewindSymbol();
 void hideRewindSymbol();
+void fireScreenSnapOnEvent();
 
 #endif

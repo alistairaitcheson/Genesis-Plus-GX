@@ -83,6 +83,7 @@ extern uint8 aa_genesis_getWorkRam(unsigned int location);
 extern void aa_genesis_setWorkRam(unsigned int location, uint8 value);
 extern uint8 aa_genesis_getLastWorkRam(unsigned int location);
 extern void aa_genesis_incrementWorkRamCompoundValueByInt(int index, int length, int amount);
+extern void aa_genesis_setLastWorkRam(unsigned int location);
 
 extern uint8 getCartValueAtIndex(int index);
 extern void setCartValueAtIndex(int index, uint8 value);

@@ -71,7 +71,7 @@ static int healColourTimer = 0;
 static int postRingEffectCooldownTimePerGame[MAX_ROMS];
 
 static int rewindFrameCounter = 0;
-static int framesBetweenRewindCache = 120;
+static int framesBetweenRewindCache = 240;
 static int framesHeldDownRewindButtons = 0;
 
 static int rewindSymbolColour = 0x10;
@@ -83,6 +83,8 @@ static int holdDurations[0x10000];
 
 static int holdEffectFramesLeft = 0;
 static int holdEffectDuration = 300;
+
+static int didModifyLives = 0;
 
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
@@ -760,10 +762,18 @@ void healColoursByTime() {
     }
 }
 
+void fireScreenSnapOnEvent() {
+    SecondaryHackOptions options = menuDisplay_getSecondaryHackOptions();
+    if (options.screenSnapOnGetRing != 0) {
+        fireSnapEffect(0);
+    }
+}
+
 void healColoursOnRing(int count) {
     if (ringCountHasChanged() != 0) {
         for (int i = 0; i < count; i++) {
             vdp_healReducedColour();
+            fireScreenSnapOnEvent();
         }
     }
 }
@@ -772,6 +782,7 @@ void removeColourOnRing(int count) {
     if (ringCountHasChanged() != 0) {
         for (int i = 0; i < count; i++) {
             vdp_reduceColours();
+            fireScreenSnapOnEvent();
         }
     }
 }
@@ -982,6 +993,8 @@ void overwriteLevelOnRing() {
         }
 
         overwriteLevel(cycleCount, hackOpts.overwriteLevelType);
+
+        fireScreenSnapOnEvent();
     }
 }
 
@@ -1128,6 +1141,9 @@ void updateTime() {
     for (int i = 0; i < 3; i++) {
         if (activeGameListing.timeBytes[i] != 0) {
             aa_genesis_setWorkRam(activeGameListing.timeBytes[i], activeGameListing.timeByteDestinations[i]);
+            // ensure this doesn't trigger the death counter
+            // by changing the LAST work ram too!
+            aa_genesis_setLastWorkRam(activeGameListing.timeBytes[i], activeGameListing.timeByteDestinations[i])
         } else {
             break;
         }
@@ -1219,6 +1235,7 @@ void applyRandomiseVelocity() {
 void updateRandomiseVelocityOnRing() {
     if (ringCountHasChanged() != 0) {
         applyRandomiseVelocity();
+        fireScreenSnapOnEvent();
     }
 }
 
@@ -1233,6 +1250,7 @@ void updateSpeedUpOnRing() {
             aa_genesis_incrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
             // acceleration
             aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
+            
         }
         if (cartLoader_getActiveGameListing().accelerationType == 2) {
             // I don't think this does anything because I don't think Sonic's running
@@ -1264,6 +1282,8 @@ void updateSpeedUpOnRing() {
             cartLoader_appendToLog(logText);
             */
         }
+
+        fireScreenSnapOnEvent();
     }
 }
 

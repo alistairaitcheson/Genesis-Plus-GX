@@ -607,10 +607,12 @@ void applyNetworkOptionsDefaultValues() {
 
 void applySecondaryHacksDefaultValues() {
     secondaryHackOptions.colourDeleteAffectsAudio = 0;
+    secondaryHackOptions.screenSnapOnGetRing = 1;
 }
 
 void applySecondaryHacksFromArray256(int array256[]) {
     secondaryHackOptions.colourDeleteAffectsAudio = array256[0];
+    secondaryHackOptions.colourDeleteAffectsAudio = array256[1];
 }
 
 void applySettingsFromArray256(int array256[]) {
@@ -715,6 +717,7 @@ void saveHackOptions() {
         secondaryPrefs[i] = 0;
     }
     secondaryPrefs[0] = secondaryHackOptions.colourDeleteAffectsAudio;
+    secondaryPrefs[1] = secondaryHackOptions.screenSnapOnGetRing;
 
     remove("_magicbox/__secondaryPrefs.data");
     FILE *secondaryPrefsWriter = fopen("_magicbox/__secondaryPrefs.data", "wb");
@@ -1462,6 +1465,11 @@ void incrementVisualsOption(int direction) {
     }
 
     if (visualsOptionIndex == 7) {
+        secondaryHackOptions.screenSnapOnGetRing += direction;
+    }
+
+
+    if (visualsOptionIndex == 8) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -2903,8 +2911,20 @@ void showVisualsOptionsMenu() {
         sprintf(lines[6], "Lost colour affects sound:  ON");
     }
 
-    linesWithBreakAfter[6] = 1;
-    sprintf(lines[7], "back >");
+    if (secondaryHackOptions.screenSnapOnGetRing > 1) {
+        secondaryHackOptions.screenSnapOnGetRing = 0;
+    }
+    if (secondaryHackOptions.screenSnapOnGetRing < 0) {
+        secondaryHackOptions.screenSnapOnGetRing = 1;
+    }
+    if (secondaryHackOptions.screenSnapOnGetRing == 0) {
+        sprintf(lines[7], "Screen wobble on event:    OFF");
+    } else if (secondaryHackOptions.screenSnapOnGetRing == 1) {
+        sprintf(lines[7], "Screen wobble on event:     ON");
+    }
+
+    linesWithBreakAfter[7] = 1;
+    sprintf(lines[8], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

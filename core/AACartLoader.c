@@ -60,7 +60,7 @@ static int foundZipFiles = 0;
 
 static int cachedCartIndex = 0;
 
-static int maxRewindStatesPerGame = 0x10;
+static int maxRewindStatesPerGame = 0x20;
 static int rewindStateMinimumPerGame[MAX_ROMS];
 static int rewindStateCounterPerGame[MAX_ROMS];
 

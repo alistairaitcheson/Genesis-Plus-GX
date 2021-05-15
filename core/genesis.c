@@ -617,6 +617,15 @@ uint8 aa_genesis_getLastWorkRam(unsigned int location) {
   }
 }
 
+// use this to hide a change so it doesn't trigger effects
+// (e.g. fixing the lives count shouldn't trigger a 
+// death count)
+void aa_genesis_setLastWorkRam(unsigned int location) {
+  if (location < 0x10000) {
+    lastWorkRam[location] = value;
+  }
+}
+
 void aa_genesis_revertToLastRam() {
   for (int i = 0; i < 0x10000; i++) {
     work_ram[i] = lastWorkRam[i];
