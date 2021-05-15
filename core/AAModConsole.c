@@ -86,8 +86,7 @@ static int holdEffectDuration = 300;
 
 static int didModifyLives = 0;
 
-static int didShowStartupHintFrames = 0;
-static int startupHintMaxFrames = 60 * 20;
+static int hasDismissedStartupHint = 0;
 
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
@@ -324,7 +323,7 @@ void modConsole_updateFrame() {
     }
 
     if (menuDisplay_isShowing() != 0) {
-
+        // vdp_clearGraphicLayer(2);
 
         // vdp_clearGraphicLayer(1);
         // for (int i = 0; i < 8; i++) {
@@ -379,6 +378,7 @@ void modConsole_updateFrame() {
         if (postRingEffectCooldownTimePerGame[cartIndex] > 0) {
             postRingEffectCooldownTimePerGame[cartIndex]--;
         }
+        int ringCountChangedThisFrame = ringCountHasChanged(1);
 
         rewindFrameCounter++;
         if (rewindFrameCounter >= framesBetweenRewindCache) {
@@ -434,25 +434,6 @@ void modConsole_updateFrame() {
             }
         }
 
-
-        // Puyo games need to wait a few frames after a ring effect before activating another,
-        // otherwise the game-end countdown counts as many rings!
-        // This must occur before anything that uses ring count
-        if (cartLoader_getActiveGameListing().postRingEffectCooldown > 0) {
-            // some complicated wrangling so that every successive ring in that time resets the counter back to max
-            int cachedCooldown = postRingEffectCooldownTimePerGame[cartIndex];
-            postRingEffectCooldownTimePerGame[cartIndex] = 0;
-            if (ringCountHasChanged()) {
-                postRingEffectCooldownTimePerGame[cartIndex] = cartLoader_getActiveGameListing().postRingEffectCooldown;
-                // cartLoader_appendToLog("Got ring during cooldown");
-            } else {
-                postRingEffectCooldownTimePerGame[cartIndex] = cachedCooldown - 1;
-            }            
-
-            // char logMsgRing[0x100];
-            // sprintf(logMsgRing, "postRingEffectCooldownTimePerGame[%i] = %i", cartIndex, postRingEffectCooldownTimePerGame[cartIndex]);
-            // cartLoader_appendToLog(logMsgRing);
-        }
 
         // colour effects should also come before switching so they don't get lost
         if (hackOpts.colourDeleteTrigger == 1) {
@@ -578,15 +559,18 @@ void modConsole_updateFrame() {
             hasShownCount = 1;
             yOffset += 8;
         } 
-        if (didShowStartupHintFrames < startupHintMaxFrames) {
-            didShowStartupHintFrames++;
+        if (hasDismissedStartupHint == 0) {
 
-            layerRenderer_fill(2, (vdp_getScreenWidth() / 2,) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 40 - yOffset, 8 * 22, 80, 0xFF);
-            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 32, "Startup Tips", 0xFF);
-            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 16, "UP + START + B", 0xFF);
-            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "Access hack options", 0xFF);
-            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "LEFT + START + B", 0xFF);
-            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 16, "Rewind game", 0xFF);
+            layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
+            layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 36, "** Startup Tips **", 0xFF);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 20, "UP + START + B", 0xFF);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 12, "Access hack options", 0xFF);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 4, "LEFT + START + B", 0xFF);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 12, "Rewind game", 0xFF);
+            // layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 20, "** ** ** ** **", 0xFF);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 28, "** PRESS DOWN + B **", 0xFF);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 36, "TO ACKNOWLEDGE", 0xFF);
         }
 
         if (holdEffectFramesLeft > 0) {
@@ -606,16 +590,19 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_B) != 0) {
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
+            vdp_clearGraphicLayer(2);
         } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_C) != 0) {
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
+            vdp_clearGraphicLayer(2);
         } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_A) != 0) {
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
+            vdp_clearGraphicLayer(2);
         } else if (
             // insta-kill!!
             buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 &&
@@ -623,6 +610,10 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
         {
             modConsole_activatePanic();
+        }
+
+        if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 && buttonStateAtIndex(INPUT_INDEX_B) != 0) {
+            hasDismissedStartupHint = 1;
         }
         
         if (
@@ -645,6 +636,23 @@ void modConsole_updateFrame() {
                 hideRewindSymbol();
             }
             framesHeldDownRewindButtons = 0;
+        }
+
+
+        // Puyo games need to wait a few frames after a ring effect before activating another,
+        // otherwise the game-end countdown counts as many rings!
+        // This must occur before anything that uses ring count
+        cartIndex = cartLoader_getActiveCartIndex();
+        if (cartLoader_getActiveGameListing().postRingEffectCooldown > 0) {
+            // some complicated wrangling so that every successive ring in that time resets the counter back to max
+            if (ringCountChangedThisFrame != 0) {
+                postRingEffectCooldownTimePerGame[cartIndex] = cartLoader_getActiveGameListing().postRingEffectCooldown;
+                cartLoader_appendToLog("Got ring during cooldown");
+            }        
+
+            char logMsgRing[0x100];
+            sprintf(logMsgRing, "postRingEffectCooldownTimePerGame[%i] = %i", cartIndex, postRingEffectCooldownTimePerGame[cartIndex]);
+            cartLoader_appendToLog(logMsgRing);
         }
 
         // // show what buttons are being pressed!
@@ -705,6 +713,7 @@ void modConsole_updateFrame() {
             countdownToSummonMenu--;
             if (countdownToSummonMenu == 0) {
                 menuDisplay_showMenu(MENU_LISTING_IN_GAME);
+                vdp_clearGraphicLayer(2);
             }
         }
     }
@@ -715,7 +724,7 @@ void modConsole_updateFrame() {
 } 
 
 void applyRamEditOnRing() {
-        if (ringCountHasChanged() != 0) {
+    if (ringCountHasChanged(0) != 0) {
         int editCount = 0;
         SecondaryHackOptions options = menuDisplay_getSecondaryHackOptions();
         if (options.ramWritesPerRing == 1) {
@@ -833,7 +842,7 @@ void fireScreenSnapOnEvent() {
 }
 
 void healColoursOnRing(int count) {
-    if (ringCountHasChanged() != 0) {
+    if (ringCountHasChanged(0) != 0) {
         for (int i = 0; i < count; i++) {
             vdp_healReducedColour();
             fireScreenSnapOnEvent();
@@ -842,7 +851,7 @@ void healColoursOnRing(int count) {
 }
 
 void removeColourOnRing(int count) {
-    if (ringCountHasChanged() != 0) {
+    if (ringCountHasChanged(0) != 0) {
         for (int i = 0; i < count; i++) {
             vdp_reduceColours();
             fireScreenSnapOnEvent();
@@ -1045,7 +1054,7 @@ void unpauseGame() {
 }
 
 void overwriteLevelOnRing() {
-    if (ringCountHasChanged() != 0) {
+    if (ringCountHasChanged(0) != 0) {
         HackOptions hackOpts = menuDisplay_getHackOptions();
         int cycleCount = 10;
         if (hackOpts.overwriteLevelDifficulty == 1) {
@@ -1062,7 +1071,7 @@ void overwriteLevelOnRing() {
 }
 
 void sendNetworkMessageOnGetRing() {
-    if (ringCountHasChanged() != 0) {
+    if (ringCountHasChanged(0) != 0) {
         NetworkOptions networkOpts = menuDisplay_getNetworkOptions();
         if (networkOpts.networkingIsActive != 0) {
             queueNetworkMessage(NETWORK_MSG_DUMMY_TWTICH_MESSAGE);
@@ -1176,7 +1185,7 @@ void checkDeathCounter() {
         if (cartLoader_getActiveGameListing().livesBytes[i] != 0) {
             int lastVal = aa_genesis_getLastWorkRam(cartLoader_getActiveGameListing().livesBytes[i]);
             int nowVal = aa_genesis_getWorkRam(cartLoader_getActiveGameListing().livesBytes[i]);
-            if (abs(lastVal - nowVal) == 1) {
+            if (lastVal - nowVal == 1) {
                 char logMsg[0x100];
                 sprintf(logMsg, "counted death %i (%04X): lastVal %02X, nowVal %02X", i, cartLoader_getActiveGameListing().livesBytes[i], lastVal, nowVal);
                 cartLoader_appendToLog(logMsg);
@@ -1206,7 +1215,7 @@ void updateTime() {
             aa_genesis_setWorkRam(activeGameListing.timeBytes[i], activeGameListing.timeByteDestinations[i]);
             // ensure this doesn't trigger the death counter
             // by changing the LAST work ram too!
-            aa_genesis_setLastWorkRam(activeGameListing.timeBytes[i], activeGameListing.timeByteDestinations[i])
+            aa_genesis_setLastWorkRam(activeGameListing.timeBytes[i], activeGameListing.timeByteDestinations[i]);
         } else {
             break;
         }
@@ -1296,14 +1305,14 @@ void applyRandomiseVelocity() {
 }
 
 void updateRandomiseVelocityOnRing() {
-    if (ringCountHasChanged() != 0) {
+    if (ringCountHasChanged(0) != 0) {
         applyRandomiseVelocity();
         fireScreenSnapOnEvent();
     }
 }
 
 void updateSpeedUpOnRing() {
-    if (ringCountHasChanged() != 0) {
+    if (ringCountHasChanged(0) != 0) {
         if (cartLoader_getActiveGameListing().accelerationType == 1) {
             // fireSnapEffect();
 
@@ -1355,7 +1364,7 @@ void updateSwitchGameOnRing() {
         switchCooldownCounter --;
     }
 
-    if (ringCountHasChanged() != 0 && switchCooldownCounter <= 0) {
+    if (ringCountHasChanged(0) != 0 && switchCooldownCounter <= 0) {
         // layerRenderer_clearLayer(0);
         // char word[0x20];
         // sprintf(word, "%d", aa_genesis_getWorkRam(activeGameListing.ringByte));
@@ -1375,8 +1384,8 @@ void updateSwitchGameOnRing() {
     }
 }
 
-int ringCountHasChanged() {
-    if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0) {
+int ringCountHasChanged(int shouldIgnoreCooldown) {
+    if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0 && shouldIgnoreCooldown == 0) {
         return 0;
     }
 

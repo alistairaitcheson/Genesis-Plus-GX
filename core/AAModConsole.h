@@ -81,7 +81,7 @@ void applyHeldValues();
 void checkDeathCounter();
 
 void updateSpeedUpOnRing();
-int ringCountHasChanged();
+int ringCountHasChanged(int shouldIgnoreCooldown);
 void updateLives();
 void updateTime() ;
 void updateSwitchGameOnRing();
@@ -112,5 +112,6 @@ extern int stepBackRewindRAM();
 void showRewindSymbol();
 void hideRewindSymbol();
 void fireScreenSnapOnEvent();
+void applyRamEditOnRing();
 
 #endif

@@ -202,7 +202,7 @@ int menuDisplay_shouldGameSwapOptionsShowAsOn() {
     return 0;
 }
 
-int menuDisplay_shouldRamEffectOptionsShowAsOn() {
+int menuDisplay_shouldRamEditingOptionsShowAsOn() {
     if (secondaryHackOptions.ramWritesPerRing != 0) {
         return 1;
     }
@@ -1933,7 +1933,7 @@ void showOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
 
-    int lineCount = 7;
+    int lineCount = 8;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -2905,7 +2905,7 @@ void showVisualsOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Visuals", 5);
 
-    int lineCount = 8;
+    int lineCount = 9;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -3267,21 +3267,21 @@ void showRamEditingOptionsMenu() {
         ramEditingLocationIndex = 0;
     }
     
-    if (secondaryHackOptions.ramWriteEndLoc > 4) {
-        secondaryHackOptions.ramWriteEndLoc = 0;
+    if (secondaryHackOptions.ramWritesPerRing > 4) {
+        secondaryHackOptions.ramWritesPerRing = 0;
     }
-    if (secondaryHackOptions.ramWriteEndLoc < 0) {
-        secondaryHackOptions.ramWriteEndLoc = 1;
+    if (secondaryHackOptions.ramWritesPerRing < 0) {
+        secondaryHackOptions.ramWritesPerRing = 1;
     }
-    if (secondaryHackOptions.ramWriteEndLoc == 0) {
+    if (secondaryHackOptions.ramWritesPerRing == 0) {
         sprintf(lines[0], "Write random to ram on ring:  OFF");
-    } else if (secondaryHackOptions.ramWriteEndLoc == 1) {
+    } else if (secondaryHackOptions.ramWritesPerRing == 1) {
         sprintf(lines[0], "Write random to ram on ring:   1x");
-    } else if (secondaryHackOptions.ramWriteEndLoc == 2) {
+    } else if (secondaryHackOptions.ramWritesPerRing == 2) {
         sprintf(lines[0], "Write random to ram on ring:   5x");
-    } else if (secondaryHackOptions.ramWriteEndLoc == 3) {
+    } else if (secondaryHackOptions.ramWritesPerRing == 3) {
         sprintf(lines[0], "Write random to ram on ring:  25x");
-    } else if (secondaryHackOptions.ramWriteEndLoc == 4) {
+    } else if (secondaryHackOptions.ramWritesPerRing == 4) {
         sprintf(lines[0], "Write random to ram on ring: 100x");
     }
 
@@ -3329,7 +3329,7 @@ void showRamEditingOptionsMenu() {
         }
 
         char toPrint[0x100];
-        if (i == sonicSpecificOptionIndex) {
+        if (i == ramEditingOptionsIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
             sprintf(toPrint, "   %s", lines[i]);

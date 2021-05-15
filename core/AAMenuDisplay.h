@@ -159,6 +159,7 @@ void showSonicSpecificOptionsMenu();
 void showVisualsOptionsMenu();
 void showPixelDetectiveMenu();
 void showNetworkingOptionsMenu();
+void showRamEditingOptionsMenu();
 
 void incrementGameSwapOption(int direction);
 void incrementQualityOfLifeOption(int direction);
@@ -170,5 +171,9 @@ void incrementNetworkOption(int direction);
 void clearLogRamState();
 
 extern void menudisplay_applyToggleVRAMState(int vramState);
+
+extern int menuDisplay_shouldRamEditingOptionsShowAsOn();
+void incrementRamEditingOptionWithDPad(int direction);
+void incrementRamEditingOptionWithFaceButton(int direction);
 
 #endif
