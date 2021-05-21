@@ -675,6 +675,20 @@ void cartLoader_run() {
     gameListings[37].livesBytes[0] = 0x00C8;
     gameListings[37].livesByteDestinations[0] = 0x5; 
 
+    writeStringToArray32("ECCO", gameListings[38].gameId);
+    scoreMonitorListings[38].scoreBytes[0] = 0xB634; // health
+    scoreMonitorListings[38].scoreBytesP2[0] = 0xB636; // air 1
+    scoreMonitorListings[38].scoreBytesP2[1] = 0xB637; // air 2
+    scoreMonitorListings[38].scoreJumpForTrigger = 2;
+    scoreMonitorListings[38].allowNegativeChange = 1;
+
+    writeStringToArray32("ECCOTHETIDESOFTIME", gameListings[39].gameId);
+    scoreMonitorListings[39].scoreBytes[0] = 0xAA16; // health
+    scoreMonitorListings[39].scoreBytesP2[0] = 0xAA18; // air
+    scoreMonitorListings[37].scoreBytesP2[1] = 0xAA19; // air 2
+    scoreMonitorListings[39].scoreJumpForTrigger = 2;
+    scoreMonitorListings[39].allowNegativeChange = 1;
+
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
     // 15250 = Sonic Chaos GG
@@ -684,7 +698,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 38;
+    gameListingCount = 40;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
@@ -736,6 +750,7 @@ void zeroAllListings() {
         scoreMonitorListings[gameIndex].calculatationType = 0 ;
         scoreMonitorListings[gameIndex].scoreJumpForTrigger = 0;
         scoreMonitorListings[gameIndex].blockJumpFromZero = 0;
+        scoreMonitorListings[gameIndex].allowNegativeChange = 0;
 
         levelEditListings[gameIndex].startByte = 0;
         levelEditListings[gameIndex].endByte = 0;
@@ -1087,7 +1102,7 @@ int cartLoader_getActiveCartIndex() {
     modConsole_getRomHeader(romHeaderBuffer);
 
     // cartLoader_appendToLog("cartLoader_getActiveCartIndex");
-    // cartLoader_appendToLog(romHeaderBuffer);
+    cartLoader_appendToLog(romHeaderBuffer);
 
     for (int i = 1; i < gameListingCount; i++) {
         if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
@@ -1490,17 +1505,27 @@ void cartLoader_checkNetworkForActions() {
                         menuDisplay_applyNetworkOptionSwitch(actionBuffer[i], assignNextAsPositive);
                     }
 
-                    if (interpretType == NETWORK_MSG_REQUEST_RAM_STATE) {
+                    if (actionBuffer[i] == NETWORK_MSG_REQUEST_RAM_STATE) {
+
                         int cartSize = 0x10000;
                         if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM || cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR) {
                             cartSize = 0x2000;
                         }
                         int location = runningNumber % cartSize;
 
+
+                        char logMsg[0x100];
+                        sprintf(logMsg, "Attempt to read ram at %04X", location);
+                        cartLoader_appendToLog(logMsg);
+
                         uint8 readValue = aa_genesis_getWorkRam(location);
                         char reportRamState[0x100];
                         sprintf(reportRamState, "RAM:%i=%i", runningNumber, readValue);
                         cartLoader_writeActionToNetwork(reportRamState);
+
+                        char logMsg2[0x100];
+                        sprintf(logMsg2, "Reported RAM state %s", reportRamState);
+                        cartLoader_appendToLog(logMsg2);
                     }
                 }
 
@@ -1631,6 +1656,7 @@ void copyGameListing(int fromGame, int toGame) {
     scoreMonitorListings[toGame].calculatationType = scoreMonitorListings[fromGame].calculatationType ;
     scoreMonitorListings[toGame].scoreJumpForTrigger = scoreMonitorListings[fromGame].scoreJumpForTrigger;
     scoreMonitorListings[toGame].blockJumpFromZero = scoreMonitorListings[fromGame].blockJumpFromZero;
+    scoreMonitorListings[toGame].allowNegativeChange = scoreMonitorListings[fromGame].allowNegativeChange;
 
     levelEditListings[toGame].startByte = levelEditListings[fromGame].startByte;
     levelEditListings[toGame].endByte = levelEditListings[fromGame].endByte;

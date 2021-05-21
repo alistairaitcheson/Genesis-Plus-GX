@@ -1467,6 +1467,10 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
     if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0) {
         return 1;
     }
+    if (scoreListing.allowNegativeChange != 0 &&
+        multiplier > 1 && currentScore < lastScore - scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0) {
+        return 1;
+    } 
 
     // P2 score
     lastScore = 0;
