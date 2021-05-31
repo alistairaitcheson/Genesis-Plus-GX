@@ -30,7 +30,7 @@ static int ramEditingOptionsIndex = 0;
 static int ramEditingLocationIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 18;
+static int minorVersion = 19;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -210,7 +210,7 @@ int menuDisplay_shouldRamEditingOptionsShowAsOn() {
 }
 
 int menuDisplay_shouldQualityOfLifeOptionsShowAsOn() {
-    if (hackOptions.infiniteLives != 0 || hackOptions.infiniteTime != 0 || hackOptions.shouldWriteToLog != 0) {
+    if (hackOptions.infiniteLives != 0 || hackOptions.infiniteTime != 0 || hackOptions.shouldWriteToLog != 0 || secondaryHackOptions.shouldSaveRewindStates != 0) {
         return 1;
     }
     return 0;
@@ -626,6 +626,7 @@ void applySecondaryHacksDefaultValues() {
     secondaryHackOptions.ramWriteEndLoc[1] = 0xF;
     secondaryHackOptions.ramWriteEndLoc[2] = 0xF;
     secondaryHackOptions.ramWriteEndLoc[3] = 0xF;
+    secondaryHackOptions.shouldSaveRewindStates = 0;
 }
 
 void applySecondaryHacksFromArray256(int array256[]) {
@@ -642,6 +643,8 @@ void applySecondaryHacksFromArray256(int array256[]) {
     secondaryHackOptions.ramWriteEndLoc[1] = array256[8];
     secondaryHackOptions.ramWriteEndLoc[2] = array256[9];
     secondaryHackOptions.ramWriteEndLoc[3] = array256[10];
+
+    secondaryHackOptions.shouldSaveRewindStates = array256[11];
 }
 
 void applySettingsFromArray256(int array256[]) {
@@ -758,6 +761,8 @@ void saveHackOptions() {
     secondaryPrefs[8] = secondaryHackOptions.ramWriteEndLoc[1];
     secondaryPrefs[9] = secondaryHackOptions.ramWriteEndLoc[2];
     secondaryPrefs[10] = secondaryHackOptions.ramWriteEndLoc[3];
+
+    secondaryPrefs[11] = secondaryHackOptions.shouldSaveRewindStates;
 
     remove("_magicbox/__secondaryPrefs.data");
     FILE *secondaryPrefsWriter = fopen("_magicbox/__secondaryPrefs.data", "wb");
@@ -1482,6 +1487,11 @@ void incrementQualityOfLifeOption(int direction) {
     }
 
     if (qualityOfLifeOptionIndex == 3) {
+        secondaryHackOptions.shouldSaveRewindStates += direction;
+    }
+
+
+    if (qualityOfLifeOptionIndex == 4) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -1493,6 +1503,7 @@ void incrementSaveStateOption(int direction) {
     if (saveStateOptionIndex == 1) {
         hackOptions.automaticallySaveStatesFreq += direction;
     }
+
     if (saveStateOptionIndex == 2) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }    
@@ -1800,6 +1811,10 @@ void incrementRamEditingOptionWithDPad(int direction) {
     }
 
     if (ramEditingOptionsIndex == 3) {
+        secondaryHackOptions.shouldSaveRewindStates += direction;
+    }
+    
+    if (ramEditingOptionsIndex == 4) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -1818,6 +1833,10 @@ void incrementRamEditingOptionWithFaceButton(int direction) {
     }
 
     if (ramEditingOptionsIndex == 3) {
+        secondaryHackOptions.shouldSaveRewindStates += direction;
+    }
+
+    if (ramEditingOptionsIndex == 4) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -2026,6 +2045,11 @@ void showInGameOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 32, "--- press A/B/C to activate option ---", 5);
+
+
+    char titleText[0x100];
+    sprintf(titleText, "----- Alistair's Magic Box V%d.%02d -----", majorVersion, minorVersion);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 24, titleText, 5);
 
     int lineCount = 13;
     char lines[lineCount][0x80];
@@ -2632,7 +2656,7 @@ void showQualityOfLifeOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Quality of life", 5);
 
-    int lineCount = 4;
+    int lineCount = 5;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -2682,7 +2706,19 @@ void showQualityOfLifeOptionsMenu() {
         sprintf(lines[2], "Write to debug log:       ON"); 
     }
 
-    sprintf(lines[3], "back >");
+    if (secondaryHackOptions.shouldSaveRewindStates > 1) {
+        secondaryHackOptions.shouldSaveRewindStates = 0;
+    }
+    if (secondaryHackOptions.shouldSaveRewindStates < 0) {
+        secondaryHackOptions.shouldSaveRewindStates = 1;
+    }
+    if (secondaryHackOptions.shouldSaveRewindStates == 0) {
+        sprintf(lines[3], "Allow game rewind:       OFF");
+    } else {
+        sprintf(lines[3], "Allow game rewind:        ON"); 
+    }
+
+    sprintf(lines[4], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -3243,7 +3279,7 @@ void showRamEditingOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "RAM Editing", 5);
 
-    int lineCount = 4;
+    int lineCount = 5;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -3271,7 +3307,7 @@ void showRamEditingOptionsMenu() {
         secondaryHackOptions.ramWritesPerRing = 0;
     }
     if (secondaryHackOptions.ramWritesPerRing < 0) {
-        secondaryHackOptions.ramWritesPerRing = 1;
+        secondaryHackOptions.ramWritesPerRing = 4;
     }
     if (secondaryHackOptions.ramWritesPerRing == 0) {
         sprintf(lines[0], "Write random to ram on ring:  OFF");
@@ -3320,7 +3356,21 @@ void showRamEditingOptionsMenu() {
     sprintf(lines[2], "END:   %s%s%s%s", endValuesText[0], endValuesText[1], endValuesText[2], endValuesText[3]);
 
     linesWithBreakAfter[2] = 1;
-    sprintf(lines[3], "back >");
+
+    if (secondaryHackOptions.shouldSaveRewindStates > 1) {
+        secondaryHackOptions.shouldSaveRewindStates = 0;
+    }
+    if (secondaryHackOptions.shouldSaveRewindStates < 0) {
+        secondaryHackOptions.shouldSaveRewindStates = 1;
+    }
+    if (secondaryHackOptions.shouldSaveRewindStates == 0) {
+        sprintf(lines[3], "Allow game rewind:         OFF");
+    } else {
+        sprintf(lines[3], "Allow game rewind:          ON");
+    }
+
+    linesWithBreakAfter[3] = 1;
+    sprintf(lines[4], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

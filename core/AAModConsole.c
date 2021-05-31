@@ -93,11 +93,17 @@ void initialiseRewindRAM() {
 }
 
 void cacheRewindRAM() {
-    cartLoader_saveRewindStateForCurrentGame();
+    if (menuDisplay_getSecondaryHackOptions().shouldSaveRewindStates != 0) {
+        cartLoader_saveRewindStateForCurrentGame();
+    }
 }
 
 int stepBackRewindRAM() {
-    return cartLoader_loadRewindStateForCurrentGame();
+    if (menuDisplay_getSecondaryHackOptions().shouldSaveRewindStates != 0) {
+        return cartLoader_loadRewindStateForCurrentGame();
+    } else {
+        return 0;
+    }
 }
 
 void fireSnapEffect(int isFromTwitch) {
@@ -740,6 +746,10 @@ void applyRamEditOnRing() {
             editCount = 100;
         }
 
+        // char logMsg[0x100];
+        // sprintf(logMsg, "RAM ON RING will fire %i times", editCount);
+        // cartLoader_appendToLog(logMsg);
+
         if (editCount > 0) {
             fireScreenSnapOnEvent();
             int startLoc = 0;
@@ -751,10 +761,13 @@ void applyRamEditOnRing() {
                 endLoc += options.ramWriteEndLoc[i] * multiplicand;
                 multiplicand *= 0x10;
             }
-            int distance = startLoc - endLoc;
+            int distance = abs(startLoc - endLoc);
 
             for (int i = 0; i < editCount; i++) {
                 int location = startLoc;
+                if (endLoc < startLoc) {
+                    location = endLoc;
+                }
                 if (distance > 0) {
                     location += getBigRandomNumber(distance + 1);
                 }
@@ -763,6 +776,10 @@ void applyRamEditOnRing() {
                 aa_genesis_setWorkRam(location, value);
                 // ensure this doesn't fire any ring/life trackers
                 aa_genesis_setLastWorkRam(location, value);
+
+                char logMsg2[0x100];
+                sprintf(logMsg2, "RAM ON RING: Wrote %02X to %04X", value, location);
+                cartLoader_appendToLog(logMsg2);
             }
         }
     }
@@ -795,6 +812,20 @@ void showRewindSymbol() {
     for (int i = 0; i < 40; i++) {
         layerRenderer_fill(2, startX + i, startY + (40 - i), 1, i * 2, rewindSymbolColour);
         layerRenderer_fill(2, startX + 40 + i, startY + (40 - i), 1, i * 2, rewindSymbolColour);
+    }
+
+    if (menuDisplay_getSecondaryHackOptions().shouldSaveRewindStates == 0) {
+        layerRenderer_fill(2, midX - 110, midY - 50, 220, 100, 0xFF);
+        layerRenderer_fill(2, midX - 100, midY - 40, 200, 80, 0x5);
+        layerRenderer_writeWord256Centred(2, midX, midY-24, "Rewind switched off", 0xFF);
+
+        layerRenderer_writeWord256Centred(2, midX, midY-8, "Use Quality of Life menu", 0xFF);
+        layerRenderer_writeWord256Centred(2, midX, midY, "to switch it on", 0xFF);
+
+        layerRenderer_writeWord256Centred(2, midX, midY+16, "(*UP + START + B*, then", 0xFF);
+        layerRenderer_writeWord256Centred(2, midX, midY+24, "*hack options*, then", 0xFF);
+        layerRenderer_writeWord256Centred(2, midX, midY+32, "*quality of life*)", 0xFF);
+
     }
 }
 
@@ -1481,6 +1512,11 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
             unsigned int lastScoreVal = aa_genesis_getLastWorkRam(scoreListing.scoreBytesP2[i]);
             unsigned int currentScoreVal = aa_genesis_getWorkRam(scoreListing.scoreBytesP2[i]);
 
+            // char logMsg[0x100];
+            // sprintf(logMsg, "score2 at %i: %i --> %i", i, lastScoreVal, currentScoreVal);
+            // cartLoader_appendToLog(logMsg);
+
+
             //change the below for different calculation types
             lastScore += lastScoreVal * multiplier;
             currentScore += currentScoreVal * multiplier;
@@ -1489,6 +1525,10 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
             break;
         }
     }
+
+    // char logMsg[0x100];
+    // sprintf(logMsg, "    score2: %i --> %i", lastScore, currentScore);
+    // cartLoader_appendToLog(logMsg);
 
     blockedBecauseZero = 0;
     if (scoreListing.blockJumpFromZero != 0) {
@@ -1499,6 +1539,11 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
     if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0) {
         return 1;
     }
+    if (scoreListing.allowNegativeChange != 0 &&
+        multiplier > 1 && currentScore < lastScore - scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0) {
+        return 1;
+    }
+
 
     return 0;
 }

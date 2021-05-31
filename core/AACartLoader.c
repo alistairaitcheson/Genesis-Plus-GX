@@ -685,7 +685,7 @@ void cartLoader_run() {
     writeStringToArray32("ECCOTHETIDESOFTIME", gameListings[39].gameId);
     scoreMonitorListings[39].scoreBytes[0] = 0xAA16; // health
     scoreMonitorListings[39].scoreBytesP2[0] = 0xAA18; // air
-    scoreMonitorListings[37].scoreBytesP2[1] = 0xAA19; // air 2
+    scoreMonitorListings[39].scoreBytesP2[1] = 0xAA19; // air 2
     scoreMonitorListings[39].scoreJumpForTrigger = 2;
     scoreMonitorListings[39].allowNegativeChange = 1;
 
@@ -1102,7 +1102,7 @@ int cartLoader_getActiveCartIndex() {
     modConsole_getRomHeader(romHeaderBuffer);
 
     // cartLoader_appendToLog("cartLoader_getActiveCartIndex");
-    cartLoader_appendToLog(romHeaderBuffer);
+    // cartLoader_appendToLog(romHeaderBuffer);
 
     for (int i = 1; i < gameListingCount; i++) {
         if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
