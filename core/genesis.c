@@ -617,6 +617,8 @@ uint8 aa_genesis_getLastWorkRam(unsigned int location) {
   }
 }
 
+
+
 // use this to hide a change so it doesn't trigger effects
 // (e.g. fixing the lives count shouldn't trigger a 
 // death count)

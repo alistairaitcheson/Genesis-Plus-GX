@@ -178,4 +178,6 @@ extern void vdp_applyReducedColours();
 extern int vdp_getTotalRemovedColours();
 extern void vdp_healAllColours();
 
+extern void vdp_writeWRAMintoVRAM(int offset);
+
 #endif /* _RENDER_H_ */

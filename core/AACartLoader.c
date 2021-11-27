@@ -1492,6 +1492,10 @@ void cartLoader_checkNetworkForActions() {
                         runningNumber = 0;
                     }
 
+                    if (actionBuffer[i] == NETWORK_MSG_ENFORCE_SONIC_SPEED) {
+                        forceSonicSpeed(runningNumber);
+                    }
+
                     // only interpret actions when the menu is NOT showing!!
                     if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {
                         int eventCount = 1;

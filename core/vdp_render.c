@@ -4782,3 +4782,9 @@ void vdp_applyReducedColours() {
         }
     }
 }
+
+void vdp_writeWRAMintoVRAM(int offset) {
+  for (int i = 0; i < 0x10000; i++) {
+    aa_genesis_setVRamValue(i, aa_genesis_getWorkRam((i + offset) % 0x10000));
+  }
+}

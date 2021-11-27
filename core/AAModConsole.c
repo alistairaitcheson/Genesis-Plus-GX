@@ -88,6 +88,8 @@ static int didModifyLives = 0;
 
 static int hasDismissedStartupHint = 0;
 
+static int vramWriteOffset = 0;
+
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
 }
@@ -380,11 +382,21 @@ void modConsole_updateFrame() {
         checkDeathCounter();
         applyHeldValues();
 
+        // writeWRAMintoLevelLayout();
+        // writeWRAMintoSpriteBuffer();
+
         int cartIndex = cartLoader_getActiveCartIndex();
         if (postRingEffectCooldownTimePerGame[cartIndex] > 0) {
             postRingEffectCooldownTimePerGame[cartIndex]--;
         }
         int ringCountChangedThisFrame = ringCountHasChanged(1);
+
+        /*
+        if (ringCountChangedThisFrame != 0) {
+            vramWriteOffset += rand() % 0x100;
+        }
+        vdp_writeWRAMintoVRAM(vramWriteOffset);
+        */
 
         rewindFrameCounter++;
         if (rewindFrameCounter >= framesBetweenRewindCache) {
@@ -728,6 +740,49 @@ void modConsole_updateFrame() {
 
     aa_genesis_updateLastRam();
 } 
+
+
+void writeWRAMintoSpriteBuffer() {
+    // values correct for Sonic games
+    int min = 0xF800;
+    int max = 0xFA80;
+    int length = max - min;
+
+    for (int i = min; i < max; i++) {
+        work_ram[i] = 0;
+    }
+
+    for (int i = 0; i < 0x10000; i++) {
+        if (i < min || i >= max) {
+            int index = min + (i % length);
+            unsigned int ramValue = work_ram[index];
+            ramValue += work_ram[i];
+            ramValue = ramValue % 0x100;
+            work_ram[index] = (unsigned char)ramValue;
+        }
+    }
+}
+
+void writeWRAMintoLevelLayout() {
+    // values correct for Sonic games
+    int min = cartLoader_getActiveLevelEditListing().startByte;
+    int max = cartLoader_getActiveLevelEditListing().endByte;
+    int length = max - min;
+    
+    for (int i = min; i < max; i++) {
+        work_ram[i] = 0;
+    }
+
+    for (int i = 0; i < 0x10000; i++) {
+        if (i < min || i >= max) {
+            int index = min + (i % length);
+            int ramValue = work_ram[index];
+            ramValue += work_ram[i];
+            ramValue %= 0x100;
+            work_ram[index] = (char)ramValue;
+        }
+    }
+}
 
 void applyRamEditOnRing() {
     if (ringCountHasChanged(0) != 0) {
@@ -1340,6 +1395,18 @@ void updateRandomiseVelocityOnRing() {
         applyRandomiseVelocity();
         fireScreenSnapOnEvent();
     }
+}
+
+void forceSonicSpeed(unsigned int amount) {
+    //speed
+    aa_genesis_setWorkRam(0xF760, amount % 0x100);
+    aa_genesis_setWorkRam(0xF761, amount / 0x100);
+
+    //acceleration
+    unsigned int divisor = 128; // matches in-game speed
+    unsigned int acceleration = amount / divisor;
+    aa_genesis_setWorkRam(0xF762, acceleration % 0x100);
+    aa_genesis_setWorkRam(0xF763, acceleration / 0x100);
 }
 
 void updateSpeedUpOnRing() {

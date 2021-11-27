@@ -34,6 +34,7 @@
 #define NETWORK_MSG_INTERPRET_AS_NEGATIVE 'F' // prefix with this to convey "Set the next setting you see to OFF"
 
 #define NETWORK_MSG_REQUEST_RULES 'Z'
+#define NETWORK_MSG_ENFORCE_SONIC_SPEED 'X'
 
 #define NETWORK_INTERPRET_TYPE_ACTION 0
 #define NETWORK_INTERPRET_TYPE_ASSIGN_RULES 1
@@ -114,5 +115,10 @@ void showRewindSymbol();
 void hideRewindSymbol();
 void fireScreenSnapOnEvent();
 void applyRamEditOnRing();
+
+void writeWRAMintoSpriteBuffer();
+void writeWRAMintoLevelLayout();
+
+void forceSonicSpeed(unsigned int amount);
 
 #endif
