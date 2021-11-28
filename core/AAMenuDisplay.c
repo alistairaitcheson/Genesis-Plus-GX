@@ -122,6 +122,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     }
     if (rulesIndex == 5) {
         // scramble VRAM
+        secondaryHackOptions.vramWritesPerRing = 3;
     }
     if (rulesIndex == 6) {
         hackOptions.switchGameType = 1;
@@ -693,6 +694,7 @@ void applySecondaryHacksDefaultValues() {
     secondaryHackOptions.ramWriteEndLoc[2] = 0xF;
     secondaryHackOptions.ramWriteEndLoc[3] = 0xF;
     secondaryHackOptions.shouldSaveRewindStates = 0;
+    secondaryHackOptions.vramWritesPerRing = 0;
 }
 
 void applySecondaryHacksFromArray256(int array256[]) {
@@ -711,6 +713,7 @@ void applySecondaryHacksFromArray256(int array256[]) {
     secondaryHackOptions.ramWriteEndLoc[3] = array256[10];
 
     secondaryHackOptions.shouldSaveRewindStates = array256[11];
+    secondaryHackOptions.vramWritesPerRing = array256[12];
 }
 
 void applySettingsFromArray256(int array256[]) {

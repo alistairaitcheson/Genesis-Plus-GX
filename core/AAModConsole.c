@@ -528,6 +528,9 @@ void modConsole_updateFrame() {
             if (menuDisplay_getSecondaryHackOptions().ramWritesPerRing > 0) {
                 applyRamEditOnRing();
             }
+            if (menuDisplay_getSecondaryHackOptions().vramWritesPerRing > 0) {
+                applyVramEditOnRing();
+            }
         }
 
         sendNetworkMessageOnGetRing();
@@ -846,9 +849,41 @@ void applyRamEditOnRing() {
                 // ensure this doesn't fire any ring/life trackers
                 aa_genesis_setLastWorkRam(location, value);
 
-                char logMsg2[0x100];
-                sprintf(logMsg2, "RAM ON RING: Wrote %02X to %04X", value, location);
-                cartLoader_appendToLog(logMsg2);
+                // char logMsg2[0x100];
+                // sprintf(logMsg2, "RAM ON RING: Wrote %02X to %04X", value, location);
+                // cartLoader_appendToLog(logMsg2);
+            }
+        }
+    }
+}
+
+void applyVramEditOnRing() {
+    if (ringCountHasChanged(0) != 0) {
+        int editCount = 0;
+        SecondaryHackOptions options = menuDisplay_getSecondaryHackOptions();
+        if (options.vramWritesPerRing == 1) {
+            editCount = 1;
+        }
+        if (options.vramWritesPerRing == 2) {
+            editCount = 5;
+        }
+        if (options.vramWritesPerRing == 3) {
+            editCount = 25;
+        }
+        if (options.vramWritesPerRing == 4) {
+            editCount = 100;
+        }
+
+        // char logMsg[0x100];
+        // sprintf(logMsg, "RAM ON RING will fire %i times", editCount);
+        // cartLoader_appendToLog(logMsg);
+
+        if (editCount > 0) {
+            fireScreenSnapOnEvent();
+            for (int i = 0; i < editCount; i++) {
+                int location = getBigRandomNumber(0xFFFF);
+                int value = rand() % 0x100;
+                aa_genesis_setVRamValue(location, value);
             }
         }
     }

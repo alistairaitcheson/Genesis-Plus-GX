@@ -128,5 +128,6 @@ void forceSonicSpeed(unsigned int amount);
 
 extern void modConsole_beginRewindAction();
 extern void modConsole_endRewindAction();
+void applyVramEditOnRing();
 
 #endif
