@@ -102,6 +102,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     networkOptions.networkingIsActive = 1;
     secondaryHackOptions.screenSnapOnGetRing = 1;
     secondaryHackOptions.shouldSaveRewindStates = 1;
+    hackOptions.switchGameType = 0;
 
     // now activate what's specific to each rule
     if (rulesIndex == 0) {
@@ -111,7 +112,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
         hackOptions.speedUpOnRing = 1;
     }
     if (rulesIndex == 2) {
-        hackOptions.overwriteLevelType = 3;
+        hackOptions.overwriteLevelType = 1;
         hackOptions.overwriteLevelDifficulty = 2;
     }
     if (rulesIndex == 3) {
@@ -122,7 +123,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     }
     if (rulesIndex == 5) {
         // scramble VRAM
-        secondaryHackOptions.vramWritesPerRing = 3;
+        secondaryHackOptions.vramWritesPerRing = 4;
     }
     if (rulesIndex == 6) {
         hackOptions.switchGameType = 1;
@@ -130,7 +131,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     }
     if (rulesIndex == 7) {
         hackOptions.colourDeleteTrigger = 1;
-        hackOptions.colourDeleteHealRate = 3;
+        hackOptions.colourDeleteHealRate = 6;
         hackOptions.colourDeletePattern = 1;
         secondaryHackOptions.colourDeleteAffectsAudio = 1;
     }
@@ -1498,9 +1499,14 @@ int menuDisplay_onButtonPress(int buttonIndex) {
             return 1;
         }
         
-        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_B) {
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_START) {
             activateTerminalOption();
-            refreshMenu();
+
+            cartLoader_applyHackOptions(gameHasStarted);
+            modConsole_applyHackOptions();
+            modConsole_applyNetworkOptions();
+
+            menuDisplay_hideMenu();
             return 1;
         }
     }
@@ -1512,8 +1518,6 @@ void activateTerminalOption() {
         menuDisplay_applyPresetRules(terminalLocationIndex - 1);
     } else if(terminalLocationIndex < 14) {
         menuDisplay_applyPresetRules(terminalLocationIndex - 2);
-    } else {
-         menuDisplay_hideMenu();
     }
 }
 
@@ -3521,10 +3525,10 @@ void showTerminalMenu() {
     }
 
     if (terminalLocationIndex < 1) {
-        terminalLocationIndex = 1;
+        terminalLocationIndex = lineCount - 1;
     }
     if (terminalLocationIndex > lineCount - 1) {
-        terminalLocationIndex = lineCount - 1;
+        terminalLocationIndex = 1;
     }
 
     sprintf(lines[0], "Whenever Sonic gets a ring...");
@@ -3555,21 +3559,21 @@ void showTerminalMenu() {
     }
 
     if (activeTerminalRuleId == 4) {
-        sprintf(lines[5], "[ON] Write random numbers into RAM");
+        sprintf(lines[5], "[ON] Write random numbers to RAM");
     } else {
-        sprintf(lines[5], "     Write random numbers into RAM");
+        sprintf(lines[5], "     Write random numbers to RAM");
     }
 
     if (activeTerminalRuleId == 5) {
-        sprintf(lines[6], "[ON] Write random numbers into Video RAM");
+        sprintf(lines[6], "[ON] Write random nums to Video RAM");
     } else {
-        sprintf(lines[6], "     Write random numbers into Video RAM");
+        sprintf(lines[6], "     Write random nums to Video RAM");
     }
 
     if (activeTerminalRuleId == 6) {
-        sprintf(lines[7], "[ON] Swap to a new game but keep VRAM");
+        sprintf(lines[7], "[ON] Swap game but keep Video RAM");
     } else {
-        sprintf(lines[7], "     Swap to a new game but keep VRAM");
+        sprintf(lines[7], "     Swap game but keep Video RAM");
     }
 
     if (activeTerminalRuleId == 7) {
@@ -3616,10 +3620,10 @@ void showTerminalMenu() {
         }
 
         char toPrint[0x100];
-        if (i == ramEditingOptionsIndex) {
+        if (i == terminalLocationIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
-            sprintf(toPrint, "   %s", lines[i]);
+            sprintf(toPrint, "%s", lines[i]);
         }
 
         layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
