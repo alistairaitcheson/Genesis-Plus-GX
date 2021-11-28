@@ -33,8 +33,13 @@
 #define NETWORK_MSG_INTERPRET_AS_POSITIVE 'D' // prefix with this to convey "Set the next setting you see to ON"
 #define NETWORK_MSG_INTERPRET_AS_NEGATIVE 'F' // prefix with this to convey "Set the next setting you see to OFF"
 
-#define NETWORK_MSG_REQUEST_RULES 'Z'
+#define NETWORK_MSG_REQUEST_RULES 'Z' // when called, this emu will reply with the current rules setup so the opponent can sync 
 #define NETWORK_MSG_ENFORCE_SONIC_SPEED 'X'
+// to do: implement this!!
+#define NETWORK_MSG_SHOW_TERMINAL_MENU 'C' // when using a USB terminal, send this to say "show the hack select menu please"
+#define NETWORK_MSG_ACTIVATE_RULE_PRESET 'V' // precede this with a number, e.g. 0V = no rules, 1V = "make it switch game on get ring"
+#define NETWORK_MSG_FIRE_TERMINAL_ACTION 'B' // precede this with a number: 1 = kill Sonic, 2 = reset game, 3 = rewind 1 step
+
 
 #define NETWORK_INTERPRET_TYPE_ACTION 0
 #define NETWORK_INTERPRET_TYPE_ASSIGN_RULES 1
@@ -120,5 +125,8 @@ void writeWRAMintoSpriteBuffer();
 void writeWRAMintoLevelLayout();
 
 void forceSonicSpeed(unsigned int amount);
+
+extern void modConsole_beginRewindAction();
+extern void modConsole_endRewindAction();
 
 #endif

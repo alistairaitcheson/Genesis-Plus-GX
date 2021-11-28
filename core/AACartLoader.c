@@ -1496,6 +1496,31 @@ void cartLoader_checkNetworkForActions() {
                         forceSonicSpeed(runningNumber);
                     }
 
+                    if (actionBuffer[i] == NETWORK_MSG_FIRE_TERMINAL_ACTION) {
+                        if (runningNumber == 1) {
+                            modConsole_activatePanic();
+                        }
+                        if (runningNumber == 2) {
+                            modConsole_activateReset();
+                        }
+                        if (runningNumber == 3) {
+                            modConsole_beginRewindAction();
+                        }
+                        if (runningNumber == 4) {
+                            modConsole_endRewindAction();
+                        }
+                        runningNumber = 0;
+                    }
+
+                    if (actionBuffer[i] == NETWORK_MSG_ACTIVATE_RULE_PRESET) {
+                        menuDisplay_applyPresetRules(runningNumber);
+                        runningNumber = 0;
+                    }
+
+                    if (actionBuffer[i] == NETWORK_MSG_SHOW_TERMINAL_MENU) {
+                        menuDisplay_showTerminalMenu();
+                    }
+
                     // only interpret actions when the menu is NOT showing!!
                     if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {
                         int eventCount = 1;

@@ -90,6 +90,8 @@ static int hasDismissedStartupHint = 0;
 
 static int vramWriteOffset = 0;
 
+static int shouldRewind = 0;
+
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
 }
@@ -606,18 +608,21 @@ void modConsole_updateFrame() {
         if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_B) != 0) {
+
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
             vdp_clearGraphicLayer(2);
         } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_C) != 0) {
+
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
             vdp_clearGraphicLayer(2);
         } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
             vdp_clearGraphicLayer(2);
@@ -636,9 +641,9 @@ void modConsole_updateFrame() {
         
         if (
             // rewind!
-            buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 &&
+            (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_B) != 0)
+            buttonStateAtIndex(INPUT_INDEX_B) != 0) || shouldRewind == 1)
         {
             showRewindSymbol();
             if (framesHeldDownRewindButtons % 30 == 0) {
@@ -646,6 +651,7 @@ void modConsole_updateFrame() {
                 rewindSymbolColour = (rand() % 0x20) + 1;
                 if (rewindSuccess == 0) {
                     rewindSymbolColour = 0;
+                    shouldRewind = 0;
                 }
             }
             framesHeldDownRewindButtons ++;
@@ -740,6 +746,14 @@ void modConsole_updateFrame() {
 
     aa_genesis_updateLastRam();
 } 
+
+void modConsole_beginRewindAction() {
+    shouldRewind = 1;
+}
+
+void modConsole_endRewindAction() {
+    shouldRewind = 0;
+}
 
 
 void writeWRAMintoSpriteBuffer() {

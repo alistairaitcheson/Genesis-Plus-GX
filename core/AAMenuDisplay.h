@@ -24,6 +24,7 @@
 #define MENU_LISTING_PIXEL_DETECTIVE 13
 #define MENU_LISTING_NETWORKING 14
 #define MENU_LISTING_RAM_EDITING 15
+#define MENU_LISTING_TERMINAL 16
 
 typedef struct {
     int infiniteLives;
@@ -176,5 +177,10 @@ extern void menudisplay_applyToggleVRAMState(int vramState);
 extern int menuDisplay_shouldRamEditingOptionsShowAsOn();
 void incrementRamEditingOptionWithDPad(int direction);
 void incrementRamEditingOptionWithFaceButton(int direction);
+
+extern void menuDisplay_applyPresetRules(int rulesIndex);
+extern void menuDisplay_showTerminalMenu();
+void showTerminalMenu();
+void activateTerminalOption();
 
 #endif

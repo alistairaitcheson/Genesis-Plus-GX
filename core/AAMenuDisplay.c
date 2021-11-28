@@ -28,9 +28,10 @@ static int pixelDetectiveIndex = 0;
 static int networkingOptionsIndex = 0;
 static int ramEditingOptionsIndex = 0;
 static int ramEditingLocationIndex = 0;
+static int terminalLocationIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 19;
+static int minorVersion = 20;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -54,6 +55,8 @@ static int trackedRamFrameCounts[0x10000];
 static int maxFileNameLength = 28;
 
 static int trackedPixelValues[8];
+
+static int activeTerminalRuleId = -1;
 
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
@@ -83,6 +86,69 @@ PersistValuesOptions menuDisplay_getPersistValuesOptions() {
 
 NetworkOptions menuDisplay_getNetworkOptions() {
     return networkOptions;
+}
+
+void menuDisplay_applyPresetRules(int rulesIndex) {
+    activeTerminalRuleId = rulesIndex;
+
+    applyDefaultPersistValues();
+    applyDefaultRamDetectiveValues();
+    applyDefaultSettings();    
+    applySecondaryHacksDefaultValues();
+    applyNetworkOptionsDefaultValues();
+    vdp_healAllColours();
+
+    networkOptions.allowSoloEffectswhenNetworked = 1;
+    networkOptions.networkingIsActive = 1;
+    secondaryHackOptions.screenSnapOnGetRing = 1;
+    secondaryHackOptions.shouldSaveRewindStates = 1;
+
+    // now activate what's specific to each rule
+    if (rulesIndex == 0) {
+        hackOptions.switchGameType = 1;
+    }
+    if (rulesIndex == 1) {
+        hackOptions.speedUpOnRing = 1;
+    }
+    if (rulesIndex == 2) {
+        hackOptions.overwriteLevelType = 3;
+        hackOptions.overwriteLevelDifficulty = 2;
+    }
+    if (rulesIndex == 3) {
+        hackOptions.randomiseVelocityOnRing = 1;
+    }
+    if (rulesIndex == 4) {
+        secondaryHackOptions.ramWritesPerRing = 3;
+    }
+    if (rulesIndex == 5) {
+        // scramble VRAM
+    }
+    if (rulesIndex == 6) {
+        hackOptions.switchGameType = 1;
+        hackOptions.copyVram = 1;
+    }
+    if (rulesIndex == 7) {
+        hackOptions.colourDeleteTrigger = 1;
+        hackOptions.colourDeleteHealRate = 3;
+        hackOptions.colourDeletePattern = 1;
+        secondaryHackOptions.colourDeleteAffectsAudio = 1;
+    }
+    if (rulesIndex == 8) {
+        hackOptions.limitedColourType = 1 + (rand() % 4);
+    }
+    if (rulesIndex == 9) {
+        hackOptions.shouldHideLayers = 2;
+    }
+    if (rulesIndex == 10) {
+        hackOptions.shouldHideLayers = 1;
+    }
+    if (rulesIndex == 11) {
+        hackOptions.shouldSortColours = 1;
+    }
+}
+
+void menuDisplay_showTerminalMenu() {
+    menuDisplay_showMenu(MENU_LISTING_TERMINAL);
 }
 
 void menuDisplay_sendNetworkOptionsToOpponent() {
@@ -882,6 +948,10 @@ void menuDisplay_showMenu(int menuNum) {
     if (activeMenu == MENU_LISTING_RAM_EDITING) {
         showRamEditingOptionsMenu(); 
     }
+
+    if (activeMenu == MENU_LISTING_TERMINAL) {
+        showTerminalMenu();
+    }
 }
 
 void menuDisplay_hideMenu() {
@@ -1407,7 +1477,41 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
     }
 
+    if (activeMenu == MENU_LISTING_TERMINAL) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            terminalLocationIndex--;
+            if (terminalLocationIndex == 9) {
+                terminalLocationIndex--;
+            }
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            terminalLocationIndex++;
+            if (terminalLocationIndex == 9) {
+                terminalLocationIndex++;
+            }
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_B) {
+            activateTerminalOption();
+            refreshMenu();
+            return 1;
+        }
+    }
     return 0;
+}
+
+void activateTerminalOption() {
+    if (terminalLocationIndex < 9) {
+        menuDisplay_applyPresetRules(terminalLocationIndex - 1);
+    } else if(terminalLocationIndex < 14) {
+        menuDisplay_applyPresetRules(terminalLocationIndex - 2);
+    } else {
+         menuDisplay_hideMenu();
+    }
 }
 
 void incrementNetworkOption(int direction) {
@@ -3371,6 +3475,136 @@ void showRamEditingOptionsMenu() {
 
     linesWithBreakAfter[3] = 1;
     sprintf(lines[4], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
+        char toPrint[0x100];
+        if (i == ramEditingOptionsIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "   %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+        if (linesWithBreakAfter[i] != 0) {
+            yPos += 8;
+        }
+    }
+}
+
+void showTerminalMenu() {
+        layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Choose Your Rules", 5);
+
+    int lineCount = 15;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    int linesWithBreakAfter[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+        linesWithBreakAfter[i] = 0;
+    }
+
+    if (terminalLocationIndex < 1) {
+        terminalLocationIndex = 1;
+    }
+    if (terminalLocationIndex > lineCount - 1) {
+        terminalLocationIndex = lineCount - 1;
+    }
+
+    sprintf(lines[0], "Whenever Sonic gets a ring...");
+    linesWithBreakAfter[0] = 1;
+
+    if (activeTerminalRuleId == 0) {
+        sprintf(lines[1], "[ON] Swap to a new game");
+    } else {
+        sprintf(lines[1], "     Swap to a new game");
+    }
+    
+    if (activeTerminalRuleId == 1) {
+        sprintf(lines[2], "[ON] Make Sonic faster");
+    } else {
+        sprintf(lines[2], "     Make Sonic faster");
+    }
+
+    if (activeTerminalRuleId == 2) {
+        sprintf(lines[3], "[ON] Corrupt the level");
+    } else {
+        sprintf(lines[3], "     Corrupt the level");
+    }
+
+    if (activeTerminalRuleId == 3) {
+        sprintf(lines[4], "[ON] Randomise Sonic's velocity");
+    } else {
+        sprintf(lines[4], "     Randomise Sonic's velocity");
+    }
+
+    if (activeTerminalRuleId == 4) {
+        sprintf(lines[5], "[ON] Write random numbers into RAM");
+    } else {
+        sprintf(lines[5], "     Write random numbers into RAM");
+    }
+
+    if (activeTerminalRuleId == 5) {
+        sprintf(lines[6], "[ON] Write random numbers into Video RAM");
+    } else {
+        sprintf(lines[6], "     Write random numbers into Video RAM");
+    }
+
+    if (activeTerminalRuleId == 6) {
+        sprintf(lines[7], "[ON] Swap to a new game but keep VRAM");
+    } else {
+        sprintf(lines[7], "     Swap to a new game but keep VRAM");
+    }
+
+    if (activeTerminalRuleId == 7) {
+        sprintf(lines[8], "[ON] Remove colours from the game");
+    } else {
+        sprintf(lines[8], "     Remove colours from the game");
+    }
+    linesWithBreakAfter[8] = 1;
+
+    sprintf(lines[9], "Other effects: ");
+    linesWithBreakAfter[9] = 1;
+
+    if (activeTerminalRuleId == 8) {
+        sprintf(lines[10], "[ON] Limited colours");
+    } else {
+        sprintf(lines[10], "     Limited colours");
+    }
+
+    if (activeTerminalRuleId == 9) {
+        sprintf(lines[11], "[ON] No backgrounds");
+    } else {
+        sprintf(lines[11], "     No backgrounds");
+    }
+
+    if (activeTerminalRuleId == 10) {
+        sprintf(lines[12], "[ON] No sprites");
+    } else {
+        sprintf(lines[12], "     No sprites");
+    }
+
+    if (activeTerminalRuleId == 11) {
+        sprintf(lines[13], "[ON] Sort colours");
+    } else {
+        sprintf(lines[13], "     Sort colours");
+    }
+
+
+    sprintf(lines[14], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
