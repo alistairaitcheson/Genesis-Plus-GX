@@ -31,7 +31,7 @@ static int ramEditingLocationIndex = 0;
 static int terminalLocationIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 20;
+static int minorVersion = 21;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -104,49 +104,72 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     secondaryHackOptions.shouldSaveRewindStates = 1;
     hackOptions.switchGameType = 0;
 
+    networkOptions.sendRandomiseVelocity = 0;
+    networkOptions.sendRemoveColour = 0;
+    networkOptions.sendSpeedUp = 0;
+    networkOptions.sendSwitchGame = 0;
+    networkOptions.sendWriteIntoLevelDifficulty = 0;
+
     // now activate what's specific to each rule
     if (rulesIndex == 0) {
-        hackOptions.switchGameType = 1;
+        // do nothing!
     }
     if (rulesIndex == 1) {
-        hackOptions.speedUpOnRing = 1;
+        hackOptions.switchGameType = 1;
     }
     if (rulesIndex == 2) {
-        hackOptions.overwriteLevelType = 1;
-        hackOptions.overwriteLevelDifficulty = 2;
+        hackOptions.speedUpOnRing = 1;
     }
     if (rulesIndex == 3) {
-        hackOptions.randomiseVelocityOnRing = 1;
+        // overwrite level medium (from terminal)
+        hackOptions.overwriteLevelType = 1;
+        hackOptions.overwriteLevelDifficulty = 1;
     }
     if (rulesIndex == 4) {
-        secondaryHackOptions.ramWritesPerRing = 3;
+        hackOptions.randomiseVelocityOnRing = 1;
     }
     if (rulesIndex == 5) {
+        // overwrite RAM medium (from terminal)
+        secondaryHackOptions.ramWritesPerRing = 2;
+    }
+    if (rulesIndex == 6) {
         // scramble VRAM
         secondaryHackOptions.vramWritesPerRing = 4;
     }
-    if (rulesIndex == 6) {
+    if (rulesIndex == 7) {
         hackOptions.switchGameType = 1;
         hackOptions.copyVram = 1;
     }
-    if (rulesIndex == 7) {
-        hackOptions.colourDeleteTrigger = 1;
+    if (rulesIndex == 8) {
+        hackOptions.colourDeleteTrigger = 2;
         hackOptions.colourDeleteHealRate = 6;
         hackOptions.colourDeletePattern = 1;
         secondaryHackOptions.colourDeleteAffectsAudio = 1;
     }
-    if (rulesIndex == 8) {
+    if (rulesIndex == 9) {
         hackOptions.limitedColourType = 1 + (rand() % 4);
     }
-    if (rulesIndex == 9) {
+    if (rulesIndex == 10) {
         hackOptions.shouldHideLayers = 2;
     }
-    if (rulesIndex == 10) {
+    if (rulesIndex == 11) {
         hackOptions.shouldHideLayers = 1;
     }
-    if (rulesIndex == 11) {
+    if (rulesIndex == 12) {
         hackOptions.shouldSortColours = 1;
     }
+    if (rulesIndex == 13) {
+        // overwrite level hard (from web)
+        hackOptions.overwriteLevelType = 1;
+        hackOptions.overwriteLevelDifficulty = 2;
+    }
+    if (rulesIndex == 14) {
+        // overwrite RAM hard (from web)
+        secondaryHackOptions.ramWritesPerRing = 3;
+    }
+
+    modConsole_applyHackOptions();
+    fireSnapEffect(1);
 }
 
 void menuDisplay_showTerminalMenu() {
@@ -1515,9 +1538,9 @@ int menuDisplay_onButtonPress(int buttonIndex) {
 
 void activateTerminalOption() {
     if (terminalLocationIndex < 9) {
-        menuDisplay_applyPresetRules(terminalLocationIndex - 1);
+        menuDisplay_applyPresetRules(terminalLocationIndex);
     } else if(terminalLocationIndex < 14) {
-        menuDisplay_applyPresetRules(terminalLocationIndex - 2);
+        menuDisplay_applyPresetRules(terminalLocationIndex - 1);
     }
 }
 
@@ -3534,49 +3557,49 @@ void showTerminalMenu() {
     sprintf(lines[0], "Whenever Sonic gets a ring...");
     linesWithBreakAfter[0] = 1;
 
-    if (activeTerminalRuleId == 0) {
+    if (activeTerminalRuleId == 1) {
         sprintf(lines[1], "[ON] Swap to a new game");
     } else {
         sprintf(lines[1], "     Swap to a new game");
     }
     
-    if (activeTerminalRuleId == 1) {
+    if (activeTerminalRuleId == 2) {
         sprintf(lines[2], "[ON] Make Sonic faster");
     } else {
         sprintf(lines[2], "     Make Sonic faster");
     }
 
-    if (activeTerminalRuleId == 2) {
+    if (activeTerminalRuleId == 3) {
         sprintf(lines[3], "[ON] Corrupt the level");
     } else {
         sprintf(lines[3], "     Corrupt the level");
     }
 
-    if (activeTerminalRuleId == 3) {
+    if (activeTerminalRuleId == 4) {
         sprintf(lines[4], "[ON] Randomise Sonic's velocity");
     } else {
         sprintf(lines[4], "     Randomise Sonic's velocity");
     }
 
-    if (activeTerminalRuleId == 4) {
+    if (activeTerminalRuleId == 5) {
         sprintf(lines[5], "[ON] Write random numbers to RAM");
     } else {
         sprintf(lines[5], "     Write random numbers to RAM");
     }
 
-    if (activeTerminalRuleId == 5) {
+    if (activeTerminalRuleId == 6) {
         sprintf(lines[6], "[ON] Write random nums to Video RAM");
     } else {
         sprintf(lines[6], "     Write random nums to Video RAM");
     }
 
-    if (activeTerminalRuleId == 6) {
+    if (activeTerminalRuleId == 7) {
         sprintf(lines[7], "[ON] Swap game but keep Video RAM");
     } else {
         sprintf(lines[7], "     Swap game but keep Video RAM");
     }
 
-    if (activeTerminalRuleId == 7) {
+    if (activeTerminalRuleId == 8) {
         sprintf(lines[8], "[ON] Remove colours from the game");
     } else {
         sprintf(lines[8], "     Remove colours from the game");
@@ -3586,25 +3609,25 @@ void showTerminalMenu() {
     sprintf(lines[9], "Other effects: ");
     linesWithBreakAfter[9] = 1;
 
-    if (activeTerminalRuleId == 8) {
+    if (activeTerminalRuleId == 9) {
         sprintf(lines[10], "[ON] Limited colours");
     } else {
         sprintf(lines[10], "     Limited colours");
     }
 
-    if (activeTerminalRuleId == 9) {
+    if (activeTerminalRuleId == 10) {
         sprintf(lines[11], "[ON] No backgrounds");
     } else {
         sprintf(lines[11], "     No backgrounds");
     }
 
-    if (activeTerminalRuleId == 10) {
+    if (activeTerminalRuleId == 11) {
         sprintf(lines[12], "[ON] No sprites");
     } else {
         sprintf(lines[12], "     No sprites");
     }
 
-    if (activeTerminalRuleId == 11) {
+    if (activeTerminalRuleId == 12) {
         sprintf(lines[13], "[ON] Sort colours");
     } else {
         sprintf(lines[13], "     Sort colours");

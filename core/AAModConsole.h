@@ -39,7 +39,8 @@
 #define NETWORK_MSG_SHOW_TERMINAL_MENU 'C' // when using a USB terminal, send this to say "show the hack select menu please"
 #define NETWORK_MSG_ACTIVATE_RULE_PRESET 'V' // precede this with a number, e.g. 0V = no rules, 1V = "make it switch game on get ring"
 #define NETWORK_MSG_FIRE_TERMINAL_ACTION 'B' // precede this with a number: 1 = kill Sonic, 2 = reset game, 3 = rewind 1 step
-
+#define NETWORK_MSG_START_SPECIFIC_GAME 'N' // precede this with a number - swap to the game with that index (0N = switch to 0th game)
+#define NETWORK_MSG_ISOLATE_SPECIFIC_GAME 'M' // precede this with a number - swap to the game with that index (0N = switch to 0th game) and make it the only active game
 
 #define NETWORK_INTERPRET_TYPE_ACTION 0
 #define NETWORK_INTERPRET_TYPE_ASSIGN_RULES 1
@@ -102,7 +103,7 @@ void overwriteLevel(int cycleCount, int overwriteType);
 void sendNetworkMessageOnGetRing();
 
 void unpauseGame();
-void fireSnapEffect(int isFromTwitch);
+extern void fireSnapEffect(int isFromTwitch);
 void shuffleSnapValues(int isFromTwitch);
 extern int modConsole_getSnapOffsetForRowIndex(int rowIndex);
 void applyRandomiseVelocity();
