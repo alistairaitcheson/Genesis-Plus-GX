@@ -31,7 +31,7 @@ static int ramEditingLocationIndex = 0;
 static int terminalLocationIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 21;
+static int minorVersion = 23;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -130,7 +130,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     }
     if (rulesIndex == 5) {
         // overwrite RAM medium (from terminal)
-        secondaryHackOptions.ramWritesPerRing = 2;
+        secondaryHackOptions.ramWritesPerRing = 3;
     }
     if (rulesIndex == 6) {
         // scramble VRAM
@@ -141,7 +141,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
         hackOptions.copyVram = 1;
     }
     if (rulesIndex == 8) {
-        hackOptions.colourDeleteTrigger = 2;
+        hackOptions.colourDeleteTrigger = 1;
         hackOptions.colourDeleteHealRate = 6;
         hackOptions.colourDeletePattern = 1;
         secondaryHackOptions.colourDeleteAffectsAudio = 1;
@@ -404,6 +404,8 @@ void menuDisplay_initialise() {
     } else {
         applyNetworkOptionsDefaultValues();
     }
+
+    saveHackOptions();
 }
 
 // void addRamLocationToTracker(int location) {
@@ -791,7 +793,7 @@ void applyDefaultSettings() {
 
     hackOptions.shouldShowDeathCount = 0;
 
-    saveHackOptions();
+    // saveHackOptions();
 }
 
 void saveHackOptions() {

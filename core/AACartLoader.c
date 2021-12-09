@@ -862,6 +862,16 @@ unsigned int cartLoader_getRomCount() {
     return romCount;
 }
 
+void cartLoader_isolateRomAtIndex(int index) {
+    for (int i = 0; i < romCount; i++) {
+        if (i == index) {
+            romsRemovedFromRandomiser[i] = 0;
+        } else {
+            romsRemovedFromRandomiser[i] = 1;
+        }
+    }
+}
+
 static int loadAttemptCount = 0;
 void cartLoader_loadRandomRom() {
     HackOptions hackOpts = menuDisplay_getHackOptions();
@@ -1509,6 +1519,17 @@ void cartLoader_checkNetworkForActions() {
                         if (runningNumber == 4) {
                             modConsole_endRewindAction();
                         }
+                        runningNumber = 0;
+                    }
+
+                    if (actionBuffer[i] == NETWORK_MSG_START_SPECIFIC_GAME) {
+                        cartLoader_loadRomAtIndex(runningNumber, 1);
+                        runningNumber = 0;
+                    }
+
+                    if (actionBuffer[i] == NETWORK_MSG_ISOLATE_SPECIFIC_GAME) {
+                        cartLoader_isolateRomAtIndex(runningNumber);
+                        cartLoader_loadRomAtIndex(runningNumber, 1);
                         runningNumber = 0;
                     }
 

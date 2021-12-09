@@ -92,4 +92,6 @@ extern void cartLoader_saveRewindStateForCurrentGame();
 extern int cartLoader_loadRewindStateForCurrentGame();
 void deleteRewindState(int gameIndex, int stateIndex);
 
+void cartLoader_isolateRomAtIndex(int index);
+
 #endif
