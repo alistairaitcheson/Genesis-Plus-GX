@@ -229,6 +229,7 @@ void cartLoader_run() {
     gameTransferListings[1].gameStatesToBlockScramble[2] = 0x10; // SPECIAL STAGE
     gameTransferListings[1].gameStatesToBlockScramble[3] = 0x14; // CONTINUE SCREEN
     gameListings[1].valueWriteDuration = 0;//60;
+    scoreMonitorListings[1].allowStackRingInputs = 1;
 
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
@@ -313,6 +314,7 @@ void cartLoader_run() {
     gameListings[6].livesByteDestinations[0] = 0x5; 
     gameListings[6].accelerationType = 2;
     gameListings[6].valueWriteDuration = 60; // once per second
+    scoreMonitorListings[6].allowStackRingInputs = 1;
 
     writeStringToArray32("SonicSpinball", gameListings[7].gameId);
     gameListings[7].ringByte = 0x57A1;
@@ -331,7 +333,13 @@ void cartLoader_run() {
     gameListings[8].timeBytes[1] = 0x12BA;
     gameListings[8].timeByteDestinations[1] = 1;
     gameListings[8].valueWriteDuration = 60;
-        
+    gameListings[8].panicBytes[0] = 0x12B9;
+    gameListings[8].panicByteDestinations[0] = 0x59;
+    gameListings[8].panicBytes[1] = 0x12BA;
+    gameListings[8].panicByteDestinations[1] = 0x09;
+    gameListings[8].valueWriteDuration = 300; // only update lives every 20 seconds
+    scoreMonitorListings[8].allowStackRingInputs = 1;
+
     writeStringToArray32("76700", gameListings[9].gameId); // Sonic 1 MS
     gameListings[9].ringByte = 0x12AA;
     gameListings[9].specialRingByte = 0;    
@@ -340,6 +348,10 @@ void cartLoader_run() {
     gameListings[9].timeBytes[0] = 0x12CE;
     gameListings[9].timeByteDestinations[0] = 1;
     gameListings[9].valueWriteDuration = 60;
+    gameListings[9].panicBytes[0] = 0x1402;
+    gameListings[9].panicByteDestinations[0] = 0xFF;
+    gameListings[9].valueWriteDuration = 600; // only update lives every 20 seconds
+    scoreMonitorListings[9].allowStackRingInputs = 1;
 
     writeStringToArray32("21900", gameListings[10].gameId); // Sonic Chaos MS
     gameListings[10].ringByte = 0x129A;
@@ -349,6 +361,12 @@ void cartLoader_run() {
     gameListings[10].timeBytes[0] = 0x12C0;
     gameListings[10].timeByteDestinations[0] = 1;
     gameListings[10].valueWriteDuration = 60;
+    gameListings[10].panicBytes[0] = 0x12BF;
+    gameListings[10].panicByteDestinations[0] = 0x59;
+    gameListings[10].panicBytes[1] = 0x12C0;
+    gameListings[10].panicByteDestinations[1] = 0x09;
+    gameListings[10].valueWriteDuration = 600; // only update lives every 20 seconds
+    scoreMonitorListings[10].allowStackRingInputs = 1;
 
     writeStringToArray32("73250", gameListings[11].gameId); // Sonic Blast MS <-- still need to find lives and time
     gameListings[11].ringByte = 0x125E; // <-- WARNING! it is used in the title sequence (once per frame?)
@@ -368,6 +386,7 @@ void cartLoader_run() {
     gameListings[12].timeBytes[0] = 0x12BA;
     gameListings[12].timeByteDestinations[0] = 1;
     gameListings[12].valueWriteDuration = 60;    
+    scoreMonitorListings[12].allowStackRingInputs = 1;
 
     writeStringToArray32("08240", gameListings[13].gameId); // Sonic 1 GG
     gameListings[13].ringByte = 0x12A9;
@@ -377,6 +396,7 @@ void cartLoader_run() {
     gameListings[13].timeBytes[0] = 0x12CF;
     gameListings[13].timeByteDestinations[0] = 1;
     gameListings[13].valueWriteDuration = 60;   
+    scoreMonitorListings[13].allowStackRingInputs = 1;
 
     writeStringToArray32("15250", gameListings[14].gameId); // Sonic Chaos GG
     gameListings[14].ringByte = 0x129C;
@@ -386,6 +406,7 @@ void cartLoader_run() {
     gameListings[14].timeBytes[0] = 0x12C2;
     gameListings[14].timeByteDestinations[0] = 1;
     gameListings[14].valueWriteDuration = 60;   
+    scoreMonitorListings[14].allowStackRingInputs = 1;
 
     writeStringToArray32("73250", gameListings[15].gameId); // Sonic Blast GG <-- still need to find lives and time (identical to SMS)
     copyGameListing(11, 15);
@@ -398,6 +419,7 @@ void cartLoader_run() {
     gameListings[16].timeBytes[0] = 0x115E;
     gameListings[16].timeByteDestinations[0] = 1;
     gameListings[16].valueWriteDuration = 60;   
+    scoreMonitorListings[16].allowStackRingInputs = 1;
 
     
     writeStringToArray32("SONICCD", gameListings[17].gameId); // <-- not used yet
@@ -751,6 +773,7 @@ void zeroAllListings() {
         scoreMonitorListings[gameIndex].scoreJumpForTrigger = 0;
         scoreMonitorListings[gameIndex].blockJumpFromZero = 0;
         scoreMonitorListings[gameIndex].allowNegativeChange = 0;
+        scoreMonitorListings[gameIndex].allowStackRingInputs = 0;
 
         levelEditListings[gameIndex].startByte = 0;
         levelEditListings[gameIndex].endByte = 0;
@@ -1707,6 +1730,7 @@ void copyGameListing(int fromGame, int toGame) {
     scoreMonitorListings[toGame].scoreJumpForTrigger = scoreMonitorListings[fromGame].scoreJumpForTrigger;
     scoreMonitorListings[toGame].blockJumpFromZero = scoreMonitorListings[fromGame].blockJumpFromZero;
     scoreMonitorListings[toGame].allowNegativeChange = scoreMonitorListings[fromGame].allowNegativeChange;
+    scoreMonitorListings[toGame].allowStackRingInputs = scoreMonitorListings[fromGame].allowStackRingInputs;
 
     levelEditListings[toGame].startByte = levelEditListings[fromGame].startByte;
     levelEditListings[toGame].endByte = levelEditListings[fromGame].endByte;

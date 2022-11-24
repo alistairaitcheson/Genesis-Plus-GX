@@ -58,6 +58,7 @@ typedef struct
     int scoreSwitchCooldown;
     int blockJumpFromZero;
     int allowNegativeChange;
+    int allowStackRingInputs; // e.g. for 10 ring boxes
     // int significantScoreThresholds[8]; // e.g. switch when your score goes up by [A, B, C, ...] - or when it goes past this threshold? Which is more interesting? Probably the latter
 } AAScoreMonitorListing;
 

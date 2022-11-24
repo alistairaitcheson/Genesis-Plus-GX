@@ -131,4 +131,8 @@ extern void modConsole_beginRewindAction();
 extern void modConsole_endRewindAction();
 void applyVramEditOnRing();
 
+int pendingRingTriggerShouldFire();
+void updatePendingRingTrigger();
+void increasePendingRingTriggers(int count);
+
 #endif

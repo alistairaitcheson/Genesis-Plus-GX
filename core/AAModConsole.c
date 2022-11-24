@@ -92,6 +92,11 @@ static int vramWriteOffset = 0;
 
 static int shouldRewind = 0;
 
+static int pendingRingTriggers = 0;
+static int intervalBetweenPendingTriggers = 15;
+static int pendingRingTriggerTimer = 0;
+static int hasFlaggedPendingRingsThisFrame = 0;
+
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
 }
@@ -318,6 +323,32 @@ void shuffleSnapValues(int isFromTwitch) {
     }
 }
 
+int pendingRingTriggerShouldFire() {
+    if (pendingRingTriggers > 0 && pendingRingTriggerTimer == 1) {
+        return 1;
+    }
+    return 0;
+}
+
+void updatePendingRingTrigger() {
+    if (pendingRingTriggers > 0) {
+        pendingRingTriggerTimer--;
+        if (pendingRingTriggerTimer <= 0) {
+            pendingRingTriggers--;
+            pendingRingTriggerTimer = intervalBetweenPendingTriggers;
+        }
+    }
+    hasFlaggedPendingRingsThisFrame = 0;
+}
+
+void increasePendingRingTriggers(int count) {
+    if (hasFlaggedPendingRingsThisFrame == 0) {
+        pendingRingTriggers += count;
+        hasFlaggedPendingRingsThisFrame = 1;
+        pendingRingTriggerTimer = intervalBetweenPendingTriggers;
+    }
+}
+
 void modConsole_updateFrame() {
     lastPadState = padState;
     padState = input.pad[0];
@@ -333,6 +364,10 @@ void modConsole_updateFrame() {
     }
 
     if (menuDisplay_isShowing() != 0) {
+        if (pendingRingTriggers > 0) {
+            pendingRingTriggerTimer--;
+        }
+
         // vdp_clearGraphicLayer(2);
 
         // vdp_clearGraphicLayer(1);
@@ -392,6 +427,11 @@ void modConsole_updateFrame() {
             postRingEffectCooldownTimePerGame[cartIndex]--;
         }
         int ringCountChangedThisFrame = ringCountHasChanged(1);
+
+        // write nonsense once per frame
+        // for (int i = 0; i < 1; i++) {
+        //     aa_genesis_setWorkRam(rand() % 0x10000, rand() % 0x100);
+        // }
 
         /*
         if (ringCountChangedThisFrame != 0) {
@@ -684,7 +724,7 @@ void modConsole_updateFrame() {
 
         // // show what buttons are being pressed!
         // char controlsTextBuf[0x40];
-        // sprintf(controlsTextBuf, "........");
+        // sprintf(controlsTextBuf, "%i %i %i", pendingRingTriggers, pendingRingTriggerTimer, pendingRingTriggerShouldFire());
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0) {
         //     controlsTextBuf[0] = 'U';
         // }
@@ -743,6 +783,8 @@ void modConsole_updateFrame() {
                 vdp_clearGraphicLayer(2);
             }
         }
+
+        updatePendingRingTrigger();
     }
 
     frameCount++;
@@ -1536,6 +1578,8 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
         return 0;
     }
 
+    AAScoreMonitorListing scoreListing = cartLoader_getActiveScoreMonitorListing();
+
     if (activeGameListing.ringByte > 0) {
         unsigned int lastRingCount = aa_genesis_getLastWorkRam(activeGameListing.ringByte);
         unsigned int currentRingCount = aa_genesis_getWorkRam(activeGameListing.ringByte);
@@ -1544,6 +1588,15 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
             char word[0x100];
             sprintf(word, "Ring count went from %02X to %02X, frame %d", lastRingCount, currentRingCount, frameCount);
             cartLoader_appendToLog(word);
+
+            // e.g. if you pick up a 10 ring box, make 10 things happen
+            if (scoreListing.allowStackRingInputs == 1) {
+                int difference = abs((int)lastRingCount - (int)currentRingCount);
+                if (difference == 10 || difference == 50) {
+                    increasePendingRingTriggers(difference);
+                }
+            }
+
             return 1;
         }
     }
@@ -1569,7 +1622,6 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
         }
     }
 
-    AAScoreMonitorListing scoreListing = cartLoader_getActiveScoreMonitorListing();
     int lastScore = 0;
     int currentScore = 0;
     int multiplier = 1;
@@ -1660,6 +1712,9 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
         return 1;
     }
 
+    if (pendingRingTriggerShouldFire() == 1) {
+        return 1;
+    }
 
     return 0;
 }
