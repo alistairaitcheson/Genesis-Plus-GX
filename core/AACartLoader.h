@@ -26,6 +26,7 @@ extern void cartLoader_run();
 extern void cartLoader_appendToLog(char *text);
 extern int cartLoader_getActiveCartIndex();
 extern AAGameListing cartLoader_getActiveGameListing();
+extern AAStandTriggerListing cartLoader_getActiveStandTriggerListing();
 extern AAGameTransferListing cartLoader_getActiveGameTransferListing();
 extern AAScoreMonitorListing cartLoader_getActiveScoreMonitorListing();
 extern AALevelEditListing cartLoader_getActiveLevelEditListing();

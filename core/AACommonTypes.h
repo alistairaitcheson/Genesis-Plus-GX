@@ -34,10 +34,14 @@ typedef struct
     int unpauseByte;
     int unpauseByteDestination;
     int postRingEffectCooldown;
+} AAGameListing;
+
+typedef struct {
     int standingByte;
     int standingBit;
     int standingRequiredValue;
-} AAGameListing;
+    int standingCooldown; // doesn't do anything yet
+} AAStandTriggerListing;
 
 typedef struct
 {

@@ -31,7 +31,7 @@ static int ramEditingLocationIndex = 0;
 static int terminalLocationIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 23;
+static int minorVersion = 24;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -486,7 +486,7 @@ void menuDisplay_renderRamDetective() {
 
                 unsigned char value = aa_genesis_getWorkRam(loc);
 
-                sprintf(text, "%04X:%02X", loc, value);
+                sprintf(text, "%04X:%02X", loc, value);// (value >> 1) & 1);
                 int localY = startY + (i * 9);
                 layerRenderer_fill(0, x, localY, 7 * 8, height, 0xFF);
                 layerRenderer_writeWord256(0, x, localY, text, 5);
@@ -2688,7 +2688,7 @@ void showGameSwapOptionsMenu() {
         sprintf(lines[0], "Switch games:  EVERY 10 secs");
     } else if (hackOptions.switchGameType == 4) {
         sprintf(lines[0], "Switch games:  EVERY 30 secs");
-    } else if (hackOptions.switchGameType == 4) {
+    } else if (hackOptions.switchGameType == 5) {
         sprintf(lines[0], "Switch games:        ON LAND");
     }
 

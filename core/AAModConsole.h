@@ -90,6 +90,7 @@ void checkDeathCounter();
 
 void updateSpeedUpOnRing();
 int ringCountHasChanged(int shouldIgnoreCooldown);
+int standingHasChanged(int shouldIgnoreCooldown);
 void updateLives();
 void updateTime() ;
 void updateSwitchGameOnRing();

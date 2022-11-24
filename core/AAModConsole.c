@@ -1557,9 +1557,7 @@ void updateSwitchGameOnLand() {
     }
 
     if (standingHasChanged(0) != 0 && switchCooldownCounter <= 0) {
-        if (activeGameListing.ringSwitchCooldown > 0) {
-            countdownUntilRingSwitch = activeGameListing.ringSwitchCooldown;
-        } else {
+        if (cartLoader_getActiveStandTriggerListing().standingCooldown > 0) {
             promptSwitchGame();
             fireScreenSnapOnEvent();
         }
@@ -1596,20 +1594,27 @@ int standingHasChanged(int shouldIgnoreCooldown) {
         return 0;
     }
 
-    if (activeGameListing.standingByte > 0) {
-        unsigned int lastStanding = aa_genesis_getLastWorkRam(activeGameListing.standingByte);
-        unsigned int currentStanding = aa_genesis_getWorkRam(activeGameListing.standingByte);
+    AAStandTriggerListing triggers = cartLoader_getActiveStandTriggerListing();
+    if (triggers.standingByte > 0) {
+        unsigned int lastStanding = aa_genesis_getLastWorkRam(triggers.standingByte);
+        unsigned int currentStanding = aa_genesis_getWorkRam(triggers.standingByte);
 
-        int lastBitStatus = (lastStanding >> activeGameListing.standingBit) & 1;
-        int currentBitStatus = (currentStanding >> activeGameListing.standingBit) & 1;
+        int lastBitStatus = (lastStanding >> triggers.standingBit) & 1;
+        int currentBitStatus = (currentStanding >> triggers.standingBit) & 1;
 
-        if (currentBitStatus != activeGameListing.standingRequiredValue && currentBitStatus != lastBitStatus) {
-            char word[0x100];
-            sprintf(word, "Standing went from %02X to %02X, (%02X --> %02X), frame %d", lastBitStatus, currentBitStatus, lastStanding, currentStanding, frameCount);
-            cartLoader_appendToLog(word);
+        // char debugWord[0x100];
+        // sprintf(debugWord, "triggers %04X >> %02X, (%02X --> %02X) >> (%01X --> %01X), frame %d", triggers.standingByte, triggers.standingBit, lastStanding, currentStanding, lastBitStatus, currentBitStatus, frameCount);
+        // cartLoader_appendToLog(debugWord);
+
+        if (currentBitStatus == triggers.standingRequiredValue && currentBitStatus != lastBitStatus) {
+            // char word[0x100];
+            // sprintf(word, "Standing went from %02X to %02X, (%02X --> %02X), frame %d", lastBitStatus, currentBitStatus, lastStanding, currentStanding, frameCount);
+            // cartLoader_appendToLog(word);
+            postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] = 5;
             return 1;
         }
     }
+    return 0;
 }
 
 int ringCountHasChanged(int shouldIgnoreCooldown) {

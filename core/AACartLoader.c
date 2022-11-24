@@ -22,6 +22,7 @@ static char *logLines[0x100];
 static unsigned int logLineCount;
 
 static AAGameListing gameListings[MAX_ROMS];
+static AAStandTriggerListing standTriggerListings[MAX_ROMS];
 static AAGameTransferListing gameTransferListings[MAX_ROMS];
 static AAScoreMonitorListing scoreMonitorListings[MAX_ROMS];
 static AALevelEditListing levelEditListings[MAX_ROMS];
@@ -230,9 +231,10 @@ void cartLoader_run() {
     gameTransferListings[1].gameStatesToBlockScramble[3] = 0x14; // CONTINUE SCREEN
     gameListings[1].valueWriteDuration = 0;//60;
     scoreMonitorListings[1].allowStackRingInputs = 1;
-    gameListings[1].standingByte = 0xD022;
-    gameListings[1].standingBit = 1;
-    gameListings[1].standingRequiredValue = 0;
+    standTriggerListings[1].standingByte = 0xD023;
+    standTriggerListings[1].standingBit = 1;
+    standTriggerListings[1].standingRequiredValue = 0;
+    standTriggerListings[1].standingCooldown = 5;
 
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
@@ -254,9 +256,10 @@ void cartLoader_run() {
     momentumControlListings[2].xByteStart = 0xB011;
     momentumControlListings[2].yByteStart = 0xB013;
     momentumControlListings[2].inertiaByte = 0xB015;
-    gameListings[2].standingByte = 0xB422;
-    gameListings[2].standingBit = 1;
-    gameListings[2].standingRequiredValue = 0;
+    standTriggerListings[2].standingByte = 0xB023;
+    standTriggerListings[2].standingBit = 1;
+    standTriggerListings[2].standingRequiredValue = 0;
+    standTriggerListings[2].standingCooldown = 5;
 
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
     copyGameListing(1, 3);
@@ -306,9 +309,10 @@ void cartLoader_run() {
     gameTransferListings[3].gameStatesToBlockScramble[11] = 0x34; // SPECIAL STAGE
     gameTransferListings[3].gameStatesToBlockScramble[12] = 0x48; // SPECIAL STAGE RESULTS
     gameTransferListings[3].gameStatesToBlockScramble[13] = 0x4C; // FILE SELECT
-    gameListings[3].standingByte = 0xB02A;
-    gameListings[3].standingBit = 1;
-    gameListings[3].standingRequiredValue = 0;
+    standTriggerListings[3].standingByte = 0xB02B;
+    standTriggerListings[3].standingBit = 1;
+    standTriggerListings[3].standingRequiredValue = 0;
+    standTriggerListings[3].standingCooldown = 5;
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     copyGameListing(3, 4);
@@ -742,9 +746,10 @@ void zeroAllListings() {
         gameListings[gameIndex].ringSwitchCooldown = 0;
         gameListings[gameIndex].unpauseByte = 0;
         gameListings[gameIndex].postRingEffectCooldown = 0;
-        gameListings[gameIndex].standingByte = 0;
-        gameListings[gameIndex].standingBit = 0;
-        gameListings[gameIndex].standingRequiredValue = 0;
+        standTriggerListings[gameIndex].standingByte = 0;
+        standTriggerListings[gameIndex].standingBit = 0;
+        standTriggerListings[gameIndex].standingRequiredValue = 0;
+        standTriggerListings[gameIndex].standingCooldown = 0;
 
         for (int i = 0; i < 8; i++) {
             gameListings[gameIndex].livesBytes[i] = 0;
@@ -1246,6 +1251,10 @@ AAGameListing cartLoader_getActiveGameListing() {
     return gameListings[cartLoader_getActiveCartIndex()];
 }
 
+AAStandTriggerListing cartLoader_getActiveStandTriggerListing() {
+    return standTriggerListings[cartLoader_getActiveCartIndex()];
+}
+
 AAGameTransferListing cartLoader_getActiveGameTransferListing() {
     return gameTransferListings[cartLoader_getActiveCartIndex()];
 }
@@ -1702,9 +1711,10 @@ void copyGameListing(int fromGame, int toGame) {
     gameListings[toGame].accelerationType = gameListings[fromGame].accelerationType;
     gameListings[toGame].unpauseByte = gameListings[fromGame].unpauseByte;
     gameListings[toGame].postRingEffectCooldown = gameListings[fromGame].postRingEffectCooldown;
-    gameListings[toGame].standingBit = gameListings[fromGame].standingBit;
-    gameListings[toGame].standingByte = gameListings[fromGame].standingByte;
-    gameListings[toGame].standingRequiredValue = gameListings[fromGame].standingRequiredValue;
+    standTriggerListings[toGame].standingBit = standTriggerListings[fromGame].standingBit;
+    standTriggerListings[toGame].standingByte = standTriggerListings[fromGame].standingByte;
+    standTriggerListings[toGame].standingRequiredValue = standTriggerListings[fromGame].standingRequiredValue;
+    standTriggerListings[toGame].standingCooldown = standTriggerListings[fromGame].standingCooldown;
 
     for (int i = 0; i < 8; i++) {
         gameListings[toGame].livesBytes[i] = gameListings[fromGame].livesBytes[i];
