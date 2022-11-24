@@ -34,6 +34,9 @@ typedef struct
     int unpauseByte;
     int unpauseByteDestination;
     int postRingEffectCooldown;
+    int standingByte;
+    int standingBit;
+    int standingRequiredValue;
 } AAGameListing;
 
 typedef struct

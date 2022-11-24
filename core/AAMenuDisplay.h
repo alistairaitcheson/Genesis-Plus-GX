@@ -58,7 +58,6 @@ typedef struct {
     int ramWriteEndLoc[4];
     int shouldSaveRewindStates;
     int vramWritesPerRing; // 0 = off, 1 = 1x, 2 = 5x, 3 = 25x, 4 = 100x
-
 } SecondaryHackOptions;
 
 typedef struct {

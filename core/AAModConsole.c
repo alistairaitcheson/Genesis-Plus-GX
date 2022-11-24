@@ -557,6 +557,9 @@ void modConsole_updateFrame() {
             if (hackOpts.switchGameType == 1) {
                 updateSwitchGameOnRing();
             }
+            if (hackOpts.switchGameType == 5) {
+                updateSwitchGameOnLand();
+            }
             if (hackOpts.randomiseVelocityOnRing != 0) {
                 updateRandomiseVelocityOnRing();
             }
@@ -754,7 +757,7 @@ void modConsole_updateFrame() {
         // layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
 
         // game switching needs to come at the end for per-game cooldown to work
-        if (hackOpts.switchGameType > 1) {
+        if (hackOpts.switchGameType > 1 && hackOpts.switchGameType < 5) {
             switchAfterTimeCounter++;
             if (switchAfterTimeCounter >= switchAfterTimePeriod) {
                 switchAfterTimeCounter = 0;
@@ -1548,6 +1551,21 @@ void updateSpeedUpOnRing() {
     }
 }
 
+void updateSwitchGameOnLand() {
+    if (switchCooldownCounter > 0) {
+        switchCooldownCounter --;
+    }
+
+    if (standingHasChanged(0) != 0 && switchCooldownCounter <= 0) {
+        if (activeGameListing.ringSwitchCooldown > 0) {
+            countdownUntilRingSwitch = activeGameListing.ringSwitchCooldown;
+        } else {
+            promptSwitchGame();
+            fireScreenSnapOnEvent();
+        }
+    }
+}
+
 void updateSwitchGameOnRing() {
     if (switchCooldownCounter > 0) {
         switchCooldownCounter --;
@@ -1570,6 +1588,27 @@ void updateSwitchGameOnRing() {
 
     if (switchAfterTimeCounter <= 0) {
         cartLoader_checkPixelTrackerForStateChange();
+    }
+}
+
+int standingHasChanged(int shouldIgnoreCooldown) {
+    if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0 && shouldIgnoreCooldown == 0) {
+        return 0;
+    }
+
+    if (activeGameListing.standingByte > 0) {
+        unsigned int lastStanding = aa_genesis_getLastWorkRam(activeGameListing.standingByte);
+        unsigned int currentStanding = aa_genesis_getWorkRam(activeGameListing.standingByte);
+
+        int lastBitStatus = (lastStanding >> activeGameListing.standingBit) & 1;
+        int currentBitStatus = (currentStanding >> activeGameListing.standingBit) & 1;
+
+        if (currentBitStatus != activeGameListing.standingRequiredValue && currentBitStatus != lastBitStatus) {
+            char word[0x100];
+            sprintf(word, "Standing went from %02X to %02X, (%02X --> %02X), frame %d", lastBitStatus, currentBitStatus, lastStanding, currentStanding, frameCount);
+            cartLoader_appendToLog(word);
+            return 1;
+        }
     }
 }
 

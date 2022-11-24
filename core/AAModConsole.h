@@ -93,6 +93,7 @@ int ringCountHasChanged(int shouldIgnoreCooldown);
 void updateLives();
 void updateTime() ;
 void updateSwitchGameOnRing();
+void updateSwitchGameOnLand();
 void showRomList();
 extern void promptSwitchGame();
 void switchGame();

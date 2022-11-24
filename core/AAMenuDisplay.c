@@ -2669,11 +2669,11 @@ void showGameSwapOptionsMenu() {
         gameSwapOptionIndex = 0;
     }
 
-    if (hackOptions.switchGameType > 4) {
+    if (hackOptions.switchGameType > 5) {
         hackOptions.switchGameType = 0;
     }
     if (hackOptions.switchGameType < 0) {
-        hackOptions.switchGameType = 4;
+        hackOptions.switchGameType = 5;
     }
     if (hackOptions.switchGameType == 0) {
         sprintf(lines[0], "Switch games:            OFF");
@@ -2688,6 +2688,8 @@ void showGameSwapOptionsMenu() {
         sprintf(lines[0], "Switch games:  EVERY 10 secs");
     } else if (hackOptions.switchGameType == 4) {
         sprintf(lines[0], "Switch games:  EVERY 30 secs");
+    } else if (hackOptions.switchGameType == 4) {
+        sprintf(lines[0], "Switch games:        ON LAND");
     }
 
     if (hackOptions.cooldownOnSwitch > 3) {
