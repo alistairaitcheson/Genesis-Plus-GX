@@ -218,6 +218,16 @@ void modConsole_applyHackOptions() {
     if (menuDisplay_getHackOptions().cooldownOnSwitch == 3) {
         switchCooldownPeriod = 60 * 1;
     }
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 4) {
+        switchCooldownPeriod = 150;
+    }
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 5) {
+        switchCooldownPeriod = 60 * 5;
+    }
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 6) {
+        switchCooldownPeriod = 60 * 15;
+    }
+
 
     if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 1) {
         // 1 minute
@@ -1557,10 +1567,12 @@ void updateSwitchGameOnLand() {
     }
 
     if (standingHasChanged(0) != 0 && switchCooldownCounter <= 0) {
-        if (cartLoader_getActiveStandTriggerListing().standingCooldown > 0) {
+        // AAStandTriggerListing triggers = cartLoader_getActiveStandTriggerListing();
+        // if (cartLoader_getActiveStandTriggerListing().standingCooldown > 0) { // standingCooldown doesn't work as I expect...
+            // || triggers.standingByte == 0) { // ... so I also check "is this a non-standing game!"
             promptSwitchGame();
             fireScreenSnapOnEvent();
-        }
+        // }
     }
 }
 
@@ -1569,23 +1581,25 @@ void updateSwitchGameOnRing() {
         switchCooldownCounter --;
     }
 
-    if (ringCountHasChanged(0) != 0 && switchCooldownCounter <= 0) {
-        // layerRenderer_clearLayer(0);
-        // char word[0x20];
-        // sprintf(word, "%d", aa_genesis_getWorkRam(activeGameListing.ringByte));
+    if (switchCooldownCounter <= 0) {
+    if (ringCountHasChanged(0) != 0) {
+            // layerRenderer_clearLayer(0);
+            // char word[0x20];
+            // sprintf(word, "%d", aa_genesis_getWorkRam(activeGameListing.ringByte));
 
-        // layerRenderer_fill(0, 0, 0, 32, 8, 1);
-        // layerRenderer_writeWord256(0, 0, 0, word, 5);
-        if (activeGameListing.ringSwitchCooldown > 0) {
-            countdownUntilRingSwitch = activeGameListing.ringSwitchCooldown;
-        } else {
-            promptSwitchGame();
-            fireScreenSnapOnEvent();
+            // layerRenderer_fill(0, 0, 0, 32, 8, 1);
+            // layerRenderer_writeWord256(0, 0, 0, word, 5);
+            if (activeGameListing.ringSwitchCooldown > 0) {
+                countdownUntilRingSwitch = activeGameListing.ringSwitchCooldown;
+            } else {
+                promptSwitchGame();
+                fireScreenSnapOnEvent();
+            }
         }
-    }
 
-    if (switchAfterTimeCounter <= 0) {
-        cartLoader_checkPixelTrackerForStateChange();
+        if (switchAfterTimeCounter <= 0) {
+            cartLoader_checkPixelTrackerForStateChange();
+        }
     }
 }
 
@@ -1613,6 +1627,9 @@ int standingHasChanged(int shouldIgnoreCooldown) {
             postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] = 5;
             return 1;
         }
+    } else {
+        // in other games (e.g. micro machines) switch on normal "ring-like" events
+        return ringCountHasChanged(shouldIgnoreCooldown);
     }
     return 0;
 }

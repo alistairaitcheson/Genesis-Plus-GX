@@ -31,7 +31,7 @@ static int ramEditingLocationIndex = 0;
 static int terminalLocationIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 24;
+static int minorVersion = 26;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -2692,7 +2692,7 @@ void showGameSwapOptionsMenu() {
         sprintf(lines[0], "Switch games:        ON LAND");
     }
 
-    if (hackOptions.cooldownOnSwitch > 3) {
+    if (hackOptions.cooldownOnSwitch > 6) {
         hackOptions.cooldownOnSwitch = 0;
     }
     if (hackOptions.cooldownOnSwitch < 0) {
@@ -2706,6 +2706,12 @@ void showGameSwapOptionsMenu() {
         sprintf(lines[1], "Cooldown after switch: 0.50 sec");
     } else if (hackOptions.cooldownOnSwitch == 3) {
         sprintf(lines[1], "Cooldown after switch: 1.00 sec");
+    } else if (hackOptions.cooldownOnSwitch == 4) {
+        sprintf(lines[1], "Cooldown after switch: 2.50 sec");
+    } else if (hackOptions.cooldownOnSwitch == 5) {
+        sprintf(lines[1], "Cooldown after switch: 5.00 sec");
+    } else if (hackOptions.cooldownOnSwitch == 6) {
+        sprintf(lines[1], "Cooldown after switch: 15 sec");
     }
 
     if (hackOptions.copyVram > 4) {
