@@ -1566,13 +1566,21 @@ void updateSwitchGameOnLand() {
         switchCooldownCounter --;
     }
 
-    if (standingHasChanged(0) != 0 && switchCooldownCounter <= 0) {
+
+    if ( switchCooldownCounter <= 0) {
         // AAStandTriggerListing triggers = cartLoader_getActiveStandTriggerListing();
         // if (cartLoader_getActiveStandTriggerListing().standingCooldown > 0) { // standingCooldown doesn't work as I expect...
             // || triggers.standingByte == 0) { // ... so I also check "is this a non-standing game!"
+        if (standingHasChanged(0) != 0) {
             promptSwitchGame();
             fireScreenSnapOnEvent();
-        // }
+        }
+
+        // account for pixel games if no standing byte declared
+        AAStandTriggerListing triggers = cartLoader_getActiveStandTriggerListing();
+        if (switchAfterTimeCounter <= 0 && triggers.standingByte == 0) {
+            cartLoader_checkPixelTrackerForStateChange();
+        }
     }
 }
 
@@ -1582,7 +1590,7 @@ void updateSwitchGameOnRing() {
     }
 
     if (switchCooldownCounter <= 0) {
-    if (ringCountHasChanged(0) != 0) {
+        if (ringCountHasChanged(0) != 0) {
             // layerRenderer_clearLayer(0);
             // char word[0x20];
             // sprintf(word, "%d", aa_genesis_getWorkRam(activeGameListing.ringByte));

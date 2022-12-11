@@ -2696,7 +2696,7 @@ void showGameSwapOptionsMenu() {
         hackOptions.cooldownOnSwitch = 0;
     }
     if (hackOptions.cooldownOnSwitch < 0) {
-        hackOptions.cooldownOnSwitch = 1;
+        hackOptions.cooldownOnSwitch = 6;
     }
     if (hackOptions.cooldownOnSwitch == 0) {
         sprintf(lines[1], "Cooldown after switch:   OFF");
