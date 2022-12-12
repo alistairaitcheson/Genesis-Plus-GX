@@ -98,6 +98,22 @@ typedef struct {
     int inertiaMax;
 } MomentumControlListing;
 
+typedef struct {
+    int gameIndex;
+    int zoneIndex;
+    int actIndex;
+    unsigned int objectIdNumbers[8]; // e.g. https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_(16-bit)/Object_Editing search for "Eggman" - list a non-zero number for each actor in this boss
+    unsigned int objectLocationStart;
+    unsigned int objectLocationEnd;
+    unsigned int healthByteOffset;
+    unsigned int defeatedByte; // e.g. signpost landed or capsule opened
+    unsigned int defeatedValue;
+    int shouldAppearInGeneration; // (e.g. in S&K 0 = all act 1 bosses, 1 = all act 2 bosses, 2 = Death Egg giant robot, 3 = Doomsday zone)
+
+    int isActivated;
+    int isCompleted;
+} BossRushChallengeListing;
+
 static int INPUT_INDEX_UP = 0;
 static int INPUT_INDEX_DOWN = 1;
 static int INPUT_INDEX_LEFT = 2;

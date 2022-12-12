@@ -31,6 +31,9 @@ static MomentumControlListing momentumControlListings[MAX_ROMS];
 static unsigned char gameAltIds[MAX_ROMS][0x80];
 static int gameListingCount = 0;
 
+static BossRushChallengeListing bossRushCallenges[MAX_ROMS];
+static int bossRushChallengeCount = 0;
+
 static unsigned char romHeaderBuffer[0x20];
 
 static int lastPixelStatesPerGame[MAX_ROMS][0x100];
@@ -735,6 +738,95 @@ void cartLoader_run() {
 
     gameListingCount = 40;
     cartLoader_appendToLog("finished cartLoader_run");
+}
+
+void populateBossRushes() {
+    // do addBossRushListing for each game
+
+    // Sonic 1 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_(16-bit)/Object_Editing
+    int sonic1index = bossRushChallengeCount;
+    // GHZ
+    addBossRushListing(0, 0, 2, 0xD000, 0xD7FF, 0x21, 0xF7A7, 0x02);
+    populateMostRecentBossRush(0x3D, 0, 0, 0);
+    // MZ
+    duplicateBossRushListing(sonic1index);
+    populateMostRecentBossRush(0x73, 0, 0, 0);
+    // SYZ
+    duplicateBossRushListing(sonic1index);
+    populateMostRecentBossRush(0x75, 0, 0, 0);
+    // LZ
+    duplicateBossRushListing(sonic1index);
+    populateMostRecentBossRush(0x77, 0, 0, 0);
+    // SLZ
+    duplicateBossRushListing(sonic1index);
+    populateMostRecentBossRush(0x7A, 0, 0, 0);
+    // FinalZone
+    duplicateBossRushListing(sonic1index);
+    populateMostRecentBossRush(0x85, 0, 0, 0);
+    applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
+
+    // during play, when you are in boss rush, switching a game will switch game and then put you in
+    // a boss rush listing for that game.
+    // Only one listing can be active for a game at a time, unless that feature is toggled off.
+    // Use the isActivated value to track which one is currently active (and incomplete)
+    // We can optionally make it so that we force final boss to appear last.
+    
+    // If all listings are complete then we remove this game from the shuffler, then force switch again,
+    // unless no games are left in the shuffler!
+
+    // roms will be labelled "bossrush_[game]_[zone]_[act].savestate"
+}
+
+void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int objectLocationStart, unsigned int objectLocationEnd, unsigned int healthByteOffset, unsigned int defeatedByte, unsigned int defeatedValue) {
+    bossRushCallenges[bossRushChallengeCount].gameIndex = gameIndex;
+    bossRushCallenges[bossRushChallengeCount].zoneIndex = zoneIndex;
+    bossRushCallenges[bossRushChallengeCount].actIndex = actIndex;
+
+    bossRushCallenges[bossRushChallengeCount].objectLocationStart = objectLocationStart;
+    bossRushCallenges[bossRushChallengeCount].objectLocationEnd = objectLocationEnd;
+    bossRushCallenges[bossRushChallengeCount].healthByteOffset = healthByteOffset;
+
+
+    bossRushCallenges[bossRushChallengeCount].defeatedByte = defeatedByte;
+    bossRushCallenges[bossRushChallengeCount].defeatedValue = defeatedValue;
+
+    bossRushCallenges[bossRushChallengeCount].isActivated = 0;
+    bossRushCallenges[bossRushChallengeCount].isCompleted = 0;
+
+    bossRushCallenges[bossRushChallengeCount].shouldAppearInGeneration = 0;
+    for (int i = 0; i < 8; i++) {
+        bossRushCallenges[bossRushChallengeCount].objectIdNumbers[i] = 0;
+    }
+
+    bossRushChallengeCount++;
+}
+
+void duplicateBossRushListing(int listingIndex) {
+    addBossRushListing(
+        bossRushCallenges[listingIndex].gameIndex,
+        bossRushCallenges[listingIndex].zoneIndex,
+        bossRushCallenges[listingIndex].actIndex,
+        bossRushCallenges[listingIndex].objectLocationStart,
+        bossRushCallenges[listingIndex].objectLocationEnd,
+        bossRushCallenges[listingIndex].healthByteOffset,
+        bossRushCallenges[listingIndex].defeatedByte,
+        bossRushCallenges[listingIndex].defeatedValue
+    );
+}
+
+void populateMostRecentBossRush(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3) {
+    populateBossRushObjectIds(bossRushChallengeCount - 1, id0, id1, id2, id3);
+}
+
+void applyGenerationToMostRecentBossRush(unsigned int generation) {
+    bossRushCallenges[bossRushChallengeCount].shouldAppearInGeneration = generation;
+}
+
+void populateBossRushObjectIds(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3) {
+    bossRushCallenges[listingIndex].objectIdNumbers[0] = id0;
+    bossRushCallenges[listingIndex].objectIdNumbers[1] = id1;
+    bossRushCallenges[listingIndex].objectIdNumbers[2] = id2;
+    bossRushCallenges[listingIndex].objectIdNumbers[3] = id3;
 }
 
 void zeroAllListings() {
