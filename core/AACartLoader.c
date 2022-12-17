@@ -801,13 +801,34 @@ void bumpToNextBossRush() {
         }
     }
 
+    char tempLog1[256];
+    sprintf(tempLog1,"bumpToNextBossRush allowedIndexes: %i", maxIndex);
+    cartLoader_appendToLog(tempLog1);
+
     if (maxIndex > 0) {
         saveActiveBossRushSlot();
 
+        char tempLog2[256];
+        sprintf(tempLog2,"bumpToNextBossRush last index: %i", currentBossRushIndex);
+        cartLoader_appendToLog(tempLog2);
+
         currentBossRushIndex = rand() % maxIndex;
+
+        char tempLog3[256];
+        sprintf(tempLog3,"bumpToNextBossRush next index: %i", currentBossRushIndex);
+        cartLoader_appendToLog(tempLog3);
         
         cartLoader_loadRomAtIndex(getActiveBossRushListing().romAtIndex, 1);
+
+        char tempLog4[256];
+        sprintf(tempLog4,"bumpToNextBossRush loaded rom %i", getActiveBossRushListing().romAtIndex);
+        cartLoader_appendToLog(tempLog4);
+
         loadActiveBossRushSlot();
+
+        char tempLog5[256];
+        sprintf(tempLog5,"bumpToNextBossRush loaded active boss rush slot");
+        cartLoader_appendToLog(tempLog5);
     }
 }
 
@@ -827,9 +848,18 @@ void mapBossRushesToRoms() {
     for (int i = 0; i < romCount; i++) {
         cartLoader_loadRomAtIndex(i, 0);
         int index = cartLoader_getActiveCartIndex();
+
+        char tempLog1[256];
+        sprintf(tempLog1,"mapBossRushesToRoms: ROM %i is cart %i", i, index);
+        cartLoader_appendToLog(tempLog1);
+
         for (int brI = 0; brI < bossRushChallengeCount; brI++) {
-            if (bossRushCallenges[brI].gameIndex == index && bossRushCallenges[i].romAtIndex != -1) {
+            if (bossRushCallenges[brI].gameIndex == index && bossRushCallenges[brI].romAtIndex == -1) {
                 bossRushCallenges[brI].romAtIndex = i;
+
+                char tempLog[256];
+                sprintf(tempLog,"Rush index %i matches rom %i", brI, i);
+                cartLoader_appendToLog(tempLog);
             }
         }
     }
@@ -838,12 +868,17 @@ void mapBossRushesToRoms() {
 void queueBossRushSlots() {
     for (int i = 0; i < MAX_SIMULTANEOUS_BOSSES; i++) {
         if (activeBossRushes[i] == -1) {
+            
             queueBossRushInSlot(i);
         }    
     }
 }
 
 void queueBossRushInSlot(int slot) {
+    char tempLog[256];
+    sprintf(tempLog,"queueBossRushInSlot %i", slot);
+    cartLoader_appendToLog(tempLog);
+
     int allowedIndexes[MAX_ROMS];
     int maxIndex = 0;
     for (int i = 0; i < bossRushChallengeCount; i++) {
@@ -858,16 +893,25 @@ void queueBossRushInSlot(int slot) {
         int bossRushIndexToQueue = allowedIndexes[chosenIndex];
         bossRushCallenges[bossRushIndexToQueue].isActivated = 1;
         activeBossRushes[slot] = bossRushIndexToQueue;
+
+        char tempLog2[256];
+        sprintf(tempLog2,"    %i <-- %i <-- %i", slot, bossRushIndexToQueue, chosenIndex);
+        cartLoader_appendToLog(tempLog2);
+    } else {
+        char tempLog2[256];
+        sprintf(tempLog2,"   no valid indexes");
+        cartLoader_appendToLog(tempLog2);
     }
 }
 
 void populateBossRushes() {
     // do addBossRushListing for each game
+    bossRushChallengeCount = 0;
 
     // Sonic 1 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_(16-bit)/Object_Editing
     int sonic1index = bossRushChallengeCount;
     // GHZ
-    addBossRushListing(0, 0, 2, 0xD000, 0xD7FF, 0x21, 0xF7A7, 0x02);
+    addBossRushListing(1, 0, 2, 0xD000, 0xD7FF, 0x21, 0xF7A7, 0x02);
     populateMostRecentBossRush(0x3D, 0, 0, 0);
     // MZ
     duplicateBossRushListing(sonic1index, 1, 2);
@@ -888,7 +932,7 @@ void populateBossRushes() {
 
     // Sonic 2 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_2_(16-bit)/Object_Editing/Pointers
     int sonic2index = bossRushChallengeCount;
-    addBossRushListing(1, 0, 1, 0xB000, 0xD5FF, 0x21, 0xF7A7, 0x02);
+    addBossRushListing(2, 0, 1, 0xB000, 0xD5FF, 0x21, 0xF7A7, 0x02);
     // EHZ
     populateMostRecentBossRush(0x56, 0, 0, 0);
     // CPZ
@@ -960,8 +1004,8 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
 void duplicateBossRushListing(int listingIndex, int zoneIndex, int actIndex) {
     addBossRushListing(
         bossRushCallenges[listingIndex].gameIndex,
-        bossRushCallenges[listingIndex].zoneIndex,
-        bossRushCallenges[listingIndex].actIndex,
+        zoneIndex,
+        actIndex,
         bossRushCallenges[listingIndex].objectLocationStart,
         bossRushCallenges[listingIndex].objectLocationEnd,
         bossRushCallenges[listingIndex].healthByteOffset,
@@ -987,8 +1031,14 @@ void populateBossRushObjectIds(int listingIndex, unsigned int id0, unsigned int 
 
 static int shouldStartBossRush = 0;
 static int bossRushIsActive = 0;
+static int shouldInitialiseBossRush = 0;
+
 void toggleStartBossRush() {
     shouldStartBossRush = 1 - shouldStartBossRush;
+
+    if (shouldStartBossRush == 1) {
+        shouldInitialiseBossRush = 1;
+    }
 }
 
 int awaitingBossRushStart() {
@@ -997,6 +1047,11 @@ int awaitingBossRushStart() {
 
 void checkForBossRushStart() {
     bossRushIsActive = shouldStartBossRush;
+    if (shouldInitialiseBossRush == 1) {
+        beginBossRush();
+        flagNewSavestateLoaded();
+        shouldInitialiseBossRush = 0;
+    }
 }
 
 int shouldUseBossRush() {
@@ -2045,12 +2100,21 @@ void saveStateForCurrentBoss() {
 void loadStateForCurrentBoss() {
     if (hasBossRushSaveState[getActiveBossRushIndex()] == 0) {
         // load it from the .boss_rush_source folder
+
+        char tempLog1[256];
+        sprintf(tempLog1,"loadStateForCurrentBoss has no state at index %i", getActiveBossRushIndex());
+        cartLoader_appendToLog(tempLog1);
+
         return;
     }
 
     // char tempLog[256];
     // sprintf(tempLog,"Loading save state %d (%s) %d", lastLoadedIndex, loadedRomName, hasCachedSaveState[lastLoadedIndex]);
     // cartLoader_appendToLog(tempLog);
+
+    char tempLog2[256];
+    sprintf(tempLog2,"loadStateForCurrentBoss loading boss state at index %i", getActiveBossRushIndex());
+    cartLoader_appendToLog(tempLog2);
 
     state_load(bossRushSaveStates[getActiveBossRushIndex()]);
 }
@@ -2228,8 +2292,10 @@ void cartLoader_loadBossRushSaveStatesFromDisk() {
         char path[256];
         BossRushChallengeListing listing = bossRushCallenges[i];
 
-        sprintf(path, "%s.boss_rush_source/%s_%s_%s.savestate", folderPath, listing.gameIndex, listing.zoneIndex, listing.actIndex);
+        // sprintf(path, "%s/0_0_2.savestate", folderPath); // 
+        sprintf(path, "%s/.boss_rush_source/%i_%i_%i.savestate", folderPath, listing.gameIndex, listing.zoneIndex, listing.actIndex);
 
+        // LOGGING HERE SEEMS TO CRASH THE EMU!!!
         char tempLog[256];
         sprintf(tempLog,"Loading boss rush state %d", i);
         cartLoader_appendToLog(tempLog);

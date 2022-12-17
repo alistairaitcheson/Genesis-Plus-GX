@@ -1581,7 +1581,6 @@ void activateTerminalOption() {
 void incrementBossRushOption(int direction) {
     if (bossRushItemIndex == 0) {
         toggleStartBossRush();
-        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 
     if (bossRushItemIndex == 1) {
@@ -3770,4 +3769,8 @@ void showBossRushMenu() {
 
         yPos += 8;
     }
+}
+
+void flagNewSavestateLoaded() {
+    saveStateWasLoaded = 1;
 }

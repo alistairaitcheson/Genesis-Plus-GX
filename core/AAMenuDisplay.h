@@ -187,4 +187,6 @@ extern void menuDisplay_showTerminalMenu();
 void showTerminalMenu();
 void activateTerminalOption();
 
+void flagNewSavestateLoaded();
+
 #endif
