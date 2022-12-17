@@ -68,6 +68,12 @@ static int maxRewindStatesPerGame = 0x20;
 static int rewindStateMinimumPerGame[MAX_ROMS];
 static int rewindStateCounterPerGame[MAX_ROMS];
 
+static int activeBossRushes[MAX_ROMS];
+static int currentBossRushIndex = 0;
+static int MAX_SIMULTANEOUS_BOSSES = 4;
+static uint8 bossRushSaveStates[MAX_ROMS][STATE_SIZE];
+static uint8 hasBossRushSaveState[MAX_ROMS][STATE_SIZE];
+
 int cartLoader_base10CharToInt(char character) {
     if (character == '0') {
         return 0;
@@ -126,6 +132,14 @@ int cartLoader_base10Array32ToInt(char array32[]) {
 
 void writeFolderPathIntoArray32(char array32[]) {
     writeStringToArray32(folderPath, array32);
+}
+
+void initialiseBossRush() {
+    populateBossRushes();
+
+    for (int i = 0; i < MAX_ROMS; i++) {
+        activeBossRushes[i] = -1;
+    }
 }
 
 void cartLoader_run() {
@@ -740,6 +754,109 @@ void cartLoader_run() {
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
+void beginBossRush() {
+    populateBossRushes();
+
+    cartLoader_loadBossRushSaveStatesFromDisk();
+    mapBossRushesToRoms();
+
+    currentBossRushIndex = -1;
+    bumpToNextBossRush();
+}
+
+void onBossHit() {
+    bumpToNextBossRush();
+}
+
+void onBossDefeated() {
+    getActiveBossRushListing().isCompleted = 1;
+    activeBossRushes[currentBossRushIndex] = -1;
+    queueBossRushSlots();
+
+    bumpToNextBossRush();
+}
+
+int getActiveBossRushIndex() {
+    return activeBossRushes[currentBossRushIndex];
+}
+
+BossRushChallengeListing getActiveBossRushListing() {
+    int rushToLoad = activeBossRushes[currentBossRushIndex];
+    return bossRushCallenges[rushToLoad];
+}
+
+void bumpToNextBossRush() {
+    queueBossRushSlots();
+
+    int allowedIndexes[MAX_ROMS];
+    int maxIndex = 0;
+    for (int i = 0; i < MAX_SIMULTANEOUS_BOSSES; i++) {
+        if (i != currentBossRushIndex) {
+            allowedIndexes[maxIndex] = i;
+            maxIndex++;
+        }
+    }
+
+    if (maxIndex > 0) {
+        saveActiveBossRushSlot();
+
+        currentBossRushIndex = rand() % maxIndex;
+        
+        cartLoader_loadRomAtIndex(getActiveBossRushListing().romAtIndex, 1);
+        loadActiveBossRushSlot();
+    }
+}
+
+void saveActiveBossRushSlot() {
+    if (currentBossRushIndex > -1) {
+        saveStateForCurrentBoss();
+    }
+}
+
+void loadActiveBossRushSlot() {
+    if (currentBossRushIndex > -1) {
+        loadStateForCurrentBoss();
+    }
+}
+
+void mapBossRushesToRoms() {
+    for (int i = 0; i < romCount; i++) {
+        cartLoader_loadRomAtIndex(i, 0);
+        int index = cartLoader_getActiveCartIndex();
+        for (int brI = 0; brI < bossRushChallengeCount; brI++) {
+            if (bossRushCallenges[brI].gameIndex == index && bossRushCallenges[i].romAtIndex != -1) {
+                bossRushCallenges[brI].romAtIndex = i;
+            }
+        }
+    }
+}
+
+void queueBossRushSlots() {
+    for (int i = 0; i < MAX_SIMULTANEOUS_BOSSES; i++) {
+        if (activeBossRushes[i] == -1) {
+            queueBossRushInSlot(i);
+        }    
+    }
+}
+
+void queueBossRushInSlot(int slot) {
+    int allowedIndexes[MAX_ROMS];
+    int maxIndex = 0;
+    for (int i = 0; i < bossRushChallengeCount; i++) {
+        if (bossRushCallenges[i].isActivated == 0 && bossRushCallenges[i].isCompleted == 0 && bossRushCallenges[i].romAtIndex != -1 && hasBossRushSaveState[i] == 1) {
+            allowedIndexes[maxIndex] = i;
+            maxIndex++;
+        }
+    }
+
+    if (maxIndex > 0) {
+        int chosenIndex = rand() % maxIndex;
+        int bossRushIndexToQueue = allowedIndexes[chosenIndex];
+        bossRushCallenges[bossRushIndexToQueue].isActivated = 1;
+        activeBossRushes[slot] = bossRushIndexToQueue;
+    }
+}
+
 void populateBossRushes() {
     // do addBossRushListing for each game
 
@@ -749,21 +866,54 @@ void populateBossRushes() {
     addBossRushListing(0, 0, 2, 0xD000, 0xD7FF, 0x21, 0xF7A7, 0x02);
     populateMostRecentBossRush(0x3D, 0, 0, 0);
     // MZ
-    duplicateBossRushListing(sonic1index);
+    duplicateBossRushListing(sonic1index, 1, 2);
     populateMostRecentBossRush(0x73, 0, 0, 0);
     // SYZ
-    duplicateBossRushListing(sonic1index);
+    duplicateBossRushListing(sonic1index, 2, 2);
     populateMostRecentBossRush(0x75, 0, 0, 0);
     // LZ
-    duplicateBossRushListing(sonic1index);
+    duplicateBossRushListing(sonic1index, 3, 2);
     populateMostRecentBossRush(0x77, 0, 0, 0);
     // SLZ
-    duplicateBossRushListing(sonic1index);
+    duplicateBossRushListing(sonic1index, 4, 2);
     populateMostRecentBossRush(0x7A, 0, 0, 0);
     // FinalZone
-    duplicateBossRushListing(sonic1index);
+    duplicateBossRushListing(sonic1index, 5, 2);
     populateMostRecentBossRush(0x85, 0, 0, 0);
     applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
+
+    // Sonic 2 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_2_(16-bit)/Object_Editing/Pointers
+    int sonic2index = bossRushChallengeCount;
+    addBossRushListing(1, 0, 1, 0xB000, 0xD5FF, 0x21, 0xF7A7, 0x02);
+    // EHZ
+    populateMostRecentBossRush(0x56, 0, 0, 0);
+    // CPZ
+    duplicateBossRushListing(sonic2index, 1, 1);
+    populateMostRecentBossRush(0x5D, 0, 0, 0);
+    // ARZ
+    duplicateBossRushListing(sonic2index, 2, 1);
+    populateMostRecentBossRush(0x89, 0, 0, 0);
+    // CNZ
+    duplicateBossRushListing(sonic2index, 3, 1);
+    populateMostRecentBossRush(0x51, 0, 0, 0);
+    // HTZ
+    duplicateBossRushListing(sonic2index, 4, 1);
+    populateMostRecentBossRush(0x52, 0, 0, 0);
+    // MCZ
+    duplicateBossRushListing(sonic2index, 5, 1);
+    populateMostRecentBossRush(0x57, 0, 0, 0);
+    // OOZ
+    duplicateBossRushListing(sonic2index, 6, 1);
+    populateMostRecentBossRush(0x55, 0, 0, 0);
+    // MZ
+    duplicateBossRushListing(sonic2index, 7, 2);
+    populateMostRecentBossRush(0x54, 0, 0, 0);
+    // WFZ
+    duplicateBossRushListing(sonic2index, 9, 0);
+    populateMostRecentBossRush(0xC5, 0, 0, 0);
+    // DEZ - eggrobo and silver sonic
+    duplicateBossRushListing(sonic2index, 10, 0);
+    populateMostRecentBossRush(0xC7, 0xAF, 0, 0);
 
     // during play, when you are in boss rush, switching a game will switch game and then put you in
     // a boss rush listing for that game.
@@ -798,10 +948,12 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
         bossRushCallenges[bossRushChallengeCount].objectIdNumbers[i] = 0;
     }
 
+    bossRushCallenges[bossRushChallengeCount].romAtIndex = -1;
+
     bossRushChallengeCount++;
 }
 
-void duplicateBossRushListing(int listingIndex) {
+void duplicateBossRushListing(int listingIndex, int zoneIndex, int actIndex) {
     addBossRushListing(
         bossRushCallenges[listingIndex].gameIndex,
         bossRushCallenges[listingIndex].zoneIndex,
@@ -1863,6 +2015,25 @@ void copyGameListing(int fromGame, int toGame) {
 
 }
 
+void saveStateForCurrentBoss() {
+    state_save(bossRushSaveStates[getActiveBossRushIndex()])
+    hasBossRushSaveState[getActiveBossRushIndex()] = 1;
+}
+
+void loadStateForCurrentBoss() {
+    if (hasBossRushSaveState[getActiveBossRushIndex()] == 0) {
+        // load it from the .boss_rush_source folder
+        return;
+    }
+
+    // char tempLog[256];
+    // sprintf(tempLog,"Loading save state %d (%s) %d", lastLoadedIndex, loadedRomName, hasCachedSaveState[lastLoadedIndex]);
+    // cartLoader_appendToLog(tempLog);
+
+    state_load(bossRushSaveStates[getActiveBossRushIndex()]);
+}
+
+
 void saveSaveStateForCurrentGame() {
     // char tempLog[256];
     // sprintf(tempLog,"Caching save state %d (%s)", lastLoadedIndex, loadedRomName);
@@ -2023,6 +2194,32 @@ void cartLoader_loadAllSaveStatesFromDisk() {
             fclose(f);
             cartLoader_appendToLog("success!");
             hasCachedSaveState[i] = 1;
+        } else {
+            cartLoader_appendToLog("no state found");
+        }
+        cartLoader_appendToLog(" -- ");
+    }
+}
+
+void cartLoader_loadBossRushSaveStatesFromDisk() {
+    for (int i = 0; i < bossRushChallengeCount; i++) {
+        char path[256];
+        BossRushChallengeListing listing = bossRushCallenges[i];
+
+        sprintf(path, "%s.boss_rush_source/%s_%s_%s.savestate", folderPath, listing.gameIndex, listing.zoneIndex, listing.actIndex);
+
+        char tempLog[256];
+        sprintf(tempLog,"Loading boss rush state %d", i);
+        cartLoader_appendToLog(tempLog);
+        cartLoader_appendToLog(path);
+        
+        FILE *f = fopen(path,"rb");
+        if (f)
+        {
+            fread(&bossRushSaveStates[i], STATE_SIZE, 1, f);
+            fclose(f);
+            cartLoader_appendToLog("success!");
+            hasBossRushSaveState[i] = 1;
         } else {
             cartLoader_appendToLog("no state found");
         }

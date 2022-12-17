@@ -112,6 +112,7 @@ typedef struct {
 
     int isActivated;
     int isCompleted;
+    int romAtIndex;
 } BossRushChallengeListing;
 
 static int INPUT_INDEX_UP = 0;

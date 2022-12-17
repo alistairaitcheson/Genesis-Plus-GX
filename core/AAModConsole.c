@@ -97,6 +97,8 @@ static int intervalBetweenPendingTriggers = 15;
 static int pendingRingTriggerTimer = 0;
 static int hasFlaggedPendingRingsThisFrame = 0;
 
+static int bossRushEnabled = 0;
+
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
 }
@@ -149,6 +151,7 @@ void modConsole_initialise() {
         layerRenderer_populateLetters();
         menuDisplay_initialise();
         cartLoader_run();
+        initialiseBossRush();
         // showRomList();
 
         hasInitialised = 1;
