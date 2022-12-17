@@ -796,7 +796,7 @@ void bumpToNextBossRush() {
     int allowedIndexes[MAX_ROMS];
     int maxIndex = 0;
     for (int i = 0; i < MAX_SIMULTANEOUS_BOSSES; i++) {
-        if (i != currentBossRushIndex) {
+        if (i != currentBossRushIndex && activeBossRushes[i] != -1) {
             allowedIndexes[maxIndex] = i;
             maxIndex++;
         }
@@ -813,7 +813,7 @@ void bumpToNextBossRush() {
         sprintf(tempLog2,"bumpToNextBossRush last index: %i", currentBossRushIndex);
         cartLoader_appendToLog(tempLog2);
 
-        currentBossRushIndex = rand() % maxIndex;
+        currentBossRushIndex = allowedIndexes[rand() % maxIndex];
 
         char tempLog3[256];
         sprintf(tempLog3,"bumpToNextBossRush next index: %i", currentBossRushIndex);
