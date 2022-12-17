@@ -3735,11 +3735,11 @@ void showBossRushMenu() {
         blockedLines[i] = 0;
     }
 
-    if (bossRushOptionIndex < 0) {
-        bossRushOptionIndex = lineCount - 1;
+    if (bossRushItemIndex < 0) {
+        bossRushItemIndex = lineCount - 1;
     }
-    if (bossRushOptionIndex >= lineCount) {
-        bossRushOptionIndex = 0;
+    if (bossRushItemIndex >= lineCount) {
+        bossRushItemIndex = 0;
     }
 
     if (awaitingBossRushStart() == 1) {
@@ -3756,7 +3756,7 @@ void showBossRushMenu() {
         }
 
         char toPrint[0x100];
-        if (i == bossRushOptionIndex) {
+        if (i == bossRushItemIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
             sprintf(toPrint, "   %s", lines[i]);

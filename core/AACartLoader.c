@@ -72,7 +72,7 @@ static int activeBossRushes[MAX_ROMS];
 static int currentBossRushIndex = 0;
 static int MAX_SIMULTANEOUS_BOSSES = 4;
 static uint8 bossRushSaveStates[MAX_ROMS][STATE_SIZE];
-static uint8 hasBossRushSaveState[MAX_ROMS][STATE_SIZE];
+static uint8 hasBossRushSaveState[MAX_ROMS];
 
 int cartLoader_base10CharToInt(char character) {
     if (character == '0') {
@@ -769,11 +769,15 @@ void onBossHit() {
 }
 
 void onBossDefeated() {
-    getActiveBossRushListing().isCompleted = 1;
-    activeBossRushes[currentBossRushIndex] = -1;
-    queueBossRushSlots();
+    if (currentBossRushIndex > -1) {
+        BossRushChallengeListing listing = getActiveBossRushListing();
+        listing.isCompleted = 1;
+        activeBossRushes[currentBossRushIndex] = -1;
+        queueBossRushSlots();
 
-    bumpToNextBossRush();
+        currentBossRushIndex = -1;
+        bumpToNextBossRush();
+    }
 }
 
 int getActiveBossRushIndex() {
@@ -2034,7 +2038,7 @@ void copyGameListing(int fromGame, int toGame) {
 }
 
 void saveStateForCurrentBoss() {
-    state_save(bossRushSaveStates[getActiveBossRushIndex()])
+    state_save(bossRushSaveStates[getActiveBossRushIndex()]);
     hasBossRushSaveState[getActiveBossRushIndex()] = 1;
 }
 

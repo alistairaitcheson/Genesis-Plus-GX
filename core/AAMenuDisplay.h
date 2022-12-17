@@ -172,6 +172,7 @@ void incrementSaveStateOption(int direction);
 void incrementSonicSpecificOption(int direction);
 void incrementVisualsOption(int direction);
 void incrementNetworkOption(int direction);
+void incrementBossRushOption(int direction);
 
 void clearLogRamState();
 
