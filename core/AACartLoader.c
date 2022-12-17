@@ -762,6 +762,7 @@ void beginBossRush() {
 
     currentBossRushIndex = -1;
     bumpToNextBossRush();
+    cartLoader_cacheSaveStateBeforeMenu();
 }
 
 void onBossHit() {
@@ -1049,7 +1050,7 @@ void checkForBossRushStart() {
     bossRushIsActive = shouldStartBossRush;
     if (shouldInitialiseBossRush == 1) {
         beginBossRush();
-        flagNewSavestateLoaded();
+        // flagNewSavestateLoaded();
         shouldInitialiseBossRush = 0;
     }
 }

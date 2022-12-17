@@ -1086,7 +1086,13 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         if (buttonIndex == INPUT_INDEX_START) {
             saveHackOptions();
             if (gameHasStarted == 0) {
-                menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
+                if (awaitingBossRushStart()) {
+                    menuDisplay_hideMenu();
+                    beginGame();
+                    return 1;
+                } else {
+                    menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
+                }
             } else {
                 cartLoader_applyHackOptions(gameHasStarted);
                 modConsole_applyHackOptions();
