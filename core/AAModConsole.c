@@ -377,7 +377,7 @@ void checkForBossHits() {
             if (listing.objectIdNumbers[objectIdx] > 0) {
                 if (aa_genesis_getWorkRam(indexToCheck) == listing.objectIdNumbers[objectIdx]) {
                     // this is a key value! check if it has changed!
-                    int locationToCheck = indexToCheck + listing.healthByteOffset - 1;
+                    int locationToCheck = indexToCheck + listing.healthByteOffset - 2;
                     if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
                         && aa_genesis_getWorkRam(locationToCheck) != 0
                         && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
@@ -395,7 +395,7 @@ void checkForBossHits() {
                     for (int loc = 0; loc < 0x40; loc++) {
                         char rushText2[0x40];
                         BossRushChallengeListing listing = getActiveBossRushListing();
-                        sprintf(rushText2, "%02X", aa_genesis_getWorkRam(loc));
+                        sprintf(rushText2, "%02X", aa_genesis_getWorkRam(i + loc));
                         layerRenderer_fill(2, 8 * indexX * 3, 8 * (indexY + 1), 8 * 2, 8, 0xFF);
                         layerRenderer_writeWord256(2, 8 * indexX * 3, 8 * (indexY + 1), rushText2, 0x5);
 
@@ -406,7 +406,7 @@ void checkForBossHits() {
                         }
                     }
 
-                    indexY++;
+                    indexX++;
                 }
             }
         }
