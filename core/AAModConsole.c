@@ -364,6 +364,55 @@ void increasePendingRingTriggers(int count) {
     }
 }
 
+void checkForBossHits() {
+    int indexX = 0;
+    int indexY = 0;
+
+    int foundCount = 0;
+
+    BossRushChallengeListing listing = getActiveBossRushListing();
+    for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
+        int indexToCheck = i + 1;
+        for (int objectIdx = 0; objectIdx < 8; objectIdx++) {
+            if (listing.objectIdNumbers[objectIdx] > 0) {
+                if (aa_genesis_getWorkRam(indexToCheck) == listing.objectIdNumbers[objectIdx]) {
+                    // this is a key value! check if it has changed!
+                    int locationToCheck = indexToCheck + listing.healthByteOffset - 1;
+                    if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
+                        && aa_genesis_getWorkRam(locationToCheck) != 0
+                        && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
+                        promptSwitchGame();
+                        fireScreenSnapOnEvent();
+                    }
+
+                    char rushText[0x40];
+                    BossRushChallengeListing listing = getActiveBossRushListing();
+                    sprintf(rushText, "%04X %02X", locationToCheck, aa_genesis_getWorkRam(locationToCheck));
+                    layerRenderer_fill(2, 8 * 8 * foundCount, 0, 8 * 7, 8, 0xFF);
+                    layerRenderer_writeWord256(2, 8 * 8 * foundCount, 0, rushText, 0x5);
+                    foundCount++;
+
+                    for (int loc = 0; loc < 0x40; loc++) {
+                        char rushText2[0x40];
+                        BossRushChallengeListing listing = getActiveBossRushListing();
+                        sprintf(rushText2, "%02X", aa_genesis_getWorkRam(loc));
+                        layerRenderer_fill(2, 8 * indexX * 3, 8 * (indexY + 1), 8 * 2, 8, 0xFF);
+                        layerRenderer_writeWord256(2, 8 * indexX * 3, 8 * (indexY + 1), rushText2, 0x5);
+
+                        indexY++;
+                        if (indexY >= 0x10) {
+                            indexY = 0;
+                            indexX++;
+                        }
+                    }
+
+                    indexY++;
+                }
+            }
+        }
+    }
+}
+
 void modConsole_updateFrame() {
     lastPadState = padState;
     padState = input.pad[0];
@@ -659,6 +708,16 @@ void modConsole_updateFrame() {
             barSize /= 8;
             barSize *= 8;
             layerRenderer_fill(2, 4, 4, barSize, 8, 0x08);
+        }
+
+        if (shouldUseBossRush()) {
+            char rushText[0x40];
+            BossRushChallengeListing listing = getActiveBossRushListing();
+            sprintf(rushText, "%02X %02X %02X %02X", listing.objectIdNumbers[0], listing.objectIdNumbers[1], listing.objectIdNumbers[2], listing.objectIdNumbers[3]);
+            layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8, 8 * 20, 8, 0xFF);
+            layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8, rushText, 0x5);
+
+            checkForBossHits();
         }
 
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
@@ -1355,7 +1414,11 @@ void switchGame() {
     switchCooldownCounter = switchCooldownPeriod;
     clearCooldownVisualiser();
 
-    cartLoader_loadRandomRom();
+    if (shouldUseBossRush()) {
+        bumpToNextBossRush();
+    } else {
+        cartLoader_loadRandomRom();
+    }
 }
 
 void clearCooldownVisualiser() {

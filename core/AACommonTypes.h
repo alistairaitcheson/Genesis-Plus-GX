@@ -102,9 +102,10 @@ typedef struct {
     int gameIndex;
     int zoneIndex;
     int actIndex;
-    unsigned int objectIdNumbers[8]; // e.g. https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_(16-bit)/Object_Editing search for "Eggman" - list a non-zero number for each actor in this boss
+    unsigned int objectIdNumbers[0x20]; // e.g. https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_(16-bit)/Object_Editing search for "Eggman" - list a non-zero number for each actor in this boss
     unsigned int objectLocationStart;
     unsigned int objectLocationEnd;
+    unsigned int objectLocationSize;
     unsigned int healthByteOffset;
     unsigned int defeatedByte; // e.g. signpost landed or capsule opened
     unsigned int defeatedValue;

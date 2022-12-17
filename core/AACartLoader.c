@@ -912,57 +912,57 @@ void populateBossRushes() {
     // Sonic 1 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_(16-bit)/Object_Editing
     int sonic1index = bossRushChallengeCount;
     // GHZ
-    addBossRushListing(1, 0, 2, 0xD000, 0xD7FF, 0x21, 0xF7A7, 0x02);
-    populateMostRecentBossRush(0x3D, 0, 0, 0);
+    addBossRushListing(1, 0, 2, 0xD800, 0xEFFF, 0x40, 0x21, 0xF7A7, 0x02);
+    populateMostRecentBossRush4(0x3D, 0, 0, 0);
     // MZ
     duplicateBossRushListing(sonic1index, 1, 2);
-    populateMostRecentBossRush(0x73, 0, 0, 0);
+    populateMostRecentBossRush4(0x73, 0, 0, 0);
     // SYZ
     duplicateBossRushListing(sonic1index, 2, 2);
-    populateMostRecentBossRush(0x75, 0, 0, 0);
+    populateMostRecentBossRush4(0x75, 0, 0, 0);
     // LZ
     duplicateBossRushListing(sonic1index, 3, 2);
-    populateMostRecentBossRush(0x77, 0, 0, 0);
+    populateMostRecentBossRush4(0x77, 0, 0, 0);
     // SLZ
     duplicateBossRushListing(sonic1index, 4, 2);
-    populateMostRecentBossRush(0x7A, 0, 0, 0);
+    populateMostRecentBossRush4(0x7A, 0, 0, 0);
     // FinalZone
     duplicateBossRushListing(sonic1index, 5, 2);
-    populateMostRecentBossRush(0x85, 0, 0, 0);
+    populateMostRecentBossRush4(0x85, 0, 0, 0);
     applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
 
     // Sonic 2 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_2_(16-bit)/Object_Editing/Pointers
     int sonic2index = bossRushChallengeCount;
-    addBossRushListing(2, 0, 1, 0xB000, 0xD5FF, 0x21, 0xF7A7, 0x02);
+    addBossRushListing(2, 0, 1, 0xB000, 0xD5FF, 0x40, 0x21, 0xF7A7, 0x02);
     // EHZ
-    populateMostRecentBossRush(0x56, 0, 0, 0);
+    populateMostRecentBossRush4(0x56, 0, 0, 0);
     // CPZ
     duplicateBossRushListing(sonic2index, 1, 1);
-    populateMostRecentBossRush(0x5D, 0, 0, 0);
+    populateMostRecentBossRush4(0x5D, 0, 0, 0);
     // ARZ
     duplicateBossRushListing(sonic2index, 2, 1);
-    populateMostRecentBossRush(0x89, 0, 0, 0);
+    populateMostRecentBossRush4(0x89, 0, 0, 0);
     // CNZ
     duplicateBossRushListing(sonic2index, 3, 1);
-    populateMostRecentBossRush(0x51, 0, 0, 0);
+    populateMostRecentBossRush4(0x51, 0, 0, 0);
     // HTZ
     duplicateBossRushListing(sonic2index, 4, 1);
-    populateMostRecentBossRush(0x52, 0, 0, 0);
+    populateMostRecentBossRush4(0x52, 0, 0, 0);
     // MCZ
     duplicateBossRushListing(sonic2index, 5, 1);
-    populateMostRecentBossRush(0x57, 0, 0, 0);
+    populateMostRecentBossRush4(0x57, 0, 0, 0);
     // OOZ
     duplicateBossRushListing(sonic2index, 6, 1);
-    populateMostRecentBossRush(0x55, 0, 0, 0);
+    populateMostRecentBossRush4(0x55, 0, 0, 0);
     // MZ
     duplicateBossRushListing(sonic2index, 7, 2);
-    populateMostRecentBossRush(0x54, 0, 0, 0);
+    populateMostRecentBossRush4(0x54, 0, 0, 0);
     // WFZ
     duplicateBossRushListing(sonic2index, 9, 0);
-    populateMostRecentBossRush(0xC5, 0, 0, 0);
+    populateMostRecentBossRush4(0xC5, 0, 0, 0);
     // DEZ - eggrobo and silver sonic
     duplicateBossRushListing(sonic2index, 10, 0);
-    populateMostRecentBossRush(0xC7, 0xAF, 0, 0);
+    populateMostRecentBossRush4(0xC7, 0xAF, 0, 0);
 
     // during play, when you are in boss rush, switching a game will switch game and then put you in
     // a boss rush listing for that game.
@@ -976,13 +976,14 @@ void populateBossRushes() {
     // roms will be labelled "bossrush_[game]_[zone]_[act].savestate"
 }
 
-void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int objectLocationStart, unsigned int objectLocationEnd, unsigned int healthByteOffset, unsigned int defeatedByte, unsigned int defeatedValue) {
+void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int objectLocationStart, unsigned int objectLocationEnd, unsigned int objectLocationSize, unsigned int healthByteOffset, unsigned int defeatedByte, unsigned int defeatedValue) {
     bossRushCallenges[bossRushChallengeCount].gameIndex = gameIndex;
     bossRushCallenges[bossRushChallengeCount].zoneIndex = zoneIndex;
     bossRushCallenges[bossRushChallengeCount].actIndex = actIndex;
 
     bossRushCallenges[bossRushChallengeCount].objectLocationStart = objectLocationStart;
     bossRushCallenges[bossRushChallengeCount].objectLocationEnd = objectLocationEnd;
+    bossRushCallenges[bossRushChallengeCount].objectLocationSize = objectLocationSize;
     bossRushCallenges[bossRushChallengeCount].healthByteOffset = healthByteOffset;
 
 
@@ -1009,26 +1010,43 @@ void duplicateBossRushListing(int listingIndex, int zoneIndex, int actIndex) {
         actIndex,
         bossRushCallenges[listingIndex].objectLocationStart,
         bossRushCallenges[listingIndex].objectLocationEnd,
+        bossRushCallenges[listingIndex].objectLocationSize,
         bossRushCallenges[listingIndex].healthByteOffset,
         bossRushCallenges[listingIndex].defeatedByte,
         bossRushCallenges[listingIndex].defeatedValue
     );
 }
 
-void populateMostRecentBossRush(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3) {
-    populateBossRushObjectIds(bossRushChallengeCount - 1, id0, id1, id2, id3);
+void populateMostRecentBossRush4(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3) {
+    populateBossRushObjectIds4(bossRushChallengeCount - 1, id0, id1, id2, id3);
+}
+
+void populateMostRecentBossRush8(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3, unsigned int id4, unsigned int id5, unsigned int id6, unsigned int id7) {
+    populateBossRushObjectIds8(bossRushChallengeCount - 1, id0, id1, id2, id3, id4, id5, id6, id7);
 }
 
 void applyGenerationToMostRecentBossRush(unsigned int generation) {
     bossRushCallenges[bossRushChallengeCount].shouldAppearInGeneration = generation;
 }
 
-void populateBossRushObjectIds(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3) {
+void populateBossRushObjectIds4(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3) {
     bossRushCallenges[listingIndex].objectIdNumbers[0] = id0;
     bossRushCallenges[listingIndex].objectIdNumbers[1] = id1;
     bossRushCallenges[listingIndex].objectIdNumbers[2] = id2;
     bossRushCallenges[listingIndex].objectIdNumbers[3] = id3;
 }
+
+void populateBossRushObjectIds8(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3, unsigned int id4, unsigned int id5, unsigned int id6, unsigned int id7) {
+    bossRushCallenges[listingIndex].objectIdNumbers[0] = id0;
+    bossRushCallenges[listingIndex].objectIdNumbers[1] = id1;
+    bossRushCallenges[listingIndex].objectIdNumbers[2] = id2;
+    bossRushCallenges[listingIndex].objectIdNumbers[3] = id3;
+    bossRushCallenges[listingIndex].objectIdNumbers[0] = id4;
+    bossRushCallenges[listingIndex].objectIdNumbers[1] = id5;
+    bossRushCallenges[listingIndex].objectIdNumbers[2] = id6;
+    bossRushCallenges[listingIndex].objectIdNumbers[3] = id7;
+}
+
 
 static int shouldStartBossRush = 0;
 static int bossRushIsActive = 0;

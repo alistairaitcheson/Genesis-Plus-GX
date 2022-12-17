@@ -108,13 +108,16 @@ extern void mapBossRushesToRoms();
 extern void queueBossRushSlots();
 extern void queueBossRushInSlot(int slot);
 extern void populateBossRushes();
-void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int objectLocationStart, unsigned int objectLocationEnd, unsigned int healthByteOffset, unsigned int defeatedByte, unsigned int defeatedValue);
+void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int objectLocationStart, unsigned int objectLocationEnd, unsigned int objectLocationSize, unsigned int healthByteOffset, unsigned int defeatedByte, unsigned int defeatedValue);
 void duplicateBossRushListing(int listingIndex, int zoneIndex, int actIndex);
 void populateMostRecentBossRush(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3);
 void applyGenerationToMostRecentBossRush(unsigned int generation);
-void populateBossRushObjectIds(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3);
+void populateBossRushObjectIds4(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3);
+void populateBossRushObjectIds8(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3, unsigned int id4, unsigned int id5, unsigned int id6, unsigned int id7);
 void saveStateForCurrentBoss();
 void loadStateForCurrentBoss();
+void populateMostRecentBossRush4(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3);
+void populateMostRecentBossRush8(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3, unsigned int id4, unsigned int id5, unsigned int id6, unsigned int id7);
 
 void toggleStartBossRush();
 int shouldUseBossRush();
