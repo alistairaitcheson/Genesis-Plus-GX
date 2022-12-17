@@ -25,6 +25,7 @@
 #define MENU_LISTING_NETWORKING 14
 #define MENU_LISTING_RAM_EDITING 15
 #define MENU_LISTING_TERMINAL 16
+#define MENU_LISTING_BOSS_RUSH 17
 
 typedef struct {
     int infiniteLives;
@@ -163,6 +164,7 @@ void showVisualsOptionsMenu();
 void showPixelDetectiveMenu();
 void showNetworkingOptionsMenu();
 void showRamEditingOptionsMenu();
+void showBossRushMenu();
 
 void incrementGameSwapOption(int direction);
 void incrementQualityOfLifeOption(int direction);

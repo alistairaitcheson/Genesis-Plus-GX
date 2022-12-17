@@ -29,6 +29,7 @@ static int networkingOptionsIndex = 0;
 static int ramEditingOptionsIndex = 0;
 static int ramEditingLocationIndex = 0;
 static int terminalLocationIndex = 0;
+static int bossRushItemIndex = 0;
 
 static int majorVersion = 0;
 static int minorVersion = 26;
@@ -958,6 +959,10 @@ void menuDisplay_showMenu(int menuNum) {
         showQualityOfLifeOptionsMenu(); 
     }
 
+    if (activeMenu == MENU_LISTING_BOSS_RUSH) {
+        showBossRushMenu(); 
+    }
+
     if (activeMenu == MENU_LISTING_SAVE_STATE_OPTIONS) {
         showSaveStateOptionsMenu(); 
     }
@@ -1535,6 +1540,33 @@ int menuDisplay_onButtonPress(int buttonIndex) {
             return 1;
         }
     }
+
+    if (activeMenu == MENU_LISTING_BOSS_RUSH) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            bossRushItemIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            bossRushItemIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_LEFT) {
+            incrementBossRushOption(-1);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
+            incrementBossRushOption(1);
+            refreshMenu();
+            return 1;
+        }
+    }
+
+
     return 0;
 }
 
@@ -1543,6 +1575,17 @@ void activateTerminalOption() {
         menuDisplay_applyPresetRules(terminalLocationIndex);
     } else if(terminalLocationIndex < 14) {
         menuDisplay_applyPresetRules(terminalLocationIndex - 1);
+    }
+}
+
+void incrementBossRushOption(int direction) {
+    if (bossRushItemIndex == 0) {
+        toggleStartBossRush();
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+    }
+
+    if (bossRushItemIndex == 1) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
 
@@ -1924,6 +1967,11 @@ void chooseMainMenuOption() {
     }
 
     if (optionsItemIndex == 7) {
+        qualityOfLifeOptionIndex = 0;
+        menuDisplay_showMenu(MENU_LISTING_BOSS_RUSH);
+    }
+
+    if (optionsItemIndex == 8) {
         saveHackOptions();
         if (gameHasStarted == 0) {
             menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
@@ -2088,7 +2136,7 @@ void showOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
 
-    int lineCount = 8;
+    int lineCount = 9;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -2148,7 +2196,9 @@ void showOptionsMenu() {
         sprintf(lines[6], "     RAM Editing >");
     }
 
-    sprintf(lines[7], "Start game");
+    sprintf(lines[7], "     Boss Rush >");
+
+    sprintf(lines[8], "Start game");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -3669,5 +3719,55 @@ void showTerminalMenu() {
         if (linesWithBreakAfter[i] != 0) {
             yPos += 8;
         }
+    }
+}
+
+void showBossRushMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Boss Rush", 5);
+
+    int lineCount = 2;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+    }
+
+    if (bossRushOptionIndex < 0) {
+        bossRushOptionIndex = lineCount - 1;
+    }
+    if (bossRushOptionIndex >= lineCount) {
+        bossRushOptionIndex = 0;
+    }
+
+    if (awaitingBossRushStart() == 1) {
+        sprintf(lines[0], "boss rush:   ON");
+    } else {
+        sprintf(lines[0], "boss rush:  OFF");
+    }
+    sprintf(lines[1], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
+        char toPrint[0x100];
+        if (i == bossRushOptionIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "   %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
     }
 }

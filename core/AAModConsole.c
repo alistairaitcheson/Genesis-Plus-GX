@@ -202,6 +202,8 @@ void modConsole_applyHackOptions() {
 
     saveAllStatesTimeCounter = 0;
 
+    checkForBossRushStart();
+
     if (menuDisplay_getHackOptions().switchGameType == 2) {
         switchAfterTimePeriod = 60 * 5;
     }

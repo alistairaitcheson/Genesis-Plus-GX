@@ -981,6 +981,24 @@ void populateBossRushObjectIds(int listingIndex, unsigned int id0, unsigned int 
     bossRushCallenges[listingIndex].objectIdNumbers[3] = id3;
 }
 
+static int shouldStartBossRush = 0;
+static int bossRushIsActive = 0;
+void toggleStartBossRush() {
+    shouldStartBossRush = 1 - shouldStartBossRush;
+}
+
+int awaitingBossRushStart() {
+    return shouldStartBossRush;
+}
+
+void checkForBossRushStart() {
+    bossRushIsActive = shouldStartBossRush;
+}
+
+int shouldUseBossRush() {
+    return bossRushIsActive;
+}
+
 void zeroAllListings() {
     for (int gameIndex = 0; gameIndex < MAX_ROMS; gameIndex++) {
         gameListings[gameIndex].ringByte = 0;

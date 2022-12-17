@@ -96,4 +96,29 @@ void deleteRewindState(int gameIndex, int stateIndex);
 
 void cartLoader_isolateRomAtIndex(int index);
 
+extern void beginBossRush();
+extern void onBossHit();
+extern void onBossDefeated();
+extern int getActiveBossRushIndex();
+extern BossRushChallengeListing getActiveBossRushListing();
+extern void bumpToNextBossRush();
+extern void saveActiveBossRushSlot();
+extern void loadActiveBossRushSlot();
+extern void mapBossRushesToRoms();
+extern void queueBossRushSlots();
+extern void queueBossRushInSlot(int slot);
+extern void populateBossRushes();
+void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int objectLocationStart, unsigned int objectLocationEnd, unsigned int healthByteOffset, unsigned int defeatedByte, unsigned int defeatedValue);
+void duplicateBossRushListing(int listingIndex, int zoneIndex, int actIndex);
+void populateMostRecentBossRush(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3);
+void applyGenerationToMostRecentBossRush(unsigned int generation);
+void populateBossRushObjectIds(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3);
+void saveStateForCurrentBoss();
+void loadStateForCurrentBoss();
+
+void toggleStartBossRush();
+int shouldUseBossRush();
+extern void checkForBossRushStart();
+extern int awaitingBossRushStart();
+
 #endif
