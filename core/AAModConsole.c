@@ -393,6 +393,8 @@ void checkForBossHits() {
 
     int foundCount = 0;
 
+    int SHOW_DEBUG = 1;
+
     for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
         int indexToCheck = i;
         for (int objectIdx = 0; objectIdx < 8; objectIdx++) {
@@ -403,7 +405,7 @@ void checkForBossHits() {
                     if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
                         && aa_genesis_getWorkRam(locationToCheck) != 0
                         && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
-                        promptSwitchGame();
+                        // promptSwitchGame();
                         fireScreenSnapOnEvent();
                     }
 
@@ -412,26 +414,28 @@ void checkForBossHits() {
                          aa_genesis_setWorkRam(locationToCheck, 2);
                     }
 
-                    // char rushText[0x40];
-                    // sprintf(rushText, "%04X %02X", locationToCheck, aa_genesis_getWorkRam(locationToCheck));
-                    // layerRenderer_fill(2, 8 * 8 * foundCount, 0, 8 * 7, 8, 0xFF);
-                    // layerRenderer_writeWord256(2, 8 * 8 * foundCount, 0, rushText, 0x5);
-                    // foundCount++;
+                    if (SHOW_DEBUG == 1) {
+                        char rushText[0x40];
+                        sprintf(rushText, "%04X %02X", locationToCheck, aa_genesis_getWorkRam(locationToCheck));
+                        layerRenderer_fill(2, 8 * 8 * foundCount, 0, 8 * 7, 8, 0xFF);
+                        layerRenderer_writeWord256(2, 8 * 8 * foundCount, 0, rushText, 0x5);
+                        foundCount++;
 
-                    // for (int loc = 0; loc < 0x40; loc++) {
-                    //     char rushText2[0x40];
-                    //     sprintf(rushText2, "%02X", aa_genesis_getWorkRam(i + loc));
-                    //     layerRenderer_fill(2, 8 * indexX * 3, 8 * (indexY + 1), 8 * 2, 8, 0xFF);
-                    //     layerRenderer_writeWord256(2, 8 * indexX * 3, 8 * (indexY + 1), rushText2, 0x5);
+                        for (int loc = 0; loc < 0x40; loc++) {
+                            char rushText2[0x40];
+                            sprintf(rushText2, "%02X", aa_genesis_getWorkRam(i + loc));
+                            layerRenderer_fill(2, 8 * indexX * 3, 8 * (indexY + 1), 8 * 2, 8, 0xFF);
+                            layerRenderer_writeWord256(2, 8 * indexX * 3, 8 * (indexY + 1), rushText2, 0x5);
 
-                    //     indexY++;
-                    //     if (indexY >= 0x10) {
-                    //         indexY = 0;
-                    //         indexX++;
-                    //     }
-                    // }
+                            indexY++;
+                            if (indexY >= 0x10) {
+                                indexY = 0;
+                                indexX++;
+                            }
+                        }
 
-                    // indexX++;
+                        indexX++;
+                    }
                 }
             }
         }

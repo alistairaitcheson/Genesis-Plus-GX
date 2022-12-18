@@ -1008,12 +1008,15 @@ void populateBossRushes() {
     // ARZ
     duplicateBossRushListing(sonic2index, 2, 1);
     populateMostRecentBossRush4(0x89, 0, 0, 0);
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffset = 0x32;
     // CNZ
     duplicateBossRushListing(sonic2index, 3, 1);
     populateMostRecentBossRush4(0x51, 0, 0, 0);
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffset = 0x32;
     // HTZ
     duplicateBossRushListing(sonic2index, 4, 1);
     populateMostRecentBossRush4(0x52, 0, 0, 0);
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffset = 0x32;
     // MCZ
     duplicateBossRushListing(sonic2index, 5, 1);
     populateMostRecentBossRush4(0x57, 0, 0, 0);
