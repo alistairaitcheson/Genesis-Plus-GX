@@ -1008,30 +1008,40 @@ void populateBossRushes() {
     // ARZ
     duplicateBossRushListing(sonic2index, 2, 1);
     populateMostRecentBossRush4(0x89, 0, 0, 0);
-    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffset = 0x32;
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
     // CNZ
     duplicateBossRushListing(sonic2index, 3, 1);
     populateMostRecentBossRush4(0x51, 0, 0, 0);
-    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffset = 0x32;
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
     // HTZ
     duplicateBossRushListing(sonic2index, 4, 1);
     populateMostRecentBossRush4(0x52, 0, 0, 0);
-    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffset = 0x32;
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
     // MCZ
     duplicateBossRushListing(sonic2index, 5, 1);
     populateMostRecentBossRush4(0x57, 0, 0, 0);
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
     // OOZ
     duplicateBossRushListing(sonic2index, 6, 1);
     populateMostRecentBossRush4(0x55, 0, 0, 0);
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
     // MZ
     duplicateBossRushListing(sonic2index, 7, 2);
     populateMostRecentBossRush4(0x54, 0, 0, 0);
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
     // WFZ
     duplicateBossRushListing(sonic2index, 9, 0);
     populateMostRecentBossRush4(0xC5, 0, 0, 0);
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
+    applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
+    applyEndValuesToMostRecentBossRush(0xFE11, 0x0E); // <-- detect Death Egg loading
+
     // DEZ - eggrobo and silver sonic
-    duplicateBossRushListing(sonic2index, 10, 0);
-    populateMostRecentBossRush4(0xC7, 0xAF, 0, 0);
+    addBossRushListing(2, 10, 0, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7D7, 0x01); // <-- this is the "show countdown" flag - also try F7D2 - F7D5 being non-zero (is it possible to get a zero time bonus?)
+    // duplicateBossRushListing(sonic2index, 10, 0);
+    populateMostRecentBossRush4(0xC7, 0xAF, 0, 0); // C7 is eggrobo, AF is silver sonic
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x20;
+    applyGenerationToMostRecentBossRush(2); // <-- make it the final challenge in the run
     applyEndValuesToMostRecentBossRush(0xF601, 0x20); // <-- detect the end credits spawning
 
     // during play, when you are in boss rush, switching a game will switch game and then put you in
@@ -1054,8 +1064,6 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
     bossRushCallenges[bossRushChallengeCount].objectLocationStart = objectLocationStart;
     bossRushCallenges[bossRushChallengeCount].objectLocationEnd = objectLocationEnd;
     bossRushCallenges[bossRushChallengeCount].objectLocationSize = objectLocationSize;
-    bossRushCallenges[bossRushChallengeCount].healthByteOffset = healthByteOffset;
-
 
     bossRushCallenges[bossRushChallengeCount].defeatedByte = defeatedByte;
     bossRushCallenges[bossRushChallengeCount].defeatedValue = defeatedValue;
@@ -1065,8 +1073,9 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
     bossRushCallenges[bossRushChallengeCount].hasBeganPlaying = 0;
 
     bossRushCallenges[bossRushChallengeCount].shouldAppearInGeneration = 0;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 0x20; i++) {
         bossRushCallenges[bossRushChallengeCount].objectIdNumbers[i] = 0;
+        bossRushCallenges[bossRushChallengeCount].healthByteOffsets[i] = healthByteOffset;
     }
 
     bossRushCallenges[bossRushChallengeCount].romAtIndex = -1;
@@ -1082,7 +1091,7 @@ void duplicateBossRushListing(int listingIndex, int zoneIndex, int actIndex) {
         bossRushCallenges[listingIndex].objectLocationStart,
         bossRushCallenges[listingIndex].objectLocationEnd,
         bossRushCallenges[listingIndex].objectLocationSize,
-        bossRushCallenges[listingIndex].healthByteOffset,
+        bossRushCallenges[listingIndex].healthByteOffsets[0],
         bossRushCallenges[listingIndex].defeatedByte,
         bossRushCallenges[listingIndex].defeatedValue
     );

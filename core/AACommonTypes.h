@@ -106,7 +106,7 @@ typedef struct {
     unsigned int objectLocationStart;
     unsigned int objectLocationEnd;
     unsigned int objectLocationSize;
-    unsigned int healthByteOffset;
+    unsigned int healthByteOffsets[0x20];
     unsigned int defeatedByte; // e.g. signpost landed or capsule opened
     unsigned int defeatedValue;
     int shouldAppearInGeneration; // (e.g. in S&K 0 = all act 1 bosses, 1 = all act 2 bosses, 2 = Death Egg giant robot, 3 = Doomsday zone)

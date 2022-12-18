@@ -393,7 +393,8 @@ void checkForBossHits() {
 
     int foundCount = 0;
 
-    int SHOW_DEBUG = 1;
+    int SHOW_DEBUG = 0;
+    int FORCE_QUICK_KILLS = 1;
 
     for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
         int indexToCheck = i;
@@ -401,7 +402,7 @@ void checkForBossHits() {
             if (listing.objectIdNumbers[objectIdx] > 0) {
                 if (aa_genesis_getWorkRam(indexToCheck) == listing.objectIdNumbers[objectIdx]) {
                     // this is a key value! check if it has changed!
-                    int locationToCheck = indexToCheck + listing.healthByteOffset;
+                    int locationToCheck = indexToCheck + listing.healthByteOffsets[objectIdx];
                     if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
                         && aa_genesis_getWorkRam(locationToCheck) != 0
                         && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
@@ -410,7 +411,7 @@ void checkForBossHits() {
                     }
 
                     // for testing - quick kills!
-                    if (aa_genesis_getWorkRam(locationToCheck) > 2){
+                    if (aa_genesis_getWorkRam(locationToCheck) > 2 && FORCE_QUICK_KILLS == 1){
                          aa_genesis_setWorkRam(locationToCheck, 2);
                     }
 
