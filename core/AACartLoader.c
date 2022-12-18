@@ -930,7 +930,7 @@ void populateBossRushes() {
     duplicateBossRushListing(sonic1index, 5, 2);
     populateMostRecentBossRush4(0x85, 0, 0, 0);
     applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
-    applyEndValuesToMostRecentBossRush(0xF600, 0x18); // <-- detect the end credits spawning
+    applyEndValuesToMostRecentBossRush(0xF601, 0x18); // <-- detect the end credits spawning
 
     // Sonic 2 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_2_(16-bit)/Object_Editing/Pointers
     int sonic2index = bossRushChallengeCount;
