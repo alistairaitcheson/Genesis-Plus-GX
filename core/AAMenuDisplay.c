@@ -1044,7 +1044,12 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         int romCount = cartLoader_getRomCount();
         if (buttonIndex == INPUT_INDEX_START) {
             menuDisplay_hideMenu();
-            beginGame();
+            if (awaitingBossRushStart()) {
+                beginGame();
+                beginBossRush();
+            } else {
+                beginGame();
+            }
             return 1;
         }
         if (buttonIndex == INPUT_INDEX_UP) {
@@ -1086,13 +1091,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         if (buttonIndex == INPUT_INDEX_START) {
             saveHackOptions();
             if (gameHasStarted == 0) {
-                if (awaitingBossRushStart()) {
-                    menuDisplay_hideMenu();
-                    beginGame();
-                    return 1;
-                } else {
-                    menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
-                }
+                menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
             } else {
                 cartLoader_applyHackOptions(gameHasStarted);
                 modConsole_applyHackOptions();

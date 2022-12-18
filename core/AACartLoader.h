@@ -122,7 +122,7 @@ void populateMostRecentBossRush8(unsigned int id0, unsigned int id1, unsigned in
 
 void toggleStartBossRush();
 int shouldUseBossRush();
-extern void checkForBossRushStart();
+extern int checkForBossRushStart();
 extern int awaitingBossRushStart();
 extern void cartLoader_loadBossRushSaveStatesFromDisk();
 int challengeCanBeQueued(int index);

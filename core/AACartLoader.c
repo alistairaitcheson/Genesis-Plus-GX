@@ -763,6 +763,8 @@ void beginBossRush() {
     currentBossRushIndex = -1;
     bumpToNextBossRush();
     cartLoader_cacheSaveStateBeforeMenu();
+
+    vdp_setShouldRandomiseColours(0);
 }
 
 void onBossHit() {
@@ -1135,13 +1137,15 @@ int awaitingBossRushStart() {
     return shouldStartBossRush;
 }
 
-void checkForBossRushStart() {
+int checkForBossRushStart() {
     bossRushIsActive = shouldStartBossRush;
     if (shouldInitialiseBossRush == 1) {
-        beginBossRush();
         // flagNewSavestateLoaded();
         shouldInitialiseBossRush = 0;
+
+        return 1;
     }
+    return 0;
 }
 
 int shouldUseBossRush() {

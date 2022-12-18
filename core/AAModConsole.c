@@ -193,6 +193,8 @@ void modConsole_updateActiveCart() {
     cartLoader_appendToLog(activeGameListing.gameId);
 }
 
+static int bossRushStartCountDown = 0;
+
 void modConsole_applyHackOptions() {
     switchAfterTimeCounter = 0;
     switchAfterTimePeriod = 0;
@@ -202,7 +204,10 @@ void modConsole_applyHackOptions() {
 
     saveAllStatesTimeCounter = 0;
 
-    checkForBossRushStart();
+    if (checkForBossRushStart() == 1) {
+        bossRushStartCountDown = 2;
+        hasDismissedStartupHint = 1;
+    }
 
     if (menuDisplay_getHackOptions().switchGameType == 2) {
         switchAfterTimePeriod = 60 * 5;
@@ -882,6 +887,13 @@ void modConsole_updateFrame() {
         }
 
         updatePendingRingTrigger();
+
+        if (bossRushStartCountDown > 0) {
+            bossRushStartCountDown--;
+            if (bossRushStartCountDown == 0) {
+                beginBossRush();
+            }
+        }
     }
 
     frameCount++;
