@@ -1055,7 +1055,13 @@ void populateBossRushes() {
 
     // AIZ 2
     duplicateBossRushListing(sonic3index, 0, 1);
-    populateMostRecentBossRush4(0x00, 0x06, 0x91, 0xA8);
+    populateMostRecentBossRush4(0x00, 0x06, 0x91, 0xA8); // <-- to do: find the values in BizHawk for AIZ 2 boss!
+    // Steps:
+    //  - get to boss
+    //  - find health value on boss (check for 8 hp on Robotnik and 6hp on minibosses)
+    //  - open the hex editor
+    //  - find the 4 values 0x29 bytes before that value (e.g. https://www.calculator.net/hex-calculator.html?number1=b19b&c2op=-&number2=29&calctype=op&x=93&y=31)
+    //  - swap neighbours around and put them above. (e.g. seeing 00 06 91 A8 means to put in 06 00 A8 91)
 
 
     // Sonic 3 is going to be nasty https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_3_%26_Knuckles/Object_Editing#Object_Pointers
