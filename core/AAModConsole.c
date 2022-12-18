@@ -394,7 +394,7 @@ void checkForBossHits() {
     int foundCount = 0;
 
     int SHOW_DEBUG = 0;
-    int FORCE_QUICK_KILLS = 1;
+    int FORCE_QUICK_KILLS = 0;
 
     for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
         int indexToCheck = i;

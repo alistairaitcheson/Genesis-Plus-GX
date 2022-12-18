@@ -1030,9 +1030,8 @@ void populateBossRushes() {
     populateMostRecentBossRush4(0x54, 0, 0, 0);
     bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
     // WFZ
-    duplicateBossRushListing(sonic2index, 9, 0);
+    duplicateBossRushListing(sonic2index, 9, 0); // <-- to do: fix the bit where the hit byte goes wild during the explosion!
     populateMostRecentBossRush4(0xC5, 0, 0, 0);
-    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
     applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
     applyEndValuesToMostRecentBossRush(0xFE11, 0x0E); // <-- detect Death Egg loading
 
@@ -1040,7 +1039,7 @@ void populateBossRushes() {
     addBossRushListing(2, 10, 0, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7D7, 0x01); // <-- this is the "show countdown" flag - also try F7D2 - F7D5 being non-zero (is it possible to get a zero time bonus?)
     // duplicateBossRushListing(sonic2index, 10, 0);
     populateMostRecentBossRush4(0xC7, 0xAF, 0, 0); // C7 is eggrobo, AF is silver sonic
-    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x20;
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x1F;
     applyGenerationToMostRecentBossRush(2); // <-- make it the final challenge in the run
     applyEndValuesToMostRecentBossRush(0xF601, 0x20); // <-- detect the end credits spawning
 
