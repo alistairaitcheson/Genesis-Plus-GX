@@ -125,5 +125,6 @@ int shouldUseBossRush();
 extern void checkForBossRushStart();
 extern int awaitingBossRushStart();
 extern void cartLoader_loadBossRushSaveStatesFromDisk();
+int challengeCanBeQueued(int index);
 
 #endif

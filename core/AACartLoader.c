@@ -905,17 +905,50 @@ void queueBossRushSlots() {
     }
 }
 
+int challengeCanBeQueued(int i) {
+    if (bossRushCallenges[i].isActivated == 0 && bossRushCallenges[i].isCompleted == 0 && bossRushCallenges[i].romAtIndex != -1 && hasBossRushSaveState[i] == 1) {
+        return 1;
+    }
+    return 0;
+}
+
 void queueBossRushInSlot(int slot) {
     char tempLog[256];
     sprintf(tempLog,"queueBossRushInSlot %i", slot);
     cartLoader_appendToLog(tempLog);
 
+    int easiestDifficultyPerGame[MAX_ROMS];
+    for (int i = 0; i < MAX_ROMS; i++) {
+        easiestDifficultyPerGame[i] = 100;
+    }
+    for (int i = 0; i < bossRushChallengeCount; i++) {
+        if (challengeCanBeQueued(i)) {
+            int difficulty = bossRushCallenges[i].shouldAppearInGeneration;
+
+            char tempDiffLogA[256];
+            sprintf(tempDiffLogA,"finding easiestDifficultyPerGame: game %i is difficulty %i", i, difficulty);
+            cartLoader_appendToLog(tempDiffLogA);
+
+            if (difficulty < easiestDifficultyPerGame[bossRushCallenges[i].gameIndex]) {
+                easiestDifficultyPerGame[bossRushCallenges[i].gameIndex] = difficulty;
+            }
+        }
+    }
+
+    for (int i = 0; i < 4; i++) {
+        char tempDiffLog[256];
+        sprintf(tempDiffLog,"easiestDifficultyPerGame %i is %i", i, easiestDifficultyPerGame[i]);
+        cartLoader_appendToLog(tempDiffLog);
+    }
+
     int allowedIndexes[MAX_ROMS];
     int maxIndex = 0;
     for (int i = 0; i < bossRushChallengeCount; i++) {
-        if (bossRushCallenges[i].isActivated == 0 && bossRushCallenges[i].isCompleted == 0 && bossRushCallenges[i].romAtIndex != -1 && hasBossRushSaveState[i] == 1) {
-            allowedIndexes[maxIndex] = i;
-            maxIndex++;
+        if (challengeCanBeQueued(i)) {
+            if (bossRushCallenges[i].shouldAppearInGeneration == easiestDifficultyPerGame[bossRushCallenges[i].gameIndex]) {
+                allowedIndexes[maxIndex] = i;
+                maxIndex++;
+            }
         }
     }
 
@@ -2373,7 +2406,7 @@ void cartLoader_loadBossRushSaveStatesFromDisk() {
 }
 
 void cartLoader_applyHackOptions(int gameHasStarted) {
-    if (menuDisplay_getHackOptions().loadFromSavedState && gameHasStarted == 0) {
+    if (menuDisplay_getHackOptions().loadFromSavedState && gameHasStarted == 0 && shouldUseBossRush() == 0) {
         cartLoader_loadAllSaveStatesFromDisk();
     }
 }
