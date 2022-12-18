@@ -999,7 +999,7 @@ void populateBossRushes() {
 
     // Sonic 2 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_2_(16-bit)/Object_Editing/Pointers
     int sonic2index = bossRushChallengeCount;
-    addBossRushListing(2, 0, 1, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7A6, 0x02);
+    addBossRushListing(2, 0, 1, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7D7, 0x01); // <-- this is the "show countdown" flag - also try F7D2 - F7D5 being non-zero (is it possible to get a zero time bonus?)
     // EHZ
     populateMostRecentBossRush4(0x56, 0, 0, 0);
     // CPZ
@@ -1029,6 +1029,7 @@ void populateBossRushes() {
     // DEZ - eggrobo and silver sonic
     duplicateBossRushListing(sonic2index, 10, 0);
     populateMostRecentBossRush4(0xC7, 0xAF, 0, 0);
+    applyEndValuesToMostRecentBossRush(0xF601, 0x20); // <-- detect the end credits spawning
 
     // during play, when you are in boss rush, switching a game will switch game and then put you in
     // a boss rush listing for that game.
