@@ -403,9 +403,9 @@ void checkForBossHits() {
                     }
 
                     // for testing - quick kills!
-                    // if (aa_genesis_getWorkRam(locationToCheck) > 1){
-                    //      aa_genesis_setWorkRam(locationToCheck, 1);
-                    // }
+                    if (aa_genesis_getWorkRam(locationToCheck) > 2){
+                         aa_genesis_setWorkRam(locationToCheck, 2);
+                    }
 
                     // char rushText[0x40];
                     // sprintf(rushText, "%04X %02X", locationToCheck, aa_genesis_getWorkRam(locationToCheck));

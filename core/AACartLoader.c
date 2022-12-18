@@ -794,17 +794,40 @@ void bumpToNextBossRush() {
     queueBossRushSlots();
 
     int allowedIndexes[MAX_ROMS];
+    int indexesWithoutActivity[MAX_ROMS];
     int maxIndex = 0;
+    int maxIndexWithoutActivity = 0;
     for (int i = 0; i < MAX_SIMULTANEOUS_BOSSES; i++) {
         if (i != currentBossRushIndex && activeBossRushes[i] != -1) {
             allowedIndexes[maxIndex] = i;
             maxIndex++;
+
+            if (bossRushCallenges[activeBossRushes[i]].hasBeganPlaying == 0) {
+                char tempLog0A[256];
+                sprintf(tempLog0A,"bumpToNextBossRush has not got any play for rush %i", activeBossRushes[i]);
+                cartLoader_appendToLog(tempLog0A);
+
+                indexesWithoutActivity[maxIndexWithoutActivity] = i;
+                maxIndexWithoutActivity++;
+            }
         }
     }
 
     char tempLog1[256];
     sprintf(tempLog1,"bumpToNextBossRush allowedIndexes: %i", maxIndex);
     cartLoader_appendToLog(tempLog1);
+
+    // prefer rushes that haven't been started yet
+    if (maxIndexWithoutActivity > 0) {
+        for (int i = 0; i < MAX_ROMS; i++) {
+            allowedIndexes[i] = indexesWithoutActivity[i];
+        }
+        maxIndex = maxIndexWithoutActivity;
+        
+        char tempLog0[256];
+        sprintf(tempLog0,"bumpToNextBossRush flattening to the unplayed %i", maxIndexWithoutActivity);
+        cartLoader_appendToLog(tempLog0);
+    }
 
     if (maxIndex > 0) {
         saveActiveBossRushSlot();
@@ -830,6 +853,13 @@ void bumpToNextBossRush() {
         char tempLog5[256];
         sprintf(tempLog5,"bumpToNextBossRush loaded active boss rush slot");
         cartLoader_appendToLog(tempLog5);
+
+        // BossRushChallengeListing listing = getActiveBossRushListing();
+        bossRushCallenges[getActiveBossRushIndex()].hasBeganPlaying = 1;
+
+        char tempLog6[256];
+        sprintf(tempLog6,"bumpToNextBossRush now playing boss %i, hasBegan %i", getActiveBossRushIndex(), getActiveBossRushListing().hasBeganPlaying);
+        cartLoader_appendToLog(tempLog6);
     }
 }
 
@@ -934,7 +964,7 @@ void populateBossRushes() {
 
     // Sonic 2 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_2_(16-bit)/Object_Editing/Pointers
     int sonic2index = bossRushChallengeCount;
-    addBossRushListing(2, 0, 1, 0xB000, 0xD5FF, 0x40, 0x21, 0xF7A7, 0x02);
+    addBossRushListing(2, 0, 1, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7A6, 0x02);
     // EHZ
     populateMostRecentBossRush4(0x56, 0, 0, 0);
     // CPZ
@@ -993,6 +1023,7 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
 
     bossRushCallenges[bossRushChallengeCount].isActivated = 0;
     bossRushCallenges[bossRushChallengeCount].isCompleted = 0;
+    bossRushCallenges[bossRushChallengeCount].hasBeganPlaying = 0;
 
     bossRushCallenges[bossRushChallengeCount].shouldAppearInGeneration = 0;
     for (int i = 0; i < 8; i++) {

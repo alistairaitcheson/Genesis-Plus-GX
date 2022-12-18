@@ -113,6 +113,7 @@ typedef struct {
 
     int isActivated;
     int isCompleted;
+    int hasBeganPlaying;
     int romAtIndex;
 } BossRushChallengeListing;
 
