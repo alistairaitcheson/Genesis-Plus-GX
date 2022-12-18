@@ -394,7 +394,7 @@ void checkForBossHits() {
 
     int foundCount = 0;
 
-    int SHOW_DEBUG = 1;
+    int SHOW_DEBUG = 0;
     int FORCE_QUICK_KILLS = 0;
 
     int objStep = 1;
@@ -796,11 +796,11 @@ void modConsole_updateFrame() {
         }
 
         if (shouldUseBossRush()) {
-            char rushText[0x40];
-            BossRushChallengeListing listing = getActiveBossRushListing();
-            sprintf(rushText, "%02X %02X %02X %02X", listing.objectIdNumbers[0], listing.objectIdNumbers[1], listing.objectIdNumbers[2], listing.objectIdNumbers[3]);
-            layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8, 8 * 20, 8, 0xFF);
-            layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8, rushText, 0x5);
+            // char rushText[0x40];
+            // BossRushChallengeListing listing = getActiveBossRushListing();
+            // sprintf(rushText, "%02X %02X %02X %02X", listing.objectIdNumbers[0], listing.objectIdNumbers[1], listing.objectIdNumbers[2], listing.objectIdNumbers[3]);
+            // layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8, 8 * 20, 8, 0xFF);
+            // layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8, rushText, 0x5);
 
             checkForBossHits();
         }
