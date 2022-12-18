@@ -379,7 +379,8 @@ void checkForBossHits() {
     layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 16, rushTextEnd, 0x5);
 
     int wasGameOver = 0;
-    if (aa_genesis_getWorkRam(defeatLoc) == listing.defeatedValue) {
+    if (aa_genesis_getWorkRam(defeatLoc) == listing.defeatedValue
+       || (listing.defeatedValue >= 0x100 && aa_genesis_getWorkRam(defeatLoc) > 0)) {
         wasGameOver = 1;
     }
 
@@ -393,14 +394,68 @@ void checkForBossHits() {
 
     int foundCount = 0;
 
-    int SHOW_DEBUG = 0;
+    int SHOW_DEBUG = 1;
     int FORCE_QUICK_KILLS = 0;
+
+    int objStep = 1;
+    if (listing.objectIdsArePointers != 0) {
+        objStep = 4;
+    }
 
     for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
         int indexToCheck = i;
-        for (int objectIdx = 0; objectIdx < 8; objectIdx++) {
-            if (listing.objectIdNumbers[objectIdx] > 0) {
-                if (aa_genesis_getWorkRam(indexToCheck) == listing.objectIdNumbers[objectIdx]) {
+
+        for (int objectIdx = 0; objectIdx < 0x20; objectIdx += objStep) {
+            int isPopulated = 0;
+            if (listing.objectIdsArePointers == 0) {
+                if (listing.objectIdNumbers[objectIdx] > 0) {
+                    isPopulated = 1;
+                }
+            } else {
+                for (int j = 0; j < 4; j++) {
+                    if (listing.objectIdNumbers[objectIdx + j] > 0) {
+                        isPopulated = 1;
+                    }
+                }
+            }
+
+            if (isPopulated == 1) {
+                int objectFoundHere = 0;
+                if (listing.objectIdsArePointers == 0) {
+                    // layerRenderer_fill(2, 20, 10, 8 * 2, 8, 0xFF);
+
+                    // sonic 1 and 2: 1-byte object IDs
+
+                    if (aa_genesis_getWorkRam(indexToCheck) == listing.objectIdNumbers[objectIdx]) {
+                        objectFoundHere = 1;
+                    } else {
+                        objectFoundHere = 0;
+                    }
+                } else {
+                    // layerRenderer_fill(2, 10, 20, 8, 8 * 5, 0xFF);
+
+                    // sonic 3 and K: 4-byte object pointers
+
+                    // unsigned int valueHere = 0;
+                    // valueHere += ((unsigned int)aa_genesis_getWorkRam(indexToCheck + 0) * 0x1000000);
+                    // valueHere += ((unsigned int)aa_genesis_getWorkRam(indexToCheck + 1) * 0x10000);
+                    // valueHere += ((unsigned int)aa_genesis_getWorkRam(indexToCheck + 2) * 0x100);
+                    // valueHere += ((unsigned int)aa_genesis_getWorkRam(indexToCheck + 3) * 0x1);
+                    // char tempLog2[256];
+                    // sprintf(tempLog2,"Checking for value at %04X ... %08X", i, valueHere);
+                    // cartLoader_appendToLog(tempLog2);
+
+                    if (aa_genesis_getWorkRam(indexToCheck + 0) ==  listing.objectIdNumbers[objectIdx + 0]
+                        && aa_genesis_getWorkRam(indexToCheck + 1) ==  listing.objectIdNumbers[objectIdx + 1]
+                        && aa_genesis_getWorkRam(indexToCheck + 2) ==  listing.objectIdNumbers[objectIdx + 2]
+                        && aa_genesis_getWorkRam(indexToCheck + 3) ==  listing.objectIdNumbers[objectIdx + 3]) {
+                        objectFoundHere = 1;
+                    } else {
+                        objectFoundHere = 0;
+                    }
+                }
+
+                if (objectFoundHere == 1) {
                     // this is a key value! check if it has changed!
                     int locationToCheck = indexToCheck + listing.healthByteOffsets[objectIdx];
                     if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
@@ -748,6 +803,10 @@ void modConsole_updateFrame() {
             layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8, rushText, 0x5);
 
             checkForBossHits();
+        }
+
+        if (buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+            aa_genesis_incrementWorkRamCompoundValueByInt(0xB010, 2, 0x80);
         }
 
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&

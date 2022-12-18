@@ -1036,12 +1036,39 @@ void populateBossRushes() {
     applyEndValuesToMostRecentBossRush(0xFE11, 0x0E); // <-- detect Death Egg loading
 
     // DEZ - eggrobo and silver sonic
-    addBossRushListing(2, 10, 0, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7D7, 0x01); // <-- this is the "show countdown" flag - also try F7D2 - F7D5 being non-zero (is it possible to get a zero time bonus?)
+    addBossRushListing(2, 10, 0, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7D2, 0x100); 
     // duplicateBossRushListing(sonic2index, 10, 0);
     populateMostRecentBossRush4(0xC7, 0xAF, 0, 0); // C7 is eggrobo, AF is silver sonic
     bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x1F;
     applyGenerationToMostRecentBossRush(2); // <-- make it the final challenge in the run
     applyEndValuesToMostRecentBossRush(0xF601, 0x20); // <-- detect the end credits spawning
+
+
+    // sonic 3 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_3_%26_Knuckles/Object_Editing/Pointer_List_1
+    int sonic3index = bossRushChallengeCount;
+    addBossRushListing(3, 0, 0, 0xB001, 0xCFCB, 0x1, 0x28, 0xF7D2, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdsArePointers = 1;
+    // AIZ 1
+    populateMostRecentBossRush4(0x04, 0x00, 0x74, 0x69); 
+    // Are the pointers different on the Sonic 3 alone cartridge? Because this is what comes up in Bizhawk when I search 0x29 bytes before the health value...
+    // I think they are, but also the bytes are swapped around compared to bizhawk 0xAB12 in Bizhawk is 0x12AB here
+
+    // AIZ 2
+    duplicateBossRushListing(sonic3index, 0, 1);
+    populateMostRecentBossRush4(0x00, 0x06, 0x91, 0xA8);
+
+
+    // Sonic 3 is going to be nasty https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_3_%26_Knuckles/Object_Editing#Object_Pointers
+    // Instead of the ID number, each object has a pointer - e.g. the pointer for AIZ1 boss is 0x68A24
+    // So, somewhere in the first 4 bytes, the value 0x00068A24 will be found... I think!
+    // So what I need to do is keep scanning for that sequence of bytes and, if I find it, flag that
+    // location as the location to start looking from. The value in that pointer slot
+    // may change while the object is alive, which is why I need to cache it's location and keep looking!
+    //
+    // should I write a lua script in bizhawk to check if the value 00068A24 ever appears?
+    //
+    // In bizhawk I find the value for boss health. Then I go back 29 steps, and I find the 4-byte code above!
+    // And it doesn't seem to change! So I just need to check for the 4-byte code instead of the other values
 
     // during play, when you are in boss rush, switching a game will switch game and then put you in
     // a boss rush listing for that game.
@@ -1072,6 +1099,7 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
     bossRushCallenges[bossRushChallengeCount].hasBeganPlaying = 0;
 
     bossRushCallenges[bossRushChallengeCount].shouldAppearInGeneration = 0;
+    bossRushCallenges[bossRushChallengeCount].objectIdsArePointers = 0;
     for (int i = 0; i < 0x20; i++) {
         bossRushCallenges[bossRushChallengeCount].objectIdNumbers[i] = 0;
         bossRushCallenges[bossRushChallengeCount].healthByteOffsets[i] = healthByteOffset;
@@ -1094,6 +1122,7 @@ void duplicateBossRushListing(int listingIndex, int zoneIndex, int actIndex) {
         bossRushCallenges[listingIndex].defeatedByte,
         bossRushCallenges[listingIndex].defeatedValue
     );
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdsArePointers = bossRushCallenges[listingIndex].objectIdsArePointers;
 }
 
 void populateMostRecentBossRush4(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3) {
