@@ -112,6 +112,7 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
 void duplicateBossRushListing(int listingIndex, int zoneIndex, int actIndex);
 void populateMostRecentBossRush(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3);
 void applyGenerationToMostRecentBossRush(unsigned int generation);
+void applyEndValuesToMostRecentBossRush(unsigned int endLoc, unsigned int endVal);
 void populateBossRushObjectIds4(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3);
 void populateBossRushObjectIds8(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3, unsigned int id4, unsigned int id5, unsigned int id6, unsigned int id7);
 void saveStateForCurrentBoss();

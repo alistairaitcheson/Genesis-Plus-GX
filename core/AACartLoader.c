@@ -777,7 +777,7 @@ void onBossDefeated() {
         queueBossRushSlots();
 
         currentBossRushIndex = -1;
-        bumpToNextBossRush();
+        promptSwitchGame();
     }
 }
 
@@ -912,7 +912,7 @@ void populateBossRushes() {
     // Sonic 1 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_(16-bit)/Object_Editing
     int sonic1index = bossRushChallengeCount;
     // GHZ
-    addBossRushListing(1, 0, 2, 0xD800, 0xEFFF, 0x40, 0x21, 0xF7A7, 0x02);
+    addBossRushListing(1, 0, 2, 0xD801, 0xEFFF, 0x40, 0x1F, 0xF7A6, 0x02);
     populateMostRecentBossRush4(0x3D, 0, 0, 0);
     // MZ
     duplicateBossRushListing(sonic1index, 1, 2);
@@ -930,6 +930,7 @@ void populateBossRushes() {
     duplicateBossRushListing(sonic1index, 5, 2);
     populateMostRecentBossRush4(0x85, 0, 0, 0);
     applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
+    applyEndValuesToMostRecentBossRush(0xF600, 0x18); // <-- detect the end credits spawning
 
     // Sonic 2 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_2_(16-bit)/Object_Editing/Pointers
     int sonic2index = bossRushChallengeCount;
@@ -1026,8 +1027,14 @@ void populateMostRecentBossRush8(unsigned int id0, unsigned int id1, unsigned in
 }
 
 void applyGenerationToMostRecentBossRush(unsigned int generation) {
-    bossRushCallenges[bossRushChallengeCount].shouldAppearInGeneration = generation;
+    bossRushCallenges[bossRushChallengeCount - 1].shouldAppearInGeneration = generation;
 }
+
+void applyEndValuesToMostRecentBossRush(unsigned int endLoc, unsigned int endVal) {
+    bossRushCallenges[bossRushChallengeCount - 1].defeatedByte = endLoc;
+    bossRushCallenges[bossRushChallengeCount - 1].defeatedValue = endVal;
+}
+
 
 void populateBossRushObjectIds4(int listingIndex, unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3) {
     bossRushCallenges[listingIndex].objectIdNumbers[0] = id0;

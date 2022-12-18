@@ -365,19 +365,36 @@ void increasePendingRingTriggers(int count) {
 }
 
 void checkForBossHits() {
+    BossRushChallengeListing listing = getActiveBossRushListing();
+
+    int defeatLoc = listing.defeatedByte;
+    char rushTextEnd[0x40];
+    sprintf(rushTextEnd, "%04X %02X - %02X", defeatLoc, aa_genesis_getWorkRam(defeatLoc), listing.defeatedValue);
+    layerRenderer_fill(2, 0, vdp_getScreenHeight() - 16, 8 * 12, 8, 0xFF);
+    layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 16, rushTextEnd, 0x5);
+
+    int wasGameOver = 0;
+    if (aa_genesis_getWorkRam(defeatLoc) == listing.defeatedValue) {
+        wasGameOver = 1;
+    }
+
+    if (wasGameOver == 1) {
+        onBossDefeated();
+        return;
+    }
+
     int indexX = 0;
     int indexY = 0;
 
     int foundCount = 0;
 
-    BossRushChallengeListing listing = getActiveBossRushListing();
     for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
-        int indexToCheck = i + 1;
+        int indexToCheck = i;
         for (int objectIdx = 0; objectIdx < 8; objectIdx++) {
             if (listing.objectIdNumbers[objectIdx] > 0) {
                 if (aa_genesis_getWorkRam(indexToCheck) == listing.objectIdNumbers[objectIdx]) {
                     // this is a key value! check if it has changed!
-                    int locationToCheck = indexToCheck + listing.healthByteOffset - 2;
+                    int locationToCheck = indexToCheck + listing.healthByteOffset;
                     if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
                         && aa_genesis_getWorkRam(locationToCheck) != 0
                         && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
@@ -385,28 +402,31 @@ void checkForBossHits() {
                         fireScreenSnapOnEvent();
                     }
 
-                    char rushText[0x40];
-                    BossRushChallengeListing listing = getActiveBossRushListing();
-                    sprintf(rushText, "%04X %02X", locationToCheck, aa_genesis_getWorkRam(locationToCheck));
-                    layerRenderer_fill(2, 8 * 8 * foundCount, 0, 8 * 7, 8, 0xFF);
-                    layerRenderer_writeWord256(2, 8 * 8 * foundCount, 0, rushText, 0x5);
-                    foundCount++;
-
-                    for (int loc = 0; loc < 0x40; loc++) {
-                        char rushText2[0x40];
-                        BossRushChallengeListing listing = getActiveBossRushListing();
-                        sprintf(rushText2, "%02X", aa_genesis_getWorkRam(i + loc));
-                        layerRenderer_fill(2, 8 * indexX * 3, 8 * (indexY + 1), 8 * 2, 8, 0xFF);
-                        layerRenderer_writeWord256(2, 8 * indexX * 3, 8 * (indexY + 1), rushText2, 0x5);
-
-                        indexY++;
-                        if (indexY >= 0x10) {
-                            indexY = 0;
-                            indexX++;
-                        }
+                    // for testing - quick kills!
+                    if (aa_genesis_getWorkRam(locationToCheck) > 1){
+                         aa_genesis_setWorkRam(locationToCheck, 1);
                     }
 
-                    indexX++;
+                    // char rushText[0x40];
+                    // sprintf(rushText, "%04X %02X", locationToCheck, aa_genesis_getWorkRam(locationToCheck));
+                    // layerRenderer_fill(2, 8 * 8 * foundCount, 0, 8 * 7, 8, 0xFF);
+                    // layerRenderer_writeWord256(2, 8 * 8 * foundCount, 0, rushText, 0x5);
+                    // foundCount++;
+
+                    // for (int loc = 0; loc < 0x40; loc++) {
+                    //     char rushText2[0x40];
+                    //     sprintf(rushText2, "%02X", aa_genesis_getWorkRam(i + loc));
+                    //     layerRenderer_fill(2, 8 * indexX * 3, 8 * (indexY + 1), 8 * 2, 8, 0xFF);
+                    //     layerRenderer_writeWord256(2, 8 * indexX * 3, 8 * (indexY + 1), rushText2, 0x5);
+
+                    //     indexY++;
+                    //     if (indexY >= 0x10) {
+                    //         indexY = 0;
+                    //         indexX++;
+                    //     }
+                    // }
+
+                    // indexX++;
                 }
             }
         }
