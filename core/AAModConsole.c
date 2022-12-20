@@ -373,10 +373,10 @@ void checkForBossHits() {
     BossRushChallengeListing listing = getActiveBossRushListing();
 
     int defeatLoc = listing.defeatedByte;
-    char rushTextEnd[0x40];
-    sprintf(rushTextEnd, "%04X %02X - %02X", defeatLoc, aa_genesis_getWorkRam(defeatLoc), listing.defeatedValue);
-    layerRenderer_fill(2, 0, vdp_getScreenHeight() - 16, 8 * 12, 8, 0xFF);
-    layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 16, rushTextEnd, 0x5);
+    // char rushTextEnd[0x40];
+    // sprintf(rushTextEnd, "%04X %02X - %02X", defeatLoc, aa_genesis_getWorkRam(defeatLoc), listing.defeatedValue);
+    // layerRenderer_fill(2, 0, vdp_getScreenHeight() - 16, 8 * 12, 8, 0xFF);
+    // layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 16, rushTextEnd, 0x5);
 
     int wasGameOver = 0;
     if (aa_genesis_getWorkRam(defeatLoc) == listing.defeatedValue
@@ -461,7 +461,7 @@ void checkForBossHits() {
                     if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
                         && aa_genesis_getWorkRam(locationToCheck) != 0
                         && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
-                        // promptSwitchGame();
+                        promptSwitchGame();
                         fireScreenSnapOnEvent();
                     }
 

@@ -776,6 +776,9 @@ void onBossDefeated() {
         BossRushChallengeListing listing = getActiveBossRushListing();
         listing.isCompleted = 1;
         activeBossRushes[currentBossRushIndex] = -1;
+
+        checkForBossRushComplete();
+
         queueBossRushSlots();
 
         currentBossRushIndex = -1;
@@ -856,7 +859,10 @@ void bumpToNextBossRush() {
         sprintf(tempLog5,"bumpToNextBossRush loaded active boss rush slot");
         cartLoader_appendToLog(tempLog5);
 
-        // BossRushChallengeListing listing = getActiveBossRushListing();
+        if (bossRushCallenges[getActiveBossRushIndex()].hasBeganPlaying == 0) {
+            // for sonic games, send value 0x8C to location 0xF601 to force a level reset - should fix version clashes!
+            aa_genesis_setWorkRam(0xF601, 0x8C);
+        }
         bossRushCallenges[getActiveBossRushIndex()].hasBeganPlaying = 1;
 
         char tempLog6[256];
@@ -904,6 +910,39 @@ void queueBossRushSlots() {
             
             queueBossRushInSlot(i);
         }    
+    }
+}
+
+void checkForBossRushComplete() {
+    int hasIncompleteRush = 0;
+    for (int i = 0; i < bossRushChallengeCount; i++) {
+        if (bossRushCallenges[i].isCompleted == 0 && bossRushCallenges[i].romAtIndex != -1 && hasBossRushSaveState[i] == 1) {
+            hasIncompleteRush = 1;
+        }
+    }
+
+    if (hasIncompleteRush == 0) {
+        onBossRushComplete();
+    }
+}
+
+void onBossRushComplete() {
+    // load the credits!
+    if (getActiveBossRushListing().gameIndex == 1) {
+        // SONIC 1 - end credits
+        aa_genesis_setWorkRam(0xF601, 0x9C);
+    }
+    if (getActiveBossRushListing().gameIndex == 2) {
+        // SONIC 2 - you stop in end credits, so go to 2P race over screen
+        aa_genesis_setWorkRam(0xF601, 0x98);
+    }
+    if (getActiveBossRushListing().gameIndex == 3) {
+        // SONIC 3 - you stop in end credits, so go to 2P race over screen
+        aa_genesis_setWorkRam(0xF601, 0xC4);
+    }
+    if (getActiveBossRushListing().gameIndex == 4) {
+        // SONIC & KNUCKLES - you stop in end credits, so go to get blue spheres
+        aa_genesis_setWorkRam(0xF601, 0xAC);
     }
 }
 
@@ -1053,9 +1092,122 @@ void populateBossRushes() {
     // Are the pointers different on the Sonic 3 alone cartridge? Because this is what comes up in Bizhawk when I search 0x29 bytes before the health value...
     // I think they are, but also the bytes are swapped around compared to bizhawk 0xAB12 in Bizhawk is 0x12AB here
 
-    // AIZ 2
+    // AIZ 2 - 00053CE2
     duplicateBossRushListing(sonic3index, 0, 1);
-    populateMostRecentBossRush4(0x00, 0x06, 0x91, 0xA8); // <-- to do: find the values in BizHawk for AIZ 2 boss!
+    populateMostRecentBossRush4(0x53, 0x00, 0xE2, 0x3C);
+
+    // values picked up from BizHawk
+    // my cart is 0x30, 0x30 (v00)
+    // HCZ 1 - 0004 7DCA ?? MAYBE??
+    duplicateBossRushListing(sonic3index, 1, 0);
+    populateMostRecentBossRush4(0x07, 0x00, 0xCA, 0x7D);
+    // HCZ 2 - 00 04 8D 3C --> 0x04, 0x00, 0x3C, 0x8D
+    duplicateBossRushListing(sonic3index, 1, 1);
+    populateMostRecentBossRush4(0x04, 0x00, 0x3C, 0x8D);
+
+    // MGZ 1 - 0005 635E --> 0x05, 0x00, 0x5E, 0x63
+    duplicateBossRushListing(sonic3index, 2, 0);
+    populateMostRecentBossRush4(0x05, 0x00, 0x5E, 0x63);
+    // MGZ 2 - 0004 A0F8
+    duplicateBossRushListing(sonic3index, 2, 1);
+    populateMostRecentBossRush4(0x04, 0x00, 0xF8, 0xA0);
+
+    // CNZ 1 - 0004 B62A ?? is health offset diffrent for this one??
+    duplicateBossRushListing(sonic3index, 3, 0);
+    populateMostRecentBossRush4(0x04, 0x00, 0x2A, 0xB6);
+    // CNZ 2 - 0004 C002
+    duplicateBossRushListing(sonic3index, 3, 1);
+    populateMostRecentBossRush4(0x04, 0x00, 0x02, 0xC0);
+
+    // ICZ 1 - 0004 E402
+    duplicateBossRushListing(sonic3index, 4, 0);
+    populateMostRecentBossRush4(0x04, 0x00, 0x02, 0xE4);
+    // ICZ 2 - 0004 ED3C
+    duplicateBossRushListing(sonic3index, 4, 1);
+    populateMostRecentBossRush4(0x04, 0x00, 0x3C, 0xED);
+
+    // LBZ 1 - 0004 F474
+    duplicateBossRushListing(sonic3index, 5, 0);
+    populateMostRecentBossRush4(0x04, 0x00, 0x74, 0xF4);
+
+    // LBZ 2 - 0005 0418(pt1), 0004 F9AC I THINK!!(pt2), 0005 0CAA (big arm), ENDING (F600 (maybe F601) == 0x20?)
+    duplicateBossRushListing(sonic3index, 5, 1);
+    populateMostRecentBossRush8(0x05, 0x00, 0x18, 0x04, 0x04, 0x00, 0xAC, 0xF9);
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[8] = 0x05;
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[9] = 0x00;
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[10] = 0xAA;
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[11] = 0x0C;
+    applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
+    applyEndValuesToMostRecentBossRush(0xF601, 0x20); // <-- detect the end credits spawning
+
+    int sonicKindex = bossRushChallengeCount;
+    addBossRushListing(4, 0, 0, 0xB001, 0xCFCB, 0x1, 0x28, 0xF7D2, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdsArePointers = 1;
+
+    // S&K pointers are taken directly from https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_3_%26_Knuckles/Object_Editing/Pointer_List_2 
+    // wish them luck!!
+
+    // MHZ1 - 0007 51CA
+    duplicateBossRushListing(sonicKindex, 0, 0);
+    populateMostRecentBossRush4(0x07, 0x00, 0xCA, 0x51);
+    // MHZ2 - 0007 5F50
+    duplicateBossRushListing(sonicKindex, 0, 1);
+    populateMostRecentBossRush4(0x07, 0x00, 0x50, 0x5F);
+
+    // FBZ1 - 0006 EE68
+    duplicateBossRushListing(sonicKindex, 1, 0);
+    populateMostRecentBossRush4(0x06, 0x00, 0x68, 0xEE);
+    // FBZ2 - 0006 FD0C
+    duplicateBossRushListing(sonicKindex, 1, 1);
+    populateMostRecentBossRush4(0x06, 0x00, 0x0C, 0xFD);
+
+    // SOZ1 - 0007 6A12
+    duplicateBossRushListing(sonicKindex, 2, 0);
+    populateMostRecentBossRush4(0x07, 0x00, 0x12, 0x6A);
+    // SOZ2 - 0007 764E
+    duplicateBossRushListing(sonicKindex, 2, 1);
+    populateMostRecentBossRush4(0x07, 0x00, 0x4E, 0x76);
+
+    // LRZ1 - 0007 84F0
+    duplicateBossRushListing(sonicKindex, 3, 0);
+    populateMostRecentBossRush4(0x07, 0x00, 0xF0, 0x84);
+    // LRZ2 - 0007 8F56
+    duplicateBossRushListing(sonicKindex, 3, 1);
+    populateMostRecentBossRush4(0x07, 0x00, 0x56, 0x8F);
+
+    //HPZ (Knuckles) - 0006 1D4C
+    duplicateBossRushListing(sonicKindex, 4, 0);
+    populateMostRecentBossRush4(0x06, 0x00, 0x4C, 0x1D);
+    applyEndValuesToMostRecentBossRush(0xFE11, 0x0A); // <-- detect sky sanctuary
+
+    // SSZ (Mecha Sonic final) - 0007 B288
+    duplicateBossRushListing(sonicKindex, 5, 0);
+    populateMostRecentBossRush4(0x07, 0x00, 0x88, 0xB2);
+
+    // DEZ 1 - 0007 DDB4
+    duplicateBossRushListing(sonicKindex, 6, 0);
+    populateMostRecentBossRush4(0x07, 0x00, 0xB4, 0xDD);
+    // DEZ 2 - 0007 F06C
+    duplicateBossRushListing(sonicKindex, 6, 1);
+    populateMostRecentBossRush4(0x07, 0x00, 0x6C, 0xF0);
+    applyEndValuesToMostRecentBossRush(0xFE11, 0x17); // <-- detect DEZ finale
+
+    // DEZ Finale - finger 0008 0CF8, emerald capsule 0008 0542, getaway pod 0008 0160
+    duplicateBossRushListing(sonicKindex, 6, 2);
+    populateMostRecentBossRush8(0x08, 0x00, 0xF8, 0x0C, 0x08, 0x00, 0x42, 0x05); // fingers, emerald, escape (12 slots)
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[8] = 0x08;
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[9] = 0x00;
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[10] = 0x60;
+    bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[11] = 0x01;
+    applyGenerationToMostRecentBossRush(1); // <-- make it the penultimate challenge in the run
+    applyEndValuesToMostRecentBossRush(0xFE11, 0x0D); // <-- detect ending
+
+    // Doomsday Zone Finale - 0008 1E3C (shuttle),  0008 17DA (big egg robo)
+    duplicateBossRushListing(sonicKindex, 7, 0);
+    populateMostRecentBossRush8(0x08, 0x00, 0x3C, 0x1E, 0x08, 0x00, 0xDA, 0x17); // fingers, emerald, escape (12 slots)
+    applyGenerationToMostRecentBossRush(2); // <-- make it the final challenge in the run
+    applyEndValuesToMostRecentBossRush(0xFE11, 0x0D); // <-- detect ending
+
     // Steps:
     //  - get to boss
     //  - find health value on boss (check for 8 hp on Robotnik and 6hp on minibosses)
@@ -1161,10 +1313,10 @@ void populateBossRushObjectIds8(int listingIndex, unsigned int id0, unsigned int
     bossRushCallenges[listingIndex].objectIdNumbers[1] = id1;
     bossRushCallenges[listingIndex].objectIdNumbers[2] = id2;
     bossRushCallenges[listingIndex].objectIdNumbers[3] = id3;
-    bossRushCallenges[listingIndex].objectIdNumbers[0] = id4;
-    bossRushCallenges[listingIndex].objectIdNumbers[1] = id5;
-    bossRushCallenges[listingIndex].objectIdNumbers[2] = id6;
-    bossRushCallenges[listingIndex].objectIdNumbers[3] = id7;
+    bossRushCallenges[listingIndex].objectIdNumbers[4] = id4;
+    bossRushCallenges[listingIndex].objectIdNumbers[5] = id5;
+    bossRushCallenges[listingIndex].objectIdNumbers[6] = id6;
+    bossRushCallenges[listingIndex].objectIdNumbers[7] = id7;
 }
 
 
