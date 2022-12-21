@@ -860,6 +860,15 @@ void bumpToNextBossRush() {
         cartLoader_appendToLog(tempLog5);
 
         if (bossRushCallenges[getActiveBossRushIndex()].hasBeganPlaying == 0) {
+            // I wanted to set to load specific levels but it doesn't work
+            // unsigned int starpostLoc = 0xFE31;
+            // if (getActiveBossRushListing().gameIndex == 3 || getActiveBossRushListing().gameIndex == 4) {
+            //     starpostLoc = 0xFE28;
+            // }
+            // aa_genesis_setWorkRam(0xFE11, getActiveBossRushListing().zonePointer);
+            // aa_genesis_setWorkRam(0xFE10, getActiveBossRushListing().actPointer);
+            // aa_genesis_setWorkRam(starpostLoc, getActiveBossRushListing().checkpointIndex);
+
             // for sonic games, send value 0x8C to location 0xF601 to force a level reset - should fix version clashes!
             aa_genesis_setWorkRam(0xF601, 0x8C);
         }
@@ -1018,21 +1027,27 @@ void populateBossRushes() {
     // GHZ
     addBossRushListing(1, 0, 2, 0xD801, 0xEFFF, 0x40, 0x1F, 0xF7A6, 0x02);
     populateMostRecentBossRush4(0x3D, 0, 0, 0);
+    applyZoneLocationValuesToMostRecentBossRush(0, 2, 0);
     // MZ
     duplicateBossRushListing(sonic1index, 1, 2);
     populateMostRecentBossRush4(0x73, 0, 0, 0);
+    applyZoneLocationValuesToMostRecentBossRush(2, 2, 0);
     // SYZ
     duplicateBossRushListing(sonic1index, 2, 2);
     populateMostRecentBossRush4(0x75, 0, 0, 0);
+    applyZoneLocationValuesToMostRecentBossRush(4, 2, 0);
     // LZ
     duplicateBossRushListing(sonic1index, 3, 2);
     populateMostRecentBossRush4(0x77, 0, 0, 0);
+    applyZoneLocationValuesToMostRecentBossRush(1, 2, 0);
     // SLZ
     duplicateBossRushListing(sonic1index, 4, 2);
     populateMostRecentBossRush4(0x7A, 0, 0, 0);
+    applyZoneLocationValuesToMostRecentBossRush(3, 2, 0);
     // FinalZone
     duplicateBossRushListing(sonic1index, 5, 2);
     populateMostRecentBossRush4(0x85, 0, 0, 0);
+    applyZoneLocationValuesToMostRecentBossRush(5, 2, 0);
     applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
     applyEndValuesToMostRecentBossRush(0xF601, 0x18); // <-- detect the end credits spawning
 
@@ -1041,36 +1056,45 @@ void populateBossRushes() {
     addBossRushListing(2, 0, 1, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7D7, 0x01); // <-- this is the "show countdown" flag - also try F7D2 - F7D5 being non-zero (is it possible to get a zero time bonus?)
     // EHZ
     populateMostRecentBossRush4(0x56, 0, 0, 0);
+    applyZoneLocationValuesToMostRecentBossRush(0, 1, 0);
     // CPZ
     duplicateBossRushListing(sonic2index, 1, 1);
     populateMostRecentBossRush4(0x5D, 0, 0, 0);
+    applyZoneLocationValuesToMostRecentBossRush(0x0D, 1, 0);
     // ARZ
     duplicateBossRushListing(sonic2index, 2, 1);
     populateMostRecentBossRush4(0x89, 0, 0, 0);
     bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
+    applyZoneLocationValuesToMostRecentBossRush(0x0F, 1, 0);
     // CNZ
     duplicateBossRushListing(sonic2index, 3, 1);
     populateMostRecentBossRush4(0x51, 0, 0, 0);
     bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
+    applyZoneLocationValuesToMostRecentBossRush(0x0C, 1, 0);
     // HTZ
     duplicateBossRushListing(sonic2index, 4, 1);
     populateMostRecentBossRush4(0x52, 0, 0, 0);
     bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
+    applyZoneLocationValuesToMostRecentBossRush(0x07, 1, 0);
     // MCZ
     duplicateBossRushListing(sonic2index, 5, 1);
     populateMostRecentBossRush4(0x57, 0, 0, 0);
     bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
+    applyZoneLocationValuesToMostRecentBossRush(0x0B, 1, 0);
     // OOZ
     duplicateBossRushListing(sonic2index, 6, 1);
     populateMostRecentBossRush4(0x55, 0, 0, 0);
     bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
+    applyZoneLocationValuesToMostRecentBossRush(0x0A, 1, 0);
     // MZ
     duplicateBossRushListing(sonic2index, 7, 2);
     populateMostRecentBossRush4(0x54, 0, 0, 0);
     bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x32;
+    applyZoneLocationValuesToMostRecentBossRush(0x05, 2, 0);
     // WFZ
     duplicateBossRushListing(sonic2index, 9, 0); // <-- to do: fix the bit where the hit byte goes wild during the explosion!
     populateMostRecentBossRush4(0xC5, 0, 0, 0);
+    applyZoneLocationValuesToMostRecentBossRush(0x06, 0, 0);
     applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
     applyEndValuesToMostRecentBossRush(0xFE11, 0x0E); // <-- detect Death Egg loading
 
@@ -1078,6 +1102,7 @@ void populateBossRushes() {
     addBossRushListing(2, 10, 0, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7D2, 0x100); 
     // duplicateBossRushListing(sonic2index, 10, 0);
     populateMostRecentBossRush4(0xC7, 0xAF, 0, 0); // C7 is eggrobo, AF is silver sonic
+    applyZoneLocationValuesToMostRecentBossRush(0x0E, 0, 0);
     bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x1F;
     applyGenerationToMostRecentBossRush(2); // <-- make it the final challenge in the run
     applyEndValuesToMostRecentBossRush(0xF601, 0x20); // <-- detect the end credits spawning
@@ -1265,6 +1290,10 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
 
     bossRushCallenges[bossRushChallengeCount].romAtIndex = -1;
 
+    bossRushCallenges[bossRushChallengeCount].zonePointer = -1;
+    bossRushCallenges[bossRushChallengeCount].actPointer = -1;
+    bossRushCallenges[bossRushChallengeCount].checkpointIndex = -1;
+
     bossRushChallengeCount++;
 }
 
@@ -1298,6 +1327,12 @@ void applyGenerationToMostRecentBossRush(unsigned int generation) {
 void applyEndValuesToMostRecentBossRush(unsigned int endLoc, unsigned int endVal) {
     bossRushCallenges[bossRushChallengeCount - 1].defeatedByte = endLoc;
     bossRushCallenges[bossRushChallengeCount - 1].defeatedValue = endVal;
+}
+
+void applyZoneLocationValuesToMostRecentBossRush(unsigned int zone, unsigned int act, unsigned int checkpoint) {
+    bossRushCallenges[bossRushChallengeCount - 1].zonePointer = zone;
+    bossRushCallenges[bossRushChallengeCount - 1].actPointer = act;
+    bossRushCallenges[bossRushChallengeCount - 1].checkpointIndex = checkpoint;
 }
 
 
@@ -2587,6 +2622,7 @@ void cartLoader_loadBossRushSaveStatesFromDisk() {
 
         // sprintf(path, "%s/0_0_2.savestate", folderPath); // 
         sprintf(path, "%s/.boss_rush_source/%i_%i_%i.savestate", folderPath, listing.gameIndex, listing.zoneIndex, listing.actIndex);
+        // sprintf(path, "%s/.boss_rush_source/%i.savestate", folderPath, listing.gameIndex);
 
         // LOGGING HERE SEEMS TO CRASH THE EMU!!!
         char tempLog[256];

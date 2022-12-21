@@ -127,5 +127,6 @@ extern int awaitingBossRushStart();
 extern void cartLoader_loadBossRushSaveStatesFromDisk();
 int challengeCanBeQueued(int index);
 void checkForBossRushComplete();
+void applyZoneLocationValuesToMostRecentBossRush(unsigned int zone, unsigned int act, unsigned int checkpoint);
 
 #endif

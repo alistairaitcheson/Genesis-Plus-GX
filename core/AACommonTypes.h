@@ -112,6 +112,10 @@ typedef struct {
     int shouldAppearInGeneration; // (e.g. in S&K 0 = all act 1 bosses, 1 = all act 2 bosses, 2 = Death Egg giant robot, 3 = Doomsday zone)
     int objectIdsArePointers;
 
+    int zonePointer;
+    int actPointer;
+    int checkpointIndex;
+
     int isActivated;
     int isCompleted;
     int hasBeganPlaying;
