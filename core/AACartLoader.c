@@ -754,12 +754,19 @@ void cartLoader_run() {
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
+static int bossRushComplete = 0;
+
+int getBossRushComplete() {
+    return bossRushComplete;
+}
+
 void beginBossRush() {
     populateBossRushes();
 
     cartLoader_loadBossRushSaveStatesFromDisk();
     mapBossRushesToRoms();
 
+    bossRushComplete = 0;
     currentBossRushIndex = -1;
     bumpToNextBossRush();
     cartLoader_cacheSaveStateBeforeMenu();
@@ -773,17 +780,24 @@ void onBossHit() {
 
 void onBossDefeated() {
     if (currentBossRushIndex > -1) {
-        BossRushChallengeListing listing = getActiveBossRushListing();
-        listing.isCompleted = 1;
+        bossRushCallenges[activeBossRushes[currentBossRushIndex]].isCompleted = 1;
         activeBossRushes[currentBossRushIndex] = -1;
-
-        checkForBossRushComplete();
 
         queueBossRushSlots();
 
         currentBossRushIndex = -1;
         promptSwitchGame();
     }
+
+    checkForBossRushComplete();
+}
+
+int getBossRushIndexInSlot(int slot) {
+    return activeBossRushes[slot];
+}
+
+int getActiveBossRushSlotId() {
+    return currentBossRushIndex;
 }
 
 int getActiveBossRushIndex() {
@@ -862,13 +876,12 @@ void bumpToNextBossRush() {
         if (bossRushCallenges[getActiveBossRushIndex()].hasBeganPlaying == 0) {
             // I wanted to set to load specific levels but it doesn't work
             // unsigned int starpostLoc = 0xFE31;
-            // if (getActiveBossRushListing().gameIndex == 3 || getActiveBossRushListing().gameIndex == 4) {
-            //     starpostLoc = 0xFE28;
-            // }
+            if (getActiveBossRushListing().gameIndex == 3 || getActiveBossRushListing().gameIndex == 4) {
+                aa_genesis_setWorkRam(0xFE2A, getActiveBossRushListing().checkpointIndex);
+            }
             // aa_genesis_setWorkRam(0xFE11, getActiveBossRushListing().zonePointer);
             // aa_genesis_setWorkRam(0xFE10, getActiveBossRushListing().actPointer);
-            // aa_genesis_setWorkRam(starpostLoc, getActiveBossRushListing().checkpointIndex);
-
+            
             // for sonic games, send value 0x8C to location 0xF601 to force a level reset - should fix version clashes!
             aa_genesis_setWorkRam(0xF601, 0x8C);
         }
@@ -922,6 +935,7 @@ void queueBossRushSlots() {
     }
 }
 
+
 void checkForBossRushComplete() {
     int hasIncompleteRush = 0;
     for (int i = 0; i < bossRushChallengeCount; i++) {
@@ -932,8 +946,10 @@ void checkForBossRushComplete() {
 
     if (hasIncompleteRush == 0) {
         onBossRushComplete();
+        bossRushComplete = 1;
     }
 }
+
 
 void onBossRushComplete() {
     // load the credits!
@@ -956,6 +972,12 @@ void onBossRushComplete() {
 }
 
 int challengeCanBeQueued(int i) {
+    for (int j = 0; j < MAX_SIMULTANEOUS_BOSSES; j++) {
+        if (activeBossRushes[j] == i) {
+            return 0;
+        }
+    }
+
     if (bossRushCallenges[i].isActivated == 0 && bossRushCallenges[i].isCompleted == 0 && bossRushCallenges[i].romAtIndex != -1 && hasBossRushSaveState[i] == 1) {
         return 1;
     }
@@ -1117,15 +1139,15 @@ void populateBossRushes() {
     // Are the pointers different on the Sonic 3 alone cartridge? Because this is what comes up in Bizhawk when I search 0x29 bytes before the health value...
     // I think they are, but also the bytes are swapped around compared to bizhawk 0xAB12 in Bizhawk is 0x12AB here
 
-    // AIZ 2 - 00053CE2
+    // AIZ 2 - 0004 711E
     duplicateBossRushListing(sonic3index, 0, 1);
-    populateMostRecentBossRush4(0x53, 0x00, 0xE2, 0x3C);
+    populateMostRecentBossRush4(0x04, 0x00, 0x1E, 0x71);
 
     // values picked up from BizHawk
     // my cart is 0x30, 0x30 (v00)
     // HCZ 1 - 0004 7DCA ?? MAYBE??
     duplicateBossRushListing(sonic3index, 1, 0);
-    populateMostRecentBossRush4(0x07, 0x00, 0xCA, 0x7D);
+    populateMostRecentBossRush4(0x04, 0x00, 0xCA, 0x7D);
     // HCZ 2 - 00 04 8D 3C --> 0x04, 0x00, 0x3C, 0x8D
     duplicateBossRushListing(sonic3index, 1, 1);
     populateMostRecentBossRush4(0x04, 0x00, 0x3C, 0x8D);
@@ -1137,9 +1159,10 @@ void populateBossRushes() {
     duplicateBossRushListing(sonic3index, 2, 1);
     populateMostRecentBossRush4(0x04, 0x00, 0xF8, 0xA0);
 
-    // CNZ 1 - 0004 B62A ?? is health offset diffrent for this one??
+    // CNZ 1 - 0004 B62A ?? is health offset different for this one??
     duplicateBossRushListing(sonic3index, 3, 0);
     populateMostRecentBossRush4(0x04, 0x00, 0x2A, 0xB6);
+    bossRushCallenges[bossRushChallengeCount - 1].healthByteOffsets[0] = 0x44;
     // CNZ 2 - 0004 C002
     duplicateBossRushListing(sonic3index, 3, 1);
     populateMostRecentBossRush4(0x04, 0x00, 0x02, 0xC0);

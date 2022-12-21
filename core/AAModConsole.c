@@ -97,8 +97,6 @@ static int intervalBetweenPendingTriggers = 15;
 static int pendingRingTriggerTimer = 0;
 static int hasFlaggedPendingRingsThisFrame = 0;
 
-static int bossRushEnabled = 0;
-
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
 }
@@ -394,8 +392,15 @@ void checkForBossHits() {
 
     int foundCount = 0;
 
-    int SHOW_DEBUG = 0;
-    int FORCE_QUICK_KILLS = 0;
+    int SHOW_DEBUG = 1;
+    int FORCE_QUICK_KILLS = 1;
+    
+    if (SHOW_DEBUG == 1) {
+        char activeText[0x40];
+        sprintf(activeText, "%i %i .. %i %i %i %i", getActiveBossRushIndex(), getActiveBossRushSlotId(), getBossRushIndexInSlot(0), getBossRushIndexInSlot(1), getBossRushIndexInSlot(2), getBossRushIndexInSlot(3));
+        layerRenderer_fill(2, 0, vdp_getScreenHeight() - 24, 8 * 24, 8, 0xFF);
+        layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 24, activeText, 0x5);
+    }
 
     int objStep = 1;
     if (listing.objectIdsArePointers != 0) {
@@ -805,8 +810,20 @@ void modConsole_updateFrame() {
             checkForBossHits();
         }
 
-        if (buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+        // TO HELP WITH SONIC 3 EDITING
+        if (buttonWasPressedAtIndex(INPUT_INDEX_A) != 0) {
+            // aa_genesis_setWorkRam(0xFFD0, 1);
+            aa_genesis_setWorkRam(0xFFD1, 1);
+            // aa_genesis_setWorkRam(0xFFD2, 1);
+            // aa_genesis_setWorkRam(0xFFD3, 1);
+        }
+        if (buttonWasPressedAtIndex(INPUT_INDEX_B) != 0) {
             aa_genesis_incrementWorkRamCompoundValueByInt(0xB010, 2, 0x80);
+            // aa_genesis_incrementWorkRamCompoundValueByInt(0xFE2A,1, 1);
+            // aa_genesis_incrementWorkRamCompoundValueByInt(0xFE2B,1, 1);
+            // // aa_genesis_setWorkRam(0xFE2A, 0xFF);
+            // // aa_genesis_setWorkRam(0xFE2B, 0xFF);
+            // aa_genesis_setWorkRam(0xF601, 0x8C);
         }
 
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
@@ -957,6 +974,13 @@ void modConsole_updateFrame() {
             if (bossRushStartCountDown == 0) {
                 beginBossRush();
             }
+        }
+
+        if (shouldUseBossRush() == 1 && getBossRushComplete()) {
+            layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
+            layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "BOSS RUSH COMPLETE!", 0xFF);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "WELL DONE!", 0xFF);
         }
     }
 
