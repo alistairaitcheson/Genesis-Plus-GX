@@ -393,13 +393,18 @@ void checkForBossHits() {
     int foundCount = 0;
 
     int SHOW_DEBUG = 1;
-    int FORCE_QUICK_KILLS = 1;
+    int FORCE_QUICK_KILLS = 0;
     
     if (SHOW_DEBUG == 1) {
         char activeText[0x40];
         sprintf(activeText, "%i %i .. %i %i %i %i", getActiveBossRushIndex(), getActiveBossRushSlotId(), getBossRushIndexInSlot(0), getBossRushIndexInSlot(1), getBossRushIndexInSlot(2), getBossRushIndexInSlot(3));
         layerRenderer_fill(2, 0, vdp_getScreenHeight() - 24, 8 * 24, 8, 0xFF);
         layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 24, activeText, 0x5);
+
+        char activeText2[0x40];
+        sprintf(activeText2, "%02X %02X %02X %02X", listing.objectIdNumbers[0], listing.objectIdNumbers[1], listing.objectIdNumbers[2], listing.objectIdNumbers[3]);
+        layerRenderer_fill(2, 0, vdp_getScreenHeight() - 32, 8 * 24, 8, 0xFF);
+        layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 32, activeText2, 0x5);
     }
 
     int objStep = 1;
@@ -813,9 +818,10 @@ void modConsole_updateFrame() {
         // TO HELP WITH SONIC 3 EDITING
         if (buttonWasPressedAtIndex(INPUT_INDEX_A) != 0) {
             // aa_genesis_setWorkRam(0xFFD0, 1);
-            aa_genesis_setWorkRam(0xFFD1, 1);
+            // aa_genesis_setWorkRam(0xFFD1, 1);
             // aa_genesis_setWorkRam(0xFFD2, 1);
             // aa_genesis_setWorkRam(0xFFD3, 1);
+            aa_genesis_setWorkRam(0xF601, 0xA4);
         }
         if (buttonWasPressedAtIndex(INPUT_INDEX_B) != 0) {
             aa_genesis_incrementWorkRamCompoundValueByInt(0xB010, 2, 0x80);

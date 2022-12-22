@@ -1191,58 +1191,57 @@ void populateBossRushes() {
     int sonicKindex = bossRushChallengeCount;
     addBossRushListing(4, 0, 0, 0xB001, 0xCFCB, 0x1, 0x28, 0xF7D2, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     bossRushCallenges[bossRushChallengeCount - 1].objectIdsArePointers = 1;
+    // MHZ1 - 0007 51CA
+    populateMostRecentBossRush4(0x07, 0x00, 0xCA, 0x51);
 
     // S&K pointers are taken directly from https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_3_%26_Knuckles/Object_Editing/Pointer_List_2 
     // wish them luck!!
 
-    // MHZ1 - 0007 51CA
-    duplicateBossRushListing(sonicKindex, 0, 0);
-    populateMostRecentBossRush4(0x07, 0x00, 0xCA, 0x51);
-    // MHZ2 - 0007 5F50
+    // MHZ2 - 0007 5FD4
     duplicateBossRushListing(sonicKindex, 0, 1);
-    populateMostRecentBossRush4(0x07, 0x00, 0x50, 0x5F);
+    populateMostRecentBossRush4(0x07, 0x00, 0xD4, 0x5F);
 
-    // FBZ1 - 0006 EE68
+    // FBZ1 - 0006 EE72
     duplicateBossRushListing(sonicKindex, 1, 0);
-    populateMostRecentBossRush4(0x06, 0x00, 0x68, 0xEE);
-    // FBZ2 - 0006 FD0C
+    populateMostRecentBossRush4(0x06, 0x00, 0x72, 0xEE);
+    // FBZ2 - 0007 063A
     duplicateBossRushListing(sonicKindex, 1, 1);
-    populateMostRecentBossRush4(0x06, 0x00, 0x0C, 0xFD);
+    populateMostRecentBossRush4(0x07, 0x00, 0x3A, 0x06);
 
-    // SOZ1 - 0007 6A12
+    // SOZ1 - 0007 6A12 <-- wrong pointer and makes no sense anyway - so just don't do anything except on level end
     duplicateBossRushListing(sonicKindex, 2, 0);
-    populateMostRecentBossRush4(0x07, 0x00, 0x12, 0x6A);
+    populateMostRecentBossRush4(0x00, 0x00, 0x00, 0x00);
     // SOZ2 - 0007 764E
     duplicateBossRushListing(sonicKindex, 2, 1);
     populateMostRecentBossRush4(0x07, 0x00, 0x4E, 0x76);
 
-    // LRZ1 - 0007 84F0
+    // LRZ1 - worm arms (0007 897A), big hand (0007 8538)
     duplicateBossRushListing(sonicKindex, 3, 0);
-    populateMostRecentBossRush4(0x07, 0x00, 0xF0, 0x84);
-    // LRZ2 - 0007 8F56
+    populateMostRecentBossRush8(0x07, 0x00, 0x7A, 0x89, 0x07, 0x00, 0x38, 0x85);
+    // LRZ2 - 0007 97FA
     duplicateBossRushListing(sonicKindex, 3, 1);
-    populateMostRecentBossRush4(0x07, 0x00, 0x56, 0x8F);
+    populateMostRecentBossRush4(0x07, 0x00, 0xFA, 0x97);
 
-    //HPZ (Knuckles) - 0006 1D4C
+    //HPZ (Knuckles) - 0006 3DE0
     duplicateBossRushListing(sonicKindex, 4, 0);
-    populateMostRecentBossRush4(0x06, 0x00, 0x4C, 0x1D);
+    populateMostRecentBossRush4(0x06, 0x00, 0xE0, 0x3D);
     applyEndValuesToMostRecentBossRush(0xFE11, 0x0A); // <-- detect sky sanctuary
 
-    // SSZ (Mecha Sonic final) - 0007 B288
+    // SSZ (Mecha Sonic final) - 0007 B288 
     duplicateBossRushListing(sonicKindex, 5, 0);
     populateMostRecentBossRush4(0x07, 0x00, 0x88, 0xB2);
 
-    // DEZ 1 - 0007 DDB4
+    // DEZ 1 - 0007 DE6E (central tower), 0007 E0A6 (laser dropper)
     duplicateBossRushListing(sonicKindex, 6, 0);
-    populateMostRecentBossRush4(0x07, 0x00, 0xB4, 0xDD);
-    // DEZ 2 - 0007 F06C
+    populateMostRecentBossRush8(0x07, 0x00, 0x6E, 0xDE, 0x07, 0x00, 0xA6, 0xE0);
+    // DEZ 2 - 0007 F0DA
     duplicateBossRushListing(sonicKindex, 6, 1);
-    populateMostRecentBossRush4(0x07, 0x00, 0x6C, 0xF0);
+    populateMostRecentBossRush4(0x07, 0x00, 0xDA, 0xF0);
     applyEndValuesToMostRecentBossRush(0xFE11, 0x17); // <-- detect DEZ finale
 
-    // DEZ Finale - finger 0008 0CF8, emerald capsule 0008 0542, getaway pod 0008 0160
+    // DEZ Finale - finger [[not 0008 0CF8]] 0008 0D30, emerald capsule 0008 0542, getaway pod 0008 0160
     duplicateBossRushListing(sonicKindex, 6, 2);
-    populateMostRecentBossRush8(0x08, 0x00, 0xF8, 0x0C, 0x08, 0x00, 0x42, 0x05); // fingers, emerald, escape (12 slots)
+    populateMostRecentBossRush8(0x08, 0x00, 0x30, 0x0D, 0x08, 0x00, 0x42, 0x05); // fingers, emerald, escape (12 slots)
     bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[8] = 0x08;
     bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[9] = 0x00;
     bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[10] = 0x60;
