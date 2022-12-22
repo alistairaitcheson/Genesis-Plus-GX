@@ -2200,7 +2200,11 @@ void showOptionsMenu() {
         sprintf(lines[6], "     RAM Editing >");
     }
 
-    sprintf(lines[7], "     Boss Rush >");
+    if (shouldUseBossRush()) {
+        sprintf(lines[7], "[ON] Boss Rush (Beta)>");
+    } else {
+        sprintf(lines[7], "     Boss Rush (Beta)>");
+    }
 
     sprintf(lines[8], "Start game");
 

@@ -392,7 +392,7 @@ void checkForBossHits() {
 
     int foundCount = 0;
 
-    int SHOW_DEBUG = 1;
+    int SHOW_DEBUG = 0;
     int FORCE_QUICK_KILLS = 0;
     
     if (SHOW_DEBUG == 1) {
@@ -816,6 +816,7 @@ void modConsole_updateFrame() {
         }
 
         // TO HELP WITH SONIC 3 EDITING
+        /*
         if (buttonWasPressedAtIndex(INPUT_INDEX_A) != 0) {
             // aa_genesis_setWorkRam(0xFFD0, 1);
             // aa_genesis_setWorkRam(0xFFD1, 1);
@@ -831,6 +832,7 @@ void modConsole_updateFrame() {
             // // aa_genesis_setWorkRam(0xFE2B, 0xFF);
             // aa_genesis_setWorkRam(0xF601, 0x8C);
         }
+        */
 
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
         //     buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
