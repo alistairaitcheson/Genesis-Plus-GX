@@ -32,7 +32,7 @@ static int terminalLocationIndex = 0;
 static int bossRushItemIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 26;
+static int minorVersion = 27;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
