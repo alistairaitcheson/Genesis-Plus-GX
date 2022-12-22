@@ -787,6 +787,7 @@ void onBossDefeated() {
 
         currentBossRushIndex = -1;
         promptSwitchGame();
+        fireScreenSnapOnEvent();
     }
 
     checkForBossRushComplete();
