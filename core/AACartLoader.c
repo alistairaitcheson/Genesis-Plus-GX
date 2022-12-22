@@ -70,7 +70,7 @@ static int rewindStateCounterPerGame[MAX_ROMS];
 
 static int activeBossRushes[MAX_ROMS];
 static int currentBossRushIndex = 0;
-static int MAX_SIMULTANEOUS_BOSSES = 4;
+static int MAX_SIMULTANEOUS_BOSSES = 8;
 static uint8 bossRushSaveStates[MAX_ROMS][STATE_SIZE];
 static uint8 hasBossRushSaveState[MAX_ROMS];
 
