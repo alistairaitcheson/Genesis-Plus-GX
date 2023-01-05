@@ -104,6 +104,7 @@ typedef struct {
 typedef struct {
     int switchTrigger;
     int bossOrder;
+    int totalBossesIdx; // 0 = 4, 1 = 6, 2 = 8, 3 = 12, 4 = all
 } BossRushOptions;
 
 extern void menuDisplay_showMenu(int menuNum);
@@ -194,6 +195,7 @@ extern void menuDisplay_showTerminalMenu();
 void showTerminalMenu();
 void activateTerminalOption();
 
+int getMaxSimultaneousBosses();
 void flagNewSavestateLoaded();
 
 #endif

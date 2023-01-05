@@ -70,7 +70,6 @@ static int rewindStateCounterPerGame[MAX_ROMS];
 
 static int activeBossRushes[MAX_ROMS];
 static int currentBossRushIndex = 0;
-static int MAX_SIMULTANEOUS_BOSSES = 8;
 static uint8 bossRushSaveStates[MAX_ROMS][STATE_SIZE];
 static uint8 hasBossRushSaveState[MAX_ROMS];
 
@@ -802,6 +801,10 @@ void beginBossRush() {
 
     vdp_setShouldRandomiseColours(0);
 
+    if (hasInitialisedBossRush == 0) {
+        resetBossRushElapsedTimer();
+    }
+
     hasInitialisedBossRush = 1;
     shouldResetBossRush = 0;
 }
@@ -849,7 +852,8 @@ void bumpToNextBossRush() {
     int indexesWithoutActivity[MAX_ROMS];
     int maxIndex = 0;
     int maxIndexWithoutActivity = 0;
-    for (int i = 0; i < MAX_SIMULTANEOUS_BOSSES; i++) {
+    int maxBosses = getMaxSimultaneousBosses();
+    for (int i = 0; i < maxBosses; i++) {
         if (i != currentBossRushIndex && activeBossRushes[i] != -1) {
             allowedIndexes[maxIndex] = i;
             maxIndex++;
@@ -960,7 +964,14 @@ void mapBossRushesToRoms() {
 }
 
 void queueBossRushSlots() {
-    for (int i = 0; i < MAX_SIMULTANEOUS_BOSSES; i++) {
+    int maxBosses = getMaxSimultaneousBosses();
+    // account for changes in rush count by zeroing anything that's in a slot too high
+    for (int i = maxBosses; i < MAX_ROMS; i++) {
+        activeBossRushes[i] = -1;
+    }
+
+    // then put something in each unoccupied slot
+    for (int i = 0; i < maxBosses; i++) {
         if (activeBossRushes[i] == -1) {
             
             queueBossRushInSlot(i);
@@ -1005,7 +1016,8 @@ void onBossRushComplete() {
 }
 
 int challengeCanBeQueued(int i) {
-    for (int j = 0; j < MAX_SIMULTANEOUS_BOSSES; j++) {
+    int maxBosses = getMaxSimultaneousBosses();
+    for (int j = 0; j < maxBosses; j++) {
         if (activeBossRushes[j] == i) {
             return 0;
         }

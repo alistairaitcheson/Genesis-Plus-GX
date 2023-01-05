@@ -96,6 +96,27 @@ static int pendingRingTriggers = 0;
 static int intervalBetweenPendingTriggers = 15;
 static int pendingRingTriggerTimer = 0;
 static int hasFlaggedPendingRingsThisFrame = 0;
+static int bossRushElapsedFrames = 0;
+
+int getBossRushElapsedFrames() {
+    return bossRushElapsedFrames;
+}
+
+void resetBossRushElapsedTimer() {
+    bossRushElapsedFrames = 0;
+}
+
+int getBossRushElapsedSecs() {
+    return (bossRushElapsedFrames / 60) % 60;
+}
+
+int getBossRushElapsedMins() {
+    return (bossRushElapsedFrames / 3600) % 60;
+}
+
+int getBossRushElapsedHours() {
+    return bossRushElapsedFrames / (3600 * 60);
+}
 
 void initialiseRewindRAM() {
     cartloader_initialiseRewindDirectory();
@@ -817,13 +838,15 @@ void modConsole_updateFrame() {
         }
 
         if (shouldUseBossRush()) {
+            bossRushElapsedFrames++;
+
             // char rushText[0x40];
             // BossRushChallengeListing listing = getActiveBossRushListing();
             // sprintf(rushText, "%02X %02X %02X %02X", listing.objectIdNumbers[0], listing.objectIdNumbers[1], listing.objectIdNumbers[2], listing.objectIdNumbers[3]);
             // layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8, 8 * 20, 8, 0xFF);
             // layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8, rushText, 0x5);
             int defeated = checkForBossDefeats();
-            if (defeated == 0 && menuDisplay_getBossRushOptions().switchTrigger == 0) {
+            if (defeated == 0) {
                 if (menuDisplay_getBossRushOptions().switchTrigger == 0) {
                     checkForBossHits();
                 } else if (menuDisplay_getBossRushOptions().switchTrigger == 1) {
@@ -1007,7 +1030,11 @@ void modConsole_updateFrame() {
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "BOSS RUSH COMPLETE!", 0xFF);
-            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "WELL DONE!", 0xFF);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "YOUR TIME", 0xFF);
+
+            char elapsedText[0x80];
+            sprintf(elapsedText, "%02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, elapsedText, 0xFF);
         }
     }
 

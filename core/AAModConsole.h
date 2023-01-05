@@ -137,5 +137,10 @@ void applyVramEditOnRing();
 int pendingRingTriggerShouldFire();
 void updatePendingRingTrigger();
 void increasePendingRingTriggers(int count);
+int getBossRushElapsedFrames();
+int getBossRushElapsedSecs();
+int getBossRushElapsedMins();
+int getBossRushElapsedHours();
+void resetBossRushElapsedTimer();
 
 #endif
