@@ -133,4 +133,9 @@ int getActiveBossRushSlotId();
 int getBossRushIndexInSlot(int slot);
 int getBossRushComplete();
 
+void setShouldResetBossRush(int val);
+int getShouldResetBossRush();
+int getHasInitialisedBossRush();
+void setHasInitialisedBossRush(int val);
+
 #endif

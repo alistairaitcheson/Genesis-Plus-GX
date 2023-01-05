@@ -101,6 +101,11 @@ typedef struct {
     int sendRemoveColour;
 } NetworkOptions;
 
+typedef struct {
+    int switchTrigger;
+    int bossOrder;
+} BossRushOptions;
+
 extern void menuDisplay_showMenu(int menuNum);
 extern void menuDisplay_hideMenu();
 extern int menuDisplay_onButtonPress(int buttonIndex);

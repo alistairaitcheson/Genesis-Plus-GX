@@ -755,10 +755,29 @@ void cartLoader_run() {
 }
 
 static int bossRushComplete = 0;
+static int hasInitialisedBossRush = 0;
+static int shouldResetBossRush = 0;
 
 int getBossRushComplete() {
     return bossRushComplete;
 }
+
+void setShouldResetBossRush(int val) {
+    shouldResetBossRush = val;
+}
+
+int getShouldResetBossRush() {
+    return shouldResetBossRush;
+}
+
+int getHasInitialisedBossRush() {
+    return hasInitialisedBossRush;
+}
+
+void setHasInitialisedBossRush(int val) {
+    hasInitialisedBossRush = val;
+}
+
 
 void beginBossRush() {
     populateBossRushes();
@@ -772,6 +791,9 @@ void beginBossRush() {
     cartLoader_cacheSaveStateBeforeMenu();
 
     vdp_setShouldRandomiseColours(0);
+
+    hasInitialisedBossRush = 1;
+    shouldResetBossRush = 0;
 }
 
 void onBossHit() {
@@ -1385,7 +1407,7 @@ static int shouldInitialiseBossRush = 0;
 void toggleStartBossRush() {
     shouldStartBossRush = 1 - shouldStartBossRush;
 
-    if (shouldStartBossRush == 1) {
+    if (shouldStartBossRush == 1 && (hasInitialisedBossRush == 0 || shouldResetBossRush == 1)) {
         shouldInitialiseBossRush = 1;
     }
 }

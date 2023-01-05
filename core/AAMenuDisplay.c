@@ -48,6 +48,7 @@ static RamDetectiveOptions ramDetectiveOptions;
 static PixelDetectiveOptions pixelDetectiveOptions;
 static NetworkOptions networkOptions;
 static SecondaryHackOptions secondaryHackOptions;
+static BossRushOptions bossRushOptions;
 static int logRamStateCounter[0x10000];
 
 static int trackedRamFrameCounts[0x10000];
@@ -3736,7 +3737,7 @@ void showBossRushMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Boss Rush", 5);
 
-    int lineCount = 2;
+    int lineCount = 5;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -3751,11 +3752,39 @@ void showBossRushMenu() {
     }
 
     if (awaitingBossRushStart() == 1) {
-        sprintf(lines[0], "boss rush:   ON");
+        sprintf(lines[0], "boss rush:  ON");
     } else {
-        sprintf(lines[0], "boss rush:  OFF");
+        sprintf(lines[0], "boss rush: OFF");
     }
-    sprintf(lines[1], "back >");
+
+    // reset boss rush
+    if (getShouldResetBossRush() == 1) {
+        sprintf(lines[1], "reset boss rush: YES");
+    } else {
+        sprintf(lines[1], "reset boss rush:  NO");
+    }
+
+    // switch trigger
+    if (bossRushOptions.switchTrigger == 0) {
+        sprintf(lines[2], "switch game on: boss hit");
+    } else if (bossRushOptions.switchTrigger == 1) {
+        sprintf(lines[2], "switch game on: get ring");
+    } else {
+        sprintf(lines[2], "switch game on: touch ground");
+    }
+
+    // boss order
+    if (bossRushOptions.bossOrder == 0) {
+        sprintf(lines[3], "boss order: random");
+    } else if (bossRushOptions.bossOrder == 1) {
+        sprintf(lines[3], "boss order: finales last");
+    } else if (bossRushOptions.bossOrder == 2) {
+        sprintf(lines[3], "boss order: chronological");
+    } else if (bossRushOptions.bossOrder == 3) {
+        sprintf(lines[3], "boss order: chrono per game");
+    }
+
+    sprintf(lines[4], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
