@@ -855,6 +855,12 @@ void modConsole_updateFrame() {
                     updateSwitchGameOnLand();
                 }
             }
+
+            if (menuDisplay_getBossRushOptions().ringsOff == 1) {
+                if (getActiveBossRushListing().blockRingZeroing == 0) {
+                    aa_genesis_setWorkRam(activeGameListing.ringByte, 0);
+                }
+            }
         }
 
         // TO HELP WITH SONIC 3 EDITING
@@ -1032,9 +1038,9 @@ void modConsole_updateFrame() {
             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "BOSS RUSH COMPLETE!", 0xFF);
             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "YOUR TIME", 0xFF);
 
-            char elapsedText[0x80];
-            sprintf(elapsedText, "%02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
-            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, elapsedText, 0xFF);
+            // char elapsedText[0x80];
+            // sprintf(elapsedText, "%02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
+            // layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, elapsedText, 0xFF);
         }
     }
 

@@ -111,6 +111,7 @@ typedef struct {
     unsigned int defeatedValue;
     int shouldAppearInGeneration; // (e.g. in S&K 0 = all act 1 bosses, 1 = all act 2 bosses, 2 = Death Egg giant robot, 3 = Doomsday zone)
     int objectIdsArePointers;
+    int blockRingZeroing; // if 1, don't remove ring count in this game! (e.g. doomsday)
 
     int zonePointer;
     int actPointer;

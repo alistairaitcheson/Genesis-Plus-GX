@@ -12,6 +12,8 @@
 #include "genesis.h"
 #include "AAMenuDisplay.h"
 
+static int MAX_SIMULTANEOUS_BOSSES = 8;
+
 static unsigned int romCount;
 static char *folderPath = "_magicbox";
 static char romFileNames[MAX_ROMS][0x100];
@@ -789,6 +791,12 @@ void setHasInitialisedBossRush(int val) {
 
 
 void beginBossRush() {
+    MAX_SIMULTANEOUS_BOSSES = getMaxSimultaneousBosses();
+    
+    if (hasInitialisedBossRush == 0 || shouldResetBossRush != 0) {
+        resetAllBossRushSlots();
+    }
+
     populateBossRushes();
 
     cartLoader_loadBossRushSaveStatesFromDisk();
@@ -852,8 +860,7 @@ void bumpToNextBossRush() {
     int indexesWithoutActivity[MAX_ROMS];
     int maxIndex = 0;
     int maxIndexWithoutActivity = 0;
-    int maxBosses = getMaxSimultaneousBosses();
-    for (int i = 0; i < maxBosses; i++) {
+    for (int i = 0; i < MAX_SIMULTANEOUS_BOSSES; i++) {
         if (i != currentBossRushIndex && activeBossRushes[i] != -1) {
             allowedIndexes[maxIndex] = i;
             maxIndex++;
@@ -963,15 +970,22 @@ void mapBossRushesToRoms() {
     }
 }
 
+void resetAllBossRushSlots() {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        activeBossRushes[i] = -1;
+    }
+}
+
 void queueBossRushSlots() {
-    int maxBosses = getMaxSimultaneousBosses();
-    // account for changes in rush count by zeroing anything that's in a slot too high
-    for (int i = maxBosses; i < MAX_ROMS; i++) {
+    MAX_SIMULTANEOUS_BOSSES = getMaxSimultaneousBosses();
+
+    // // account for changes in rush count by zeroing anything that's in a slot too high
+    for (int i = MAX_SIMULTANEOUS_BOSSES; i < MAX_ROMS; i++) {
         activeBossRushes[i] = -1;
     }
 
     // then put something in each unoccupied slot
-    for (int i = 0; i < maxBosses; i++) {
+    for (int i = 0; i < MAX_SIMULTANEOUS_BOSSES; i++) {
         if (activeBossRushes[i] == -1) {
             
             queueBossRushInSlot(i);
@@ -1016,8 +1030,7 @@ void onBossRushComplete() {
 }
 
 int challengeCanBeQueued(int i) {
-    int maxBosses = getMaxSimultaneousBosses();
-    for (int j = 0; j < maxBosses; j++) {
+    for (int j = 0; j < MAX_SIMULTANEOUS_BOSSES; j++) {
         if (activeBossRushes[j] == i) {
             return 0;
         }
@@ -1337,6 +1350,7 @@ void populateBossRushes() {
     populateMostRecentBossRush8(0x08, 0x00, 0x3C, 0x1E, 0x08, 0x00, 0xDA, 0x17); // fingers, emerald, escape (12 slots)
     applyGenerationToMostRecentBossRush(2); // <-- make it the final challenge in the run
     applyEndValuesToMostRecentBossRush(0xFE11, 0x0D); // <-- detect ending
+    bossRushCallenges[bossRushChallengeCount - 1].blockRingZeroing = 1;
 
     // Steps:
     //  - get to boss
@@ -1388,6 +1402,7 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
 
     bossRushCallenges[bossRushChallengeCount].shouldAppearInGeneration = 0;
     bossRushCallenges[bossRushChallengeCount].objectIdsArePointers = 0;
+    bossRushCallenges[bossRushChallengeCount].blockRingZeroing = 0;
     for (int i = 0; i < 0x20; i++) {
         bossRushCallenges[bossRushChallengeCount].objectIdNumbers[i] = 0;
         bossRushCallenges[bossRushChallengeCount].healthByteOffsets[i] = healthByteOffset;
@@ -1478,7 +1493,7 @@ int awaitingBossRushStart() {
 
 int checkForBossRushStart() {
     bossRushIsActive = shouldStartBossRush;
-    if (shouldInitialiseBossRush == 1) {
+    if (shouldInitialiseBossRush == 1 || shouldResetBossRush == 1) {
         // flagNewSavestateLoaded();
         shouldInitialiseBossRush = 0;
 
