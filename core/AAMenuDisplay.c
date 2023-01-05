@@ -90,6 +90,11 @@ NetworkOptions menuDisplay_getNetworkOptions() {
     return networkOptions;
 }
 
+BossRushOptions menuDisplay_getBossRushOptions() {
+    return bossRushOptions;
+}
+
+
 void menuDisplay_applyPresetRules(int rulesIndex) {
     activeTerminalRuleId = rulesIndex;
 
@@ -98,6 +103,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     applyDefaultSettings();    
     applySecondaryHacksDefaultValues();
     applyNetworkOptionsDefaultValues();
+    applyDefaultBossRushValues();
     vdp_healAllColours();
 
     networkOptions.allowSoloEffectswhenNetworked = 1;
@@ -407,6 +413,8 @@ void menuDisplay_initialise() {
         applyNetworkOptionsDefaultValues();
     }
 
+    applyDefaultBossRushValues();
+
     saveHackOptions();
 }
 
@@ -667,6 +675,11 @@ void applyDefaultPersistValues() {
     persistValuesOptions.momentum = 0;
     persistValuesOptions.time = 0;
     persistValuesOptions.score = 0;
+}
+
+void applyDefaultBossRushValues() {
+    bossRushOptions.bossOrder = 0;
+    bossRushOptions.switchTrigger = 0;
 }
 
 void applyDefaultRamDetectiveValues() {
@@ -1588,8 +1601,17 @@ void incrementBossRushOption(int direction) {
     if (bossRushItemIndex == 0) {
         toggleStartBossRush();
     }
-
     if (bossRushItemIndex == 1) {
+        setShouldResetBossRush(1 - getShouldResetBossRush());
+    }
+    if (bossRushItemIndex == 2) {
+        bossRushOptions.switchTrigger += direction;
+    }
+    if (bossRushItemIndex == 3) {
+        bossRushOptions.bossOrder += direction;
+    }
+
+    if (bossRushItemIndex == 4) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -3758,13 +3780,19 @@ void showBossRushMenu() {
     }
 
     // reset boss rush
-    if (getShouldResetBossRush() == 1) {
-        sprintf(lines[1], "reset boss rush: YES");
+    if (getShouldShowBossRushAsReadyToReset() == 1) {
+        sprintf(lines[1], "start new boss rush: YES");
     } else {
-        sprintf(lines[1], "reset boss rush:  NO");
+        sprintf(lines[1], "start new boss rush:  NO");
     }
 
     // switch trigger
+    if (bossRushOptions.switchTrigger < 0) {
+        bossRushOptions.switchTrigger = 2;
+    }
+    if (bossRushOptions.switchTrigger > 2) {
+        bossRushOptions.switchTrigger = 0;
+    }
     if (bossRushOptions.switchTrigger == 0) {
         sprintf(lines[2], "switch game on: boss hit");
     } else if (bossRushOptions.switchTrigger == 1) {
@@ -3774,6 +3802,12 @@ void showBossRushMenu() {
     }
 
     // boss order
+    if (bossRushOptions.bossOrder < 0) {
+        bossRushOptions.bossOrder = 3;
+    }
+    if (bossRushOptions.bossOrder > 3) {
+        bossRushOptions.bossOrder = 0;
+    }
     if (bossRushOptions.bossOrder == 0) {
         sprintf(lines[3], "boss order: random");
     } else if (bossRushOptions.bossOrder == 1) {

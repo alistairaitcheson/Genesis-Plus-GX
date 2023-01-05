@@ -766,6 +766,16 @@ void setShouldResetBossRush(int val) {
     shouldResetBossRush = val;
 }
 
+int getShouldShowBossRushAsReadyToReset() {
+    if (shouldResetBossRush == 1) {
+        return 1;
+    }
+    if (hasInitialisedBossRush == 0) {
+        return 1;
+    }
+    return 0;
+}
+
 int getShouldResetBossRush() {
     return shouldResetBossRush;
 }
@@ -1008,43 +1018,81 @@ int challengeCanBeQueued(int i) {
 }
 
 void queueBossRushInSlot(int slot) {
-    char tempLog[256];
-    sprintf(tempLog,"queueBossRushInSlot %i", slot);
-    cartLoader_appendToLog(tempLog);
-
-    int easiestDifficultyPerGame[MAX_ROMS];
-    for (int i = 0; i < MAX_ROMS; i++) {
-        easiestDifficultyPerGame[i] = 100;
-    }
-    for (int i = 0; i < bossRushChallengeCount; i++) {
-        if (challengeCanBeQueued(i)) {
-            int difficulty = bossRushCallenges[i].shouldAppearInGeneration;
-
-            char tempDiffLogA[256];
-            sprintf(tempDiffLogA,"finding easiestDifficultyPerGame: game %i is difficulty %i", i, difficulty);
-            cartLoader_appendToLog(tempDiffLogA);
-
-            if (difficulty < easiestDifficultyPerGame[bossRushCallenges[i].gameIndex]) {
-                easiestDifficultyPerGame[bossRushCallenges[i].gameIndex] = difficulty;
-            }
-        }
-    }
-
-    for (int i = 0; i < 4; i++) {
-        char tempDiffLog[256];
-        sprintf(tempDiffLog,"easiestDifficultyPerGame %i is %i", i, easiestDifficultyPerGame[i]);
-        cartLoader_appendToLog(tempDiffLog);
-    }
-
     int allowedIndexes[MAX_ROMS];
     int maxIndex = 0;
-    for (int i = 0; i < bossRushChallengeCount; i++) {
-        if (challengeCanBeQueued(i)) {
-            if (bossRushCallenges[i].shouldAppearInGeneration == easiestDifficultyPerGame[bossRushCallenges[i].gameIndex]) {
+
+    if (menuDisplay_getBossRushOptions().bossOrder == 0) {
+        // pure random order
+        for (int i = 0; i < bossRushChallengeCount; i++) {
+            if (challengeCanBeQueued(i)) {
                 allowedIndexes[maxIndex] = i;
                 maxIndex++;
             }
         }
+
+    } else if (menuDisplay_getBossRushOptions().bossOrder == 1) {
+        // final boss is always last for each game
+        int easiestDifficultyPerGame[MAX_ROMS];
+        for (int i = 0; i < MAX_ROMS; i++) {
+            easiestDifficultyPerGame[i] = 100;
+        }
+        for (int i = 0; i < bossRushChallengeCount; i++) {
+            if (challengeCanBeQueued(i)) {
+                int difficulty = bossRushCallenges[i].shouldAppearInGeneration;
+
+                char tempDiffLogA[256];
+                sprintf(tempDiffLogA,"finding easiestDifficultyPerGame: game %i is difficulty %i", i, difficulty);
+                cartLoader_appendToLog(tempDiffLogA);
+
+                if (difficulty < easiestDifficultyPerGame[bossRushCallenges[i].gameIndex]) {
+                    easiestDifficultyPerGame[bossRushCallenges[i].gameIndex] = difficulty;
+                }
+            }
+        }
+
+        for (int i = 0; i < 4; i++) {
+            char tempDiffLog[256];
+            sprintf(tempDiffLog,"easiestDifficultyPerGame %i is %i", i, easiestDifficultyPerGame[i]);
+            cartLoader_appendToLog(tempDiffLog);
+        }
+
+
+        for (int i = 0; i < bossRushChallengeCount; i++) {
+            if (challengeCanBeQueued(i)) {
+                if (bossRushCallenges[i].shouldAppearInGeneration == easiestDifficultyPerGame[bossRushCallenges[i].gameIndex]) {
+                    allowedIndexes[maxIndex] = i;
+                    maxIndex++;
+                }
+            }
+        }
+    } else if (menuDisplay_getBossRushOptions().bossOrder == 2) {
+        // pure chronological order
+        for (int i = 0; i < bossRushChallengeCount; i++) {
+            if (challengeCanBeQueued(i)) {
+                allowedIndexes[maxIndex] = i;
+                maxIndex++;
+                break;
+            }
+        }
+
+    } else if (menuDisplay_getBossRushOptions().bossOrder == 3) {
+        // chronological order per game
+
+        int hasFoundFirstPerGame[MAX_ROMS];
+        for (int i = 0; i < MAX_ROMS; i++) {
+            hasFoundFirstPerGame[i] = 0;
+        }
+        for (int i = 0; i < bossRushChallengeCount; i++) {
+            if (challengeCanBeQueued(i)) {
+                int gameIndex = bossRushCallenges[i].gameIndex;
+                if (hasFoundFirstPerGame[gameIndex] == 0) {
+                    allowedIndexes[maxIndex] = i;
+                    maxIndex++;
+                    hasFoundFirstPerGame[gameIndex] == 0;
+                }
+            }
+        }
+
     }
 
     if (maxIndex > 0) {

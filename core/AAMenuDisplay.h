@@ -126,6 +126,8 @@ extern void menuDisplay_sendNetworkOptionsToOpponent();
 extern SecondaryHackOptions menuDisplay_getSecondaryHackOptions();
 void applySecondaryHacksFromArray256(int array256[]);
 void applySecondaryHacksDefaultValues();
+extern BossRushOptions menuDisplay_getBossRushOptions();
+void applyDefaultBossRushValues();
 
 extern void menuDisplay_toggleVisibleLayers();
 extern void menuDisplay_showAllVisibleLayers();
