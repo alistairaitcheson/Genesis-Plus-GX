@@ -367,7 +367,7 @@ void increasePendingRingTriggers(int count) {
     }
 }
 
-void checkForBossHits() {
+int checkForBossDefeats() {
     BossRushChallengeListing listing = getActiveBossRushListing();
 
     int defeatLoc = listing.defeatedByte;
@@ -384,8 +384,13 @@ void checkForBossHits() {
 
     if (wasGameOver == 1) {
         onBossDefeated();
-        return;
+        return 1;
     }
+    return 0;
+}
+
+void checkForBossHits() {
+    BossRushChallengeListing listing = getActiveBossRushListing();
 
     int indexX = 0;
     int indexY = 0;
@@ -713,12 +718,18 @@ void modConsole_updateFrame() {
             if (hackOpts.speedUpOnRing != 0) {
                 updateSpeedUpOnRing();
             }
-            if (hackOpts.switchGameType == 1) {
-                updateSwitchGameOnRing();
+            // boss rush deals with these behaviours if toggled on
+            // in the rush settings, so ignore them here if
+            // we're in boss rush, lest we confuse players
+            if (shouldUseBossRush() == 0) {
+                if (hackOpts.switchGameType == 1) {
+                    updateSwitchGameOnRing();
+                }
+                if (hackOpts.switchGameType == 5) {
+                    updateSwitchGameOnLand();
+                }
             }
-            if (hackOpts.switchGameType == 5) {
-                updateSwitchGameOnLand();
-            }
+
             if (hackOpts.randomiseVelocityOnRing != 0) {
                 updateRandomiseVelocityOnRing();
             }
@@ -811,8 +822,16 @@ void modConsole_updateFrame() {
             // sprintf(rushText, "%02X %02X %02X %02X", listing.objectIdNumbers[0], listing.objectIdNumbers[1], listing.objectIdNumbers[2], listing.objectIdNumbers[3]);
             // layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8, 8 * 20, 8, 0xFF);
             // layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8, rushText, 0x5);
-
-            checkForBossHits();
+            int defeated = checkForBossDefeats();
+            if (defeated == 0 && menuDisplay_getBossRushOptions().switchTrigger == 0) {
+                if (menuDisplay_getBossRushOptions().switchTrigger == 0) {
+                    checkForBossHits();
+                } else if (menuDisplay_getBossRushOptions().switchTrigger == 1) {
+                    updateSwitchGameOnRing();
+                } else if (menuDisplay_getBossRushOptions().switchTrigger == 2) {
+                    updateSwitchGameOnLand();
+                }
+            }
         }
 
         // TO HELP WITH SONIC 3 EDITING

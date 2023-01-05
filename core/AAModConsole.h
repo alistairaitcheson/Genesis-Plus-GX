@@ -123,6 +123,7 @@ void showRewindSymbol();
 void hideRewindSymbol();
 void fireScreenSnapOnEvent();
 void applyRamEditOnRing();
+int checkForBossDefeats();
 
 void writeWRAMintoSpriteBuffer();
 void writeWRAMintoLevelLayout();
