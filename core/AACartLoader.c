@@ -795,6 +795,7 @@ void beginBossRush() {
     
     if (hasInitialisedBossRush == 0 || shouldResetBossRush != 0) {
         resetAllBossRushSlots();
+        resetBossRushElapsedTimer();
     }
 
     populateBossRushes();
@@ -808,10 +809,6 @@ void beginBossRush() {
     cartLoader_cacheSaveStateBeforeMenu();
 
     vdp_setShouldRandomiseColours(0);
-
-    if (hasInitialisedBossRush == 0) {
-        resetBossRushElapsedTimer();
-    }
 
     hasInitialisedBossRush = 1;
     shouldResetBossRush = 0;
@@ -1113,7 +1110,7 @@ void queueBossRushInSlot(int slot) {
                 if (hasFoundFirstPerGame[gameIndex] == 0) {
                     allowedIndexes[maxIndex] = i;
                     maxIndex++;
-                    hasFoundFirstPerGame[gameIndex] == 0;
+                    hasFoundFirstPerGame[gameIndex] = 1;
                 }
             }
         }
