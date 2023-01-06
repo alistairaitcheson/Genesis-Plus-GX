@@ -1046,11 +1046,13 @@ void modConsole_updateFrame() {
                 layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, elapsedText, 0xFF);
             } else {
                 if (menuDisplay_getBossRushOptions().showTimer) {
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 12, 9 * 8, 8, 0x5);
                     char elapsedText[0x80];
                     sprintf(elapsedText, "%02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 8, elapsedText, 0xFF);
                 }
                 if (menuDisplay_getBossRushOptions().showProgress) {
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 20, 9 * 8, 8, 0x5);
                     char progressText[0x80];
                     sprintf(progressText, "%02i / %02i", getCompletedRushCount(), getEnabledRushCount());
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
