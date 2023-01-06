@@ -682,6 +682,8 @@ void applyDefaultBossRushValues() {
     bossRushOptions.switchTrigger = 0;
     bossRushOptions.totalBossesIdx = 2;
     bossRushOptions.ringsOff = 0;
+    bossRushOptions.showTimer = 1;
+    bossRushOptions.showProgress = 1;
 }
 
 void applyDefaultRamDetectiveValues() {
@@ -1619,8 +1621,14 @@ void incrementBossRushOption(int direction) {
     if (bossRushItemIndex == 5) {
         bossRushOptions.ringsOff += direction;
     }
-
     if (bossRushItemIndex == 6) {
+        bossRushOptions.showProgress += direction;
+    }
+    if (bossRushItemIndex == 7) {
+        bossRushOptions.showTimer += direction;
+    }
+
+    if (bossRushItemIndex == 8) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -3768,7 +3776,7 @@ void showBossRushMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Boss Rush", 5);
 
-    int lineCount = 7;
+    int lineCount = 9;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -3793,6 +3801,8 @@ void showBossRushMenu() {
         blockedLines[3] = 1;
         blockedLines[4] = 1;
         blockedLines[5] = 1;
+        blockedLines[6] = 1;
+        blockedLines[7] = 1;
     }
     linesWithBreakAfter[0] = 1;
 
@@ -3858,9 +3868,35 @@ void showBossRushMenu() {
     } else {
         sprintf(lines[5], "No-rings mode:            on");
     }
+    linesWithBreakAfter[5] = 1;
 
-    sprintf(lines[6], "back >");
-    linesWithBreakAfter[6] = 1;
+    if (bossRushOptions.showProgress < 0) {
+        bossRushOptions.showProgress = 1;
+    }
+    if (bossRushOptions.showProgress > 1) {
+        bossRushOptions.showProgress = 0;
+    }
+    if (bossRushOptions.showProgress == 0) {
+        sprintf(lines[6], "Show progress meter:      no");
+    } else {
+        sprintf(lines[6], "Show progress meter:     yes");
+    }
+
+    if (bossRushOptions.showTimer < 0) {
+        bossRushOptions.showTimer = 1;
+    }
+    if (bossRushOptions.showTimer > 1) {
+        bossRushOptions.showTimer = 0;
+    }
+    if (bossRushOptions.showTimer == 0) {
+        sprintf(lines[7], "Show timer:               no");
+    } else {
+        sprintf(lines[7], "Show timer:              yes");
+    }
+
+
+    sprintf(lines[8], "back >");
+    linesWithBreakAfter[8] = 1;
 
 
     int yPos = 32;

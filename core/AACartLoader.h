@@ -140,4 +140,7 @@ void setHasInitialisedBossRush(int val);
 int getShouldShowBossRushAsReadyToReset();
 void resetAllBossRushSlots();
 
+int getCompletedRushCount();
+int getEnabledRushCount();
+
 #endif

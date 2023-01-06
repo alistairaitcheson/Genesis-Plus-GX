@@ -990,6 +990,25 @@ void queueBossRushSlots() {
     }
 }
 
+int getCompletedRushCount() {
+    int count = 0;
+    for (int i = 0; i < bossRushChallengeCount; i++) {
+        if (bossRushCallenges[i].isCompleted == 1 && bossRushCallenges[i].romAtIndex != -1 && hasBossRushSaveState[i] == 1) {
+            count ++;
+        }
+    }
+    return count;
+}
+
+int getEnabledRushCount() {
+    int count = 0;
+    for (int i = 0; i < bossRushChallengeCount; i++) {
+        if (bossRushCallenges[i].romAtIndex != -1 && hasBossRushSaveState[i] == 1) {
+            count ++;
+        }
+    }
+    return count;
+}
 
 void checkForBossRushComplete() {
     int hasIncompleteRush = 0;
