@@ -142,5 +142,8 @@ void resetAllBossRushSlots();
 
 int getCompletedRushCount();
 int getEnabledRushCount();
+int numberOfRushesInGame(int gameIdx);
+int getCountOfQueueableRushes();
+void applyBossRushCachedRings();
 
 #endif

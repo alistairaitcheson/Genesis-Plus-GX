@@ -2,6 +2,7 @@
 
 #include "shared.h" // <--- this needs to be included at the top of every file, for compiler reasons I don't understand
 #include <stdio.h>
+#include <time.h>
 #include <sys/types.h>
 #include "include/dirent.h"
 #include "vdp_render.h"
@@ -74,6 +75,9 @@ static int activeBossRushes[MAX_ROMS];
 static int currentBossRushIndex = 0;
 static uint8 bossRushSaveStates[MAX_ROMS][STATE_SIZE];
 static uint8 hasBossRushSaveState[MAX_ROMS];
+
+static int bossRushRingCarryValue[2];
+
 
 int cartLoader_base10CharToInt(char character) {
     if (character == '0') {
@@ -759,6 +763,22 @@ static int bossRushComplete = 0;
 static int hasInitialisedBossRush = 0;
 static int shouldResetBossRush = 0;
 
+void applyBossRushCachedRings() {
+    BossRushOptions bossRushOptions = menuDisplay_getBossRushOptions();
+    AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
+    if (shouldUseBossRush()) {
+        if (bossRushOptions.carryRingsAcrossGames == 1 && 
+            (bossRushOptions.preventCarryInDoomsday == 0 || getActiveBossRushListing().blockRingZeroing == 0)){
+            if (gameTransferListing.ringBytesForTransfer[0] > 0) {
+                aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0] % 0x10000, bossRushRingCarryValue[0]);
+            }
+            if (gameTransferListing.ringBytesForTransfer[1] > 0) {
+                aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1] % 0x10000, bossRushRingCarryValue[1]);
+            }
+        }
+    }    
+}
+
 int getBossRushComplete() {
     return bossRushComplete;
 }
@@ -812,6 +832,9 @@ void beginBossRush() {
 
     hasInitialisedBossRush = 1;
     shouldResetBossRush = 0;
+
+    bossRushRingCarryValue[0] = 0;
+    bossRushRingCarryValue[1] = 0;
 }
 
 void onBossHit() {
@@ -877,8 +900,8 @@ void bumpToNextBossRush() {
     sprintf(tempLog1,"bumpToNextBossRush allowedIndexes: %i", maxIndex);
     cartLoader_appendToLog(tempLog1);
 
-    // prefer rushes that haven't been started yet
-    if (maxIndexWithoutActivity > 0) {
+    // prefer rushes that haven't been started yet, unless we're on no-switching! (Otherwise the first 3 zones never come up)
+    if (maxIndexWithoutActivity > 0 && menuDisplay_getBossRushOptions().switchTrigger != 4) {
         for (int i = 0; i < MAX_ROMS; i++) {
             allowedIndexes[i] = indexesWithoutActivity[i];
         }
@@ -925,6 +948,7 @@ void bumpToNextBossRush() {
             
             // for sonic games, send value 0x8C to location 0xF601 to force a level reset - should fix version clashes!
             aa_genesis_setWorkRam(0xF601, 0x8C);
+            beginCountdownToApplyBossRushRings();
         }
         bossRushCallenges[getActiveBossRushIndex()].hasBeganPlaying = 1;
 
@@ -988,6 +1012,16 @@ void queueBossRushSlots() {
             queueBossRushInSlot(i);
         }    
     }
+}
+
+int getCountOfQueueableRushes() {
+    int count = 0;
+    for (int i = 0; i < MAX_ROMS; i++) {
+        if (challengeCanBeQueued(i)) {
+            count++;
+        }
+    }
+    return count;
 }
 
 int getCompletedRushCount() {
@@ -1058,9 +1092,20 @@ int challengeCanBeQueued(int i) {
     return 0;
 }
 
+int numberOfRushesInGame(int gameIdx) {
+    int rushCount = 0;
+    for (int i = 0; i < bossRushChallengeCount; i++) {
+        if (bossRushCallenges[i].gameIndex == gameIdx) {
+            rushCount++;
+        }
+    }
+    return rushCount;
+}
+
 void queueBossRushInSlot(int slot) {
     int allowedIndexes[MAX_ROMS];
     int maxIndex = 0;
+
 
     if (menuDisplay_getBossRushOptions().bossOrder == 0) {
         // pure random order
@@ -1134,9 +1179,42 @@ void queueBossRushInSlot(int slot) {
             }
         }
 
+    } else if (menuDisplay_getBossRushOptions().bossOrder == 4) {
+        // balanced chronological order per game (more likely to be in a game with more bosses,
+        // so that they should all finish at *roughly* the same time)
+
+        int hasFoundFirstPerGame[MAX_ROMS];
+        for (int i = 0; i < MAX_ROMS; i++) {
+            hasFoundFirstPerGame[i] = 0;
+        }
+        for (int i = 0; i < bossRushChallengeCount; i++) {
+            if (challengeCanBeQueued(i)) {
+                int gameIndex = bossRushCallenges[i].gameIndex;
+                if (hasFoundFirstPerGame[gameIndex] == 0) {
+                    hasFoundFirstPerGame[gameIndex] = 1;
+                    int rushCount = numberOfRushesInGame(gameIndex);
+                    for (int dupe = 0; dupe < rushCount; dupe++) {
+                        allowedIndexes[maxIndex] = i;
+                        maxIndex++;
+                    }
+                }
+            }
+        }
+
     }
 
     if (maxIndex > 0) {
+        /*
+            SEED THE RANDOM NUUMBER GENERATOR!
+        */
+        int menuSeed = (menuDisplay_getBossRushOptions().orderSeed[0] * 0x1000)
+            + (menuDisplay_getBossRushOptions().orderSeed[1] * 0x100)
+            + (menuDisplay_getBossRushOptions().orderSeed[2] * 0x10)
+            + (menuDisplay_getBossRushOptions().orderSeed[3] * 0x1);
+        int activeStateSeed = getCountOfQueueableRushes();
+        int randomSeed = (activeStateSeed * 0x10000) + menuSeed;
+        srand(randomSeed);
+
         int chosenIndex = rand() % maxIndex;
         int bossRushIndexToQueue = allowedIndexes[chosenIndex];
         bossRushCallenges[bossRushIndexToQueue].isActivated = 1;
@@ -1145,6 +1223,11 @@ void queueBossRushInSlot(int slot) {
         char tempLog2[256];
         sprintf(tempLog2,"    %i <-- %i <-- %i", slot, bossRushIndexToQueue, chosenIndex);
         cartLoader_appendToLog(tempLog2);
+
+        /*
+            NOW RESET THE NUUMBER GENERATOR!
+        */
+        srand(time(NULL));
     } else {
         char tempLog2[256];
         sprintf(tempLog2,"   no valid indexes");
@@ -2792,6 +2875,7 @@ void cacheDataToCarryOver() {
     PersistValuesOptions options = menuDisplay_getPersistValuesOptions();
     AAGameListing gameListing = cartLoader_getActiveGameListing();
     AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
+    BossRushOptions bossRushOptions = menuDisplay_getBossRushOptions();
 
     cartLoader_appendToLog(" - - - cacheDataToCarryOver");
     cartLoader_appendToLog(gameListing.gameId);
@@ -2839,6 +2923,19 @@ void cacheDataToCarryOver() {
         }
     } else {
         cartLoader_appendToLog("Not caching ring count");
+    }
+
+    
+    if (shouldUseBossRush()) {
+        if (bossRushOptions.carryRingsAcrossGames == 1 && 
+            (bossRushOptions.preventCarryInDoomsday == 0 || getActiveBossRushListing().blockRingZeroing == 0)){
+            if (gameTransferListing.ringBytesForTransfer[0] > 0) {
+                bossRushRingCarryValue[0] = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0] % 0x10000);
+            }
+            if (gameTransferListing.ringBytesForTransfer[1] > 0) {
+                bossRushRingCarryValue[1] = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1] % 0x10000);
+            }
+        }
     }
 
     for (int i = 0; i < 4; i++) {
@@ -2979,6 +3076,9 @@ void cartLoader_restoreCarriedOverData() {
             flagHUDtoUpdate();
         }
     }
+        
+    applyBossRushCachedRings();
+
 }
 
 // static int shouldUpdateHUD = 0;

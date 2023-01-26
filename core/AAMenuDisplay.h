@@ -106,6 +106,11 @@ typedef struct {
     int bossOrder;
     int totalBossesIdx; // 0 = 4, 1 = 6, 2 = 8, 3 = 12, 4 = all
     int ringsOff;
+    int carryRingsAcrossGames;
+    int preventCarryInDoomsday;
+    int orderSeed[4];
+    int seedEditingLocationIndex;
+
     int showTimer;
     int showProgress;
 } BossRushOptions;
@@ -183,7 +188,7 @@ void incrementSaveStateOption(int direction);
 void incrementSonicSpecificOption(int direction);
 void incrementVisualsOption(int direction);
 void incrementNetworkOption(int direction);
-void incrementBossRushOption(int direction);
+void incrementBossRushOption(int direction, int buttonIndex);
 
 void clearLogRamState();
 
@@ -200,5 +205,6 @@ void activateTerminalOption();
 
 int getMaxSimultaneousBosses();
 void flagNewSavestateLoaded();
+void menuDisplay_onUpdate();
 
 #endif

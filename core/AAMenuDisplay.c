@@ -32,7 +32,7 @@ static int terminalLocationIndex = 0;
 static int bossRushItemIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 29;
+static int minorVersion = 30;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -59,6 +59,8 @@ static int maxFileNameLength = 28;
 static int trackedPixelValues[8];
 
 static int activeTerminalRuleId = -1;
+
+static int shouldRerollBossRushRandomTime = 0;
 
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
@@ -684,6 +686,14 @@ void applyDefaultBossRushValues() {
     bossRushOptions.ringsOff = 0;
     bossRushOptions.showTimer = 1;
     bossRushOptions.showProgress = 1;
+    bossRushOptions.carryRingsAcrossGames = 1;
+    bossRushOptions.preventCarryInDoomsday = 1;
+
+    bossRushOptions.orderSeed[0] = rand() % 0x10;
+    bossRushOptions.orderSeed[1] = rand() % 0x10;
+    bossRushOptions.orderSeed[2] = rand() % 0x10;
+    bossRushOptions.orderSeed[3] = rand() % 0x10;
+    bossRushOptions.seedEditingLocationIndex = 0;
 }
 
 void applyDefaultRamDetectiveValues() {
@@ -1577,13 +1587,13 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
 
         if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_LEFT) {
-            incrementBossRushOption(-1);
+            incrementBossRushOption(-1, buttonIndex);
             refreshMenu();
             return 1;
         }
         
         if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
-            incrementBossRushOption(1);
+            incrementBossRushOption(1, buttonIndex);
             refreshMenu();
             return 1;
         }
@@ -1601,7 +1611,7 @@ void activateTerminalOption() {
     }
 }
 
-void incrementBossRushOption(int direction) {
+void incrementBossRushOption(int direction, int buttonIndex) {
     if (bossRushItemIndex == 0) {
         toggleStartBossRush();
     }
@@ -1621,14 +1631,33 @@ void incrementBossRushOption(int direction) {
     if (bossRushItemIndex == 5) {
         bossRushOptions.ringsOff += direction;
     }
+
     if (bossRushItemIndex == 6) {
-        bossRushOptions.showProgress += direction;
+        bossRushOptions.carryRingsAcrossGames += direction;
     }
     if (bossRushItemIndex == 7) {
+        bossRushOptions.preventCarryInDoomsday += direction;
+    }
+    if (bossRushItemIndex == 8) {
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_C) {
+            bossRushOptions.orderSeed[bossRushOptions.seedEditingLocationIndex] += direction;
+        } else {
+            bossRushOptions.seedEditingLocationIndex += direction;
+        }
+    }
+
+    if (bossRushItemIndex == 9) {
+        shouldRerollBossRushRandomTime = 30;
+    }
+
+    if (bossRushItemIndex == 10) {
+        bossRushOptions.showProgress += direction;
+    }
+    if (bossRushItemIndex == 11) {
         bossRushOptions.showTimer += direction;
     }
 
-    if (bossRushItemIndex == 8) {
+    if (bossRushItemIndex == 12) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -3776,7 +3805,7 @@ void showBossRushMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Boss Rush", 5);
 
-    int lineCount = 9;
+    int lineCount = 13;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -3803,8 +3832,11 @@ void showBossRushMenu() {
         blockedLines[5] = 1;
         blockedLines[6] = 1;
         blockedLines[7] = 1;
+        blockedLines[8] = 1;
+        blockedLines[9] = 1;
+        blockedLines[10] = 1;
+        blockedLines[11] = 1;
     }
-    linesWithBreakAfter[0] = 1;
 
     // reset boss rush
     if (getShouldShowBossRushAsReadyToReset() == 1) {
@@ -3812,12 +3844,13 @@ void showBossRushMenu() {
     } else {
         sprintf(lines[1], "start new boss rush:      NO");
     }
+    linesWithBreakAfter[1] = 1;
 
     // switch trigger
     if (bossRushOptions.switchTrigger < 0) {
-        bossRushOptions.switchTrigger = 3;
+        bossRushOptions.switchTrigger = 4;
     }
-    if (bossRushOptions.switchTrigger > 3) {
+    if (bossRushOptions.switchTrigger > 4) {
         bossRushOptions.switchTrigger = 0;
     }
     if (bossRushOptions.switchTrigger == 0) {
@@ -3827,14 +3860,16 @@ void showBossRushMenu() {
     } else if (bossRushOptions.switchTrigger == 2) {
         sprintf(lines[2], "switch game on: touch ground");
     } else if (bossRushOptions.switchTrigger == 3) {
+        sprintf(lines[2], "switch game on:  everyything");
+    }  else if (bossRushOptions.switchTrigger == 4) {
         sprintf(lines[2], "switch game on: victory only");
     } 
 
     // boss order
     if (bossRushOptions.bossOrder < 0) {
-        bossRushOptions.bossOrder = 3;
+        bossRushOptions.bossOrder = 4;
     }
-    if (bossRushOptions.bossOrder > 3) {
+    if (bossRushOptions.bossOrder > 4) {
         bossRushOptions.bossOrder = 0;
     }
     if (bossRushOptions.bossOrder == 0) {
@@ -3845,6 +3880,8 @@ void showBossRushMenu() {
         sprintf(lines[3], "boss order:    chronological");
     } else if (bossRushOptions.bossOrder == 3) {
         sprintf(lines[3], "boss order:  chrono per game");
+    } else if (bossRushOptions.bossOrder == 4) {
+        sprintf(lines[3], "boss order:  balanced chrono");
     }
 
     // sprintf(lines[4], "boss count: %i  %i", bossRushOptions.totalBossesIdx, getMaxSimultaneousBosses());
@@ -3870,6 +3907,59 @@ void showBossRushMenu() {
     }
     linesWithBreakAfter[5] = 1;
 
+    if (bossRushOptions.carryRingsAcrossGames < 0) {
+        bossRushOptions.carryRingsAcrossGames = 1;
+    }
+    if (bossRushOptions.carryRingsAcrossGames > 1) {
+        bossRushOptions.carryRingsAcrossGames = 0;
+    }
+    if (bossRushOptions.carryRingsAcrossGames == 0) {
+        sprintf(lines[6], "Preserve ring count:     off");
+    } else {
+        sprintf(lines[6], "Preserve ring count:      on");
+    }
+    
+    if (bossRushOptions.preventCarryInDoomsday < 0) {
+        bossRushOptions.preventCarryInDoomsday = 1;
+    }
+    if (bossRushOptions.preventCarryInDoomsday > 1) {
+        bossRushOptions.preventCarryInDoomsday = 0;
+    }
+    if (bossRushOptions.preventCarryInDoomsday == 0) {
+        sprintf(lines[7], "   Doomsday is separate:  no");
+    } else {
+        sprintf(lines[7], "   Doomsday is separate: yes");
+    }
+    linesWithBreakAfter[7] = 1;
+
+    if (bossRushOptions.seedEditingLocationIndex < 0) {
+        bossRushOptions.seedEditingLocationIndex = 0;
+    }
+    if (bossRushOptions.seedEditingLocationIndex > 3) {
+        bossRushOptions.seedEditingLocationIndex = 3;
+    }
+
+    char seedValuesText[4][0x10];
+    for (int i = 0; i < 4; i++) {
+        if (bossRushOptions.orderSeed[i] < 0) {
+            bossRushOptions.orderSeed[i] = 0xF;
+        }
+        if (bossRushOptions.orderSeed[i] > 0xF) {
+            bossRushOptions.orderSeed[i] = 0;
+        }
+
+        if (bossRushItemIndex == 8 && bossRushOptions.seedEditingLocationIndex == i) {
+            sprintf(seedValuesText[i], "<%X>", bossRushOptions.orderSeed[i]);
+        } else {
+            sprintf(seedValuesText[i], " %X ", bossRushOptions.orderSeed[i]);
+        }
+    }
+    sprintf(lines[8], "ORDER SEED: %s%s%s%s", seedValuesText[0], seedValuesText[1], seedValuesText[2], seedValuesText[3]);
+
+    sprintf(lines[9], "shuffle seed");
+    linesWithBreakAfter[9] = 1;
+
+
     if (bossRushOptions.showProgress < 0) {
         bossRushOptions.showProgress = 1;
     }
@@ -3877,9 +3967,9 @@ void showBossRushMenu() {
         bossRushOptions.showProgress = 0;
     }
     if (bossRushOptions.showProgress == 0) {
-        sprintf(lines[6], "Show progress meter:      no");
+        sprintf(lines[10], "Show progress meter:      no");
     } else {
-        sprintf(lines[6], "Show progress meter:     yes");
+        sprintf(lines[10], "Show progress meter:     yes");
     }
 
     if (bossRushOptions.showTimer < 0) {
@@ -3889,14 +3979,14 @@ void showBossRushMenu() {
         bossRushOptions.showTimer = 0;
     }
     if (bossRushOptions.showTimer == 0) {
-        sprintf(lines[7], "Show timer:               no");
+        sprintf(lines[11], "Show timer:               no");
     } else {
-        sprintf(lines[7], "Show timer:              yes");
+        sprintf(lines[11], "Show timer:              yes");
     }
 
 
-    sprintf(lines[8], "back >");
-    linesWithBreakAfter[8] = 1;
+    sprintf(lines[12], "back >");
+    linesWithBreakAfter[12] = 1;
 
 
     int yPos = 32;
@@ -3931,7 +4021,7 @@ void showBossRushMenu() {
         sprintf(elapsedText, "Elapsed: %02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
     }
 
-    layerRenderer_writeWord256WithBorder(0, 16, yPos + 8, elapsedText, 5, 1, 0);
+    layerRenderer_writeWord256WithBorder(0, 16, yPos, elapsedText, 5, 1, 0);
 }
 
 int getMaxSimultaneousBosses() {
@@ -3980,4 +4070,15 @@ int getMaxSimultaneousBosses() {
 
 void flagNewSavestateLoaded() {
     saveStateWasLoaded = 1;
+}
+
+void menuDisplay_onUpdate() {
+    if (shouldRerollBossRushRandomTime > 0) {
+        shouldRerollBossRushRandomTime --;
+        bossRushOptions.orderSeed[0] = rand() % 0x10;
+        bossRushOptions.orderSeed[1] = rand() % 0x10;
+        bossRushOptions.orderSeed[2] = rand() % 0x10;
+        bossRushOptions.orderSeed[3] = rand() % 0x10;
+        showBossRushMenu();
+    }
 }

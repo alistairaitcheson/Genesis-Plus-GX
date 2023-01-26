@@ -97,6 +97,11 @@ static int intervalBetweenPendingTriggers = 15;
 static int pendingRingTriggerTimer = 0;
 static int hasFlaggedPendingRingsThisFrame = 0;
 static int bossRushElapsedFrames = 0;
+static int countdownToApplyBossRushRings = 0;
+
+void beginCountdownToApplyBossRushRings() {
+    countdownToApplyBossRushRings = 5;
+}
 
 int getBossRushElapsedFrames() {
     return bossRushElapsedFrames;
@@ -599,6 +604,8 @@ void modConsole_updateFrame() {
         // layerRenderer_clearLayer(0);
         // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
 
+        menuDisplay_onUpdate();
+
         rewindFrameCounter = 0;
     } else {
         checkDeathCounter();
@@ -829,6 +836,31 @@ void modConsole_updateFrame() {
             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 28, "** PRESS DOWN + B **", 0xFF);
             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 36, "TO ACKNOWLEDGE", 0xFF);
         }
+        if (shouldUseBossRush() == 1) {
+            if ( getBossRushComplete() == 1) {
+                layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
+                layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
+                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "BOSS RUSH COMPLETE!", 0xFF);
+                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "YOUR TIME", 0xFF);
+
+                char elapsedText[0x80];
+                sprintf(elapsedText, "%02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
+                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 16, elapsedText, 0xFF);
+            } else {
+                if (menuDisplay_getBossRushOptions().showTimer) {
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 12, 9 * 8, 8, 0x5);
+                    char elapsedText[0x80];
+                    sprintf(elapsedText, "%02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 8, elapsedText, 0xFF);
+                }
+                if (menuDisplay_getBossRushOptions().showProgress) {
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 20, 9 * 8, 8, 0x5);
+                    char progressText[0x80];
+                    sprintf(progressText, "%02i / %02i", getCompletedRushCount(), getEnabledRushCount());
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
+                }
+            }
+        }
 
         if (holdEffectFramesLeft > 0) {
             int barSize = ((vdp_getScreenWidth() - 8) * holdEffectFramesLeft) / holdEffectDuration;
@@ -840,6 +872,15 @@ void modConsole_updateFrame() {
         if (shouldUseBossRush()) {
             if (getBossRushComplete() == 0) {
                 bossRushElapsedFrames++;
+                if (countdownToApplyBossRushRings > 0) {
+                    // only count down once level is loaded!
+                    if (aa_genesis_getWorkRam(0xF601) == 0x0C) {
+                        countdownToApplyBossRushRings--;
+                        if (countdownToApplyBossRushRings == 0) {
+                            applyBossRushCachedRings();
+                        }
+                    }
+                }
             }
 
             // char rushText[0x40];
@@ -854,6 +895,10 @@ void modConsole_updateFrame() {
                 } else if (menuDisplay_getBossRushOptions().switchTrigger == 1) {
                     updateSwitchGameOnRing();
                 } else if (menuDisplay_getBossRushOptions().switchTrigger == 2) {
+                    updateSwitchGameOnLand();
+                } else if (menuDisplay_getBossRushOptions().switchTrigger == 3) {
+                    checkForBossHits();
+                    updateSwitchGameOnRing();
                     updateSwitchGameOnLand();
                 }
             }
@@ -1031,32 +1076,6 @@ void modConsole_updateFrame() {
             bossRushStartCountDown--;
             if (bossRushStartCountDown == 0) {
                 beginBossRush();
-            }
-        }
-
-        if (shouldUseBossRush() == 1) {
-            if ( getBossRushComplete() == 1) {
-                layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
-                layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
-                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "BOSS RUSH COMPLETE!", 0xFF);
-                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "YOUR TIME", 0xFF);
-
-                char elapsedText[0x80];
-                sprintf(elapsedText, "%02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
-                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, elapsedText, 0xFF);
-            } else {
-                if (menuDisplay_getBossRushOptions().showTimer) {
-                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 12, 9 * 8, 8, 0x5);
-                    char elapsedText[0x80];
-                    sprintf(elapsedText, "%02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
-                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 8, elapsedText, 0xFF);
-                }
-                if (menuDisplay_getBossRushOptions().showProgress) {
-                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 20, 9 * 8, 8, 0x5);
-                    char progressText[0x80];
-                    sprintf(progressText, "%02i / %02i", getCompletedRushCount(), getEnabledRushCount());
-                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
-                }
             }
         }
     }
