@@ -147,5 +147,6 @@ int getCountOfQueueableRushes();
 void applyBossRushCachedRings();
 int getBossRushRandomSeedFromMenu();
 int getBossRushSeedWithPrefix(int prefix);
+void cacheRingCountInBossRush();
 
 #endif

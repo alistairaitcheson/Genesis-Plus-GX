@@ -844,6 +844,7 @@ void onBossHit() {
 }
 
 void onBossDefeated() {
+    bossRushSwitchCount = 0;
     if (currentBossRushIndex > -1) {
         bossRushCallenges[activeBossRushes[currentBossRushIndex]].isCompleted = 1;
         activeBossRushes[currentBossRushIndex] = -1;
@@ -875,8 +876,36 @@ BossRushChallengeListing getActiveBossRushListing() {
     return bossRushCallenges[rushToLoad];
 }
 
+void cacheRingCountInBossRush() {
+    if (shouldUseBossRush() && hasInitialisedBossRush == 1) {
+        BossRushOptions bossRushOptions = menuDisplay_getBossRushOptions();
+        AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
+        if (bossRushOptions.carryRingsAcrossGames == 1 && 
+            (bossRushOptions.preventCarryInDoomsday == 0 || getActiveBossRushListing().blockRingZeroing == 0)) {
+            char carryLog[0x100];
+            sprintf(carryLog, "Carrying rings %i %i %i (game %i %i %i)",
+                bossRushOptions.carryRingsAcrossGames,
+                bossRushOptions.preventCarryInDoomsday,
+                getActiveBossRushListing().blockRingZeroing,
+                getActiveBossRushListing().gameIndex,
+                getActiveBossRushListing().zoneIndex,
+                getActiveBossRushListing().actIndex
+                );
+            cartLoader_appendToLog(carryLog);
+
+            if (gameTransferListing.ringBytesForTransfer[0] > 0) {
+                bossRushRingCarryValue[0] = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0] % 0x10000);
+            }
+            if (gameTransferListing.ringBytesForTransfer[1] > 0) {
+                bossRushRingCarryValue[1] = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1] % 0x10000);
+            }
+        }
+    }
+}
+
 void bumpToNextBossRush() {
     queueBossRushSlots();
+    cacheRingCountInBossRush();
 
     int allowedIndexes[MAX_ROMS];
     int indexesWithoutActivity[MAX_ROMS];
@@ -902,12 +931,14 @@ void bumpToNextBossRush() {
     sprintf(tempLog1,"bumpToNextBossRush allowedIndexes: %i", maxIndex);
     cartLoader_appendToLog(tempLog1);
 
+    int isUnplayedRush = 0;
     // prefer rushes that haven't been started yet, unless we're on no-switching! (Otherwise the first 3 zones never come up)
     if (maxIndexWithoutActivity > 0 && menuDisplay_getBossRushOptions().switchTrigger != 4) {
+        isUnplayedRush = 1;
         for (int i = 0; i < MAX_ROMS; i++) {
             allowedIndexes[i] = indexesWithoutActivity[i];
         }
-        
+        isUnplayedRush = 1;
         maxIndex = 1;
         
         char tempLog0[256];
@@ -924,6 +955,13 @@ void bumpToNextBossRush() {
 
         // ensure we respect the seed order every time, unless it is "no switch trigger"
         if (menuDisplay_getBossRushOptions().switchTrigger != 4) {
+            srand(getBossRushSeedWithPrefix(bossRushSwitchCount));
+
+            char tempLogForCounter[256];
+            sprintf(tempLogForCounter,
+                "bossRushSwitchCount %i --> %08X --> %i/%i", bossRushSwitchCount, getBossRushSeedWithPrefix(bossRushSwitchCount), rand() % maxIndex, maxIndex);
+            cartLoader_appendToLog(tempLogForCounter);
+
             srand(getBossRushSeedWithPrefix(bossRushSwitchCount));
         }
 
@@ -1247,7 +1285,7 @@ void queueBossRushInSlot(int slot) {
 
 int getBossRushSeedWithPrefix(int prefix) {
     int menuSeed = getBossRushRandomSeedFromMenu();
-    return (prefix * 0x10000) + menuSeed;
+    return ((prefix % 0x100) * 0x10000) + menuSeed;
 }
 
 int getBossRushRandomSeedFromMenu() {
@@ -2945,19 +2983,6 @@ void cacheDataToCarryOver() {
         }
     } else {
         cartLoader_appendToLog("Not caching ring count");
-    }
-
-    
-    if (shouldUseBossRush()) {
-        if (bossRushOptions.carryRingsAcrossGames == 1 && 
-            (bossRushOptions.preventCarryInDoomsday == 0 || getActiveBossRushListing().blockRingZeroing == 0)){
-            if (gameTransferListing.ringBytesForTransfer[0] > 0) {
-                bossRushRingCarryValue[0] = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0] % 0x10000);
-            }
-            if (gameTransferListing.ringBytesForTransfer[1] > 0) {
-                bossRushRingCarryValue[1] = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1] % 0x10000);
-            }
-        }
     }
 
     for (int i = 0; i < 4; i++) {

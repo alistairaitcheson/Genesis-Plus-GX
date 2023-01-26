@@ -100,7 +100,7 @@ static int bossRushElapsedFrames = 0;
 static int countdownToApplyBossRushRings = 0;
 
 void beginCountdownToApplyBossRushRings() {
-    countdownToApplyBossRushRings = 5;
+    countdownToApplyBossRushRings = 3;
 }
 
 int getBossRushElapsedFrames() {
