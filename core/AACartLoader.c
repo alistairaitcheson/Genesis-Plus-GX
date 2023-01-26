@@ -77,6 +77,7 @@ static uint8 bossRushSaveStates[MAX_ROMS][STATE_SIZE];
 static uint8 hasBossRushSaveState[MAX_ROMS];
 
 static int bossRushRingCarryValue[2];
+static int bossRushSwitchCount = 0;
 
 
 int cartLoader_base10CharToInt(char character) {
@@ -835,6 +836,7 @@ void beginBossRush() {
 
     bossRushRingCarryValue[0] = 0;
     bossRushRingCarryValue[1] = 0;
+    bossRushSwitchCount = 0;
 }
 
 void onBossHit() {
@@ -905,7 +907,8 @@ void bumpToNextBossRush() {
         for (int i = 0; i < MAX_ROMS; i++) {
             allowedIndexes[i] = indexesWithoutActivity[i];
         }
-        maxIndex = maxIndexWithoutActivity;
+        
+        maxIndex = 1;
         
         char tempLog0[256];
         sprintf(tempLog0,"bumpToNextBossRush flattening to the unplayed %i", maxIndexWithoutActivity);
@@ -919,7 +922,17 @@ void bumpToNextBossRush() {
         sprintf(tempLog2,"bumpToNextBossRush last index: %i", currentBossRushIndex);
         cartLoader_appendToLog(tempLog2);
 
+        // ensure we respect the seed order every time, unless it is "no switch trigger"
+        if (menuDisplay_getBossRushOptions().switchTrigger != 4) {
+            srand(getBossRushSeedWithPrefix(bossRushSwitchCount));
+        }
+
         currentBossRushIndex = allowedIndexes[rand() % maxIndex];
+
+        // ... and reset the randomiser if we need to
+        if (menuDisplay_getBossRushOptions().switchTrigger != 4) {
+            srand(time(NULL));
+        }
 
         char tempLog3[256];
         sprintf(tempLog3,"bumpToNextBossRush next index: %i", currentBossRushIndex);
@@ -956,6 +969,8 @@ void bumpToNextBossRush() {
         sprintf(tempLog6,"bumpToNextBossRush now playing boss %i, hasBegan %i", getActiveBossRushIndex(), getActiveBossRushListing().hasBeganPlaying);
         cartLoader_appendToLog(tempLog6);
     }
+
+    bossRushSwitchCount++;
 }
 
 void saveActiveBossRushSlot() {
@@ -1207,13 +1222,8 @@ void queueBossRushInSlot(int slot) {
         /*
             SEED THE RANDOM NUUMBER GENERATOR!
         */
-        int menuSeed = (menuDisplay_getBossRushOptions().orderSeed[0] * 0x1000)
-            + (menuDisplay_getBossRushOptions().orderSeed[1] * 0x100)
-            + (menuDisplay_getBossRushOptions().orderSeed[2] * 0x10)
-            + (menuDisplay_getBossRushOptions().orderSeed[3] * 0x1);
         int activeStateSeed = getCountOfQueueableRushes();
-        int randomSeed = (activeStateSeed * 0x10000) + menuSeed;
-        srand(randomSeed);
+        srand(getBossRushSeedWithPrefix(activeStateSeed));
 
         int chosenIndex = rand() % maxIndex;
         int bossRushIndexToQueue = allowedIndexes[chosenIndex];
@@ -1233,6 +1243,18 @@ void queueBossRushInSlot(int slot) {
         sprintf(tempLog2,"   no valid indexes");
         cartLoader_appendToLog(tempLog2);
     }
+}
+
+int getBossRushSeedWithPrefix(int prefix) {
+    int menuSeed = getBossRushRandomSeedFromMenu();
+    return (prefix * 0x10000) + menuSeed;
+}
+
+int getBossRushRandomSeedFromMenu() {
+    return (menuDisplay_getBossRushOptions().orderSeed[0] * 0x1000)
+            + (menuDisplay_getBossRushOptions().orderSeed[1] * 0x100)
+            + (menuDisplay_getBossRushOptions().orderSeed[2] * 0x10)
+            + (menuDisplay_getBossRushOptions().orderSeed[3] * 0x1);
 }
 
 void populateBossRushes() {

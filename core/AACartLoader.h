@@ -145,5 +145,7 @@ int getEnabledRushCount();
 int numberOfRushesInGame(int gameIdx);
 int getCountOfQueueableRushes();
 void applyBossRushCachedRings();
+int getBossRushRandomSeedFromMenu();
+int getBossRushSeedWithPrefix(int prefix);
 
 #endif
