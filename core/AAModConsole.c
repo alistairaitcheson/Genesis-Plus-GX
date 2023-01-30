@@ -219,6 +219,15 @@ void modConsole_updateActiveCart() {
 
 static int bossRushStartCountDown = 0;
 
+void dismissStartupHint(int andSave) {
+    hasDismissedStartupHint = 1;
+
+    if (andSave != 0) {
+        FILE *networkOptionsWriter = fopen("_magicbox/__startupHint.data", "wb");
+        fclose(networkOptionsWriter);
+    }
+}
+
 void modConsole_applyHackOptions() {
     switchAfterTimeCounter = 0;
     switchAfterTimePeriod = 0;
@@ -941,6 +950,8 @@ void modConsole_updateFrame() {
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
             vdp_clearGraphicLayer(2);
+
+            dismissStartupHint(1);
         } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_C) != 0) {
@@ -948,6 +959,8 @@ void modConsole_updateFrame() {
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
             vdp_clearGraphicLayer(2);
+
+            dismissStartupHint(1);
         } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_A) != 0) {
@@ -955,6 +968,8 @@ void modConsole_updateFrame() {
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
             vdp_clearGraphicLayer(2);
+
+            dismissStartupHint(1);
         } else if (
             // insta-kill!!
             buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 &&
@@ -964,8 +979,8 @@ void modConsole_updateFrame() {
             modConsole_activatePanic();
         }
 
-        if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 && buttonStateAtIndex(INPUT_INDEX_B) != 0) {
-            hasDismissedStartupHint = 1;
+        if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 && buttonStateAtIndex(INPUT_INDEX_B) != 0 && hasDismissedStartupHint == 0) {
+            dismissStartupHint(0);
         }
         
         if (

@@ -143,5 +143,6 @@ int getBossRushElapsedMins();
 int getBossRushElapsedHours();
 void resetBossRushElapsedTimer();
 void beginCountdownToApplyBossRushRings();
+void dismissStartupHint(int andSave);
 
 #endif

@@ -415,6 +415,12 @@ void menuDisplay_initialise() {
         applyNetworkOptionsDefaultValues();
     }
 
+    FILE *startupHintReader = fopen("_magicbox/__startupHint.data", "rb");
+    if (startupHintReader) {
+        fclose(startupHintReader);
+        dismissStartupHint(0);
+    }
+
     applyDefaultBossRushValues();
 
     saveHackOptions();
