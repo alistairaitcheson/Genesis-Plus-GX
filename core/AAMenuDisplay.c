@@ -32,7 +32,7 @@ static int terminalLocationIndex = 0;
 static int bossRushItemIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 30;
+static int minorVersion = 31;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -694,6 +694,7 @@ void applyDefaultBossRushValues() {
     bossRushOptions.orderSeed[2] = rand() % 0x10;
     bossRushOptions.orderSeed[3] = rand() % 0x10;
     bossRushOptions.seedEditingLocationIndex = 0;
+    bossRushOptions.shouldRevealSeed = 0;
 }
 
 void applyDefaultRamDetectiveValues() {
@@ -1639,10 +1640,14 @@ void incrementBossRushOption(int direction, int buttonIndex) {
         bossRushOptions.preventCarryInDoomsday += direction;
     }
     if (bossRushItemIndex == 8) {
-        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_C) {
-            bossRushOptions.orderSeed[bossRushOptions.seedEditingLocationIndex] += direction;
+        if (bossRushOptions.shouldRevealSeed == 0) {
+            bossRushOptions.shouldRevealSeed = 1;
         } else {
-            bossRushOptions.seedEditingLocationIndex += direction;
+            if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_C) {
+                bossRushOptions.orderSeed[bossRushOptions.seedEditingLocationIndex] += direction;
+            } else {
+                bossRushOptions.seedEditingLocationIndex += direction;
+            }
         }
     }
 
@@ -3939,26 +3944,33 @@ void showBossRushMenu() {
         bossRushOptions.seedEditingLocationIndex = 3;
     }
 
-    char seedValuesText[4][0x10];
-    for (int i = 0; i < 4; i++) {
-        if (bossRushOptions.orderSeed[i] < 0) {
-            bossRushOptions.orderSeed[i] = 0xF;
-        }
-        if (bossRushOptions.orderSeed[i] > 0xF) {
-            bossRushOptions.orderSeed[i] = 0;
-        }
-
-        if (bossRushItemIndex == 8 && bossRushOptions.seedEditingLocationIndex == i) {
-            sprintf(seedValuesText[i], "<%X>", bossRushOptions.orderSeed[i]);
+    if (bossRushOptions.shouldRevealSeed == 0) {
+        if (bossRushItemIndex == 8) {
+            sprintf(lines[8], "ORDER SEED: push c to reveal");
         } else {
-            sprintf(seedValuesText[i], " %X ", bossRushOptions.orderSeed[i]);
+            sprintf(lines[8], "ORDER SEED:           hidden");
         }
-    }
-    sprintf(lines[8], "ORDER SEED: %s%s%s%s", seedValuesText[0], seedValuesText[1], seedValuesText[2], seedValuesText[3]);
+    } else {
+        char seedValuesText[4][0x10];
+        for (int i = 0; i < 4; i++) {
+            if (bossRushOptions.orderSeed[i] < 0) {
+                bossRushOptions.orderSeed[i] = 0xF;
+            }
+            if (bossRushOptions.orderSeed[i] > 0xF) {
+                bossRushOptions.orderSeed[i] = 0;
+            }
 
+            if (bossRushItemIndex == 8 && bossRushOptions.seedEditingLocationIndex == i) {
+                sprintf(seedValuesText[i], "<%X>", bossRushOptions.orderSeed[i]);
+            } else {
+                sprintf(seedValuesText[i], " %X ", bossRushOptions.orderSeed[i]);
+            }
+        }
+        sprintf(lines[8], "ORDER SEED:      %s%s%s%s", seedValuesText[0], seedValuesText[1], seedValuesText[2], seedValuesText[3]);
+    }
+    
     sprintf(lines[9], "shuffle seed");
     linesWithBreakAfter[9] = 1;
-
 
     if (bossRushOptions.showProgress < 0) {
         bossRushOptions.showProgress = 1;
@@ -4074,11 +4086,16 @@ void flagNewSavestateLoaded() {
 
 void menuDisplay_onUpdate() {
     if (shouldRerollBossRushRandomTime > 0) {
+        bossRushOptions.shouldRevealSeed = 1;
         shouldRerollBossRushRandomTime --;
         bossRushOptions.orderSeed[0] = rand() % 0x10;
         bossRushOptions.orderSeed[1] = rand() % 0x10;
         bossRushOptions.orderSeed[2] = rand() % 0x10;
         bossRushOptions.orderSeed[3] = rand() % 0x10;
+
+        if (shouldRerollBossRushRandomTime == 0) {
+            bossRushOptions.shouldRevealSeed = 0;
+        }
         showBossRushMenu();
     }
 }

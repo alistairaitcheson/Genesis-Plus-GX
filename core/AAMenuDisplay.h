@@ -110,6 +110,7 @@ typedef struct {
     int preventCarryInDoomsday;
     int orderSeed[4];
     int seedEditingLocationIndex;
+    int shouldRevealSeed;
 
     int showTimer;
     int showProgress;
