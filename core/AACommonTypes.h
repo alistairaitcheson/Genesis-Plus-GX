@@ -123,6 +123,15 @@ typedef struct {
     int romAtIndex;
 } BossRushChallengeListing;
 
+typedef struct {
+    int gameId;
+    int zoneId;
+    int actId;
+    int elapsedFrames;
+    int isFocused;
+    int isComplete;
+} BossRushProgress;
+
 static int INPUT_INDEX_UP = 0;
 static int INPUT_INDEX_DOWN = 1;
 static int INPUT_INDEX_LEFT = 2;

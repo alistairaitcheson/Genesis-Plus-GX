@@ -35,6 +35,7 @@ static unsigned char gameAltIds[MAX_ROMS][0x80];
 static int gameListingCount = 0;
 
 static BossRushChallengeListing bossRushCallenges[MAX_ROMS];
+static BossRushProgress bossRushProgress[MAX_ROMS];
 static int bossRushChallengeCount = 0;
 
 static unsigned char romHeaderBuffer[0x20];
@@ -810,8 +811,94 @@ void setHasInitialisedBossRush(int val) {
     hasInitialisedBossRush = val;
 }
 
+void clearBossRushProgress() {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        bossRushProgress[i].elapsedFrames = 0;
+        bossRushProgress[i].zoneId = 0;
+        bossRushProgress[i].actId = 0;
+        bossRushProgress[i].gameId = 0;
+        bossRushProgress[i].isComplete = 0;
+        bossRushProgress[i].isFocused = 0;
+    }
+    saveBossRushProgress();
+}
+
+int indexOfBossRushProgress(int gameId, int zoneId, int actId) {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        if (bossRushProgress[i].gameId == gameId &&
+            bossRushProgress[i].zoneId == zoneId &&
+            bossRushProgress[i].actId == actId) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int indexOfLowestUnusedBossProgressSlot() {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        if (bossRushProgress[i].gameId == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void incrementFrameCountOfActiveBossRush() {
+    BossRushChallengeListing listing = getActiveBossRushListing();
+    int progressIndex = indexOfBossRushProgress(listing.gameIndex, listing.zoneIndex, listing.actIndex);
+    if (progressIndex == -1) {
+        progressIndex = indexOfLowestUnusedBossProgressSlot();
+        bossRushProgress[progressIndex].gameId = listing.gameIndex;
+        bossRushProgress[progressIndex].zoneId = listing.zoneIndex;
+        bossRushProgress[progressIndex].actId = listing.actIndex;
+    }
+    bossRushProgress[progressIndex].elapsedFrames++;
+
+    for (int i = 0; i < MAX_ROMS; i++) {
+        bossRushProgress[i].isFocused = 0;
+    }
+    bossRushProgress[progressIndex].isFocused = 1;
+
+    saveBossRushProgress();
+}
+
+void flagActiveBossRushProgressAsComplete() {
+    BossRushChallengeListing listing = getActiveBossRushListing();
+    int progressIndex = indexOfBossRushProgress(listing.gameIndex, listing.zoneIndex, listing.actIndex);
+    if (progressIndex != -1) {
+        bossRushProgress[progressIndex].isComplete = 1;
+    }
+    saveBossRushProgress();
+}
+
+void saveBossRushProgress() {
+    char path[0x100];
+    sprintf(path, "%s/__bossRushProgress.txt", folderPath);
+    FILE *progressWriter = fopen(path, "w");
+
+    if (progressWriter) {
+        for (int i = 0; i < MAX_ROMS; i++) {
+            if (bossRushProgress[i].gameId != 0) {
+                char text[0x100];
+                sprintf(text, "%i/%i/%i/%i/%i/%i", 
+                    bossRushProgress[i].gameId,
+                    bossRushProgress[i].zoneId,
+                    bossRushProgress[i].actId,
+                    bossRushProgress[i].isFocused,
+                    bossRushProgress[i].isComplete,
+                    bossRushProgress[i].elapsedFrames);
+
+                fprintf(progressWriter, text);
+                fprintf(progressWriter, "\n");
+            }
+        }
+        fclose(progressWriter);
+    }
+}
 
 void beginBossRush() {
+    clearBossRushProgress();
+
     MAX_SIMULTANEOUS_BOSSES = getMaxSimultaneousBosses();
     
     if (hasInitialisedBossRush == 0 || shouldResetBossRush != 0) {
@@ -845,6 +932,8 @@ void onBossHit() {
 
 void onBossDefeated() {
     bossRushSwitchCount = 0;
+    flagActiveBossRushProgressAsComplete();
+
     if (currentBossRushIndex > -1) {
         bossRushCallenges[activeBossRushes[currentBossRushIndex]].isCompleted = 1;
         activeBossRushes[currentBossRushIndex] = -1;

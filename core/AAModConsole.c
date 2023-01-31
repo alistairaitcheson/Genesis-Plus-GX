@@ -881,6 +881,8 @@ void modConsole_updateFrame() {
         if (shouldUseBossRush()) {
             if (getBossRushComplete() == 0) {
                 bossRushElapsedFrames++;
+                incrementFrameCountOfActiveBossRush();
+                
                 if (countdownToApplyBossRushRings > 0) {
                     // only count down once level is loaded!
                     if (aa_genesis_getWorkRam(0xF601) == 0x0C) {

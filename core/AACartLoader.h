@@ -149,4 +149,11 @@ int getBossRushRandomSeedFromMenu();
 int getBossRushSeedWithPrefix(int prefix);
 void cacheRingCountInBossRush();
 
+void clearBossRushProgress();
+int indexOfBossRushProgress(int gameId, int zoneId, int actId);
+int indexOfLowestUnusedBossProgressSlot();
+void incrementFrameCountOfActiveBossRush();
+void flagActiveBossRushProgressAsComplete();
+void saveBossRushProgress();
+
 #endif
