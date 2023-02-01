@@ -112,8 +112,8 @@ typedef struct {
     int seedEditingLocationIndex;
     int shouldRevealSeed;
 
-    int showTimer;
     int showProgress;
+    int shouldExposeTrackerData;
 } BossRushOptions;
 
 extern void menuDisplay_showMenu(int menuNum);

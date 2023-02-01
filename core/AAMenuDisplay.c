@@ -690,7 +690,6 @@ void applyDefaultBossRushValues() {
     bossRushOptions.switchTrigger = 0;
     bossRushOptions.totalBossesIdx = 2;
     bossRushOptions.ringsOff = 0;
-    bossRushOptions.showTimer = 1;
     bossRushOptions.showProgress = 1;
     bossRushOptions.carryRingsAcrossGames = 1;
     bossRushOptions.preventCarryInDoomsday = 1;
@@ -701,6 +700,7 @@ void applyDefaultBossRushValues() {
     bossRushOptions.orderSeed[3] = rand() % 0x10;
     bossRushOptions.seedEditingLocationIndex = 0;
     bossRushOptions.shouldRevealSeed = 0;
+    bossRushOptions.shouldExposeTrackerData = 1;
 }
 
 void applyDefaultRamDetectiveValues() {
@@ -1665,7 +1665,7 @@ void incrementBossRushOption(int direction, int buttonIndex) {
         bossRushOptions.showProgress += direction;
     }
     if (bossRushItemIndex == 11) {
-        bossRushOptions.showTimer += direction;
+        bossRushOptions.shouldExposeTrackerData += direction;
     }
 
     if (bossRushItemIndex == 12) {
@@ -3990,16 +3990,16 @@ void showBossRushMenu() {
         sprintf(lines[10], "Show progress meter:     yes");
     }
 
-    if (bossRushOptions.showTimer < 0) {
-        bossRushOptions.showTimer = 1;
+    if (bossRushOptions.shouldExposeTrackerData < 0) {
+        bossRushOptions.shouldExposeTrackerData = 1;
     }
-    if (bossRushOptions.showTimer > 1) {
-        bossRushOptions.showTimer = 0;
+    if (bossRushOptions.shouldExposeTrackerData > 1) {
+        bossRushOptions.shouldExposeTrackerData = 0;
     }
-    if (bossRushOptions.showTimer == 0) {
-        sprintf(lines[11], "Show timer:               no");
+    if (bossRushOptions.shouldExposeTrackerData == 0) {
+        sprintf(lines[11], "Expose data to tracker:   no");
     } else {
-        sprintf(lines[11], "Show timer:              yes");
+        sprintf(lines[11], "Expose data to tracker:  yes");
     }
 
 

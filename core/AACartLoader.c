@@ -879,27 +879,29 @@ void flagAllBossRushProgressAsComplete() {
 }
 
 void saveBossRushProgress() {
-    char path[0x100];
-    sprintf(path, "%s/__bossRushProgress.txt", folderPath);
-    FILE *progressWriter = fopen(path, "w");
+    if (menuDisplay_getBossRushOptions().shouldExposeTrackerData != 0) {
+        char path[0x100];
+        sprintf(path, "%s/__bossRushProgress.txt", folderPath);
+        FILE *progressWriter = fopen(path, "w");
 
-    if (progressWriter) {
-        for (int i = 0; i < MAX_ROMS; i++) {
-            if (bossRushProgress[i].gameId != 0) {
-                char text[0x100];
-                sprintf(text, "%i/%i/%i/%i/%i/%i", 
-                    bossRushProgress[i].gameId,
-                    bossRushProgress[i].zoneId,
-                    bossRushProgress[i].actId,
-                    bossRushProgress[i].isFocused,
-                    bossRushProgress[i].isComplete,
-                    bossRushProgress[i].elapsedFrames);
+        if (progressWriter) {
+            for (int i = 0; i < MAX_ROMS; i++) {
+                if (bossRushProgress[i].gameId != 0) {
+                    char text[0x100];
+                    sprintf(text, "%i/%i/%i/%i/%i/%i", 
+                        bossRushProgress[i].gameId,
+                        bossRushProgress[i].zoneId,
+                        bossRushProgress[i].actId,
+                        bossRushProgress[i].isFocused,
+                        bossRushProgress[i].isComplete,
+                        bossRushProgress[i].elapsedFrames);
 
-                fprintf(progressWriter, text);
-                fprintf(progressWriter, "\n");
+                    fprintf(progressWriter, text);
+                    fprintf(progressWriter, "\n");
+                }
             }
+            fclose(progressWriter);
         }
-        fclose(progressWriter);
     }
 }
 
