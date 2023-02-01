@@ -871,6 +871,13 @@ void flagActiveBossRushProgressAsComplete() {
     saveBossRushProgress();
 }
 
+void flagAllBossRushProgressAsComplete() {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        bossRushProgress[i].isComplete = 1;
+    }
+    saveBossRushProgress();
+}
+
 void saveBossRushProgress() {
     char path[0x100];
     sprintf(path, "%s/__bossRushProgress.txt", folderPath);
@@ -1219,6 +1226,8 @@ void onBossRushComplete() {
         // SONIC & KNUCKLES - you stop in end credits, so go to get blue spheres
         aa_genesis_setWorkRam(0xF601, 0xAC);
     }
+
+    flagAllBossRushProgressAsComplete();
 }
 
 int challengeCanBeQueued(int i) {

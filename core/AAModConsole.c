@@ -880,6 +880,10 @@ void modConsole_updateFrame() {
 
         if (shouldUseBossRush()) {
             if (getBossRushComplete() == 0) {
+                // if (buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+                //     onBossDefeated();
+                // }
+
                 bossRushElapsedFrames++;
                 incrementFrameCountOfActiveBossRush();
                 
