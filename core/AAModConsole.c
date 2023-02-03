@@ -103,6 +103,10 @@ void beginCountdownToApplyBossRushRings() {
     countdownToApplyBossRushRings = 3;
 }
 
+void zeroDeathCount() {
+    playerDeathCount = 0;
+}
+
 int getBossRushElapsedFrames() {
     return bossRushElapsedFrames;
 }

@@ -156,5 +156,7 @@ void incrementFrameCountOfActiveBossRush();
 void flagActiveBossRushProgressAsComplete();
 void flagAllBossRushProgressAsComplete();
 void saveBossRushProgress();
+void shuffleBossSwitchRandomNumbers();
+int getNextRandomBossRushNumber();
 
 #endif

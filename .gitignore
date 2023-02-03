@@ -17,3 +17,4 @@ sdl/build_sdl2
 *.o
 *.a
 MagicBoxWin_*
+BossRushTracker*

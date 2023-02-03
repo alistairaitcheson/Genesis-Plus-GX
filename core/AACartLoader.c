@@ -80,6 +80,7 @@ static uint8 hasBossRushSaveState[MAX_ROMS];
 static int bossRushRingCarryValue[2];
 static int bossRushSwitchCount = 0;
 
+static int cheatFlagsPerBossRush[MAX_ROMS][8];
 
 int cartLoader_base10CharToInt(char character) {
     if (character == '0') {
@@ -905,8 +906,26 @@ void saveBossRushProgress() {
     }
 }
 
+int bossRushSwitchRandomNumbers[0x10000]; 
+int bossRushSwitchRandomIndex = 0;
+void shuffleBossSwitchRandomNumbers() {
+    srand(getBossRushSeedWithPrefix(0));
+    for (int i = 0; i < 0x10000; i++) {
+        bossRushSwitchRandomNumbers[i] = rand();
+    }
+    bossRushSwitchRandomIndex = 0;
+    srand(time(NULL));
+}
+
+int getNextRandomBossRushNumber() {
+    bossRushSwitchRandomIndex++;
+    bossRushSwitchRandomIndex = bossRushSwitchRandomIndex % 0x10000;
+    return bossRushSwitchRandomNumbers[bossRushSwitchRandomIndex];
+}
+
 void beginBossRush() {
     clearBossRushProgress();
+    shuffleBossSwitchRandomNumbers();
 
     MAX_SIMULTANEOUS_BOSSES = getMaxSimultaneousBosses();
     
@@ -933,6 +952,8 @@ void beginBossRush() {
     bossRushRingCarryValue[0] = 0;
     bossRushRingCarryValue[1] = 0;
     bossRushSwitchCount = 0;
+    gameSwapCount = 0;
+    zeroDeathCount();
 }
 
 void onBossHit() {
@@ -1051,24 +1072,8 @@ void bumpToNextBossRush() {
         sprintf(tempLog2,"bumpToNextBossRush last index: %i", currentBossRushIndex);
         cartLoader_appendToLog(tempLog2);
 
-        // ensure we respect the seed order every time, unless it is "no switch trigger"
-        if (menuDisplay_getBossRushOptions().switchTrigger != 4) {
-            srand(getBossRushSeedWithPrefix(bossRushSwitchCount));
-
-            char tempLogForCounter[256];
-            sprintf(tempLogForCounter,
-                "bossRushSwitchCount %i --> %08X --> %i/%i", bossRushSwitchCount, getBossRushSeedWithPrefix(bossRushSwitchCount), rand() % maxIndex, maxIndex);
-            cartLoader_appendToLog(tempLogForCounter);
-
-            srand(getBossRushSeedWithPrefix(bossRushSwitchCount));
-        }
-
+        // use getNextRandomBossRushNumber ?
         currentBossRushIndex = allowedIndexes[rand() % maxIndex];
-
-        // ... and reset the randomiser if we need to
-        if (menuDisplay_getBossRushOptions().switchTrigger != 4) {
-            srand(time(NULL));
-        }
 
         char tempLog3[256];
         sprintf(tempLog3,"bumpToNextBossRush next index: %i", currentBossRushIndex);
@@ -1098,12 +1103,21 @@ void bumpToNextBossRush() {
             // for sonic games, send value 0x8C to location 0xF601 to force a level reset - should fix version clashes!
             aa_genesis_setWorkRam(0xF601, 0x8C);
             beginCountdownToApplyBossRushRings();
+
+            for (int i = 0; i < 8; i++) {
+                int flag = cheatFlagsPerBossRush[getActiveBossRushIndex()][i];
+                if (flag > 0) {
+                    aa_genesis_setWorkRam(flag, 0);
+                }
+            }
         }
         bossRushCallenges[getActiveBossRushIndex()].hasBeganPlaying = 1;
 
         char tempLog6[256];
         sprintf(tempLog6,"bumpToNextBossRush now playing boss %i, hasBegan %i", getActiveBossRushIndex(), getActiveBossRushListing().hasBeganPlaying);
         cartLoader_appendToLog(tempLog6);
+
+        gameSwapCount++;
     }
 
     bossRushSwitchCount++;
@@ -1403,6 +1417,12 @@ void populateBossRushes() {
     int sonic1index = bossRushChallengeCount;
     // GHZ
     addBossRushListing(1, 0, 2, 0xD801, 0xEFFF, 0x40, 0x1F, 0xF7A6, 0x02);
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0xFFE0;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][1] = 0xFFE1;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][2] = 0xFFE2;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][3] = 0xFFE3;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][4] = 0xFFFA;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][5] = 0xFFFB;
     populateMostRecentBossRush4(0x3D, 0, 0, 0);
     applyZoneLocationValuesToMostRecentBossRush(0, 2, 0);
     // MZ
@@ -1431,6 +1451,10 @@ void populateBossRushes() {
     // Sonic 2 - https://info.sonicretro.org/SCHG:Sonic_the_Hedgehog_2_(16-bit)/Object_Editing/Pointers
     int sonic2index = bossRushChallengeCount;
     addBossRushListing(2, 0, 1, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7D7, 0x01); // <-- this is the "show countdown" flag - also try F7D2 - F7D5 being non-zero (is it possible to get a zero time bonus?)
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0xFFD0;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][1] = 0xFFD1;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][2] = 0xFFFA;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][3] = 0xFFFB;
     // EHZ
     populateMostRecentBossRush4(0x56, 0, 0, 0);
     applyZoneLocationValuesToMostRecentBossRush(0, 1, 0);
@@ -1489,6 +1513,10 @@ void populateBossRushes() {
     int sonic3index = bossRushChallengeCount;
     addBossRushListing(3, 0, 0, 0xB001, 0xCFCB, 0x1, 0x28, 0xF7D2, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     bossRushCallenges[bossRushChallengeCount - 1].objectIdsArePointers = 1;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0xFFD0;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][1] = 0xFFD1;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][2] = 0xFFD2;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][3] = 0xFFD3;
     // AIZ 1
     populateMostRecentBossRush4(0x04, 0x00, 0x74, 0x69); 
     // Are the pointers different on the Sonic 3 alone cartridge? Because this is what comes up in Bizhawk when I search 0x29 bytes before the health value...
@@ -1546,6 +1574,10 @@ void populateBossRushes() {
     int sonicKindex = bossRushChallengeCount;
     addBossRushListing(4, 0, 0, 0xB001, 0xCFCB, 0x1, 0x28, 0xF7D2, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     bossRushCallenges[bossRushChallengeCount - 1].objectIdsArePointers = 1;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0xFFD0;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][1] = 0xFFD1;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][2] = 0xFFD2;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][3] = 0xFFD3;
     // MHZ1 - 0007 51CA
     populateMostRecentBossRush4(0x07, 0x00, 0xCA, 0x51);
 
@@ -1673,6 +1705,10 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
     bossRushCallenges[bossRushChallengeCount].actPointer = -1;
     bossRushCallenges[bossRushChallengeCount].checkpointIndex = -1;
 
+    for (int i = 0; i < 8; i++) {
+        cheatFlagsPerBossRush[bossRushChallengeCount][i] = 0;
+    }
+
     bossRushChallengeCount++;
 }
 
@@ -1689,6 +1725,10 @@ void duplicateBossRushListing(int listingIndex, int zoneIndex, int actIndex) {
         bossRushCallenges[listingIndex].defeatedValue
     );
     bossRushCallenges[bossRushChallengeCount - 1].objectIdsArePointers = bossRushCallenges[listingIndex].objectIdsArePointers;
+
+    for (int i = 0; i < 8; i++) {
+        cheatFlagsPerBossRush[bossRushChallengeCount - 1][i] = cheatFlagsPerBossRush[listingIndex][i];
+    }
 }
 
 void populateMostRecentBossRush4(unsigned int id0, unsigned int id1, unsigned int id2, unsigned int id3) {
