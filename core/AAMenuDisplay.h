@@ -219,7 +219,6 @@ extern void menuDisplay_applyPresetRules(int rulesIndex);
 extern void menuDisplay_showTerminalMenu();
 void showOriginalTerminalMenu();
 void showTerminalMenu();
-void activateTerminalOption();
 
 int getMaxSimultaneousBosses();
 void flagNewSavestateLoaded();

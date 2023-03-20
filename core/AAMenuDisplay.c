@@ -67,6 +67,7 @@ static int terminalActiveRules = 0;
 
 static int allowedGamesThisTerminal[16];
 static int gameCountThisTerminal = 0;
+static int hasMappedRomsToLevels = 0;
 
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
@@ -245,7 +246,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     if (rulesIndex == 8) {
         hackOptions.colourDeleteTrigger = 1;
         hackOptions.colourDeleteHealRate = 6;
-        hackOptions.colourDeletePattern = 1;
+        hackOptions.colourDeletePattern = 0;
         secondaryHackOptions.colourDeleteAffectsAudio = 1;
     }
     if (rulesIndex == 9) {
@@ -280,6 +281,11 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
 }
 
 void menuDisplay_showTerminalMenu() {
+    if (hasMappedRomsToLevels != 1) {
+        mapBossRushesToRoms();
+        hasMappedRomsToLevels = 1;
+    }
+    terminalLocationIndex = 2;
     menuDisplay_showMenu(MENU_LISTING_TERMINAL);
 }
 
@@ -1659,7 +1665,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_TERMINAL) {
         if (buttonIndex == INPUT_INDEX_UP) {
             terminalLocationIndex--;
-            if (terminalLocationIndex == 6) {
+            if (terminalLocationIndex == 8) {
                 terminalLocationIndex--;
             }
             refreshMenu();
@@ -1667,7 +1673,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             terminalLocationIndex++;
-            if (terminalLocationIndex == 6) {
+            if (terminalLocationIndex == 8) {
                 terminalLocationIndex++;
             }
             refreshMenu();
@@ -1803,8 +1809,13 @@ void initialiseChosenTerminalGame() {
     }
 
     menuDisplay_applyPresetRules(effectIndexToActivate);
-    int gameIndex = allowedGamesThisTerminal[gameSuiteSelectIndex];
     cartLoader_setAllGamesAsBlocked();
+    int gameIndex = allowedGamesThisTerminal[gameSuiteSelectIndex];
+
+    // char tempLog2[256];
+    // sprintf(tempLog2,"Picked allowedGamesThisTerminal[%i] is %i", gameSuiteSelectIndex, gameIndex);
+    // cartLoader_appendToLog(tempLog2);
+
     cartLoader_unblockGamesWithCartNumber(gameIndex);
 
     cartLoader_applyHackOptions(gameHasStarted);
@@ -1914,35 +1925,35 @@ void chooseGameSuite() {
     }
 }
 
+
+
 void enterTerminalOption() {
     gameSuiteSelectIndex = 0;
 
-    if (terminalLocationIndex == 1) {
+    if (terminalLocationIndex == 2) {
         terminalActiveRules = TERMINAL_RULSET_SHUFFLER; 
-        mapBossRushesToRoms();
-        menuDisplay_showMenu(MENU_LISTING_TERMINAL_SHUFFLER);
-    } else if (terminalLocationIndex == 2) {
-        terminalActiveRules = TERMINAL_RULSET_SHUFFLER_WITH_VRAM;
-        mapBossRushesToRoms();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_SHUFFLER);
     } else if (terminalLocationIndex == 3) {
+        terminalActiveRules = TERMINAL_RULSET_SHUFFLER_WITH_VRAM;
+        menuDisplay_showMenu(MENU_LISTING_TERMINAL_SHUFFLER);
+    } else if (terminalLocationIndex == 4) {
         terminalActiveRules = TERMINAL_RULSET_RINGS_MAKE_FASTER;
 
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 4) {
+    } else if (terminalLocationIndex == 5) {
         terminalActiveRules = TERMINAL_RULSET_RINGS_CORRUPT_LEVEL;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 5) {
+    } else if (terminalLocationIndex == 6) {
         terminalActiveRules = TERMINAL_RULSET_RINGS_CORRUPT_RAM;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 6) {
+    } else if (terminalLocationIndex == 7) {
         terminalActiveRules = TERMINAL_RULSET_REMOVE_COLOUR;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 7) {
+    } else if (terminalLocationIndex == 8) {
         terminalActiveRules = TERMINAL_RULSET_BOSS_RUSH;
 
         menuDisplay_applyPresetRules(15);
@@ -1955,30 +1966,22 @@ void enterTerminalOption() {
         beginBossRush();
 
         menuDisplay_hideMenu();
-    } else if (terminalLocationIndex == 8) {
+    } else if (terminalLocationIndex == 9) {
         terminalActiveRules = TERMINAL_RULSET_CONTROLLER;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 9) {
+    } else if (terminalLocationIndex == 10) {
         terminalActiveRules = TERMINAL_RULSET_SORT_COLOURS;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 10) {
+    } else if (terminalLocationIndex == 11) {
         terminalActiveRules = TERMINAL_RULSET_NO_BACKGROUNDS;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 11) {
+    } else if (terminalLocationIndex == 12) {
         terminalActiveRules = TERMINAL_RULSET_NO_SPRITES;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    }
-}
-
-void activateTerminalOption() {
-    if (terminalLocationIndex < 9) {
-        menuDisplay_applyPresetRules(terminalLocationIndex);
-    } else if(terminalLocationIndex < 14) {
-        menuDisplay_applyPresetRules(terminalLocationIndex - 1);
     }
 }
 
@@ -4044,136 +4047,6 @@ void showRamEditingOptionsMenu() {
     }
 }
 
-void showOriginalTerminalMenu() {
-    layerRenderer_clearLayer(0);
-
-    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
-    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Choose Your Rules", 5);
-
-    int lineCount = 15;
-    char lines[lineCount][0x80];
-    int blockedLines[lineCount];
-    int linesWithBreakAfter[lineCount];
-    for (int i = 0; i < lineCount; i++) {
-        blockedLines[i] = 0;
-        linesWithBreakAfter[i] = 0;
-    }
-
-    if (terminalLocationIndex < 1) {
-        terminalLocationIndex = lineCount - 1;
-    }
-    if (terminalLocationIndex > lineCount - 1) {
-        terminalLocationIndex = 1;
-    }
-
-    sprintf(lines[0], "Whenever Sonic gets a ring...");
-    linesWithBreakAfter[0] = 1;
-
-    if (activeTerminalRuleId == 1) {
-        sprintf(lines[1], "[ON] Swap to a new game");
-    } else {
-        sprintf(lines[1], "     Swap to a new game");
-    }
-    
-    if (activeTerminalRuleId == 2) {
-        sprintf(lines[2], "[ON] Make Sonic faster");
-    } else {
-        sprintf(lines[2], "     Make Sonic faster");
-    }
-
-    if (activeTerminalRuleId == 3) {
-        sprintf(lines[3], "[ON] Corrupt the level");
-    } else {
-        sprintf(lines[3], "     Corrupt the level");
-    }
-
-    if (activeTerminalRuleId == 4) {
-        sprintf(lines[4], "[ON] Randomise Sonic's velocity");
-    } else {
-        sprintf(lines[4], "     Randomise Sonic's velocity");
-    }
-
-    if (activeTerminalRuleId == 5) {
-        sprintf(lines[5], "[ON] Write random numbers to RAM");
-    } else {
-        sprintf(lines[5], "     Write random numbers to RAM");
-    }
-
-    if (activeTerminalRuleId == 6) {
-        sprintf(lines[6], "[ON] Write random nums to Video RAM");
-    } else {
-        sprintf(lines[6], "     Write random nums to Video RAM");
-    }
-
-    if (activeTerminalRuleId == 7) {
-        sprintf(lines[7], "[ON] Swap game but keep Video RAM");
-    } else {
-        sprintf(lines[7], "     Swap game but keep Video RAM");
-    }
-
-    if (activeTerminalRuleId == 8) {
-        sprintf(lines[8], "[ON] Remove colours from the game");
-    } else {
-        sprintf(lines[8], "     Remove colours from the game");
-    }
-    linesWithBreakAfter[8] = 1;
-
-    sprintf(lines[9], "Other effects: ");
-    linesWithBreakAfter[9] = 1;
-
-    if (activeTerminalRuleId == 9) {
-        sprintf(lines[10], "[ON] Limited colours");
-    } else {
-        sprintf(lines[10], "     Limited colours");
-    }
-
-    if (activeTerminalRuleId == 10) {
-        sprintf(lines[11], "[ON] No backgrounds");
-    } else {
-        sprintf(lines[11], "     No backgrounds");
-    }
-
-    if (activeTerminalRuleId == 11) {
-        sprintf(lines[12], "[ON] No sprites");
-    } else {
-        sprintf(lines[12], "     No sprites");
-    }
-
-    if (activeTerminalRuleId == 12) {
-        sprintf(lines[13], "[ON] Sort colours");
-    } else {
-        sprintf(lines[13], "     Sort colours");
-    }
-
-
-    sprintf(lines[14], "back >");
-
-    int yPos = 32;
-    for (int i = 0; i < lineCount; i++) {
-        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
-            yPos += 8;
-        }
-
-        char toPrint[0x100];
-        if (i == terminalLocationIndex) {
-            sprintf(toPrint, ">> %s", lines[i]);
-        } else {
-            sprintf(toPrint, "%s", lines[i]);
-        }
-
-        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
-
-        if (blockedLines[i] != 0) {
-            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
-        }
-
-        yPos += 8;
-        if (linesWithBreakAfter[i] != 0) {
-            yPos += 8;
-        }
-    }
-}
-
 void showBossRushMenu() {
     layerRenderer_clearLayer(0);
 
@@ -4476,7 +4349,7 @@ void showTerminalMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Alistair's Magic Box", 5);
 
-    int lineCount = 7;
+    int lineCount = 15;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -4485,34 +4358,34 @@ void showTerminalMenu() {
         linesWithBreakAfter[i] = 0;
     }
 
-    if (terminalLocationIndex < 1) {
+    if (terminalLocationIndex < 2) {
         terminalLocationIndex = lineCount - 1;
     }
     if (terminalLocationIndex > lineCount - 1) {
-        terminalLocationIndex = 1;
+        terminalLocationIndex = 2;
     }
 
-    sprintf(lines[0], "Add gameplay effects when you get a ring");
-    linesWithBreakAfter[0] = 1;
+    sprintf(lines[0], "Add a gameplay effect when");
+    sprintf(lines[1], "you get a ring");
+    linesWithBreakAfter[1] = 1;
 
-    sprintf(lines[1], "  Switch game");
-    sprintf(lines[2], "  Switch game and keep Video Ram");
-    sprintf(lines[3], "  Sonic gets faster");
-    sprintf(lines[4], "  Level is corrupted");
-    sprintf(lines[5], "  Memory is corrupted");
-    sprintf(lines[5], "  Colours get removed");
-    linesWithBreakAfter[5] = 1;
+    sprintf(lines[2], "  Switch game");
+    sprintf(lines[3], "  Switch game and keep Video Ram");
+    sprintf(lines[4], "  Sonic gets faster");
+    sprintf(lines[5], "  Level is corrupted");
+    sprintf(lines[6], "  Memory is corrupted");
+    sprintf(lines[7], "  Colours get removed");
+    linesWithBreakAfter[7] = 1;
 
-    sprintf(lines[6], "New ways to play");
-    linesWithBreakAfter[6] = 1;
-    sprintf(lines[7], "  Sonic Boss Rush");
-    sprintf(lines[8], "  4 players 1 controller");
-    sprintf(lines[9], "  Sort colours");
-    sprintf(lines[10], "  No background");
-    sprintf(lines[11], "  No sprites");
-    linesWithBreakAfter[11] = 1;
+    sprintf(lines[8], "Choose a new way to play");
+    linesWithBreakAfter[8] = 1;
+    sprintf(lines[9], "  Sonic Boss Rush");
+    sprintf(lines[10], "  4 players 1 controller");
+    sprintf(lines[11], "  Sort colours");
+    sprintf(lines[12], "  No background");
+    sprintf(lines[13], "  No sprites");
 
-    sprintf(lines[12], "back >");
+    sprintf(lines[14], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -4696,7 +4569,7 @@ void showTerminalGameListMenu() {
     }
 
     for (int i = 0; i < gameCountThisTerminal; i++) {
-        sprintf(lines[i], "  %s", getTerminalNameForRom(i));
+        sprintf(lines[i], "  %s", getTerminalNameForRom(allowedGamesThisTerminal[i]));
     }
     linesWithBreakAfter[gameCountThisTerminal - 1] = 1;
     sprintf(lines[lineCount - 1], "back >");
