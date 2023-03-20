@@ -65,6 +65,9 @@ static int shouldRerollBossRushRandomTime = 0;
 
 static int terminalActiveRules = 0;
 
+static int allowedGamesThisTerminal[16];
+static int gameCountThisTerminal = 0;
+
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
 }
@@ -97,6 +100,91 @@ NetworkOptions menuDisplay_getNetworkOptions() {
 
 BossRushOptions menuDisplay_getBossRushOptions() {
     return bossRushOptions;
+}
+
+void addGameToThoseAllowedForTerminal(int gameIndex) {
+    int index = 0;
+    for (int i = 0; i < 16; i++) {
+        if (allowedGamesThisTerminal[i] == -1) {
+            index = i;
+            break;;
+        }
+    }
+
+    allowedGamesThisTerminal[index] = gameIndex;
+}
+
+void applyAllowedGamesForCurrentTerminalSelection() {
+    clearAllowedGamesThisTerminal();
+
+    if (terminalActiveRules == TERMINAL_RULSET_RINGS_MAKE_FASTER) {
+        addGameToThoseAllowedForTerminal(1);
+        addGameToThoseAllowedForTerminal(2);
+        addGameToThoseAllowedForTerminal(3);
+        addGameToThoseAllowedForTerminal(4);
+    }
+
+    if (terminalActiveRules == TERMINAL_RULSET_RINGS_CORRUPT_LEVEL) {
+        // sonic MD
+        addGameToThoseAllowedForTerminal(1);
+        addGameToThoseAllowedForTerminal(2);
+        addGameToThoseAllowedForTerminal(3);
+        addGameToThoseAllowedForTerminal(4);
+        // sonic SMS - I need to add support for this!!
+        addGameToThoseAllowedForTerminal(8);
+        addGameToThoseAllowedForTerminal(9);
+        addGameToThoseAllowedForTerminal(10);
+    }
+
+    if (terminalActiveRules == TERMINAL_RULSET_RINGS_CORRUPT_RAM
+        || terminalActiveRules == TERMINAL_RULSET_REMOVE_COLOUR
+        || terminalActiveRules == TERMINAL_RULSET_NO_SPRITES
+        || terminalActiveRules == TERMINAL_RULSET_NO_BACKGROUNDS
+        || terminalActiveRules == TERMINAL_RULSET_SORT_COLOURS) {
+        // sonic MD
+        addGameToThoseAllowedForTerminal(1);
+        addGameToThoseAllowedForTerminal(2);
+        addGameToThoseAllowedForTerminal(3);
+        addGameToThoseAllowedForTerminal(4);
+        // sonic SMS
+        addGameToThoseAllowedForTerminal(8);
+        addGameToThoseAllowedForTerminal(9);
+        addGameToThoseAllowedForTerminal(10);
+        // triple trouble
+        addGameToThoseAllowedForTerminal(16);
+        //mean bean
+        addGameToThoseAllowedForTerminal(18);
+        // gunstar heroes
+        addGameToThoseAllowedForTerminal(34);
+        // revenge of shinobi
+        addGameToThoseAllowedForTerminal(25);
+        // ecco
+        addGameToThoseAllowedForTerminal(38);
+        // micro machines 2
+        addGameToThoseAllowedForTerminal(27);
+    }
+
+    if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
+        // sonic MD
+        addGameToThoseAllowedForTerminal(1);
+        addGameToThoseAllowedForTerminal(2);
+        addGameToThoseAllowedForTerminal(3);
+        addGameToThoseAllowedForTerminal(4);
+        // sonic SMS
+        addGameToThoseAllowedForTerminal(8);
+        addGameToThoseAllowedForTerminal(9);
+        addGameToThoseAllowedForTerminal(10);
+        // triple trouble
+        addGameToThoseAllowedForTerminal(16);
+        //mean bean
+        addGameToThoseAllowedForTerminal(18);
+    }
+}
+
+void clearAllowedGamesThisTerminal() {
+    for (int i = 0; i < 16; i++) {
+        allowedGamesThisTerminal[i] = -1;
+    }
 }
 
 
@@ -1034,6 +1122,10 @@ void menuDisplay_showMenu(int menuNum) {
     if (activeMenu == MENU_LISTING_TERMINAL_SHUFFLER) {
         showTerminalShufflerSelectMenu();
     }
+
+    if (activeMenu == MENU_LISTING_TERMINAL_GAME_LIST) {
+        showTerminalGameListMenu();
+    }
 }
 
 void menuDisplay_hideMenu() {
@@ -1567,7 +1659,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_TERMINAL) {
         if (buttonIndex == INPUT_INDEX_UP) {
             terminalLocationIndex--;
-            if (terminalLocationIndex == 9) {
+            if (terminalLocationIndex == 6) {
                 terminalLocationIndex--;
             }
             refreshMenu();
@@ -1575,7 +1667,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             terminalLocationIndex++;
-            if (terminalLocationIndex == 9) {
+            if (terminalLocationIndex == 6) {
                 terminalLocationIndex++;
             }
             refreshMenu();
@@ -1583,7 +1675,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
         
         if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_START) {
-            if (terminalLocationIndex < 7) {
+            if (terminalLocationIndex < 12) {
                 enterTerminalOption();
             } else {
                 menuDisplay_hideMenu();
@@ -1605,16 +1697,44 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
         
         if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_START) {
-            if (terminalLocationIndex < 9) {
+            if (gameSuiteSelectIndex < 9) {
                 chooseGameSuite();
 
-                menuDisplay_applyPresetRules(1);
+                int ruleset = 1;
+                if (terminalActiveRules == TERMINAL_RULSET_SHUFFLER_WITH_VRAM) {
+                    ruleset = 7;
+                }
+                menuDisplay_applyPresetRules(ruleset);
                 cartLoader_applyHackOptions(gameHasStarted);
                 modConsole_applyHackOptions();
                 modConsole_applyNetworkOptions();
-                modConsole_activateReset();
                 cartLoader_clearSaveStates();
+                cartLoader_loadRandomRom();
+                modConsole_activateReset();
 
+                menuDisplay_hideMenu();
+            } else {
+                menuDisplay_showMenu(MENU_LISTING_TERMINAL);
+            }
+            return 1;
+        }
+    }
+
+        if (activeMenu == MENU_LISTING_TERMINAL_GAME_LIST) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            gameSuiteSelectIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            gameSuiteSelectIndex++;
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_START) {
+            if (gameSuiteSelectIndex < gameCountThisTerminal) {
+                initialiseChosenTerminalGame();
                 menuDisplay_hideMenu();
             } else {
                 menuDisplay_showMenu(MENU_LISTING_TERMINAL);
@@ -1650,6 +1770,50 @@ int menuDisplay_onButtonPress(int buttonIndex) {
 
 
     return 0;
+}
+
+void initialiseChosenTerminalGame() {
+    int effectIndexToActivate = 0;
+    if (terminalActiveRules == TERMINAL_RULSET_RINGS_MAKE_FASTER) {
+        effectIndexToActivate = 2;
+    }
+    if (terminalActiveRules == TERMINAL_RULSET_RINGS_CORRUPT_LEVEL) {
+        effectIndexToActivate = 3;
+    }
+    if (terminalActiveRules == TERMINAL_RULSET_RINGS_CORRUPT_RAM) {
+        effectIndexToActivate = 5;
+    }
+    if (terminalActiveRules == TERMINAL_RULSET_REMOVE_COLOUR) {
+        effectIndexToActivate = 8;
+    }
+    if (terminalActiveRules == TERMINAL_RULSET_NO_SPRITES) {
+        effectIndexToActivate = 10;
+    }
+    if (terminalActiveRules == TERMINAL_RULSET_NO_BACKGROUNDS) {
+        effectIndexToActivate = 11;
+    }
+    if (terminalActiveRules == TERMINAL_RULSET_SORT_COLOURS) {
+        effectIndexToActivate = 12;
+    }
+    if (terminalActiveRules == TERMINAL_RULSET_BOSS_RUSH) {
+        effectIndexToActivate = 0; // <-- this should never be hit!
+    }
+    if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
+        effectIndexToActivate = 0; // <-- need to support controller!
+    }
+
+    menuDisplay_applyPresetRules(effectIndexToActivate);
+    int gameIndex = allowedGamesThisTerminal[gameSuiteSelectIndex];
+    cartLoader_setAllGamesAsBlocked();
+    cartLoader_unblockGamesWithCartNumber(gameIndex);
+
+    cartLoader_applyHackOptions(gameHasStarted);
+    modConsole_applyHackOptions();
+    modConsole_applyNetworkOptions();
+    cartLoader_clearSaveStates();
+    cartLoader_loadRandomRom();
+
+    modConsole_activateReset();
 }
 
 void chooseGameSuite() {
@@ -1751,18 +1915,34 @@ void chooseGameSuite() {
 }
 
 void enterTerminalOption() {
+    gameSuiteSelectIndex = 0;
+
     if (terminalLocationIndex == 1) {
         terminalActiveRules = TERMINAL_RULSET_SHUFFLER; 
-        gameSuiteSelectIndex = 0;
         mapBossRushesToRoms();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_SHUFFLER);
     } else if (terminalLocationIndex == 2) {
-        terminalActiveRules = TERMINAL_RULSET_CORRUPTION;
+        terminalActiveRules = TERMINAL_RULSET_SHUFFLER_WITH_VRAM;
+        mapBossRushesToRoms();
+        menuDisplay_showMenu(MENU_LISTING_TERMINAL_SHUFFLER);
     } else if (terminalLocationIndex == 3) {
-        terminalActiveRules = TERMINAL_RULSET_VISUALS;
+        terminalActiveRules = TERMINAL_RULSET_RINGS_MAKE_FASTER;
+
+        applyAllowedGamesForCurrentTerminalSelection();
+        menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
     } else if (terminalLocationIndex == 4) {
-        terminalActiveRules = TERMINAL_RULSET_CONTROLLER;
+        terminalActiveRules = TERMINAL_RULSET_RINGS_CORRUPT_LEVEL;
+        applyAllowedGamesForCurrentTerminalSelection();
+        menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
     } else if (terminalLocationIndex == 5) {
+        terminalActiveRules = TERMINAL_RULSET_RINGS_CORRUPT_RAM;
+        applyAllowedGamesForCurrentTerminalSelection();
+        menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
+    } else if (terminalLocationIndex == 6) {
+        terminalActiveRules = TERMINAL_RULSET_REMOVE_COLOUR;
+        applyAllowedGamesForCurrentTerminalSelection();
+        menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
+    } else if (terminalLocationIndex == 7) {
         terminalActiveRules = TERMINAL_RULSET_BOSS_RUSH;
 
         menuDisplay_applyPresetRules(15);
@@ -1773,6 +1953,24 @@ void enterTerminalOption() {
 
         beginGame();
         beginBossRush();
+
+        menuDisplay_hideMenu();
+    } else if (terminalLocationIndex == 8) {
+        terminalActiveRules = TERMINAL_RULSET_CONTROLLER;
+        applyAllowedGamesForCurrentTerminalSelection();
+        menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
+    } else if (terminalLocationIndex == 9) {
+        terminalActiveRules = TERMINAL_RULSET_SORT_COLOURS;
+        applyAllowedGamesForCurrentTerminalSelection();
+        menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
+    } else if (terminalLocationIndex == 10) {
+        terminalActiveRules = TERMINAL_RULSET_NO_BACKGROUNDS;
+        applyAllowedGamesForCurrentTerminalSelection();
+        menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
+    } else if (terminalLocationIndex == 11) {
+        terminalActiveRules = TERMINAL_RULSET_NO_SPRITES;
+        applyAllowedGamesForCurrentTerminalSelection();
+        menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
     }
 }
 
@@ -3847,7 +4045,7 @@ void showRamEditingOptionsMenu() {
 }
 
 void showOriginalTerminalMenu() {
-        layerRenderer_clearLayer(0);
+    layerRenderer_clearLayer(0);
 
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Choose Your Rules", 5);
@@ -4294,20 +4492,27 @@ void showTerminalMenu() {
         terminalLocationIndex = 1;
     }
 
-    sprintf(lines[0], "Choose your rules");
+    sprintf(lines[0], "Add gameplay effects when you get a ring");
     linesWithBreakAfter[0] = 1;
 
-    sprintf(lines[1], "  Game shufflers");
-    linesWithBreakAfter[1] = 1;
-    sprintf(lines[2], "  Game corruptions");
-    linesWithBreakAfter[2] = 1;
-    sprintf(lines[3], "  Screen effects");
-    linesWithBreakAfter[3] = 1;
-    sprintf(lines[4], "  4 players 1 controller");
-    linesWithBreakAfter[4] = 1;
-    sprintf(lines[5], "  Sonic's Boss Rush");
+    sprintf(lines[1], "  Switch game");
+    sprintf(lines[2], "  Switch game and keep Video Ram");
+    sprintf(lines[3], "  Sonic gets faster");
+    sprintf(lines[4], "  Level is corrupted");
+    sprintf(lines[5], "  Memory is corrupted");
+    sprintf(lines[5], "  Colours get removed");
     linesWithBreakAfter[5] = 1;
-    sprintf(lines[6], "back >");
+
+    sprintf(lines[6], "New ways to play");
+    linesWithBreakAfter[6] = 1;
+    sprintf(lines[7], "  Sonic Boss Rush");
+    sprintf(lines[8], "  4 players 1 controller");
+    sprintf(lines[9], "  Sort colours");
+    sprintf(lines[10], "  No background");
+    sprintf(lines[11], "  No sprites");
+    linesWithBreakAfter[11] = 1;
+
+    sprintf(lines[12], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -4460,5 +4665,126 @@ void showTerminalCorruptionGameSelectMenu() {
     }
 }
 
-void showTerminalCorruptionGameSonicMenu() {
+void showTerminalShufflerSelectMenu() {
+       layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "What games do you want to shuffle?", 5);
+
+    int lineCount = 10;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    int linesWithBreakAfter[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+        linesWithBreakAfter[i] = 0;
+    }
+
+    if (gameSuiteSelectIndex < 0) {
+        gameSuiteSelectIndex = lineCount - 1;
+    }
+    if (gameSuiteSelectIndex > lineCount - 1) {
+        gameSuiteSelectIndex = 1;
+    }
+
+    sprintf(lines[0], "  Sonic Classics (Mega Drive)");
+    sprintf(lines[1], "  Sonic Classics (Master System)");
+    sprintf(lines[2], "  Sonic Classics (Game Gear)");
+    sprintf(lines[3], "  All Sonic Games (Mega Drive)");
+    linesWithBreakAfter[3] = 1;
+
+    sprintf(lines[4], "  Puyo Puyo");
+    sprintf(lines[5], "  Micro Machines");
+    sprintf(lines[6], "  Streets of Rage");
+    sprintf(lines[7], "  Shinobi");
+    sprintf(lines[8], "  Four Random Games");
+    linesWithBreakAfter[8] = 1;
+    sprintf(lines[9], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
+        char toPrint[0x100];
+        if (i == gameSuiteSelectIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "%s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+        if (linesWithBreakAfter[i] != 0) {
+            yPos += 8;
+        }
+    }
+}
+
+void showTerminalGameListMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Choose a game", 5);
+
+    gameCountThisTerminal = 0;
+    for (int i = 0; i < 16; i++) {
+        if (allowedGamesThisTerminal[i] < 0) {
+            break;
+        }
+        gameCountThisTerminal++;
+    }
+    int lineCount = gameCountThisTerminal + 1;
+
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    int linesWithBreakAfter[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+        linesWithBreakAfter[i] = 0;
+    }
+
+    if (gameSuiteSelectIndex < 0) {
+        gameSuiteSelectIndex = lineCount - 1;
+    }
+    if (gameSuiteSelectIndex > lineCount - 1) {
+        gameSuiteSelectIndex = 1;
+    }
+
+    for (int i = 0; i < gameCountThisTerminal; i++) {
+        sprintf(lines[i], "  %s", getTerminalNameForRom(i));
+    }
+    linesWithBreakAfter[gameCountThisTerminal - 1] = 1;
+    sprintf(lines[lineCount - 1], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
+        char toPrint[0x100];
+        if (i == gameSuiteSelectIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "%s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+        if (linesWithBreakAfter[i] != 0) {
+            yPos += 8;
+        }
+    }
 }

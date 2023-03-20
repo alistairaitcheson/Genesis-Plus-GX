@@ -165,5 +165,6 @@ void cartLoader_setAllGamesAsBlocked();
 void cartLoader_unblockGamesWithCartNumber(int cartNumber);
 void cartLoader_clearSaveStates();
 int getCartIndexForRomAtIndex(int index);
+extern char* getTerminalNameForRom(int romIndex);
 
 #endif

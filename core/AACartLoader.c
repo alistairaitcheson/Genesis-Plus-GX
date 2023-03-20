@@ -34,6 +34,8 @@ static MomentumControlListing momentumControlListings[MAX_ROMS];
 static unsigned char gameAltIds[MAX_ROMS][0x80];
 static int gameListingCount = 0;
 
+static char *terminalNamePerRom[MAX_ROMS];
+
 static BossRushChallengeListing bossRushCallenges[MAX_ROMS];
 static BossRushProgress bossRushProgress[MAX_ROMS];
 static int bossRushChallengeCount = 0;
@@ -191,6 +193,7 @@ void cartLoader_run() {
     gameListings[0].ringSwitchCooldown = 0;
 
     writeStringToArray32("SONICTHEHEDGEHOG", gameListings[1].gameId);// = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','\0'};
+    terminalNamePerRom[1] = "Sonic the Hedgehog, 16-bit";
     gameListings[1].ringByte = 0xFE20;
     gameListings[1].specialRingByte = 0;    
     gameListings[1].updateHUDFlags[0] = 0xFE1C;
@@ -263,6 +266,7 @@ void cartLoader_run() {
 
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
+    terminalNamePerRom[2] = "Sonic the Hedgehog 2, 16-bit";
     copyGameListing(1, 2);
     gameListings[2].panicBytes[0] = 0xB00C;
     gameListings[2].panicByteDestinations[0] = 0x55;
@@ -287,6 +291,7 @@ void cartLoader_run() {
     standTriggerListings[2].standingCooldown = 5;
 
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
+    terminalNamePerRom[3] = "Sonic the Hedgehog 3";
     copyGameListing(1, 3);
     gameListings[3].specialRingByte = 0xE43A;
     gameListings[3].panicBytes[0] = 0xB014;
@@ -340,12 +345,15 @@ void cartLoader_run() {
     standTriggerListings[3].standingCooldown = 5;
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
+    terminalNamePerRom[4] = "Sonic & Knuckles";
     copyGameListing(3, 4);
 
     writeStringToArray32("SONIC3&KNUCKLES", gameListings[5].gameId);
+    terminalNamePerRom[5] = "Sonic 3 & Knuckles";
     copyGameListing(3, 5);
 
     writeStringToArray32("SONIC3DBLAST", gameListings[6].gameId);
+    terminalNamePerRom[6] = "Sonic 3D Blast";
     gameListings[6].ringByte = 0x0A5A;
     gameListings[6].specialRingByte = 0xA17C;    // <-- to do!
     gameListings[6].livesBytes[0] = 0x0680;
@@ -355,6 +363,7 @@ void cartLoader_run() {
     scoreMonitorListings[6].allowStackRingInputs = 1;
 
     writeStringToArray32("SonicSpinball", gameListings[7].gameId);
+    terminalNamePerRom[7] = "Sonic  Spinball";
     gameListings[7].ringByte = 0x57A1;
     gameListings[7].specialRingByte = 0;    
     gameListings[7].livesBytes[0] = 0x579F;
@@ -362,6 +371,7 @@ void cartLoader_run() {
     gameListings[7].valueWriteDuration = 300; // only update lives every 20 seconds
     
     writeStringToArray32("15900", gameListings[8].gameId); // Sonic 2 MS
+    terminalNamePerRom[8] = "Sonic the Hedgehog 2, SMS";
     gameListings[8].ringByte = 0x1299;
     gameListings[8].specialRingByte = 0;    
     gameListings[8].livesBytes[0] = 0x1298;
@@ -379,6 +389,7 @@ void cartLoader_run() {
     scoreMonitorListings[8].allowStackRingInputs = 1;
 
     writeStringToArray32("76700", gameListings[9].gameId); // Sonic 1 MS
+    terminalNamePerRom[9] = "Sonic the Hedgehog, SMS";
     gameListings[9].ringByte = 0x12AA;
     gameListings[9].specialRingByte = 0;    
     gameListings[9].livesBytes[0] = 0x1246;
@@ -392,6 +403,7 @@ void cartLoader_run() {
     scoreMonitorListings[9].allowStackRingInputs = 1;
 
     writeStringToArray32("21900", gameListings[10].gameId); // Sonic Chaos MS
+    terminalNamePerRom[10] = "Sonic Chaos, SMS";
     gameListings[10].ringByte = 0x129A;
     gameListings[10].specialRingByte = 0;    
     gameListings[10].livesBytes[0] = 0x1299;
@@ -407,6 +419,7 @@ void cartLoader_run() {
     scoreMonitorListings[10].allowStackRingInputs = 1;
 
     writeStringToArray32("73250", gameListings[11].gameId); // Sonic Blast MS <-- still need to find lives and time
+    terminalNamePerRom[11] = "Sonic Blast, SMS";
     gameListings[11].ringByte = 0x125E; // <-- WARNING! it is used in the title sequence (once per frame?)
     gameListings[11].specialRingByte =  0x1D9E;
     gameListings[11].livesBytes[0] = 0x1178;
@@ -417,6 +430,7 @@ void cartLoader_run() {
     gameListings[11].ringSwitchCooldown = 8;
 
     writeStringToArray32("07250", gameListings[12].gameId); // Sonic 2 GG
+    terminalNamePerRom[12] = "Sonic the Hedgehog 2, GG";
     gameListings[12].ringByte = 0x1299;
     gameListings[12].specialRingByte = 0;
     gameListings[12].livesBytes[0] = 0x1298;
@@ -427,6 +441,7 @@ void cartLoader_run() {
     scoreMonitorListings[12].allowStackRingInputs = 1;
 
     writeStringToArray32("08240", gameListings[13].gameId); // Sonic 1 GG
+    terminalNamePerRom[13] = "Sonic the Hedgehog, GG";
     gameListings[13].ringByte = 0x12A9;
     gameListings[13].specialRingByte = 0;
     gameListings[13].livesBytes[0] = 0x1240;
@@ -437,6 +452,7 @@ void cartLoader_run() {
     scoreMonitorListings[13].allowStackRingInputs = 1;
 
     writeStringToArray32("15250", gameListings[14].gameId); // Sonic Chaos GG
+    terminalNamePerRom[14] = "Sonic Chaos, GG";
     gameListings[14].ringByte = 0x129C;
     gameListings[14].specialRingByte = 0;
     gameListings[14].livesBytes[0] = 0x129B;
@@ -447,9 +463,11 @@ void cartLoader_run() {
     scoreMonitorListings[14].allowStackRingInputs = 1;
 
     writeStringToArray32("73250", gameListings[15].gameId); // Sonic Blast GG <-- still need to find lives and time (identical to SMS)
+    terminalNamePerRom[15] = "Sonic Blast, GG";
     copyGameListing(11, 15);
 
     writeStringToArray32("30250", gameListings[16].gameId); // Sonic Triple Trouble<-- still need to find lives and time
+    terminalNamePerRom[16] = "Sonic Triple Trouble";
     gameListings[16].ringByte = 0x1159;
     gameListings[16].specialRingByte = 0;
     gameListings[16].livesBytes[0] = 0x1140;
@@ -471,6 +489,7 @@ void cartLoader_run() {
     gameListings[17].isISO = 1;  // <-- I plan to use this as a way to detect CD games for the time being...
     
     writeStringToArray32("Dr.Robotnik'sMeanBeanMachine", gameListings[18].gameId); // <-- not used yet
+    terminalNamePerRom[18] = "Dr Robotnik's Mean Bean Machine";
     gameListings[18].ringByte = 0;
     gameListings[18].specialRingByte = 0;
     gameListings[18].livesBytes[0] = 0;
@@ -490,6 +509,7 @@ void cartLoader_run() {
 
 
     writeStringToArray32("Puyo Puyo (JP)", gameListings[19].gameId); // <-- puyo puyo
+    terminalNamePerRom[19] = "Puyo Puyo";
     copyGameListing(18, 19);
     sprintf(gameAltIds[19], "82D582E682D582E6 0000000000000000 0000000000000000 0000000000000000");
     gameListings[19].ringByte = 0;
@@ -497,6 +517,7 @@ void cartLoader_run() {
 
     writeStringToArray32("Puyo Puyo 2 (JP)", gameListings[20].gameId); // <-- puyo puyo 2
     sprintf(gameAltIds[20], "82D582E682D582E6 8251000000000000 0000000000000000 0000000000000000");
+    terminalNamePerRom[20] = "Puyo Puyo 2";
     gameListings[20].ringByte = 0;
     gameListings[20].specialRingByte = 0;
     gameListings[20].livesBytes[0] = 0;
@@ -515,6 +536,7 @@ void cartLoader_run() {
     gameListings[20].postRingEffectCooldown = 20;
 
     writeStringToArray32("BAREKNUCKLE", gameListings[21].gameId); // <-- Streets of Rage 1
+    terminalNamePerRom[21] = "Streets of Rage";
     gameListings[21].ringByte = 0;
     gameListings[21].specialRingByte = 0;
     gameListings[21].livesBytes[0] = 0xFF21;
@@ -531,6 +553,7 @@ void cartLoader_run() {
     gameListings[21].ringSwitchCooldown = 2;
 
     writeStringToArray32("BAREKNUCKLE2", gameListings[22].gameId); // <-- Streets of Rage 2
+    terminalNamePerRom[22] = "Streets of Rage 2";
     gameListings[22].ringByte = 0;
     gameListings[22].specialRingByte = 0;
     gameListings[22].livesBytes[0] = 0xEF82;
@@ -553,6 +576,7 @@ void cartLoader_run() {
     pixelMonitorListings[22].enabled = 1; 
     
     writeStringToArray32("BAREKNUCKLE3", gameListings[23].gameId); // <-- Streets of Rage 3
+    terminalNamePerRom[23] = "Streets of Rage 3";
     gameListings[23].ringByte = 0;
     gameListings[23].specialRingByte = 0;
     gameListings[23].livesBytes[0] = 0xDF8A;
@@ -576,6 +600,7 @@ void cartLoader_run() {
 
 
     writeStringToArray32("THESUPERSHINOBI2", gameListings[24].gameId); // <-- Shinobi III
+    terminalNamePerRom[24] = "Shinobi III";
     gameListings[24].ringByte = 0;
     gameListings[24].specialRingByte = 0;
     gameListings[24].livesBytes[0] = 0x37E1;
@@ -595,6 +620,7 @@ void cartLoader_run() {
     gameListings[24].ringSwitchCooldown = 2;
 
     writeStringToArray32("THESUPERSHINOBI", gameListings[25].gameId); // <-- Revenge of Shinobi
+    terminalNamePerRom[25] = "Revenge of Shinobi";
     gameListings[25].ringByte = 0;
     gameListings[25].specialRingByte = 0;
     gameListings[25].livesBytes[0] = 0xE140;
@@ -612,6 +638,7 @@ void cartLoader_run() {
 
     writeStringToArray32("SHADOWDANCER", gameListings[26].gameId); // <-- SHADOWDANCER
     sprintf(gameAltIds[26], "534841444F574441 4E434552896582CC 9591000000000000 0000000000000000");
+    terminalNamePerRom[26] = "Shadow Dancer";
     gameListings[26].ringByte = 0;
     gameListings[26].specialRingByte = 0;
     gameListings[26].livesBytes[0] = 0x13DF;
@@ -628,6 +655,7 @@ void cartLoader_run() {
     gameListings[26].ringSwitchCooldown = 2;
 
     writeStringToArray32("MICROMACHINESII", gameListings[27].gameId); // <-- SHADOWDANCER
+    terminalNamePerRom[27] = "Micro Machines 2";
     pixelMonitorListings[27].xCoords[0] = 0x1C;
     pixelMonitorListings[27].xCoords[1] = 0x1C;
     pixelMonitorListings[27].xCoords[2] = 0x1C;
@@ -651,6 +679,7 @@ void cartLoader_run() {
 
     writeStringToArray32("MicroMachines96", gameListings[28].gameId); // <-- Micro Machines 96 (has no header???)
     copyGameListing(27, 28);
+    terminalNamePerRom[28] = "Micro Machines 96";
     // the below comes from the fingerprint
     sprintf(gameAltIds[28], "393AFFFF9AE6C18A 052C4548784AA8CF 0667FCCA18000460 FCCA200045000000");
     gameListings[28].bytesToTestForChange[0] = 0xD164; // swap on new lap
@@ -660,6 +689,7 @@ void cartLoader_run() {
 
     writeStringToArray32("MicroMachines", gameListings[29].gameId); // <-- Micro Machines 96 (has no header???)
     sprintf(gameAltIds[29], "569A754E0061BAFF B94E000086A73C36 0000F94100001D9F 3C300E003C000000");
+    terminalNamePerRom[28] = "Micro Machines";
     pixelMonitorListings[29].xCoords[0] = 0x1C;
     pixelMonitorListings[29].xCoords[1] = 0x1C;
     pixelMonitorListings[29].xCoords[2] = 0x1C;
@@ -697,6 +727,7 @@ void cartLoader_run() {
     gameListings[33].livesByteDestinations[0] = 0x5; 
 
     writeStringToArray32("GUNSTARHEROES", gameListings[34].gameId);
+    terminalNamePerRom[34] = "Gunstar Heroes";
     scoreMonitorListings[34].scoreBytes[0] = 0xA469;
     scoreMonitorListings[34].scoreBytes[1] = 0xA466;
     scoreMonitorListings[34].scoreBytes[2] = 0xA467;
@@ -1888,7 +1919,13 @@ void zeroAllListings() {
             pixelMonitorListings[gameIndex].allowedColours[i] = 0;
 
         }
+
+        sprintf(terminalNamePerRom[gameIndex], "UNKNOWN %i", gameIndex);
     }
+}
+
+char* getTerminalNameForRom(int romIndex) {
+    return terminalNamePerRom[romIndex];
 }
 
 void writeStringToArray32(char *source, char dest[]) {
