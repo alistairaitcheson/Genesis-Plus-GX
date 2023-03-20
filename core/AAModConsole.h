@@ -145,5 +145,6 @@ void resetBossRushElapsedTimer();
 void beginCountdownToApplyBossRushRings();
 void dismissStartupHint(int andSave);
 void zeroDeathCount();
+extern void setShouldShuffleController(int toValue);
 
 #endif

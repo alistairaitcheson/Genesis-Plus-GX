@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include "AALayerRenderer.h"
 #include "AACartLoader.h"
+#include "gamepad.h"
 
 static int activeMenu = MENU_LISTING_NONE;
 
@@ -286,6 +287,7 @@ void menuDisplay_showTerminalMenu() {
         hasMappedRomsToLevels = 1;
     }
     terminalLocationIndex = 2;
+    setShouldUseControlsShuffle(0);
     menuDisplay_showMenu(MENU_LISTING_TERMINAL);
 }
 
@@ -1684,6 +1686,9 @@ int menuDisplay_onButtonPress(int buttonIndex) {
             if (terminalLocationIndex < 12) {
                 enterTerminalOption();
             } else {
+                if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
+                    setShouldUseControlsShuffle(1);
+                }
                 menuDisplay_hideMenu();
             }
             return 1;
@@ -1806,6 +1811,9 @@ void initialiseChosenTerminalGame() {
     }
     if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
         effectIndexToActivate = 0; // <-- need to support controller!
+        setShouldUseControlsShuffle(1);
+        gamepad_shuffleControls();
+        setShouldShuffleController(1);
     }
 
     menuDisplay_applyPresetRules(effectIndexToActivate);
@@ -1953,7 +1961,7 @@ void enterTerminalOption() {
         terminalActiveRules = TERMINAL_RULSET_REMOVE_COLOUR;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 8) {
+    } else if (terminalLocationIndex == 9) {
         terminalActiveRules = TERMINAL_RULSET_BOSS_RUSH;
 
         menuDisplay_applyPresetRules(15);
@@ -1966,19 +1974,19 @@ void enterTerminalOption() {
         beginBossRush();
 
         menuDisplay_hideMenu();
-    } else if (terminalLocationIndex == 9) {
+    } else if (terminalLocationIndex == 10) {
         terminalActiveRules = TERMINAL_RULSET_CONTROLLER;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 10) {
+    } else if (terminalLocationIndex == 11) {
         terminalActiveRules = TERMINAL_RULSET_SORT_COLOURS;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 11) {
+    } else if (terminalLocationIndex == 12) {
         terminalActiveRules = TERMINAL_RULSET_NO_BACKGROUNDS;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
-    } else if (terminalLocationIndex == 12) {
+    } else if (terminalLocationIndex == 13) {
         terminalActiveRules = TERMINAL_RULSET_NO_SPRITES;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
@@ -4395,69 +4403,6 @@ void showTerminalMenu() {
 
         char toPrint[0x100];
         if (i == terminalLocationIndex) {
-            sprintf(toPrint, ">> %s", lines[i]);
-        } else {
-            sprintf(toPrint, "%s", lines[i]);
-        }
-
-        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
-
-        if (blockedLines[i] != 0) {
-            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
-        }
-
-        yPos += 8;
-        if (linesWithBreakAfter[i] != 0) {
-            yPos += 8;
-        }
-    }
-}
-
-void showTerminalCorruptionGameSelectMenu() {
-    layerRenderer_clearLayer(0);
-
-    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
-    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Choose a game", 5);
-
-    int lineCount = 8;
-    char lines[lineCount][0x80];
-    int blockedLines[lineCount];
-    int linesWithBreakAfter[lineCount];
-    for (int i = 0; i < lineCount; i++) {
-        blockedLines[i] = 0;
-        linesWithBreakAfter[i] = 0;
-    }
-
-    if (gameSuiteSelectIndex < 0) {
-        gameSuiteSelectIndex = lineCount - 1;
-    }
-    if (gameSuiteSelectIndex > lineCount - 1) {
-        gameSuiteSelectIndex = 1;
-    }
-
-    sprintf(lines[0], "  Sonic the Hedgehog (16-bit)");
-    sprintf(lines[1], "  Sonic the Hedgehog 2 (16-bit)");
-    sprintf(lines[2], "  Sonic the Hedgehog 3");
-    sprintf(lines[3], "  Sonic & Knuckles");
-    linesWithBreakAfter[3] = 1;
-
-    sprintf(lines[4], "  Sonic the Hedgehog (8-bit)");
-    sprintf(lines[5], "  Sonic the Hedgehog 2 (8-bit)");
-    sprintf(lines[5], "  Sonic Chaos (8-bit)");
-    linesWithBreakAfter[5] = 1;
-
-    sprintf(lines[6], "  Dr Robotnik's Mean Bean Machine");
-    linesWithBreakAfter[6] = 1;
-    sprintf(lines[7], "back >");
-
-    int yPos = 32;
-    for (int i = 0; i < lineCount; i++) {
-        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
-            yPos += 8;
-        }
-
-        char toPrint[0x100];
-        if (i == gameSuiteSelectIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
             sprintf(toPrint, "%s", lines[i]);

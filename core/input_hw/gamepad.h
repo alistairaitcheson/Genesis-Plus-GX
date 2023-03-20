@@ -59,4 +59,9 @@ extern unsigned char mastertap_2_read(void);
 extern void mastertap_1_write(unsigned char data, unsigned char mask);
 extern void mastertap_2_write(unsigned char data, unsigned char mask);
 
+unsigned int getOutcomeOfControlShuffling(unsigned int pad);
+extern void setShouldUseControlsShuffle(int newValue);
+extern void gamepad_shuffleControls();
+extern unsigned int reverseOutcomeOfControlShuffling(unsigned int pad);
+
 #endif

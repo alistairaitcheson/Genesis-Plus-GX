@@ -97,6 +97,95 @@ void gamepad_end_frame(int port, unsigned int cycles)
   }
 }
 
+static int shouldUseControlsShuffle = 0;
+void setShouldUseControlsShuffle(int newValue) {
+  shouldUseControlsShuffle = newValue;
+}
+
+static int controlShuffleMapping[4] = {0, 1, 2, 3};
+static unsigned int orderedInputMasks[4] = {INPUT_DOWN, INPUT_LEFT, INPUT_RIGHT, INPUT_B};
+
+void gamepad_shuffleControls() {
+  int lastMapping[4];
+  for (int i = 0; i < 4; i++) {
+    lastMapping[i] = controlShuffleMapping[i];
+  }
+
+  int isValid = 0;
+  while (isValid == 0) {
+    isValid = 1;
+    for (int i = 0; i < 4; i++) {
+      controlShuffleMapping[i] = rand() % 4;
+      for (int j = 0; j < i; j++) {
+        if (controlShuffleMapping[i] == controlShuffleMapping[j]) {
+          isValid = 0;
+        }
+      }
+    }
+
+    if (isValid != 0) {
+      for (int i = 0; i < 4; i++) {
+        if (controlShuffleMapping[i] == lastMapping[i]) {
+          isValid = 0;
+        }
+      }
+    }
+  }
+}
+
+unsigned int getOutcomeOfControlShuffling(unsigned int pad) {
+  if (shouldUseControlsShuffle == 0) {
+    return pad;
+  }
+
+  unsigned int total = 0;
+  for (int i = 0; i < 4; i++) {
+    total += pad & orderedInputMasks[i];
+  }
+  unsigned int blankPad = pad - total;
+
+  //ignore the A, B and Up buttons from the controller
+  blankPad -= pad & INPUT_A;
+  blankPad -= pad & INPUT_C;
+  blankPad -= pad & INPUT_UP;
+
+  unsigned int newTotal = 0;
+  for (int i = 0; i < 4; i++) {
+    int whichMappingIdx = controlShuffleMapping[i];
+    unsigned int mask = orderedInputMasks[whichMappingIdx];
+    unsigned int currentValue = pad & mask;
+    if (currentValue > 0) {
+      newTotal += orderedInputMasks[i];
+    }
+  }
+
+  return blankPad + newTotal;
+}
+
+unsigned int reverseOutcomeOfControlShuffling(unsigned int pad) {
+  if (shouldUseControlsShuffle == 0) {
+    return pad;
+  }
+
+  unsigned int total = 0;
+  for (int i = 0; i < 4; i++) {
+    total += pad & orderedInputMasks[i];
+  }
+
+  unsigned int newTotal = 0;
+  for (int i = 0; i < 4; i++) {
+    int whichMappingIdx = controlShuffleMapping[i];
+    unsigned int mask = orderedInputMasks[whichMappingIdx];
+    unsigned int currentValue = pad & mask;
+    if (currentValue > 0) {
+      newTotal += orderedInputMasks[i];
+    }
+  }
+
+  return (pad - newTotal) + total;
+}
+
+
 INLINE unsigned char gamepad_read(int port)
 {
   /* D7 is not connected, D6 returns TH input state */
@@ -104,6 +193,7 @@ INLINE unsigned char gamepad_read(int port)
 
   /* pad state */
   unsigned int pad = input.pad[port];
+  pad = getOutcomeOfControlShuffling(pad);
 
   /* get current TH input pulse counter */
   unsigned int step = gamepad[port].Counter | (data >> 6);
@@ -220,6 +310,8 @@ INLINE void gamepad_write(int port, unsigned char data, unsigned char mask)
   /* update TH input state */
   gamepad[port].State = data;
 }
+
+
 
 /*--------------------------------------------------------------------------*/
 /*  Default ports handlers                                                  */

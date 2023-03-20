@@ -99,6 +99,17 @@ static int hasFlaggedPendingRingsThisFrame = 0;
 static int bossRushElapsedFrames = 0;
 static int countdownToApplyBossRushRings = 0;
 
+static int shouldShuffleController = 0;
+static int shuffleControllerCountdown = 0;
+static int SHUFFLE_CONTROLLER_DURATION = 30 * 60; //30 * 60;
+static int showShuffleAlertCountdown = 0;
+static int SHOW_SHUFFLE_ALERT_DURATION = 2 * 60;
+
+void setShouldShuffleController(int toValue) {
+    shouldShuffleController = toValue;
+    shuffleControllerCountdown = SHUFFLE_CONTROLLER_DURATION;
+}
+
 void beginCountdownToApplyBossRushRings() {
     countdownToApplyBossRushRings = 3;
 }
@@ -554,7 +565,7 @@ void checkForBossHits() {
 
 void modConsole_updateFrame() {
     lastPadState = padState;
-    padState = input.pad[0];
+    padState = input.pad[0]; //reverseOutcomeOfControlShuffling(input.pad[0]);
 
     if (snapEffectTime > 0) {
         snapEffectTime--;
@@ -632,6 +643,19 @@ void modConsole_updateFrame() {
             postRingEffectCooldownTimePerGame[cartIndex]--;
         }
         int ringCountChangedThisFrame = ringCountHasChanged(1);
+
+        if (shouldShuffleController != 0) {
+            shuffleControllerCountdown--;
+            if (shuffleControllerCountdown <= 0) {
+                gamepad_shuffleControls();
+                shuffleControllerCountdown = SHUFFLE_CONTROLLER_DURATION;
+                fireSnapEffect(1);
+                showShuffleAlertCountdown = SHOW_SHUFFLE_ALERT_DURATION;
+            }
+        }
+        if (showShuffleAlertCountdown > 0) {
+            showShuffleAlertCountdown--;
+        }
 
         // write nonsense once per frame
         // for (int i = 0; i < 1; i++) {
@@ -872,6 +896,17 @@ void modConsole_updateFrame() {
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
                 }
             }
+        }
+        if (showShuffleAlertCountdown > 0) {
+            layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2) - 2, (vdp_getScreenHeight() / 4) - 6, 8 * 18 + 4, 12, 0xFF);
+            layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2), (vdp_getScreenHeight() / 4) - 4, 8 * 18, 8, 0x5);
+            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 4), "SHUFFLED BUTTONS", 0xFF);
+        }
+        if (shouldShuffleController != 0 && shuffleControllerCountdown < 5 * 60) {
+            layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2) - 2, (vdp_getScreenHeight() / 4) - 6, 8 * 18 + 4, 12, 0xFF);
+            layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2), (vdp_getScreenHeight() / 4) - 4, 8 * 18, 8, 0x5);
+            int screenFillAmount = ((8 * 18 - 4) * shuffleControllerCountdown) / (5 * 60);
+            layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2) + 2, (vdp_getScreenHeight() / 4) - 2, screenFillAmount, 4, 0xFF);
         }
 
         if (holdEffectFramesLeft > 0) {
