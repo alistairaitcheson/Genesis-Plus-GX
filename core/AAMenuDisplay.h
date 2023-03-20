@@ -27,6 +27,18 @@
 #define MENU_LISTING_TERMINAL 16
 #define MENU_LISTING_BOSS_RUSH 17
 
+#define MENU_LISTING_TERMINAL_MAIN_SCREEN 18
+#define MENU_LISTING_TERMINAL_SHUFFLER 19
+#define MENU_LISTING_TERMINAL_CORRUPTION 20
+#define MENU_LISTING_TERMINAL_VISUALS 21
+
+
+#define TERMINAL_RULSET_SHUFFLER 1
+#define TERMINAL_RULSET_CORRUPTION 2
+#define TERMINAL_RULSET_VISUALS 3
+#define TERMINAL_RULSET_CONTROLLER 4
+#define TERMINAL_RULSET_BOSS_RUSH 5
+
 typedef struct {
     int infiniteLives;
     int infiniteTime;
@@ -201,6 +213,7 @@ void incrementRamEditingOptionWithFaceButton(int direction);
 
 extern void menuDisplay_applyPresetRules(int rulesIndex);
 extern void menuDisplay_showTerminalMenu();
+void showOriginalTerminalMenu();
 void showTerminalMenu();
 void activateTerminalOption();
 

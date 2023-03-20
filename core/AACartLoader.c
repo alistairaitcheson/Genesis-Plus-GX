@@ -1135,7 +1135,17 @@ void loadActiveBossRushSlot() {
     }
 }
 
+int cartIndexForEachRom[MAX_ROMS];
+
+int getCartIndexForRomAtIndex(int index) {
+    return cartIndexForEachRom[index];
+}
+
 void mapBossRushesToRoms() {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        cartIndexForEachRom[i] = -1;
+    }
+
     for (int i = 0; i < romCount; i++) {
         cartLoader_loadRomAtIndex(i, 0);
         int index = cartLoader_getActiveCartIndex();
@@ -1153,6 +1163,8 @@ void mapBossRushesToRoms() {
                 cartLoader_appendToLog(tempLog);
             }
         }
+
+        cartIndexForEachRom[i] = index;
     }
 }
 
@@ -1778,6 +1790,10 @@ static int shouldStartBossRush = 0;
 static int bossRushIsActive = 0;
 static int shouldInitialiseBossRush = 0;
 
+void setStartBossRush(int toValue) {
+    shouldStartBossRush = toValue;
+}
+
 void toggleStartBossRush() {
     shouldStartBossRush = 1 - shouldStartBossRush;
 
@@ -2033,6 +2049,26 @@ void cartLoader_removeCurrentGameFromRandomiser() {
 
 int cartLoader_gameIsBlockedFromRandomiser(int index) {
     return romsRemovedFromRandomiser[index];
+}
+
+void cartLoader_setAllGamesAsBlocked() {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        romsRemovedFromRandomiser[i] = 1;
+    }
+}
+
+void cartLoader_unblockGamesWithCartNumber(int cartNumber) {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        if (getCartIndexForRomAtIndex(i) == cartNumber) {
+            romsRemovedFromRandomiser[i] = 0;
+        }
+    }
+}
+
+void cartLoader_setGameBlockedAtIndex(int index, int toValue) {
+    if (index >= 0 && index < MAX_ROMS) {
+        romsRemovedFromRandomiser[index] = 1 - romsRemovedFromRandomiser[index];
+    }
 }
 
 void cartLoader_toggleGameBlockedAtIndex(int index) {

@@ -158,5 +158,11 @@ void flagAllBossRushProgressAsComplete();
 void saveBossRushProgress();
 void shuffleBossSwitchRandomNumbers();
 int getNextRandomBossRushNumber();
+void setStartBossRush(int toValue);
+
+void cartLoader_setGameBlockedAtIndex(int index, int toValue);
+void cartLoader_setAllGamesAsBlocked();
+void cartLoader_unblockGamesWithCartNumber(int cartNumber);
+int getCartIndexForRomAtIndex(int index);
 
 #endif
