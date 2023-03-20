@@ -226,5 +226,11 @@ void flagNewSavestateLoaded();
 void menuDisplay_onUpdate();
 void initialiseChosenTerminalGame();
 void applyAllowedGamesForCurrentTerminalSelection();
+void clearAllowedGamesThisTerminal();
+void showTerminalShufflerSelectMenu();
+void showTerminalGameListMenu();
+void enterTerminalOption();
+void chooseGameSuite();
+
 
 #endif

@@ -1946,7 +1946,7 @@ void enterTerminalOption() {
         terminalActiveRules = TERMINAL_RULSET_BOSS_RUSH;
 
         menuDisplay_applyPresetRules(15);
-        cartLoader_applyHackOptions();
+        cartLoader_applyHackOptions(gameHasStarted);
 
         modConsole_applyHackOptions();
         modConsole_applyNetworkOptions();
@@ -4522,68 +4522,6 @@ void showTerminalMenu() {
 
         char toPrint[0x100];
         if (i == terminalLocationIndex) {
-            sprintf(toPrint, ">> %s", lines[i]);
-        } else {
-            sprintf(toPrint, "%s", lines[i]);
-        }
-
-        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
-
-        if (blockedLines[i] != 0) {
-            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
-        }
-
-        yPos += 8;
-        if (linesWithBreakAfter[i] != 0) {
-            yPos += 8;
-        }
-    }
-}
-
-void showTerminalShufflerSelectMenu() {
-       layerRenderer_clearLayer(0);
-
-    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
-    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "What games do you want to shuffle?", 5);
-
-    int lineCount = 10;
-    char lines[lineCount][0x80];
-    int blockedLines[lineCount];
-    int linesWithBreakAfter[lineCount];
-    for (int i = 0; i < lineCount; i++) {
-        blockedLines[i] = 0;
-        linesWithBreakAfter[i] = 0;
-    }
-
-    if (gameSuiteSelectIndex < 0) {
-        gameSuiteSelectIndex = lineCount - 1;
-    }
-    if (gameSuiteSelectIndex > lineCount - 1) {
-        gameSuiteSelectIndex = 1;
-    }
-
-    sprintf(lines[0], "  Sonic Classics (Mega Drive)");
-    sprintf(lines[1], "  Sonic Classics (Master System)");
-    sprintf(lines[2], "  Sonic Classics (Game Gear)");
-    sprintf(lines[3], "  All Sonic Games (Mega Drive)");
-    linesWithBreakAfter[3] = 1;
-
-    sprintf(lines[4], "  Puyo Puyo");
-    sprintf(lines[5], "  Micro Machines");
-    sprintf(lines[6], "  Streets of Rage");
-    sprintf(lines[7], "  Shinobi");
-    sprintf(lines[8], "  Four Random Games");
-    linesWithBreakAfter[8] = 1;
-    sprintf(lines[9], "back >");
-
-    int yPos = 32;
-    for (int i = 0; i < lineCount; i++) {
-        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
-            yPos += 8;
-        }
-
-        char toPrint[0x100];
-        if (i == gameSuiteSelectIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
             sprintf(toPrint, "%s", lines[i]);
