@@ -3070,6 +3070,12 @@ void cartLoader_loadAllSaveStatesFromDisk() {
     }
 }
 
+void cartLoader_clearSaveStates() {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        hasCachedSaveState[i] = 0;
+    }
+}
+
 void cartLoader_loadBossRushSaveStatesFromDisk() {
     for (int i = 0; i < bossRushChallengeCount; i++) {
         char path[256];
