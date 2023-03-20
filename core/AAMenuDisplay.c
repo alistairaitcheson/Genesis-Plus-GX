@@ -1689,6 +1689,11 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
                     setShouldUseControlsShuffle(1);
                 }
+                vdp_setShouldRandomiseColours(0);
+                cartLoader_applyHackOptions(gameHasStarted);
+                modConsole_applyHackOptions();
+                modConsole_applyNetworkOptions();
+
                 menuDisplay_hideMenu();
             }
             return 1;
@@ -1722,6 +1727,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 cartLoader_clearSaveStates();
                 cartLoader_loadRandomRom();
                 modConsole_activateReset();
+                vdp_setShouldRandomiseColours(0);
 
                 menuDisplay_hideMenu();
             } else {
@@ -1746,6 +1752,12 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_START) {
             if (gameSuiteSelectIndex < gameCountThisTerminal) {
                 initialiseChosenTerminalGame();
+
+                vdp_setShouldRandomiseColours(0);
+                cartLoader_applyHackOptions(gameHasStarted);
+                modConsole_applyHackOptions();
+                modConsole_applyNetworkOptions();
+
                 menuDisplay_hideMenu();
             } else {
                 menuDisplay_showMenu(MENU_LISTING_TERMINAL);
@@ -1905,7 +1917,7 @@ void chooseGameSuite() {
         cartLoader_unblockGamesWithCartNumber(26);
     }
 
-    if (gameSuiteSelectIndex == 8) {
+    if (gameSuiteSelectIndex == 8) { // replace this with "up to 6 random"? Sometimes seems to just pick 2... duplicates? Games not found? Streets of rage wrong roms?
         // 4x rando
         int carts[4];
         int allowedCarts[26] = {1, 2, 3, 4, 6, 7, 18, 19, 20, 27, 28, 29, 30, 31, 32, 24, 25, 26, 8, 9, 10, 12, 13, 14, 15, 16};
@@ -1913,6 +1925,7 @@ void chooseGameSuite() {
             carts[i] = -1;
         }
         int filledCarts = 0;
+
         while (filledCarts < 4) {
             int chosen = allowedCarts[rand() % 26];
             for (int i = 0; i < filledCarts; i++) {

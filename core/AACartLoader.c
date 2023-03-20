@@ -193,7 +193,7 @@ void cartLoader_run() {
     gameListings[0].ringSwitchCooldown = 0;
 
     writeStringToArray32("SONICTHEHEDGEHOG", gameListings[1].gameId);// = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','\0'};
-    terminalNamePerRom[1] = "Sonic the Hedgehog, 16-bit";
+    terminalNamePerRom[1] = "Sonic the Hedgehog";
     gameListings[1].ringByte = 0xFE20;
     gameListings[1].specialRingByte = 0;    
     gameListings[1].updateHUDFlags[0] = 0xFE1C;
@@ -266,7 +266,7 @@ void cartLoader_run() {
 
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
-    terminalNamePerRom[2] = "Sonic the Hedgehog 2, 16-bit";
+    terminalNamePerRom[2] = "Sonic the Hedgehog 2";
     copyGameListing(1, 2);
     gameListings[2].panicBytes[0] = 0xB00C;
     gameListings[2].panicByteDestinations[0] = 0x55;
@@ -371,7 +371,7 @@ void cartLoader_run() {
     gameListings[7].valueWriteDuration = 300; // only update lives every 20 seconds
     
     writeStringToArray32("15900", gameListings[8].gameId); // Sonic 2 MS
-    terminalNamePerRom[8] = "Sonic the Hedgehog 2, SMS";
+    terminalNamePerRom[8] = "Sonic the Hedgehog 2 (SMS)";
     gameListings[8].ringByte = 0x1299;
     gameListings[8].specialRingByte = 0;    
     gameListings[8].livesBytes[0] = 0x1298;
@@ -387,9 +387,11 @@ void cartLoader_run() {
     gameListings[8].panicByteDestinations[1] = 0x09;
     gameListings[8].valueWriteDuration = 300; // only update lives every 20 seconds
     scoreMonitorListings[8].allowStackRingInputs = 1;
+    levelEditListings[8].startByte = 0x0001;
+    levelEditListings[8].endByte = 0x1000;
 
     writeStringToArray32("76700", gameListings[9].gameId); // Sonic 1 MS
-    terminalNamePerRom[9] = "Sonic the Hedgehog, SMS";
+    terminalNamePerRom[9] = "Sonic the Hedgehog (SMS)";
     gameListings[9].ringByte = 0x12AA;
     gameListings[9].specialRingByte = 0;    
     gameListings[9].livesBytes[0] = 0x1246;
@@ -401,9 +403,11 @@ void cartLoader_run() {
     gameListings[9].panicByteDestinations[0] = 0xFF;
     gameListings[9].valueWriteDuration = 600; // only update lives every 20 seconds
     scoreMonitorListings[9].allowStackRingInputs = 1;
+    levelEditListings[9].startByte = 0x0001;
+    levelEditListings[9].endByte = 0x1000;
 
     writeStringToArray32("21900", gameListings[10].gameId); // Sonic Chaos MS
-    terminalNamePerRom[10] = "Sonic Chaos, SMS";
+    terminalNamePerRom[10] = "Sonic Chaos (SMS)";
     gameListings[10].ringByte = 0x129A;
     gameListings[10].specialRingByte = 0;    
     gameListings[10].livesBytes[0] = 0x1299;
@@ -417,9 +421,11 @@ void cartLoader_run() {
     gameListings[10].panicByteDestinations[1] = 0x09;
     gameListings[10].valueWriteDuration = 600; // only update lives every 20 seconds
     scoreMonitorListings[10].allowStackRingInputs = 1;
+    levelEditListings[10].startByte = 0x0001;
+    levelEditListings[10].endByte = 0x1000;
 
     writeStringToArray32("73250", gameListings[11].gameId); // Sonic Blast MS <-- still need to find lives and time
-    terminalNamePerRom[11] = "Sonic Blast, SMS";
+    terminalNamePerRom[11] = "Sonic Blast (SMS)";
     gameListings[11].ringByte = 0x125E; // <-- WARNING! it is used in the title sequence (once per frame?)
     gameListings[11].specialRingByte =  0x1D9E;
     gameListings[11].livesBytes[0] = 0x1178;
@@ -430,7 +436,7 @@ void cartLoader_run() {
     gameListings[11].ringSwitchCooldown = 8;
 
     writeStringToArray32("07250", gameListings[12].gameId); // Sonic 2 GG
-    terminalNamePerRom[12] = "Sonic the Hedgehog 2, GG";
+    terminalNamePerRom[12] = "Sonic the Hedgehog 2 (GG)";
     gameListings[12].ringByte = 0x1299;
     gameListings[12].specialRingByte = 0;
     gameListings[12].livesBytes[0] = 0x1298;
@@ -441,7 +447,7 @@ void cartLoader_run() {
     scoreMonitorListings[12].allowStackRingInputs = 1;
 
     writeStringToArray32("08240", gameListings[13].gameId); // Sonic 1 GG
-    terminalNamePerRom[13] = "Sonic the Hedgehog, GG";
+    terminalNamePerRom[13] = "Sonic the Hedgehog (GG)";
     gameListings[13].ringByte = 0x12A9;
     gameListings[13].specialRingByte = 0;
     gameListings[13].livesBytes[0] = 0x1240;
@@ -452,7 +458,7 @@ void cartLoader_run() {
     scoreMonitorListings[13].allowStackRingInputs = 1;
 
     writeStringToArray32("15250", gameListings[14].gameId); // Sonic Chaos GG
-    terminalNamePerRom[14] = "Sonic Chaos, GG";
+    terminalNamePerRom[14] = "Sonic Chaos (GG)";
     gameListings[14].ringByte = 0x129C;
     gameListings[14].specialRingByte = 0;
     gameListings[14].livesBytes[0] = 0x129B;
@@ -463,11 +469,11 @@ void cartLoader_run() {
     scoreMonitorListings[14].allowStackRingInputs = 1;
 
     writeStringToArray32("73250", gameListings[15].gameId); // Sonic Blast GG <-- still need to find lives and time (identical to SMS)
-    terminalNamePerRom[15] = "Sonic Blast, GG";
+    terminalNamePerRom[15] = "Sonic Blast (GG)";
     copyGameListing(11, 15);
 
     writeStringToArray32("30250", gameListings[16].gameId); // Sonic Triple Trouble<-- still need to find lives and time
-    terminalNamePerRom[16] = "Sonic Triple Trouble";
+    terminalNamePerRom[16] = "Sonic Triple Trouble (GG)";
     gameListings[16].ringByte = 0x1159;
     gameListings[16].specialRingByte = 0;
     gameListings[16].livesBytes[0] = 0x1140;
