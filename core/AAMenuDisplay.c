@@ -298,6 +298,7 @@ void menuDisplay_showTerminalMenu() {
     terminalLocationIndex = 2;
     setShouldUseControlsShuffle(0);
     menuDisplay_showMenu(MENU_LISTING_TERMINAL);
+    setShouldCheckForIdleMode(0);
 }
 
 void menuDisplay_sendNetworkOptionsToOpponent() {
@@ -1704,6 +1705,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 modConsole_applyNetworkOptions();
 
                 menuDisplay_hideMenu();
+                setShouldCheckForIdleMode(1);
             }
             return 1;
         }
@@ -1739,6 +1741,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 vdp_setShouldRandomiseColours(0);
 
                 menuDisplay_hideMenu();
+                setShouldCheckForIdleMode(1);
             } else {
                 menuDisplay_showMenu(MENU_LISTING_TERMINAL);
             }
@@ -1768,6 +1771,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 modConsole_applyNetworkOptions();
 
                 menuDisplay_hideMenu();
+                setShouldCheckForIdleMode(1);
             } else {
                 menuDisplay_showMenu(MENU_LISTING_TERMINAL);
             }
@@ -1854,6 +1858,7 @@ void initialiseChosenTerminalGame() {
     cartLoader_loadRandomRom();
 
     modConsole_activateReset();
+    setShouldCheckForIdleMode(1);
 }
 
 void chooseGameSuite() {

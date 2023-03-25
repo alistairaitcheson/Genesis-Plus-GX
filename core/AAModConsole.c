@@ -112,6 +112,7 @@ static int MAX_FRAMES_FOR_IDLE_MODE = 60 * 60 * 5;
 
 void setShouldCheckForIdleMode(int toValue) {
     shouldCheckForIdleMode = toValue;
+    idleModeFrameCount = 0;
 }
 
 void beginIdleMode() {
