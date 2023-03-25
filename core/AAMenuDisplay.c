@@ -2565,6 +2565,14 @@ void showTitleMenu() {
     }
 
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, DEFAULT_HEIGHT - 16, "--- press start to begin ---", 5);
+
+    showVersionNumber();
+}
+
+void showVersionNumber() {
+    char versionText[0x100];
+    sprintf(versionText, "V%d.%02d", majorVersion, minorVersion);
+    layerRenderer_writeWord256Centred(0, 7 * DEFAULT_WIDTH / 8, DEFAULT_HEIGHT - 28, versionText, 5);
 }
 
 void showChooseGameMenu() {
@@ -2615,6 +2623,7 @@ void showChooseGameMenu() {
         yPos += 8;
     }
 
+    showVersionNumber();
 }
 
 void showOptionsMenu() {
@@ -2712,6 +2721,8 @@ void showOptionsMenu() {
 
         yPos += 8;
     }
+
+    showVersionNumber();
 }
 
 void showInGameOptionsMenu() {
@@ -4313,6 +4324,8 @@ void showBossRushMenu() {
     }
 
     layerRenderer_writeWord256WithBorder(0, 16, yPos, elapsedText, 5, 1, 0);
+
+    showVersionNumber();
 }
 
 int getMaxSimultaneousBosses() {

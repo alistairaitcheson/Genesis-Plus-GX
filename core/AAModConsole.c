@@ -351,7 +351,7 @@ void modConsole_applyHackOptions() {
 
     if (menuDisplay_getHackOptions().limitedColourType == 0) {
         vdp_setShouldLimitColourPalettes(0);
-        countdownToUnrandomiseColours = 60;
+        // countdownToUnrandomiseColours = 60;
     } else if (menuDisplay_getHackOptions().limitedColourType == 1) {
         vdp_setShouldLimitColourPalettes(1);
         vdp_generateAlistairSortedColours(2);
