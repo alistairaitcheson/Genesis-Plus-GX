@@ -2106,6 +2106,22 @@ void cartLoader_setAllGamesAsUnblocked() {
     }
 }
 
+void cartLoader_setRandomSelectionOfGamesAsUnblocked(int maxCount) {
+    cartLoader_setAllGamesAsBlocked();
+    for (int i = 0 ; i < maxCount; i++) {
+        romsRemovedFromRandomiser[rand() % romCount] = 0;
+    }
+
+    int totalRandom = 0;
+    for (int i = 0; i < romCount; i++) {
+        totalRandom += 1 - romsRemovedFromRandomiser[i];
+    }
+
+    if (totalRandom < maxCount && maxCount < romCount / 4) {
+        cartLoader_setRandomSelectionOfGamesAsUnblocked(maxCount);
+    }
+}
+
 void cartLoader_unblockGamesWithCartNumber(int cartNumber) {
     for (int i = 0; i < MAX_ROMS; i++) {
         if (getCartIndexForRomAtIndex(i) == cartNumber) {

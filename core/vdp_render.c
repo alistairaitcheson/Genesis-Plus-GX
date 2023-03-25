@@ -1138,13 +1138,20 @@ void color_update_m4(int index, unsigned int data)
   }
 }
 
+int hasCached = 0;
+
 void color_update_m5(int index, unsigned int data)
 {
   if (vdp_getShouldRandomiseColours() == 0) {
         // char logString[0x100];
         // sprintf(logString, "   - Caching colour %02X: %08X", index, cachedPaletteColours[index]); 
         // cartLoader_appendToLog(logString);
-      cachedPaletteColours[index] = data;
+      if (hasCached == 0) {
+        cachedPaletteColours[index] = data;
+        hasCached = 1;
+      }
+  } else {
+    hasCached = 0;
   }
 
   /* Palette Mode */

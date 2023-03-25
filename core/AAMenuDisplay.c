@@ -78,6 +78,7 @@ HackOptions menuDisplay_getHackOptions() {
 void menuDisplay_beginIdleMode() {
     menuDisplay_applyPresetRules(0);
     hackOptions.switchGameType = 2;
+    hackOptions.copyVram = 1;
     setShouldUseControlsShuffle(0);
 }
 
@@ -1149,7 +1150,7 @@ void menuDisplay_showMenu(int menuNum) {
 void menuDisplay_hideMenu() {
     activeMenu = MENU_LISTING_NONE;
 
-    vdp_setShouldRandomiseColours(0);
+    vdp_setShouldRandomiseColours(0); // this should only be zeroed once!!
     aa_psg_unmute();
     aa_ym2612_unmute();
     aa_ym2413_unmute();

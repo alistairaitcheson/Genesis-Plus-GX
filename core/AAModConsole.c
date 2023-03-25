@@ -107,8 +107,11 @@ static int SHOW_SHUFFLE_ALERT_DURATION = 2 * 60;
 
 static int shouldCheckForIdleMode = 0;
 static int idleModeFrameCount = 0;
-//5 minutes
-static int MAX_FRAMES_FOR_IDLE_MODE = 60 * 60 * 5;
+static int idleModeActive = 0;
+//3 minutes
+static int MAX_FRAMES_FOR_IDLE_MODE = 60 * 60 * 3;
+
+int countdownToUnrandomiseColours = 0;
 
 void setShouldCheckForIdleMode(int toValue) {
     shouldCheckForIdleMode = toValue;
@@ -119,11 +122,20 @@ void beginIdleMode() {
     setShouldCheckForIdleMode(0);
     idleModeFrameCount = 0;
     
-    cartLoader_setAllGamesAsUnblocked();
+    // cartLoader_setRandomSelectionOfGamesAsUnblocked(4);
+
+    cartLoader_setAllGamesAsBlocked();
+    cartLoader_unblockGamesWithCartNumber(1);
+    cartLoader_unblockGamesWithCartNumber(2);
+    cartLoader_unblockGamesWithCartNumber(3);
+    cartLoader_unblockGamesWithCartNumber(4);
+
     menuDisplay_beginIdleMode();
     promptSwitchGame();
 
     modConsole_applyHackOptions();
+
+    idleModeActive = 1;
 }
 
 void setShouldShuffleController(int toValue) {
@@ -339,6 +351,7 @@ void modConsole_applyHackOptions() {
 
     if (menuDisplay_getHackOptions().limitedColourType == 0) {
         vdp_setShouldLimitColourPalettes(0);
+        countdownToUnrandomiseColours = 60;
     } else if (menuDisplay_getHackOptions().limitedColourType == 1) {
         vdp_setShouldLimitColourPalettes(1);
         vdp_generateAlistairSortedColours(2);
@@ -1136,6 +1149,28 @@ void modConsole_updateFrame() {
 
             if (idleModeFrameCount > MAX_FRAMES_FOR_IDLE_MODE) {
                 beginIdleMode();
+            }
+        }
+
+        if (idleModeActive) {
+            if (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 
+                || buttonStateAtIndex(INPUT_INDEX_RIGHT) != 0
+                || buttonStateAtIndex(INPUT_INDEX_UP) != 0
+                || buttonStateAtIndex(INPUT_INDEX_DOWN) != 0
+                || buttonStateAtIndex(INPUT_INDEX_START) != 0
+                || buttonStateAtIndex(INPUT_INDEX_A) != 0
+                || buttonStateAtIndex(INPUT_INDEX_B) != 0
+                || buttonStateAtIndex(INPUT_INDEX_C) != 0) 
+            {
+                menuDisplay_showTerminalMenu();
+                idleModeActive = 0;
+            }
+        }
+
+        if (countdownToUnrandomiseColours > 0) {
+            countdownToUnrandomiseColours--;
+            if (countdownToUnrandomiseColours <= 0) {
+                vdp_setShouldRandomiseColours(0);
             }
         }
 
