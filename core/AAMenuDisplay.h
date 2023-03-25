@@ -230,6 +230,6 @@ void showTerminalShufflerSelectMenu();
 void showTerminalGameListMenu();
 void enterTerminalOption();
 void chooseGameSuite();
-
+extern void menuDisplay_beginIdleMode();
 
 #endif

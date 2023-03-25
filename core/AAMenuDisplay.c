@@ -67,11 +67,18 @@ static int shouldRerollBossRushRandomTime = 0;
 static int terminalActiveRules = 0;
 
 static int allowedGamesThisTerminal[16];
+static int spacesUnderGamesThisTerminal[16];
 static int gameCountThisTerminal = 0;
 static int hasMappedRomsToLevels = 0;
 
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
+}
+
+void menuDisplay_beginIdleMode() {
+    menuDisplay_applyPresetRules(0);
+    hackOptions.switchGameType = 2;
+    setShouldUseControlsShuffle(0);
 }
 
 void menuDisplay_toggleVisibleLayers() {
@@ -104,7 +111,7 @@ BossRushOptions menuDisplay_getBossRushOptions() {
     return bossRushOptions;
 }
 
-void addGameToThoseAllowedForTerminal(int gameIndex) {
+void addGameToThoseAllowedForTerminal(int gameIndex, int withGap) {
     int index = 0;
     for (int i = 0; i < 16; i++) {
         if (allowedGamesThisTerminal[i] == -1) {
@@ -114,28 +121,29 @@ void addGameToThoseAllowedForTerminal(int gameIndex) {
     }
 
     allowedGamesThisTerminal[index] = gameIndex;
+    spacesUnderGamesThisTerminal[index] = withGap;
 }
 
 void applyAllowedGamesForCurrentTerminalSelection() {
     clearAllowedGamesThisTerminal();
 
     if (terminalActiveRules == TERMINAL_RULSET_RINGS_MAKE_FASTER) {
-        addGameToThoseAllowedForTerminal(1);
-        addGameToThoseAllowedForTerminal(2);
-        addGameToThoseAllowedForTerminal(3);
-        addGameToThoseAllowedForTerminal(4);
+        addGameToThoseAllowedForTerminal(1, 1);
+        addGameToThoseAllowedForTerminal(2, 1);
+        addGameToThoseAllowedForTerminal(3, 1);
+        addGameToThoseAllowedForTerminal(4, 0);
     }
 
     if (terminalActiveRules == TERMINAL_RULSET_RINGS_CORRUPT_LEVEL) {
         // sonic MD
-        addGameToThoseAllowedForTerminal(1);
-        addGameToThoseAllowedForTerminal(2);
-        addGameToThoseAllowedForTerminal(3);
-        addGameToThoseAllowedForTerminal(4);
+        addGameToThoseAllowedForTerminal(1, 0);
+        addGameToThoseAllowedForTerminal(2, 0);
+        addGameToThoseAllowedForTerminal(3, 0);
+        addGameToThoseAllowedForTerminal(4, 1);
         // sonic SMS - I need to add support for this!!
-        addGameToThoseAllowedForTerminal(8);
-        addGameToThoseAllowedForTerminal(9);
-        addGameToThoseAllowedForTerminal(10);
+        addGameToThoseAllowedForTerminal(8, 0);
+        addGameToThoseAllowedForTerminal(9, 0);
+        addGameToThoseAllowedForTerminal(10, 0);
     }
 
     if (terminalActiveRules == TERMINAL_RULSET_RINGS_CORRUPT_RAM
@@ -144,48 +152,49 @@ void applyAllowedGamesForCurrentTerminalSelection() {
         || terminalActiveRules == TERMINAL_RULSET_NO_BACKGROUNDS
         || terminalActiveRules == TERMINAL_RULSET_SORT_COLOURS) {
         // sonic MD
-        addGameToThoseAllowedForTerminal(1);
-        addGameToThoseAllowedForTerminal(2);
-        addGameToThoseAllowedForTerminal(3);
-        addGameToThoseAllowedForTerminal(4);
+        addGameToThoseAllowedForTerminal(1, 0);
+        addGameToThoseAllowedForTerminal(2, 0);
+        addGameToThoseAllowedForTerminal(3, 0);
+        addGameToThoseAllowedForTerminal(4, 1);
         // sonic SMS
-        addGameToThoseAllowedForTerminal(8);
-        addGameToThoseAllowedForTerminal(9);
-        addGameToThoseAllowedForTerminal(10);
+        addGameToThoseAllowedForTerminal(8, 0);
+        addGameToThoseAllowedForTerminal(9, 0);
+        addGameToThoseAllowedForTerminal(10, 0);
         // triple trouble
-        addGameToThoseAllowedForTerminal(16);
+        addGameToThoseAllowedForTerminal(16, 1);
         //mean bean
-        addGameToThoseAllowedForTerminal(18);
+        addGameToThoseAllowedForTerminal(18, 0);
         // gunstar heroes
-        addGameToThoseAllowedForTerminal(34);
+        addGameToThoseAllowedForTerminal(34, 0);
         // revenge of shinobi
-        addGameToThoseAllowedForTerminal(25);
+        addGameToThoseAllowedForTerminal(25, 0);
         // ecco
-        addGameToThoseAllowedForTerminal(38);
+        addGameToThoseAllowedForTerminal(38, 0);
         // micro machines 2
-        addGameToThoseAllowedForTerminal(27);
+        addGameToThoseAllowedForTerminal(27, 0);
     }
 
     if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
         // sonic MD
-        addGameToThoseAllowedForTerminal(1);
-        addGameToThoseAllowedForTerminal(2);
-        addGameToThoseAllowedForTerminal(3);
-        addGameToThoseAllowedForTerminal(4);
+        addGameToThoseAllowedForTerminal(1, 0);
+        addGameToThoseAllowedForTerminal(2, 0);
+        addGameToThoseAllowedForTerminal(3, 0);
+        addGameToThoseAllowedForTerminal(4, 1);
         // sonic SMS
-        addGameToThoseAllowedForTerminal(8);
-        addGameToThoseAllowedForTerminal(9);
-        addGameToThoseAllowedForTerminal(10);
+        addGameToThoseAllowedForTerminal(8, 0);
+        addGameToThoseAllowedForTerminal(9, 0);
+        addGameToThoseAllowedForTerminal(10, 0);
         // triple trouble
-        addGameToThoseAllowedForTerminal(16);
+        addGameToThoseAllowedForTerminal(16, 1);
         //mean bean
-        addGameToThoseAllowedForTerminal(18);
+        addGameToThoseAllowedForTerminal(18, 0);
     }
 }
 
 void clearAllowedGamesThisTerminal() {
     for (int i = 0; i < 16; i++) {
         allowedGamesThisTerminal[i] = -1;
+        spacesUnderGamesThisTerminal[i] = 0;
     }
 }
 
@@ -1901,13 +1910,13 @@ void chooseGameSuite() {
 
     if (gameSuiteSelectIndex == 6) {
         // streets of rage
-        cartLoader_unblockGamesWithCartNumber(30);
-        cartLoader_unblockGamesWithCartNumber(31);
-        cartLoader_unblockGamesWithCartNumber(32);
+        // cartLoader_unblockGamesWithCartNumber(30);
+        // cartLoader_unblockGamesWithCartNumber(31);
+        // cartLoader_unblockGamesWithCartNumber(32);
         // // also european/jp versions
-        // cartLoader_unblockGamesWithCartNumber(21);
-        // cartLoader_unblockGamesWithCartNumber(22);
-        // cartLoader_unblockGamesWithCartNumber(23);
+        cartLoader_unblockGamesWithCartNumber(21);
+        cartLoader_unblockGamesWithCartNumber(22);
+        cartLoader_unblockGamesWithCartNumber(23);
     }
     
     if (gameSuiteSelectIndex == 7) {
@@ -1920,7 +1929,7 @@ void chooseGameSuite() {
     if (gameSuiteSelectIndex == 8) { // replace this with "up to 6 random"? Sometimes seems to just pick 2... duplicates? Games not found? Streets of rage wrong roms?
         // 4x rando
         int carts[4];
-        int allowedCarts[26] = {1, 2, 3, 4, 6, 7, 18, 19, 20, 27, 28, 29, 30, 31, 32, 24, 25, 26, 8, 9, 10, 12, 13, 14, 15, 16};
+        int allowedCarts[26] = {1, 2, 3, 4, 6, 7, 18, 19, 20, 27, 28, 29, 21, 22, 23, 24, 25, 26, 8, 9, 10, 12, 13, 14, 15, 16};
         for (int i = 0; i < 4; i++) {
             carts[i] = -1;
         }
@@ -4528,6 +4537,7 @@ void showTerminalGameListMenu() {
 
     for (int i = 0; i < gameCountThisTerminal; i++) {
         sprintf(lines[i], "  %s", getTerminalNameForRom(allowedGamesThisTerminal[i]));
+        linesWithBreakAfter[i] = spacesUnderGamesThisTerminal[i];
     }
     linesWithBreakAfter[gameCountThisTerminal - 1] = 1;
     sprintf(lines[lineCount - 1], "back >");

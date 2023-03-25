@@ -146,5 +146,6 @@ void beginCountdownToApplyBossRushRings();
 void dismissStartupHint(int andSave);
 void zeroDeathCount();
 extern void setShouldShuffleController(int toValue);
+extern void setShouldCheckForIdleMode(int toValue);
 
 #endif

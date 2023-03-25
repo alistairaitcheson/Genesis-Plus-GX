@@ -105,6 +105,26 @@ static int SHUFFLE_CONTROLLER_DURATION = 30 * 60; //30 * 60;
 static int showShuffleAlertCountdown = 0;
 static int SHOW_SHUFFLE_ALERT_DURATION = 2 * 60;
 
+static int shouldCheckForIdleMode = 0;
+static int idleModeFrameCount = 0;
+//5 minutes
+static int MAX_FRAMES_FOR_IDLE_MODE = 60 * 60 * 5;
+
+void setShouldCheckForIdleMode(int toValue) {
+    shouldCheckForIdleMode = toValue;
+}
+
+void beginIdleMode() {
+    setShouldCheckForIdleMode(0);
+    idleModeFrameCount = 0;
+    
+    cartLoader_setAllGamesAsUnblocked();
+    menuDisplay_beginIdleMode();
+    promptSwitchGame();
+
+    modConsole_applyHackOptions();
+}
+
 void setShouldShuffleController(int toValue) {
     shouldShuffleController = toValue;
     shuffleControllerCountdown = SHUFFLE_CONTROLLER_DURATION;
@@ -1097,6 +1117,27 @@ void modConsole_updateFrame() {
         // vdp_clearGraphicLayer(2);
         // layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
         // layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
+
+        if (shouldCheckForIdleMode) {
+            idleModeFrameCount++;
+
+            if (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 
+                || buttonStateAtIndex(INPUT_INDEX_RIGHT) != 0
+                || buttonStateAtIndex(INPUT_INDEX_UP) != 0
+                || buttonStateAtIndex(INPUT_INDEX_DOWN) != 0
+                || buttonStateAtIndex(INPUT_INDEX_START) != 0
+                || buttonStateAtIndex(INPUT_INDEX_A) != 0
+                || buttonStateAtIndex(INPUT_INDEX_B) != 0
+                || buttonStateAtIndex(INPUT_INDEX_C) != 0) 
+            {
+                idleModeFrameCount = 0;
+            }
+
+            if (idleModeFrameCount > MAX_FRAMES_FOR_IDLE_MODE) {
+                beginIdleMode();
+            }
+        }
+
 
         // game switching needs to come at the end for per-game cooldown to work
         if (hackOpts.switchGameType > 1 && hackOpts.switchGameType < 5) {

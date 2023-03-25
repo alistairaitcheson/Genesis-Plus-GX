@@ -2100,6 +2100,12 @@ void cartLoader_setAllGamesAsBlocked() {
     }
 }
 
+void cartLoader_setAllGamesAsUnblocked() {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        romsRemovedFromRandomiser[i] = 0;
+    }
+}
+
 void cartLoader_unblockGamesWithCartNumber(int cartNumber) {
     for (int i = 0; i < MAX_ROMS; i++) {
         if (getCartIndexForRomAtIndex(i) == cartNumber) {
