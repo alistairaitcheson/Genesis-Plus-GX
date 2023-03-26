@@ -179,5 +179,6 @@ extern int vdp_getTotalRemovedColours();
 extern void vdp_healAllColours();
 
 extern void vdp_writeWRAMintoVRAM(int offset);
+extern void vdp_resetCachedM5();
 
 #endif /* _RENDER_H_ */

@@ -32,7 +32,7 @@ static AALevelEditListing levelEditListings[MAX_ROMS];
 static AAPixelMonitorListing pixelMonitorListings[MAX_ROMS];
 static MomentumControlListing momentumControlListings[MAX_ROMS];
 static unsigned char gameAltIds[MAX_ROMS][0x80];
-static char *nameOfTrigger[MAX_ROMS];
+static char nameOfTrigger[MAX_ROMS][100];
 static int gameListingCount = 0;
 
 static char *terminalNamePerRom[MAX_ROMS];
@@ -1868,6 +1868,12 @@ static int shouldInitialiseBossRush = 0;
 
 void setStartBossRush(int toValue) {
     shouldStartBossRush = toValue;
+}
+
+void abortAllBossRushSettings() {
+    shouldStartBossRush = 0;
+    bossRushIsActive = 0;
+    shouldInitialiseBossRush = 0;
 }
 
 void toggleStartBossRush() {

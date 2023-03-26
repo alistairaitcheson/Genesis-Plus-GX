@@ -115,13 +115,15 @@ int countdownToUnrandomiseColours = 0;
 
 static int headingTextScrollPixels = 0;
 static int headingTextScrollSubpixels = 0;
-static int HEADING_TEXT_SUBPIXEL_PER_PIXEL = 10;
+static int headingColour = 0x5;
+static int HEADING_TEXT_SUBPIXEL_PER_PIXEL = 5;
 
 void setShouldCheckForIdleMode(int toValue) {
     shouldCheckForIdleMode = toValue;
     idleModeFrameCount = 0;
 
-    headingTextScrollPixels = -vdp_getScreenWidth();
+    headingTextScrollPixels = -(vdp_getScreenWidth() + 50);
+    headingColour = (rand() % 10) + 0x5;
 }
 
 void beginIdleMode() {
@@ -1141,14 +1143,23 @@ void modConsole_updateFrame() {
         headingTextScrollSubpixels++;
         if (headingTextScrollSubpixels > HEADING_TEXT_SUBPIXEL_PER_PIXEL) {
             headingTextScrollPixels++;
-            headingTextScrollPixels = 0;
-            if (headingTextScrollPixels > (100 * 8)) {
+            headingTextScrollSubpixels = 0;
+            if (headingTextScrollPixels > (130 * 8)) {
                 headingTextScrollPixels = -vdp_getScreenWidth();
+                headingColour = (rand() % 10) + 5;
             }
         }
-        layerRenderer_writeWord256(2, -headingTextScrollPixels, 2, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels, 1, menuDisplay_getCurrentRulesName(), 0x10);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels, 0, menuDisplay_getCurrentRulesName(), 0x5);
+
+        int tipsYpos = vdp_getScreenHeight() - 16;
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 2 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 2+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 2+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), headingColour);
 
 
         if (shouldCheckForIdleMode) {
@@ -1238,6 +1249,7 @@ void modConsole_updateFrame() {
     frameCount++;
 
     aa_genesis_updateLastRam();
+    vdp_resetCachedM5();
 } 
 
 void modConsole_beginRewindAction() {

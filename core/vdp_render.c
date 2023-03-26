@@ -1138,7 +1138,6 @@ void color_update_m4(int index, unsigned int data)
   }
 }
 
-int hasCached = 0;
 
 void color_update_m5(int index, unsigned int data)
 {
@@ -1146,12 +1145,7 @@ void color_update_m5(int index, unsigned int data)
         // char logString[0x100];
         // sprintf(logString, "   - Caching colour %02X: %08X", index, cachedPaletteColours[index]); 
         // cartLoader_appendToLog(logString);
-      if (hasCached == 0) {
         cachedPaletteColours[index] = data;
-        hasCached = 1;
-      }
-  } else {
-    hasCached = 0;
   }
 
   /* Palette Mode */
@@ -4468,6 +4462,12 @@ void drawTextLayers(int lineIdx) {
 }
 
 static int shouldRandomiseColours = 0;
+static int hasChachedM5ThisFrame = 0;
+
+void vdp_resetCachedM5() {
+  hasChachedM5ThisFrame = 0;
+}
+
 void vdp_setShouldRandomiseColours(int toValue) {
     int oldValue = shouldRandomiseColours;
     shouldRandomiseColours = toValue;
@@ -4475,25 +4475,30 @@ void vdp_setShouldRandomiseColours(int toValue) {
       randomColourValues[i] = vdp_randomValueWithinReason();// rand() % 0x100000000;
     }
 
-    for (int i = 0; i < 0x20; i++)
-    {
-      if (vdp_getShouldRandomiseColours() == 0/* && vdp_getShouldRandomiseColours() != oldValue*/) {
-        // char logString[0x100];
-        // sprintf(logString, "Restoring cached colour %02X: %08X", i, cachedPaletteColours[i]); 
-        // cartLoader_appendToLog(logString);
-        color_update_m5(i, cachedPaletteColours[i]);
-      } else {
-        color_update_m5(i, randomColourValues[i]);
+    if (hasChachedM5ThisFrame == 0) {
+      for (int i = 0; i < 0x20; i++)
+      {
+        if (vdp_getShouldRandomiseColours() == 0/* && vdp_getShouldRandomiseColours() != oldValue*/) {
+          // char logString[0x100];
+          // sprintf(logString, "Restoring cached colour %02X: %08X", i, cachedPaletteColours[i]); 
+          // cartLoader_appendToLog(logString);
+          color_update_m5(i, cachedPaletteColours[i]);
+        } else {
+          color_update_m5(i, randomColourValues[i]);
+        }
       }
+      if (vdp_getShouldRandomiseColours() == 0/* && vdp_getShouldRandomiseColours() != oldValue*/) {
+          // char logString[0x100];
+          // sprintf(logString, "Restoring cached colour 0x40: %08X", cachedPaletteColours[0x40]); 
+          // cartLoader_appendToLog(logString);
+        color_update_m5(0x40, cachedPaletteColours[0x40]);
+      } else {
+        color_update_m5(0x40, randomColourValues[0x40]);
+      }
+
+      hasChachedM5ThisFrame = 1;
     }
-    if (vdp_getShouldRandomiseColours() == 0/* && vdp_getShouldRandomiseColours() != oldValue*/) {
-        // char logString[0x100];
-        // sprintf(logString, "Restoring cached colour 0x40: %08X", cachedPaletteColours[0x40]); 
-        // cartLoader_appendToLog(logString);
-      color_update_m5(0x40, cachedPaletteColours[0x40]);
-    } else {
-      color_update_m5(0x40, randomColourValues[0x40]);
-    }
+
 
 }
 

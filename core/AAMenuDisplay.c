@@ -71,7 +71,7 @@ static int spacesUnderGamesThisTerminal[16];
 static int gameCountThisTerminal = 0;
 static int hasMappedRomsToLevels = 0;
 
-static char* currentRulesName = "";
+static char currentRulesName[100];
 
 void menuDisplay_generateRulesNameForCurrentGame() {
     sprintf(currentRulesName, "");
@@ -132,7 +132,7 @@ HackOptions menuDisplay_getHackOptions() {
 void menuDisplay_beginIdleMode() {
     terminalActiveRules = 0;
     menuDisplay_generateRulesNameForCurrentGame();
-    
+
     menuDisplay_applyPresetRules(0);
     hackOptions.switchGameType = 2;
     hackOptions.copyVram = 1;
@@ -267,7 +267,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     applyNetworkOptionsDefaultValues();
     applyDefaultBossRushValues();
     vdp_healAllColours();
-    setStartBossRush(0);
+    abortAllBossRushSettings();
 
     networkOptions.allowSoloEffectswhenNetworked = 1;
     networkOptions.networkingIsActive = 1;
@@ -357,6 +357,12 @@ void menuDisplay_showTerminalMenu() {
     setShouldUseControlsShuffle(0);
     menuDisplay_showMenu(MENU_LISTING_TERMINAL);
     setShouldCheckForIdleMode(0);
+
+    // quick fix because boss rush doesn't go away properly
+    bossRushOptions.orderSeed[0] = rand() % 0x10;
+    bossRushOptions.orderSeed[1] = rand() % 0x10;
+    bossRushOptions.orderSeed[2] = rand() % 0x10;
+    bossRushOptions.orderSeed[3] = rand() % 0x10;
 }
 
 void menuDisplay_sendNetworkOptionsToOpponent() {
@@ -1751,7 +1757,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
         
         if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_START) {
-            if (terminalLocationIndex < 12) {
+            if (terminalLocationIndex < 14) {
                 enterTerminalOption();
             } else {
                 if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
@@ -1789,6 +1795,8 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 if (terminalActiveRules == TERMINAL_RULSET_SHUFFLER_WITH_VRAM) {
                     ruleset = 7;
                 }
+                modConsole_activateReset();
+                cartLoader_cacheSaveStateBeforeMenu();
                 menuDisplay_applyPresetRules(ruleset);
                 cartLoader_applyHackOptions(gameHasStarted);
                 modConsole_applyHackOptions();
@@ -1867,6 +1875,9 @@ int menuDisplay_onButtonPress(int buttonIndex) {
 }
 
 void initialiseChosenTerminalGame() {
+    modConsole_activateReset();
+    cartLoader_cacheSaveStateBeforeMenu();
+
     int effectIndexToActivate = 0;
     if (terminalActiveRules == TERMINAL_RULSET_RINGS_MAKE_FASTER) {
         effectIndexToActivate = 2;
@@ -1889,8 +1900,9 @@ void initialiseChosenTerminalGame() {
     if (terminalActiveRules == TERMINAL_RULSET_SORT_COLOURS) {
         effectIndexToActivate = 12;
     }
-    if (terminalActiveRules == TERMINAL_RULSET_BOSS_RUSH) {
-        effectIndexToActivate = 0; // <-- this should never be hit!
+    if (terminalActiveRules == TERMINAL_RULSET_BOSS_RUSH) { // <-- this should never be hit!
+        effectIndexToActivate = 0;
+        // setShouldResetBossRush(1);
     }
     if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
         effectIndexToActivate = 0; // <-- need to support controller!
@@ -2048,16 +2060,18 @@ void enterTerminalOption() {
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
     } else if (terminalLocationIndex == 9) {
         terminalActiveRules = TERMINAL_RULSET_BOSS_RUSH;
+        setShouldResetBossRush(1);
 
         menuDisplay_applyPresetRules(15);
         cartLoader_applyHackOptions(gameHasStarted);
-
+        
         modConsole_applyHackOptions();
         modConsole_applyNetworkOptions();
 
         beginGame();
         beginBossRush();
 
+        vdp_setShouldRandomiseColours(0);
         menuDisplay_hideMenu();
     } else if (terminalLocationIndex == 10) {
         terminalActiveRules = TERMINAL_RULSET_CONTROLLER;
