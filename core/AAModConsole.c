@@ -1244,12 +1244,13 @@ void modConsole_updateFrame() {
                 beginBossRush();
             }
         }
+
+        vdp_resetCachedM5();
     }
 
     frameCount++;
 
     aa_genesis_updateLastRam();
-    vdp_resetCachedM5();
 } 
 
 void modConsole_beginRewindAction() {

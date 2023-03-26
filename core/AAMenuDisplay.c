@@ -1795,8 +1795,9 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 if (terminalActiveRules == TERMINAL_RULSET_SHUFFLER_WITH_VRAM) {
                     ruleset = 7;
                 }
-                modConsole_activateReset();
-                cartLoader_cacheSaveStateBeforeMenu();
+                // modConsole_activateReset();
+                // cartLoader_cacheSaveStateBeforeMenu();
+
                 menuDisplay_applyPresetRules(ruleset);
                 cartLoader_applyHackOptions(gameHasStarted);
                 modConsole_applyHackOptions();
@@ -1806,6 +1807,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 modConsole_activateReset();
                 vdp_setShouldRandomiseColours(0);
 
+                cartLoader_cacheSaveStateBeforeMenu();
                 menuDisplay_hideMenu();
                 setShouldCheckForIdleMode(1);
             } else {
@@ -1836,6 +1838,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 modConsole_applyHackOptions();
                 modConsole_applyNetworkOptions();
 
+                cartLoader_cacheSaveStateBeforeMenu();
                 menuDisplay_hideMenu();
                 setShouldCheckForIdleMode(1);
             } else {
@@ -1875,8 +1878,8 @@ int menuDisplay_onButtonPress(int buttonIndex) {
 }
 
 void initialiseChosenTerminalGame() {
-    modConsole_activateReset();
-    cartLoader_cacheSaveStateBeforeMenu();
+    // modConsole_activateReset();
+    // cartLoader_cacheSaveStateBeforeMenu();
 
     int effectIndexToActivate = 0;
     if (terminalActiveRules == TERMINAL_RULSET_RINGS_MAKE_FASTER) {
