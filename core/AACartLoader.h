@@ -168,5 +168,7 @@ void cartLoader_setRandomSelectionOfGamesAsUnblocked(int maxCount);
 void cartLoader_clearSaveStates();
 int getCartIndexForRomAtIndex(int index);
 extern char* getTerminalNameForRom(int romIndex);
+extern char* getNameOfTriggerForGame(int cartIndex);
+extern char* cartLoader_getNameOfTriggerForActiveGame();
 
 #endif

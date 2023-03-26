@@ -231,5 +231,8 @@ void showTerminalGameListMenu();
 void enterTerminalOption();
 void chooseGameSuite();
 extern void menuDisplay_beginIdleMode();
+extern void menuDisplay_generateRulesNameForCurrentGame();
+extern char* menuDisplay_getCurrentRulesName();
+void showVersionNumber();
 
 #endif

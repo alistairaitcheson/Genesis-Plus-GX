@@ -71,11 +71,68 @@ static int spacesUnderGamesThisTerminal[16];
 static int gameCountThisTerminal = 0;
 static int hasMappedRomsToLevels = 0;
 
+static char* currentRulesName = "";
+
+void menuDisplay_generateRulesNameForCurrentGame() {
+    sprintf(currentRulesName, "");
+
+    if (terminalActiveRules == TERMINAL_RULSET_SHUFFLER) {
+        sprintf(currentRulesName, "Switch game whenever %s", cartLoader_getNameOfTriggerForActiveGame());
+    }
+
+    if (terminalActiveRules == TERMINAL_RULSET_SHUFFLER_WITH_VRAM) {
+        sprintf(currentRulesName, "Switch game whenever %s and keep visual memory from the previous game", cartLoader_getNameOfTriggerForActiveGame());
+    }
+
+    if (terminalActiveRules == TERMINAL_RULSET_RINGS_MAKE_FASTER) {
+        sprintf(currentRulesName, "Make sonic faster whenever he gets a ring", cartLoader_getNameOfTriggerForActiveGame());
+    }
+
+    if (terminalActiveRules == TERMINAL_RULSET_RINGS_CORRUPT_LEVEL) {
+        sprintf(currentRulesName, "Write random numbers to level data whenever %s", cartLoader_getNameOfTriggerForActiveGame());
+    }
+
+    if (terminalActiveRules == TERMINAL_RULSET_RINGS_CORRUPT_RAM) {
+        sprintf(currentRulesName, "Write random numbers to ram whenever %s", cartLoader_getNameOfTriggerForActiveGame());
+    }
+    
+    if (terminalActiveRules == TERMINAL_RULSET_REMOVE_COLOUR) {
+        sprintf(currentRulesName, "Remove colours from the universe whenever %s", cartLoader_getNameOfTriggerForActiveGame());
+    }
+
+    if (terminalActiveRules == TERMINAL_RULSET_NO_SPRITES) {
+        sprintf(currentRulesName, "Sprites are invisible");
+    }
+    
+    if (terminalActiveRules == TERMINAL_RULSET_NO_BACKGROUNDS) {
+        sprintf(currentRulesName, "Only sprites are visible");
+    }
+        
+    if (terminalActiveRules == TERMINAL_RULSET_SORT_COLOURS) {
+        sprintf(currentRulesName, "Pixels are sorted by colour");
+    }
+
+    if (terminalActiveRules == TERMINAL_RULSET_BOSS_RUSH) {
+        sprintf(currentRulesName, "Boss rush mode!");
+    }
+    
+    if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
+        sprintf(currentRulesName, "Controls change every 30 seconds       For 4 players with the big buttons!");
+    }
+}
+
+char* menuDisplay_getCurrentRulesName() {
+    return currentRulesName;
+}
+
 HackOptions menuDisplay_getHackOptions() {
     return hackOptions;
 }
 
 void menuDisplay_beginIdleMode() {
+    terminalActiveRules = 0;
+    menuDisplay_generateRulesNameForCurrentGame();
+    
     menuDisplay_applyPresetRules(0);
     hackOptions.switchGameType = 2;
     hackOptions.copyVram = 1;

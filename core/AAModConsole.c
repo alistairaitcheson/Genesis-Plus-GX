@@ -113,9 +113,15 @@ static int MAX_FRAMES_FOR_IDLE_MODE = 60 * 60 * 3;
 
 int countdownToUnrandomiseColours = 0;
 
+static int headingTextScrollPixels = 0;
+static int headingTextScrollSubpixels = 0;
+static int HEADING_TEXT_SUBPIXEL_PER_PIXEL = 10;
+
 void setShouldCheckForIdleMode(int toValue) {
     shouldCheckForIdleMode = toValue;
     idleModeFrameCount = 0;
+
+    headingTextScrollPixels = -vdp_getScreenWidth();
 }
 
 void beginIdleMode() {
@@ -1131,6 +1137,19 @@ void modConsole_updateFrame() {
         // vdp_clearGraphicLayer(2);
         // layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
         // layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
+
+        headingTextScrollSubpixels++;
+        if (headingTextScrollSubpixels > HEADING_TEXT_SUBPIXEL_PER_PIXEL) {
+            headingTextScrollPixels++;
+            headingTextScrollPixels = 0;
+            if (headingTextScrollPixels > (100 * 8)) {
+                headingTextScrollPixels = -vdp_getScreenWidth();
+            }
+        }
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 2, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 1, menuDisplay_getCurrentRulesName(), 0x10);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 0, menuDisplay_getCurrentRulesName(), 0x5);
+
 
         if (shouldCheckForIdleMode) {
             idleModeFrameCount++;
