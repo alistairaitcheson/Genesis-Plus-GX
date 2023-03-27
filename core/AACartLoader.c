@@ -2319,6 +2319,8 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     }
 
     menuDisplay_generateRulesNameForCurrentGame();
+
+    reportToLED("0");
 }
 
 int fileName256IsCD(char fileName[]) {
@@ -2802,6 +2804,10 @@ void cartLoader_checkNetworkForActions() {
                         int whichRotor = runningNumber % 8;
                         incrementTerminalRotorValue(whichRotor, -1);
                         runningNumber = 0;
+                    }
+
+                    if (actionBuffer[i] == NETWORK_MSG_HAS_LED_DISPLAY) {
+                        setHasLEDDisplay(1);
                     }
 
 

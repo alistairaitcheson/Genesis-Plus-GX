@@ -44,6 +44,8 @@
 
 #define NETWORK_MSG_ADD_TO_ROTOR_POSITION 'm' // precede it with a number to add to that rotor
 #define NETWORK_MSG_REMOVE_FROM_ROTOR_POSITION 'n' // precede it with a number to remove from that rotor
+#define NETWORK_MSG_REPORT_TERMINAL_EVENT '?' // follow it with a number: ?0 = get ring, ?1 = swap game
+#define NETWORK_MSG_HAS_LED_DISPLAY 'b' // will be sent when an LED display is detected
 
 #define NETWORK_INTERPRET_TYPE_ACTION 0
 #define NETWORK_INTERPRET_TYPE_ASSIGN_RULES 1
@@ -153,5 +155,7 @@ extern void setShouldCheckForIdleMode(int toValue);
 void incrementTerminalRotorValue(int whichRotor, int amount);
 void resetRotorRam();
 void resetRotorChanges();
+void setHasLEDDisplay(int toValue);
+void reportToLED(char actionId[]) ;
 
 #endif

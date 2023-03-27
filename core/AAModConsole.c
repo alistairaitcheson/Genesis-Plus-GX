@@ -123,6 +123,18 @@ static int terminalEffectDisplayCountdown = 0;
 static int TERMINAL_EFFECT_DISPLAY_DURATION = 60 * 3;
 static int terminalRotorValues[8];
 
+static int hasLEDdisplay = 0;
+
+void setHasLEDDisplay(int toValue) {
+    hasLEDdisplay = toValue;
+}
+
+void reportToLED(char actionId[]) {
+    char tempMessage[10];
+    sprintf(tempMessage, "?%s", actionId); 
+    cartLoader_writeActionToNetwork(tempMessage);
+}
+
 void incrementTerminalRotorValue(int whichRotor, int amount) {
     terminalRotorValues[whichRotor % 8] += amount;
 }
@@ -659,6 +671,7 @@ void checkRotorValues() {
     for (int i = 0; i < 8; i++) {
         if (terminalRotorValues[i] != 0) {
             sprintf(lastTerminalEffect, "Unknown effect");
+            reportToLED("2");
 
             // do something specific to this rotator
             if (i == 1) {
@@ -885,6 +898,9 @@ void modConsole_updateFrame() {
             postRingEffectCooldownTimePerGame[cartIndex]--;
         }
         int ringCountChangedThisFrame = ringCountHasChanged(1);
+        if (ringCountChangedThisFrame) {
+            reportToLED("1");
+        }
 
         if (shouldShuffleController != 0) {
             shuffleControllerCountdown--;
@@ -893,6 +909,7 @@ void modConsole_updateFrame() {
                 shuffleControllerCountdown = SHUFFLE_CONTROLLER_DURATION;
                 fireSnapEffect(1);
                 showShuffleAlertCountdown = SHOW_SHUFFLE_ALERT_DURATION;
+                reportToLED("3");
             }
         }
         if (showShuffleAlertCountdown > 0) {
@@ -2059,6 +2076,7 @@ void checkDeathCounter() {
 
     if (shouldIncrement != 0) {
         playerDeathCount++;
+        reportToLED("4");
     }
 }
 
