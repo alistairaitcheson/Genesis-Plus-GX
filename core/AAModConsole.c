@@ -118,6 +118,12 @@ static int headingTextScrollSubpixels = 0;
 static int headingColour = 0x5;
 static int HEADING_TEXT_SUBPIXEL_PER_PIXEL = 5;
 
+static int terminalRotorValues[8];
+
+void incrementTerminalRotorValue(int whichRotor, int amount) {
+    terminalRotorValues[whichRotor % 8] += amount;
+}
+
 void setShouldCheckForIdleMode(int toValue) {
     shouldCheckForIdleMode = toValue;
     idleModeFrameCount = 0;
@@ -605,6 +611,116 @@ void checkForBossHits() {
     }
 }
 
+void resetRotorValues() {
+    for (int i = 0; i < 8; i++) {
+        terminalRotorValues[i] = 0;
+    }
+}
+
+unsigned int ramLocationsChangedByRotor[0x1000];
+unsigned int ramOriginalValuesChangedByRotor[0x1000];
+int rotorRamChangeLength = 0;
+int rotorRamChangeDirection = 0;
+
+unsigned int vramLocationsChangedByRotor[0x1000];
+unsigned int vramOriginalValuesChangedByRotor[0x1000];
+int rotorVramChangeLength = 0;
+int rotorVramChangeDirection = 0;
+
+void checkRotorValues() {
+    for (int i = 0; i < 8; i++) {
+        if (terminalRotorValues[i] != 0) {
+            // do something specific to this rotator
+            if (i == 0) {
+                // add/remove colours!
+                if (terminalRotorValues[i] > 0) {
+                    removeColourOnRing(3);
+                } else {
+                    healColoursOnRing(3);
+                }
+            }
+
+            if (i == 1) {
+                // corrupt/uncorrupt RAM
+                if (rotorRamChangeDirection == 0) {
+                    rotorRamChangeDirection = 1;
+                    if (terminalRotorValues[i] < 0) {
+                        terminalRotorValues[i] = -1;
+                    }
+                }
+
+                int direction = abs(terminalRotorValues[i]) / terminalRotorValues[i];
+                int shouldIncrement = 0;
+                if (direction == rotorRamChangeDirection || rotorRamChangeLength <= 0) {
+                    shouldIncrement = 1;
+                }
+
+                if (shouldIncrement) {
+                    // make a change
+                    int loc = rand() % 0x10000;
+                    int val = rand() % 0x100;
+                    ramLocationsChangedByRotor[rotorRamChangeLength] = loc;
+                    ramOriginalValuesChangedByRotor[rotorRamChangeLength] = aa_genesis_getWorkRam(loc);
+                    aa_genesis_setWorkRam(loc, val);
+
+                    rotorRamChangeLength++;
+                    rotorRamChangeDirection = direction;
+                } else {
+                    // reverse a change
+                    if (rotorRamChangeLength > 0) {
+                        rotorRamChangeLength--;
+                        aa_genesis_setWorkRam(
+                            ramLocationsChangedByRotor[rotorRamChangeLength],
+                            ramOriginalValuesChangedByRotor[rotorRamChangeLength]
+                        );
+                    }
+                }
+            }
+            
+            if (i == 2) {
+                // corrupt/uncorrupt VRAM
+                if (rotorVramChangeDirection == 0) {
+                    rotorVramChangeDirection = 1;
+                    if (terminalRotorValues[i] < 0) {
+                        terminalRotorValues[i] = -1;
+                    }
+                }
+
+                int direction = abs(terminalRotorValues[i]) / terminalRotorValues[i];
+                int shouldIncrement = 0;
+                if (direction == rotorVramChangeDirection || rotorVramChangeLength <= 0) {
+                    shouldIncrement = 1;
+                }
+
+                if (shouldIncrement) {
+                    // make a change
+                    int loc = rand() % 0x10000;
+                    int val = rand() % 0x100;
+                    vramLocationsChangedByRotor[rotorRamChangeLength] = loc;
+                    vramOriginalValuesChangedByRotor[rotorRamChangeLength] = aa_genesis_getVRamValue(loc);
+                    aa_genesis_setVRamValue(loc, val);
+
+                    rotorVramChangeLength++;
+                    rotorVramChangeDirection = direction;
+                } else {
+                    // reverse a change
+                    if (rotorVramChangeLength > 0) {
+                        rotorVramChangeLength--;
+                        aa_genesis_setVRamValue(
+                            vramLocationsChangedByRotor[rotorRamChangeLength],
+                            vramOriginalValuesChangedByRotor[rotorRamChangeLength]
+                        );
+                    }
+                }
+            }
+
+            idleModeFrameCount = 0;
+            fireSnapEffect(0);
+        }
+    }
+    resetRotorValues();
+}
+
 void modConsole_updateFrame() {
     lastPadState = padState;
     padState = input.pad[0]; //reverseOutcomeOfControlShuffling(input.pad[0]);
@@ -620,6 +736,8 @@ void modConsole_updateFrame() {
     }
 
     if (menuDisplay_isShowing() != 0) {
+        resetRotorValues();
+
         if (pendingRingTriggers > 0) {
             pendingRingTriggerTimer--;
         }
@@ -876,6 +994,8 @@ void modConsole_updateFrame() {
             }
             valueWriteTimeCounter = 0;
         }
+
+        checkRotorValues();
 
         int yOffset = 0;
         int hasShownCount = 0;

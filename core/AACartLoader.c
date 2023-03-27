@@ -85,6 +85,7 @@ static int bossRushSwitchCount = 0;
 
 static int cheatFlagsPerBossRush[MAX_ROMS][8];
 
+
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
 }
@@ -2781,6 +2782,19 @@ void cartLoader_checkNetworkForActions() {
                         }
                         runningNumber = 0;
                     }
+
+                    if (actionBuffer[i] == NETWORK_MSG_ADD_TO_ROTOR_POSITION) {
+                        int whichRotor = runningNumber % terminalRotorValues;
+                        incrementTerminalRotorValue(whichRotor, 1);
+                        runningNumber = 0;
+                    }
+
+                    if (actionBuffer[i] == NETWORK_MSG_ADD_TO_ROTOR_POSITION) {
+                        int whichRotor = runningNumber % terminalRotorValues;
+                        incrementTerminalRotorValue(whichRotor, -1);
+                        runningNumber = 0;
+                    }
+
 
                     if (actionBuffer[i] == NETWORK_MSG_START_SPECIFIC_GAME) {
                         cartLoader_loadRomAtIndex(runningNumber, 1);
