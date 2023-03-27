@@ -181,4 +181,8 @@ extern void vdp_healAllColours();
 extern void vdp_writeWRAMintoVRAM(int offset);
 extern void vdp_resetCachedM5();
 
+void vdp_incrementColourCycleAmount(int amount);
+void vdp_resetColourCycle();
+void vdp_applyCycledColours();
+
 #endif /* _RENDER_H_ */

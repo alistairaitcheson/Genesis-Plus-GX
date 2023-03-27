@@ -4273,6 +4273,7 @@ void render_line(int line)
 
     menuDisplay_updatePixelDetective(line, linebuf);
     cartLoader_updatePixelTracker(line, linebuf);
+    vdp_applyCycledColours();
     vdp_applyReducedColours();
     drawTextLayers(line);
 
@@ -4730,6 +4731,49 @@ int vdp_getTotalRemovedColours() {
       }
     }
   return shuffleBufLength;
+}
+
+int colourCycleAmount = 0;
+int colourCycleBandingWidth = 4;
+int colourCycleBandingChangeVal = 2;
+
+void vdp_incrementColourCycleAmount(int amount) {
+  colourCycleAmount += amount;
+  if (colourCycleAmount >= 0x100) {
+    colourCycleAmount = 0;
+  }
+  if (colourCycleAmount < 0) {
+    colourCycleAmount = 0xFF;
+  }
+
+  colourCycleBandingWidth = (rand() % 0x18) + 0x8;
+  colourCycleBandingChangeVal = (colourCycleBandingWidth / 4) + (rand() %(colourCycleBandingWidth / 2));
+}
+
+void vdp_resetColourCycle() {
+  colourCycleAmount = 0;
+}
+
+void vdp_applyCycledColours() {
+    for (int x = 0; x < bitmap.viewport.w; x++) {
+      uint8 sourceColour = linebuf[0][0x20 + x];
+
+      int tempCycleAmount = colourCycleAmount;
+      if (colourCycleAmount % 0x20 == 0) {
+        tempCycleAmount = 0;
+      }
+
+      if (colourCycleAmount % 0x10 == 0 && x % 2 == 0) {
+        tempCycleAmount = 0;
+      }
+
+      if (colourCycleAmount % 0x10 == 8 && x % colourCycleBandingWidth < colourCycleBandingChangeVal) {
+        tempCycleAmount = 0;
+      }
+
+
+      linebuf[0][0x20 + x] = ((int)sourceColour + tempCycleAmount) % 0x100;
+  }
 }
 
 // this is for "ring deletest colours"

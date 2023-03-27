@@ -2169,6 +2169,15 @@ void cartLoader_setRandomSelectionOfGamesAsUnblocked(int maxCount) {
     }
 }
 
+void cartLoader_blockGamesWithCartNumber(int cartNumber) {
+    for (int i = 0; i < MAX_ROMS; i++) {
+        if (getCartIndexForRomAtIndex(i) == cartNumber) {
+            romsRemovedFromRandomiser[i] = 1;
+        }
+    }
+}
+
+
 void cartLoader_unblockGamesWithCartNumber(int cartNumber) {
     for (int i = 0; i < MAX_ROMS; i++) {
         if (getCartIndexForRomAtIndex(i) == cartNumber) {
@@ -2784,13 +2793,13 @@ void cartLoader_checkNetworkForActions() {
                     }
 
                     if (actionBuffer[i] == NETWORK_MSG_ADD_TO_ROTOR_POSITION) {
-                        int whichRotor = runningNumber % terminalRotorValues;
+                        int whichRotor = runningNumber % 8;
                         incrementTerminalRotorValue(whichRotor, 1);
                         runningNumber = 0;
                     }
 
-                    if (actionBuffer[i] == NETWORK_MSG_ADD_TO_ROTOR_POSITION) {
-                        int whichRotor = runningNumber % terminalRotorValues;
+                    if (actionBuffer[i] == NETWORK_MSG_REMOVE_FROM_ROTOR_POSITION) {
+                        int whichRotor = runningNumber % 8;
                         incrementTerminalRotorValue(whichRotor, -1);
                         runningNumber = 0;
                     }

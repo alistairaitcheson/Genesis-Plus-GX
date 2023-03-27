@@ -42,8 +42,8 @@
 #define NETWORK_MSG_START_SPECIFIC_GAME 'N' // precede this with a number - swap to the game with that index (0N = switch to 0th game)
 #define NETWORK_MSG_ISOLATE_SPECIFIC_GAME 'M' // precede this with a number - swap to the game with that index (0N = switch to 0th game) and make it the only active game
 
-#define NETWORK_MSG_ADD_TO_ROTOR_POSITION 'm'; // precede it with a number to add to that rotor
-#define NETWORK_MSG_REMOVE_FROM_ROTOR_POSITION 'n'; // precede it with a number to remove from that rotor
+#define NETWORK_MSG_ADD_TO_ROTOR_POSITION 'm' // precede it with a number to add to that rotor
+#define NETWORK_MSG_REMOVE_FROM_ROTOR_POSITION 'n' // precede it with a number to remove from that rotor
 
 #define NETWORK_INTERPRET_TYPE_ACTION 0
 #define NETWORK_INTERPRET_TYPE_ASSIGN_RULES 1
@@ -151,5 +151,7 @@ void zeroDeathCount();
 extern void setShouldShuffleController(int toValue);
 extern void setShouldCheckForIdleMode(int toValue);
 void incrementTerminalRotorValue(int whichRotor, int amount);
+void resetRotorRam();
+void resetRotorChanges();
 
 #endif

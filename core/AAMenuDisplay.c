@@ -169,6 +169,37 @@ BossRushOptions menuDisplay_getBossRushOptions() {
     return bossRushOptions;
 }
 
+void switchToRandomAllowedGame() {
+    if (terminalActiveRules == TERMINAL_RULSET_SHUFFLER || terminalActiveRules == TERMINAL_RULSET_SHUFFLER_WITH_VRAM) {        
+        gameSuiteSelectIndex = rand() % 7;
+        chooseGameSuite();
+        cartLoader_loadRandomRom();
+    } else {
+        applyAllowedGamesForCurrentTerminalSelection();
+
+        int totalGames = 0;
+        for (int i = 0; i < 16; i++) {
+            if (allowedGamesThisTerminal[i] == -1) {
+                totalGames = i;
+                break;
+            }
+        }
+
+        if (totalGames > 1) {
+            int currentGameId = cartLoader_getActiveCartIndex();
+            int nextGameId = currentGameId;
+
+            while (nextGameId == currentGameId) {
+                nextGameId = allowedGamesThisTerminal[rand() % totalGames];
+            }
+
+            cartLoader_setAllGamesAsBlocked();
+            cartLoader_unblockGamesWithCartNumber(nextGameId);
+            cartLoader_loadRandomRom();
+        }
+    }
+}
+
 void addGameToThoseAllowedForTerminal(int gameIndex, int withGap) {
     int index = 0;
     for (int i = 0; i < 16; i++) {
@@ -281,6 +312,9 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     networkOptions.sendSwitchGame = 0;
     networkOptions.sendWriteIntoLevelDifficulty = 0;
 
+    secondaryHackOptions.colourDeleteAffectsAudio = 1;
+    hackOptions.colourDeleteHealRate = 6;
+
     // now activate what's specific to each rule
     if (rulesIndex == 0) {
         // do nothing!
@@ -349,6 +383,8 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
 }
 
 void menuDisplay_showTerminalMenu() {
+    resetRotorChanges();
+
     if (hasMappedRomsToLevels != 1) {
         mapBossRushesToRoms();
         hasMappedRomsToLevels = 1;

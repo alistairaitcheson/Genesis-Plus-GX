@@ -118,6 +118,9 @@ static int headingTextScrollSubpixels = 0;
 static int headingColour = 0x5;
 static int HEADING_TEXT_SUBPIXEL_PER_PIXEL = 5;
 
+static char lastTerminalEffect[100];
+static int terminalEffectDisplayCountdown = 0;
+static int TERMINAL_EFFECT_DISPLAY_DURATION = 60 * 3;
 static int terminalRotorValues[8];
 
 void incrementTerminalRotorValue(int whichRotor, int amount) {
@@ -617,107 +620,186 @@ void resetRotorValues() {
     }
 }
 
-unsigned int ramLocationsChangedByRotor[0x1000];
-unsigned int ramOriginalValuesChangedByRotor[0x1000];
+unsigned int ramLocationsChangedByRotor[0x10000];
+unsigned int ramOriginalValuesChangedByRotor[0x10000];
 int rotorRamChangeLength = 0;
 int rotorRamChangeDirection = 0;
 
-unsigned int vramLocationsChangedByRotor[0x1000];
-unsigned int vramOriginalValuesChangedByRotor[0x1000];
+unsigned int vramLocationsChangedByRotor[0x10000];
+unsigned int vramOriginalValuesChangedByRotor[0x10000];
 int rotorVramChangeLength = 0;
 int rotorVramChangeDirection = 0;
 
+int RAM_CHANGE_COUNT_PER_TURN = 20;
+int VRAM_CHANGE_COUNT_PER_TURN = 500;
+
+void resetRotorRam() {
+    rotorRamChangeLength = 0;
+    rotorRamChangeDirection = 0;
+    rotorVramChangeLength = 0;
+    rotorVramChangeDirection = 0;
+}
+
+void resetRotorChanges() {
+    resetRotorRam();
+    vdp_healAllColours();
+    vdp_resetColourCycle();
+}
+
+static int rotorGameSwitchCooldown = 0;
+
+static int lastChangeRamLoc;
+static int lastChangeRamVal;
+
 void checkRotorValues() {
+    if (rotorGameSwitchCooldown > 0) {
+        rotorGameSwitchCooldown--;
+    }
+
     for (int i = 0; i < 8; i++) {
         if (terminalRotorValues[i] != 0) {
+            sprintf(lastTerminalEffect, "Unknown effect");
+
             // do something specific to this rotator
-            if (i == 0) {
-                // add/remove colours!
-                if (terminalRotorValues[i] > 0) {
-                    removeColourOnRing(3);
-                } else {
-                    healColoursOnRing(3);
-                }
-            }
-
             if (i == 1) {
-                // corrupt/uncorrupt RAM
-                if (rotorRamChangeDirection == 0) {
-                    rotorRamChangeDirection = 1;
-                    if (terminalRotorValues[i] < 0) {
-                        terminalRotorValues[i] = -1;
+                for (int repeat = 0; repeat < RAM_CHANGE_COUNT_PER_TURN; repeat++) {
+                    // corrupt/uncorrupt RAM
+                    if (rotorRamChangeDirection == 0) {
+                        rotorRamChangeDirection = 1;
+                        if (terminalRotorValues[i] < 0) {
+                            rotorRamChangeDirection = -1;
+                        }
                     }
-                }
 
-                int direction = abs(terminalRotorValues[i]) / terminalRotorValues[i];
-                int shouldIncrement = 0;
-                if (direction == rotorRamChangeDirection || rotorRamChangeLength <= 0) {
-                    shouldIncrement = 1;
-                }
+                    int direction = 1;
+                    if (terminalRotorValues[i] < 0) {
+                        direction = -1;
+                    }
+                    int shouldIncrement = 0;
+                    if (direction == rotorRamChangeDirection || rotorRamChangeLength <= 0) {
+                        shouldIncrement = 1;
+                    }
 
-                if (shouldIncrement) {
-                    // make a change
-                    int loc = rand() % 0x10000;
-                    int val = rand() % 0x100;
-                    ramLocationsChangedByRotor[rotorRamChangeLength] = loc;
-                    ramOriginalValuesChangedByRotor[rotorRamChangeLength] = aa_genesis_getWorkRam(loc);
-                    aa_genesis_setWorkRam(loc, val);
+                    if (shouldIncrement) {
+                        // sprintf(lastTerminalEffect, "Edit RAM (%i - %i - %i) %i (%04X %02X)", terminalRotorValues[i], direction, rotorRamChangeDirection, rotorRamChangeLength, lastChangeRamLoc, lastChangeRamVal);
+                        sprintf(lastTerminalEffect, "Edit RAM");
 
-                    rotorRamChangeLength++;
-                    rotorRamChangeDirection = direction;
-                } else {
-                    // reverse a change
-                    if (rotorRamChangeLength > 0) {
-                        rotorRamChangeLength--;
-                        aa_genesis_setWorkRam(
-                            ramLocationsChangedByRotor[rotorRamChangeLength],
-                            ramOriginalValuesChangedByRotor[rotorRamChangeLength]
-                        );
+                        // make a change
+                        int loc = getBigRandomNumber(0x10000);
+                        int val = rand() % 0x100;
+                        ramLocationsChangedByRotor[rotorRamChangeLength % 0x10000] = loc;
+                        ramOriginalValuesChangedByRotor[rotorRamChangeLength % 0x10000] = aa_genesis_getWorkRam(loc);
+                        aa_genesis_setWorkRam(loc, val);
+
+                        rotorRamChangeLength++;
+                        rotorRamChangeDirection = direction;
+
+                        lastChangeRamLoc = loc;
+                        lastChangeRamVal = val;
+                    } else {
+                        // sprintf(lastTerminalEffect, "Reverse RAM edits (%i - %i) %i", direction, rotorRamChangeDirection, rotorRamChangeLength);
+                        sprintf(lastTerminalEffect, "Reverse RAM edits");
+
+                        // reverse a change
+                        if (rotorRamChangeLength > 0) {
+                            rotorRamChangeLength--;
+                            aa_genesis_setWorkRam(
+                                ramLocationsChangedByRotor[rotorRamChangeLength % 0x10000],
+                                ramOriginalValuesChangedByRotor[rotorRamChangeLength % 0x10000]
+                            );
+                        }
                     }
                 }
             }
             
             if (i == 2) {
-                // corrupt/uncorrupt VRAM
-                if (rotorVramChangeDirection == 0) {
-                    rotorVramChangeDirection = 1;
-                    if (terminalRotorValues[i] < 0) {
-                        terminalRotorValues[i] = -1;
+                for (int repeat = 0; repeat < VRAM_CHANGE_COUNT_PER_TURN; repeat++) {
+
+                    // corrupt/uncorrupt VRAM
+                    if (rotorVramChangeDirection == 0) {
+                        rotorVramChangeDirection = 1;
+                        if (terminalRotorValues[i] < 0) {
+                            rotorVramChangeDirection = -1;
+                        }
+                    }
+
+                    int direction = abs(terminalRotorValues[i]) / terminalRotorValues[i];
+                    int shouldIncrement = 0;
+                    if (direction == rotorVramChangeDirection || rotorVramChangeLength <= 0) {
+                        shouldIncrement = 1;
+                    }
+
+                    if (shouldIncrement) {
+                        sprintf(lastTerminalEffect, "Edit video RAM");
+
+                        // make a change
+                        int loc = getBigRandomNumber(0x10000);
+                        int val = rand() % 0x100;
+                        vramLocationsChangedByRotor[rotorRamChangeLength % 0x10000] = loc;
+                        vramOriginalValuesChangedByRotor[rotorRamChangeLength % 0x10000] = aa_genesis_getVRamValue(loc);
+                        aa_genesis_setVRamValue(loc, val);
+
+                        rotorVramChangeLength++;
+                        rotorVramChangeDirection = direction;
+                    } else {
+                        sprintf(lastTerminalEffect, "Reverse video RAM edits");
+
+                        // reverse a change
+                        if (rotorVramChangeLength > 0) {
+                            rotorVramChangeLength--;
+                            aa_genesis_setVRamValue(
+                                vramLocationsChangedByRotor[rotorRamChangeLength % 0x10000],
+                                vramOriginalValuesChangedByRotor[rotorRamChangeLength % 0x10000]
+                            );
+                        }
                     }
                 }
+            }
 
-                int direction = abs(terminalRotorValues[i]) / terminalRotorValues[i];
-                int shouldIncrement = 0;
-                if (direction == rotorVramChangeDirection || rotorVramChangeLength <= 0) {
-                    shouldIncrement = 1;
+            if (i == 3) {
+                vdp_incrementColourCycleAmount(terminalRotorValues[i]);
+                sprintf(lastTerminalEffect, "Cycle colours");
+            }
+            
+            if (i == 4) {
+                if (shouldUseBossRush()) {
+                    sprintf(lastTerminalEffect, "Switch boss");
+                } else {
+                    sprintf(lastTerminalEffect, "Switch game");
                 }
 
-                if (shouldIncrement) {
-                    // make a change
-                    int loc = rand() % 0x10000;
-                    int val = rand() % 0x100;
-                    vramLocationsChangedByRotor[rotorRamChangeLength] = loc;
-                    vramOriginalValuesChangedByRotor[rotorRamChangeLength] = aa_genesis_getVRamValue(loc);
-                    aa_genesis_setVRamValue(loc, val);
+                if (rotorGameSwitchCooldown <= 0) {
+                    if (shouldUseBossRush()) {
+                        bumpToNextBossRush();
+                    } else {
+                        switchToRandomAllowedGame();
+                    }
+                    rotorGameSwitchCooldown = 30;
+                }
+            }
 
-                    rotorVramChangeLength++;
-                    rotorVramChangeDirection = direction;
+            if (i == 5) {
+                // add/remove colours!
+                if (terminalRotorValues[i] > 0) {
+                    sprintf(lastTerminalEffect, "Remove colours");
+                    for (int i = 0; i < 3; i++) {
+                        vdp_reduceColours();
+                    }
                 } else {
-                    // reverse a change
-                    if (rotorVramChangeLength > 0) {
-                        rotorVramChangeLength--;
-                        aa_genesis_setVRamValue(
-                            vramLocationsChangedByRotor[rotorRamChangeLength],
-                            vramOriginalValuesChangedByRotor[rotorRamChangeLength]
-                        );
+                    sprintf(lastTerminalEffect, "Put colours back");
+                    for (int i = 0; i < 3; i++) {
+                        vdp_healReducedColour();
                     }
                 }
             }
 
             idleModeFrameCount = 0;
             fireSnapEffect(0);
+
+            terminalEffectDisplayCountdown = TERMINAL_EFFECT_DISPLAY_DURATION;
         }
     }
+
     resetRotorValues();
 }
 
@@ -1078,6 +1160,35 @@ void modConsole_updateFrame() {
             layerRenderer_fill(2, 4, 4, barSize, 8, 0x08);
         }
 
+        // for terminal
+        int tipsYpos = vdp_getScreenHeight() - 16;
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 2 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 2+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 2+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), headingColour);
+
+        if (terminalEffectDisplayCountdown > 0) {
+            terminalEffectDisplayCountdown--;
+            int effectXpos = vdp_getScreenWidth() / 2;
+            int effectYpos = vdp_getScreenHeight() / 2;
+            layerRenderer_writeWord256Centred(2, effectXpos + 1, effectYpos + 1, lastTerminalEffect, 0xFF);
+            layerRenderer_writeWord256Centred(2, effectXpos + 1, effectYpos, lastTerminalEffect, 0xFF);
+            layerRenderer_writeWord256Centred(2, effectXpos + 1, effectYpos - 1, lastTerminalEffect, 0xFF);
+            layerRenderer_writeWord256Centred(2, effectXpos - 1, effectYpos + 1, lastTerminalEffect, 0xFF);
+            layerRenderer_writeWord256Centred(2, effectXpos - 1, effectYpos, lastTerminalEffect, 0xFF);
+            layerRenderer_writeWord256Centred(2, effectXpos - 1, effectYpos - 1, lastTerminalEffect, 0xFF);
+            layerRenderer_writeWord256Centred(2, effectXpos, effectYpos+ 1, lastTerminalEffect, 0xFF);
+            layerRenderer_writeWord256Centred(2, effectXpos, effectYpos - 1, lastTerminalEffect, 0xFF);
+            layerRenderer_writeWord256Centred(2, effectXpos, effectYpos, lastTerminalEffect, headingColour);
+
+        }
+
+
         if (shouldUseBossRush()) {
             if (getBossRushComplete() == 0) {
                 // if (buttonStateAtIndex(INPUT_INDEX_A) != 0) {
@@ -1270,16 +1381,6 @@ void modConsole_updateFrame() {
             }
         }
 
-        int tipsYpos = vdp_getScreenHeight() - 16;
-        layerRenderer_writeWord256(2, -headingTextScrollPixels, 2 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 2+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 2+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), headingColour);
 
 
         if (shouldCheckForIdleMode) {
