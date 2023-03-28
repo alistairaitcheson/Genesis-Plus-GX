@@ -659,6 +659,7 @@ void resetRotorChanges() {
 }
 
 static int rotorGameSwitchCooldown = 0;
+static int rotorEditCooldown = 0;
 
 static int lastChangeRamLoc;
 static int lastChangeRamVal;
@@ -668,13 +669,22 @@ void checkRotorValues() {
         rotorGameSwitchCooldown--;
     }
 
+    // for debounce
+    if (rotorEditCooldown > 0) {
+        rotorEditCooldown --;
+    }
+
     for (int i = 0; i < 8; i++) {
         if (terminalRotorValues[i] != 0) {
-            sprintf(lastTerminalEffect, "Unknown effect");
-            reportToLED("2");
+            if (rotorEditCooldown <= 0) {
+                sprintf(lastTerminalEffect, "Unknown effect");
+                reportToLED("2");
+            }
+
 
             // do something specific to this rotator
-            if (i == 1) {
+            if (i == 1 && rotorEditCooldown <= 0) {
+                rotorEditCooldown = 3;
                 for (int repeat = 0; repeat < RAM_CHANGE_COUNT_PER_TURN; repeat++) {
                     // corrupt/uncorrupt RAM
                     if (rotorRamChangeDirection == 0) {
@@ -725,7 +735,8 @@ void checkRotorValues() {
                 }
             }
             
-            if (i == 2) {
+            if (i == 2 && rotorEditCooldown <= 0) {
+                rotorEditCooldown = 3;
                 for (int repeat = 0; repeat < VRAM_CHANGE_COUNT_PER_TURN; repeat++) {
 
                     // corrupt/uncorrupt VRAM
@@ -769,7 +780,8 @@ void checkRotorValues() {
                 }
             }
 
-            if (i == 3) {
+            if (i == 3 && rotorEditCooldown <= 0) {
+                rotorEditCooldown = 3;
                 vdp_incrementColourCycleAmount(terminalRotorValues[i]);
                 sprintf(lastTerminalEffect, "Cycle colours");
             }
@@ -791,9 +803,10 @@ void checkRotorValues() {
                 }
             }
 
-            if (i == 5) {
+            if (i == 5 && rotorEditCooldown <= 0) {
+                rotorEditCooldown = 3;
                 // add/remove colours!
-                if (terminalRotorValues[i] > 0) {
+                if (terminalRotorValues[i] < 0) {
                     sprintf(lastTerminalEffect, "Remove colours");
                     for (int i = 0; i < 3; i++) {
                         vdp_reduceColours();
