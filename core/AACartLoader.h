@@ -172,5 +172,6 @@ extern char* getNameOfTriggerForGame(int cartIndex);
 extern char* cartLoader_getNameOfTriggerForActiveGame();
 void abortAllBossRushSettings();
 void cartLoader_blockGamesWithCartNumber(int cartNumber);
+void cartLoader_loadCurrentStartupStateFromDisk();
 
 #endif

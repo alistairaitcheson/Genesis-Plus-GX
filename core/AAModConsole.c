@@ -798,6 +798,7 @@ void checkRotorValues() {
                         bumpToNextBossRush();
                     } else {
                         switchToRandomAllowedGame();
+                        cartLoader_loadCurrentStartupStateFromDisk();
                     }
                     rotorGameSwitchCooldown = 30;
                 }
@@ -2117,6 +2118,10 @@ void updateTime() {
 }
 
 void modConsole_activatePanic() {
+    // for ALISTAIR
+    // saveSaveStateForCurrentGame();
+    // cartLoader_saveAllSaveStatesToDisk();
+
     cartLoader_appendToLog("modConsole_activatePanic");
     for (int i = 0; i < 3; i++) {
 

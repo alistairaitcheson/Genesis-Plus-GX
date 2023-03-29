@@ -3213,6 +3213,30 @@ void cartLoader_loadAllSaveStatesFromDisk() {
     }
 }
 
+void cartLoader_loadCurrentStartupStateFromDisk() {
+    char path[256];
+    sprintf(path, "%s/.startup_states%s_%s.savestate", folderPath, romFilePrefixes[lastLoadedIndex], romFileNames[lastLoadedIndex]);
+
+    char tempLog[256];
+    sprintf(tempLog,"Loading STARTUP save state %d", lastLoadedIndex);
+    cartLoader_appendToLog(tempLog);
+    cartLoader_appendToLog(path);
+    
+    FILE *f = fopen(path,"rb");
+    if (f)
+    {
+        uint8 saveStateOnDisk[STATE_SIZE];
+        fread(&saveStateOnDisk, STATE_SIZE, 1, f);
+        fclose(f);
+        cartLoader_appendToLog("successfully loaded startup state!");
+        state_load(saveStateOnDisk);
+
+    } else {
+        cartLoader_appendToLog("no startup state found");
+    }
+    cartLoader_appendToLog(" -- ");
+}
+
 void cartLoader_clearSaveStates() {
     for (int i = 0; i < MAX_ROMS; i++) {
         hasCachedSaveState[i] = 0;

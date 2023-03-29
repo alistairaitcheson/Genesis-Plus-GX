@@ -229,9 +229,9 @@ void applyAllowedGamesForCurrentTerminalSelection() {
         addGameToThoseAllowedForTerminal(2, 0);
         addGameToThoseAllowedForTerminal(3, 0);
         addGameToThoseAllowedForTerminal(4, 1);
-        // sonic SMS - I need to add support for this!!
-        addGameToThoseAllowedForTerminal(8, 0);
+        // sonic SMS - I have added support for this!!
         addGameToThoseAllowedForTerminal(9, 0);
+        addGameToThoseAllowedForTerminal(8, 0);
         addGameToThoseAllowedForTerminal(10, 0);
     }
 
@@ -246,16 +246,16 @@ void applyAllowedGamesForCurrentTerminalSelection() {
         addGameToThoseAllowedForTerminal(3, 0);
         addGameToThoseAllowedForTerminal(4, 1);
         // sonic SMS
-        addGameToThoseAllowedForTerminal(8, 0);
         addGameToThoseAllowedForTerminal(9, 0);
+        addGameToThoseAllowedForTerminal(8, 0);
         addGameToThoseAllowedForTerminal(10, 0);
-        // triple trouble
-        addGameToThoseAllowedForTerminal(16, 1);
+        // 3D Blast
+        addGameToThoseAllowedForTerminal(6, 1);
         //mean bean
         addGameToThoseAllowedForTerminal(18, 0);
         // gunstar heroes
         addGameToThoseAllowedForTerminal(34, 0);
-        // revenge of shinobi
+        // // revenge of shinobi
         addGameToThoseAllowedForTerminal(25, 0);
         // ecco
         addGameToThoseAllowedForTerminal(38, 0);
@@ -274,7 +274,7 @@ void applyAllowedGamesForCurrentTerminalSelection() {
         addGameToThoseAllowedForTerminal(9, 0);
         addGameToThoseAllowedForTerminal(10, 0);
         // triple trouble
-        addGameToThoseAllowedForTerminal(16, 1);
+        // addGameToThoseAllowedForTerminal(16, 1);
         //mean bean
         addGameToThoseAllowedForTerminal(18, 0);
     }
@@ -299,6 +299,9 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     applyDefaultBossRushValues();
     vdp_healAllColours();
     abortAllBossRushSettings();
+
+    // FOR ALISTAIR
+    // hackOptions.shouldWriteToLog = 1;
 
     networkOptions.allowSoloEffectswhenNetworked = 1;
     networkOptions.networkingIsActive = 1;
@@ -1843,6 +1846,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 modConsole_activateReset();
                 vdp_setShouldRandomiseColours(0);
 
+                cartLoader_loadCurrentStartupStateFromDisk();
                 cartLoader_cacheSaveStateBeforeMenu();
                 menuDisplay_hideMenu();
                 setShouldCheckForIdleMode(1);
@@ -1967,6 +1971,7 @@ void initialiseChosenTerminalGame() {
     cartLoader_loadRandomRom();
 
     modConsole_activateReset();
+    cartLoader_loadCurrentStartupStateFromDisk();
     setShouldCheckForIdleMode(1);
 }
 
