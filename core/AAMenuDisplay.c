@@ -100,11 +100,11 @@ void menuDisplay_generateRulesNameForCurrentGame() {
         sprintf(currentRulesName, "Remove colours from the universe whenever %s", cartLoader_getNameOfTriggerForActiveGame());
     }
 
-    if (terminalActiveRules == TERMINAL_RULSET_NO_SPRITES) {
+    if (terminalActiveRules == TERMINAL_RULSET_NO_SPRITES_ALT) {
         sprintf(currentRulesName, "Sprites are invisible");
     }
     
-    if (terminalActiveRules == TERMINAL_RULSET_NO_BACKGROUNDS) {
+    if (terminalActiveRules == TERMINAL_RULSET_NO_BACKGROUNDS_ALT) {
         sprintf(currentRulesName, "Only sprites are visible");
     }
         
@@ -119,6 +119,13 @@ void menuDisplay_generateRulesNameForCurrentGame() {
     if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
         sprintf(currentRulesName, "Controls change every 30 seconds       For 4 players with the big buttons!");
     }
+}
+
+int terminalRulesAreActive() {
+    if (terminalActiveRules > 0) {
+        return 1;
+    }
+    return 0;
 }
 
 char* menuDisplay_getCurrentRulesName() {
@@ -237,8 +244,8 @@ void applyAllowedGamesForCurrentTerminalSelection() {
 
     if (terminalActiveRules == TERMINAL_RULSET_RINGS_CORRUPT_RAM
         || terminalActiveRules == TERMINAL_RULSET_REMOVE_COLOUR
-        || terminalActiveRules == TERMINAL_RULSET_NO_SPRITES
-        || terminalActiveRules == TERMINAL_RULSET_NO_BACKGROUNDS
+        || terminalActiveRules == TERMINAL_RULSET_NO_SPRITES_ALT
+        || terminalActiveRules == TERMINAL_RULSET_NO_BACKGROUNDS_ALT
         || terminalActiveRules == TERMINAL_RULSET_SORT_COLOURS) {
         // sonic MD
         addGameToThoseAllowedForTerminal(1, 0);
@@ -387,6 +394,8 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
 
 void menuDisplay_showTerminalMenu() {
     resetRotorChanges();
+    endIdleMode();
+    vdp_clearGraphicLayer(2);
 
     if (hasMappedRomsToLevels != 1) {
         mapBossRushesToRoms();
@@ -1934,11 +1943,11 @@ void initialiseChosenTerminalGame() {
     if (terminalActiveRules == TERMINAL_RULSET_REMOVE_COLOUR) {
         effectIndexToActivate = 8;
     }
-    if (terminalActiveRules == TERMINAL_RULSET_NO_SPRITES) {
-        effectIndexToActivate = 10;
-    }
-    if (terminalActiveRules == TERMINAL_RULSET_NO_BACKGROUNDS) {
+    if (terminalActiveRules == TERMINAL_RULSET_NO_SPRITES_ALT) {
         effectIndexToActivate = 11;
+    }
+    if (terminalActiveRules == TERMINAL_RULSET_NO_BACKGROUNDS_ALT) {
+        effectIndexToActivate = 10;
     }
     if (terminalActiveRules == TERMINAL_RULSET_SORT_COLOURS) {
         effectIndexToActivate = 12;
@@ -1992,17 +2001,8 @@ void chooseGameSuite() {
         cartLoader_unblockGamesWithCartNumber(9);
         cartLoader_unblockGamesWithCartNumber(10);
     }
-
-    if (gameSuiteSelectIndex == 2) {
-        // sonic classics GG
-        cartLoader_unblockGamesWithCartNumber(12);
-        cartLoader_unblockGamesWithCartNumber(13);
-        cartLoader_unblockGamesWithCartNumber(14);
-        cartLoader_unblockGamesWithCartNumber(15);
-        cartLoader_unblockGamesWithCartNumber(16);
-    }
     
-    if (gameSuiteSelectIndex == 3) {
+    if (gameSuiteSelectIndex == 2) {
         // all sonic MD
         cartLoader_unblockGamesWithCartNumber(1);
         cartLoader_unblockGamesWithCartNumber(2);
@@ -2013,21 +2013,21 @@ void chooseGameSuite() {
         cartLoader_unblockGamesWithCartNumber(18);
     }
 
-    if (gameSuiteSelectIndex == 4) {
+    if (gameSuiteSelectIndex == 3) {
         // puyo puyo
         cartLoader_unblockGamesWithCartNumber(18);
         cartLoader_unblockGamesWithCartNumber(19);
         cartLoader_unblockGamesWithCartNumber(20);
     }
 
-    if (gameSuiteSelectIndex == 5) {
+    if (gameSuiteSelectIndex == 4) {
         // micro machines
         cartLoader_unblockGamesWithCartNumber(27);
         cartLoader_unblockGamesWithCartNumber(28);
         cartLoader_unblockGamesWithCartNumber(29);
     }
 
-    if (gameSuiteSelectIndex == 6) {
+    if (gameSuiteSelectIndex == 5) {
         // streets of rage
         // cartLoader_unblockGamesWithCartNumber(30);
         // cartLoader_unblockGamesWithCartNumber(31);
@@ -2038,14 +2038,14 @@ void chooseGameSuite() {
         cartLoader_unblockGamesWithCartNumber(23);
     }
     
-    if (gameSuiteSelectIndex == 7) {
+    if (gameSuiteSelectIndex == 6) {
         // shinobi
         cartLoader_unblockGamesWithCartNumber(24);
         cartLoader_unblockGamesWithCartNumber(25);
         cartLoader_unblockGamesWithCartNumber(26);
     }
 
-    if (gameSuiteSelectIndex == 8) { // replace this with "up to 6 random"? Sometimes seems to just pick 2... duplicates? Games not found? Streets of rage wrong roms?
+    if (gameSuiteSelectIndex == 7) { // replace this with "up to 6 random"? Sometimes seems to just pick 2... duplicates? Games not found? Streets of rage wrong roms?
         // 4x rando
         int carts[4];
         int allowedCarts[26] = {1, 2, 3, 4, 6, 7, 18, 19, 20, 27, 28, 29, 21, 22, 23, 24, 25, 26, 8, 9, 10, 12, 13, 14, 15, 16};
@@ -2126,11 +2126,11 @@ void enterTerminalOption() {
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
     } else if (terminalLocationIndex == 12) {
-        terminalActiveRules = TERMINAL_RULSET_NO_BACKGROUNDS;
+        terminalActiveRules = TERMINAL_RULSET_NO_BACKGROUNDS_ALT;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
     } else if (terminalLocationIndex == 13) {
-        terminalActiveRules = TERMINAL_RULSET_NO_SPRITES;
+        terminalActiveRules = TERMINAL_RULSET_NO_SPRITES_ALT;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
     }
@@ -4583,7 +4583,7 @@ void showTerminalShufflerSelectMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "What games do you want to shuffle?", 5);
 
-    int lineCount = 10;
+    int lineCount = 9;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -4601,17 +4601,16 @@ void showTerminalShufflerSelectMenu() {
 
     sprintf(lines[0], "  Sonic Classics (Mega Drive)");
     sprintf(lines[1], "  Sonic Classics (Master System)");
-    sprintf(lines[2], "  Sonic Classics (Game Gear)");
-    sprintf(lines[3], "  All Sonic Games (Mega Drive)");
-    linesWithBreakAfter[3] = 1;
+    sprintf(lines[2], "  All Sonic Games (Mega Drive)");
+    linesWithBreakAfter[2] = 1;
 
-    sprintf(lines[4], "  Puyo Puyo");
-    sprintf(lines[5], "  Micro Machines");
-    sprintf(lines[6], "  Streets of Rage");
-    sprintf(lines[7], "  Shinobi");
-    sprintf(lines[8], "  Four Random Games");
-    linesWithBreakAfter[8] = 1;
-    sprintf(lines[9], "back >");
+    sprintf(lines[3], "  Puyo Puyo");
+    sprintf(lines[4], "  Micro Machines");
+    sprintf(lines[5], "  Streets of Rage");
+    sprintf(lines[6], "  Shinobi");
+    sprintf(lines[7], "  Four Random Games");
+    linesWithBreakAfter[7] = 1;
+    sprintf(lines[8], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

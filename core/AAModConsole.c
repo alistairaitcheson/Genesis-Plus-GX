@@ -124,6 +124,7 @@ static int TERMINAL_EFFECT_DISPLAY_DURATION = 60 * 3;
 static int terminalRotorValues[8];
 
 static int hasLEDdisplay = 0;
+static int idleModeCooldown = 0;
 
 void setHasLEDDisplay(int toValue) {
     hasLEDdisplay = toValue;
@@ -151,20 +152,30 @@ void beginIdleMode() {
     setShouldCheckForIdleMode(0);
     idleModeFrameCount = 0;
     
-    // cartLoader_setRandomSelectionOfGamesAsUnblocked(4);
 
     cartLoader_setAllGamesAsBlocked();
-    cartLoader_unblockGamesWithCartNumber(1);
-    cartLoader_unblockGamesWithCartNumber(2);
-    cartLoader_unblockGamesWithCartNumber(3);
-    cartLoader_unblockGamesWithCartNumber(4);
+    cartLoader_setRandomSelectionOfGamesAsUnblocked(4);
 
+    // cartLoader_unblockGamesWithCartNumber(1);
+    // cartLoader_unblockGamesWithCartNumber(2);
+    // cartLoader_unblockGamesWithCartNumber(3);
+    // cartLoader_unblockGamesWithCartNumber(4);
+
+    cartLoader_clearSaveStates();
     menuDisplay_beginIdleMode();
     promptSwitchGame();
 
     modConsole_applyHackOptions();
 
     idleModeActive = 1;
+}
+
+void endIdleMode() {
+    idleModeActive = 0;
+}
+
+int getIsIdleModeActive() {
+    return idleModeActive;
 }
 
 void setShouldShuffleController(int toValue) {
@@ -1325,6 +1336,13 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
         {
             modConsole_activatePanic();
+        } else if (
+            // show the terminal!!
+            buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_A) != 0)
+        {
+            menuDisplay_showTerminalMenu();
         }
 
         if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 && buttonStateAtIndex(INPUT_INDEX_B) != 0 && hasDismissedStartupHint == 0) {
@@ -1431,21 +1449,26 @@ void modConsole_updateFrame() {
 
             if (idleModeFrameCount > MAX_FRAMES_FOR_IDLE_MODE) {
                 beginIdleMode();
+                idleModeCooldown = 0;
             }
         }
 
         if (idleModeActive) {
-            if (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 
-                || buttonStateAtIndex(INPUT_INDEX_RIGHT) != 0
-                || buttonStateAtIndex(INPUT_INDEX_UP) != 0
-                || buttonStateAtIndex(INPUT_INDEX_DOWN) != 0
-                || buttonStateAtIndex(INPUT_INDEX_START) != 0
-                || buttonStateAtIndex(INPUT_INDEX_A) != 0
-                || buttonStateAtIndex(INPUT_INDEX_B) != 0
-                || buttonStateAtIndex(INPUT_INDEX_C) != 0) 
-            {
-                menuDisplay_showTerminalMenu();
-                idleModeActive = 0;
+            if (idleModeCooldown > 0) {
+                idleModeCooldown--;
+            } else {
+                if (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 
+                    || buttonStateAtIndex(INPUT_INDEX_RIGHT) != 0
+                    || buttonStateAtIndex(INPUT_INDEX_UP) != 0
+                    || buttonStateAtIndex(INPUT_INDEX_DOWN) != 0
+                    || buttonStateAtIndex(INPUT_INDEX_START) != 0
+                    || buttonStateAtIndex(INPUT_INDEX_A) != 0
+                    || buttonStateAtIndex(INPUT_INDEX_B) != 0
+                    || buttonStateAtIndex(INPUT_INDEX_C) != 0) 
+                {
+                    menuDisplay_showTerminalMenu();
+                    idleModeActive = 0;
+                }
             }
         }
 
@@ -1454,6 +1477,16 @@ void modConsole_updateFrame() {
             if (countdownToUnrandomiseColours <= 0) {
                 vdp_setShouldRandomiseColours(0);
             }
+        }
+
+        if (
+            // bump into idle mode!!
+            buttonStateAtIndex(INPUT_INDEX_RIGHT) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_A) != 0)
+        {
+            beginIdleMode();
+            idleModeCooldown = 60;
         }
 
 

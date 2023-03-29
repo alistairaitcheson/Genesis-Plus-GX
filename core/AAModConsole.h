@@ -157,5 +157,7 @@ void resetRotorRam();
 void resetRotorChanges();
 void setHasLEDDisplay(int toValue);
 void reportToLED(char actionId[]) ;
+void endIdleMode();
+int getIsIdleModeActive();
 
 #endif

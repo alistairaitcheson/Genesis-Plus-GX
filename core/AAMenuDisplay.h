@@ -36,12 +36,11 @@
 #define TERMINAL_RULSET_RINGS_CORRUPT_LEVEL 4
 #define TERMINAL_RULSET_RINGS_CORRUPT_RAM 5
 #define TERMINAL_RULSET_REMOVE_COLOUR 6
-#define TERMINAL_RULSET_NO_SPRITES 7
-#define TERMINAL_RULSET_NO_BACKGROUNDS 7
 #define TERMINAL_RULSET_SORT_COLOURS 7
 #define TERMINAL_RULSET_BOSS_RUSH 8
 #define TERMINAL_RULSET_CONTROLLER 9
-
+#define TERMINAL_RULSET_NO_SPRITES_ALT 11
+#define TERMINAL_RULSET_NO_BACKGROUNDS_ALT 12
 
 typedef struct {
     int infiniteLives;
@@ -235,5 +234,6 @@ extern void menuDisplay_generateRulesNameForCurrentGame();
 extern char* menuDisplay_getCurrentRulesName();
 void showVersionNumber();
 void switchToRandomAllowedGame();
+int terminalRulesAreActive();
 
 #endif

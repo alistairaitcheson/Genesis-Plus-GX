@@ -811,6 +811,7 @@ void cartLoader_run() {
     sprintf(nameOfTrigger[37], "you get points");
 
     writeStringToArray32("ECCO", gameListings[38].gameId);
+    terminalNamePerRom[38] = "Ecco the Dolphin";
     scoreMonitorListings[38].scoreBytes[0] = 0xB634; // health
     scoreMonitorListings[38].scoreBytesP2[0] = 0xB636; // air 1
     scoreMonitorListings[38].scoreBytesP2[1] = 0xB637; // air 2
@@ -3057,6 +3058,11 @@ void saveSaveStateForCurrentGame() {
 
 void cartLoader_loadSaveStateForCurrentGame() {
     if (hasCachedSaveState[lastLoadedIndex] == 0) {
+        // In terminal mode, always start from
+        // a title screen state if we can
+        if (terminalRulesAreActive() != 0 || getIsIdleModeActive()) {
+            cartLoader_loadCurrentStartupStateFromDisk();
+        }  
         return;
     }
 
