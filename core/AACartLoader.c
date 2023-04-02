@@ -2780,18 +2780,25 @@ void cartLoader_checkNetworkForActions() {
                     }
 
                     if (actionBuffer[i] == NETWORK_MSG_FIRE_TERMINAL_ACTION) {
-                        if (runningNumber == 1) {
-                            modConsole_activatePanic();
+                        if (menuDisplay_isShowing() == 0) {
+                            if (runningNumber == 1) {
+                                modConsole_activatePanic();
+                            }
+                            if (runningNumber == 2) {
+                                modConsole_activateReset();
+                            }
+                            if (runningNumber == 3) {
+                                modConsole_beginRewindAction();
+                            }
+                            if (runningNumber == 4) {
+                                modConsole_endRewindAction();
+                            }
+                        } else {
+                            if (runningNumber != 4 && runningNumber >= 1) {
+                                menuDisplay_onButtonPress(INPUT_INDEX_DOWN);
+                            }
                         }
-                        if (runningNumber == 2) {
-                            modConsole_activateReset();
-                        }
-                        if (runningNumber == 3) {
-                            modConsole_beginRewindAction();
-                        }
-                        if (runningNumber == 4) {
-                            modConsole_endRewindAction();
-                        }
+
                         runningNumber = 0;
                     }
 
@@ -2829,7 +2836,11 @@ void cartLoader_checkNetworkForActions() {
                     }
 
                     if (actionBuffer[i] == NETWORK_MSG_SHOW_TERMINAL_MENU) {
-                        menuDisplay_showTerminalMenu();
+                        if (menuDisplay_isShowing() == 0) {
+                            menuDisplay_showTerminalMenu();
+                        } else {
+                            menuDisplay_onButtonPress(INPUT_INDEX_START);
+                        }
                     }
 
                     // only interpret actions when the menu is NOT showing!!
@@ -3060,7 +3071,7 @@ void cartLoader_loadSaveStateForCurrentGame() {
     if (hasCachedSaveState[lastLoadedIndex] == 0) {
         // In terminal mode, always start from
         // a title screen state if we can
-        if (terminalRulesAreActive() != 0 || getIsIdleModeActive()) {
+        if (terminalRulesAreActive() != 0 && getIsIdleModeActive() == 0) {
             cartLoader_loadCurrentStartupStateFromDisk();
         }  
         return;

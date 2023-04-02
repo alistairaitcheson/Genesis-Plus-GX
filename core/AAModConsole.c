@@ -168,10 +168,13 @@ void beginIdleMode() {
     modConsole_applyHackOptions();
 
     idleModeActive = 1;
+
+    setShouldShuffleController(0);
 }
 
 void endIdleMode() {
     idleModeActive = 0;
+    setShouldShuffleController(0);
 }
 
 int getIsIdleModeActive() {
@@ -1343,6 +1346,13 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_A) != 0)
         {
             menuDisplay_showTerminalMenu();
+        } else if (
+            buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
+            buttonStateAtIndex(INPUT_INDEX_LEFT) != 0
+        ) {
+            // FOR ALISTAIR
+            saveSaveStateForCurrentGame();
+            cartLoader_saveAllSaveStatesToDisk();
         }
 
         if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 && buttonStateAtIndex(INPUT_INDEX_B) != 0 && hasDismissedStartupHint == 0) {

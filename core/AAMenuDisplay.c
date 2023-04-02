@@ -1930,6 +1930,8 @@ void initialiseChosenTerminalGame() {
     // modConsole_activateReset();
     // cartLoader_cacheSaveStateBeforeMenu();
 
+    setShouldShuffleController(0);
+
     int effectIndexToActivate = 0;
     if (terminalActiveRules == TERMINAL_RULSET_RINGS_MAKE_FASTER) {
         effectIndexToActivate = 2;
