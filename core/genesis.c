@@ -603,6 +603,20 @@ void aa_genesis_setWorkRam(unsigned int location, uint8 value) {
   }
 }
 
+uint8 aa_genesis_getZ80Ram(unsigned int location) {
+  if (location < 0x2000) {
+    return zram[location];
+  } else {
+    return 0;
+  }
+}
+
+void aa_genesis_setZ80Ram(unsigned int location, uint8 value) {
+  if (location < 0x2000) {
+    zram[location] = value;
+  }
+}
+
 uint8 lastWorkRam[0x10000];
 void aa_genesis_updateLastRam() {
   for (int i = 0; i < 0x10000; i++) {

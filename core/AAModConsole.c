@@ -126,6 +126,13 @@ static int terminalRotorValues[8];
 static int hasLEDdisplay = 0;
 static int idleModeCooldown = 0;
 
+static int haltMusicCountdown = 0;
+static int lastMusicTempo = 0;
+
+void beginHaltMusic() {
+    haltMusicCountdown = 3;
+}
+
 void setHasLEDDisplay(int toValue) {
     hasLEDdisplay = toValue;
 }
@@ -917,6 +924,28 @@ void modConsole_updateFrame() {
     } else {
         checkDeathCounter();
         applyHeldValues();
+
+        // Below: how to halt music in Sonic 2
+        if (haltMusicCountdown > 0) {
+            // set the "stop all sounds" flag
+            aa_genesis_setZ80Ram(0x1B88, 0);
+            // set the tempo to 0
+            aa_genesis_setZ80Ram(0x1B82, 0);
+            // when we load new music its tempo will not be 0
+            // so we can check "oh the music has changed!"
+            // and fire this flag
+            haltMusicCountdown--;
+        }
+
+        if (aa_genesis_getZ80Ram(0x1B82) != lastMusicTempo) {
+            lastMusicTempo = aa_genesis_getZ80Ram(0x1B82);
+            beginHaltMusic();
+
+            // set the "stop all sounds" flag
+            aa_genesis_setZ80Ram(0x1B88, 0);
+            // set the tempo to 0
+            aa_genesis_setZ80Ram(0x1B82, 0);
+        }
 
         // writeWRAMintoLevelLayout();
         // writeWRAMintoSpriteBuffer();

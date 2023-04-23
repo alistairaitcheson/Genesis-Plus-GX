@@ -25,6 +25,7 @@ static char *logLines[0x100];
 static unsigned int logLineCount;
 
 static AAGameListing gameListings[MAX_ROMS];
+static AAMusicOverrideListing musicOverrideListings[MAX_ROMS];
 static AAStandTriggerListing standTriggerListings[MAX_ROMS];
 static AAGameTransferListing gameTransferListings[MAX_ROMS];
 static AAScoreMonitorListing scoreMonitorListings[MAX_ROMS];
@@ -274,6 +275,10 @@ void cartLoader_run() {
     standTriggerListings[1].standingRequiredValue = 0;
     standTriggerListings[1].standingCooldown = 5;
     sprintf(nameOfTrigger[1], "Sonic gets a ring");
+    musicOverrideListings[1].byteToCheckForTrackChange = 0xF002;
+    musicOverrideListings[1].valueToWriteIntoTrackChangedSlot = 0;
+    musicOverrideListings[1].byteToWriteToForNoMusic = 0xF002;
+    musicOverrideListings[1].valueToWriteForNoMusic = 0;
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
     terminalNamePerRom[2] = "Sonic the Hedgehog 2";
@@ -299,6 +304,11 @@ void cartLoader_run() {
     standTriggerListings[2].standingBit = 1;
     standTriggerListings[2].standingRequiredValue = 0;
     standTriggerListings[2].standingCooldown = 5;
+    musicOverrideListings[2].shouldEditZ80 = 1;
+    musicOverrideListings[2].byteToCheckForTrackChange = 0xF002;
+    musicOverrideListings[2].valueToWriteIntoTrackChangedSlot = 0;
+    musicOverrideListings[2].byteToWriteToForNoMusic = 0xF002;
+    musicOverrideListings[2].valueToWriteForNoMusic = 0;
 
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
     terminalNamePerRom[3] = "Sonic the Hedgehog 3";
@@ -1975,6 +1985,11 @@ void zeroAllListings() {
 
         sprintf(terminalNamePerRom[gameIndex], "UNKNOWN %i", gameIndex);
         sprintf(nameOfTrigger[gameIndex], "");
+
+        musicOverrideListings[gameIndex].byteToCheckForTrackChange = 0;
+        musicOverrideListings[gameIndex].valueToWriteIntoTrackChangedSlot = 0;
+        musicOverrideListings[gameIndex].byteToWriteToForNoMusic = 0;
+        musicOverrideListings[gameIndex].valueToWriteForNoMusic = 0;
     }
 }
 
@@ -3026,8 +3041,12 @@ void copyGameListing(int fromGame, int toGame) {
     }
     pixelMonitorListings[toGame].changeMustAffectColour = pixelMonitorListings[fromGame].changeMustAffectColour;
 
-    sprintf(nameOfTrigger[toGame], nameOfTrigger[fromGame]);
+    musicOverrideListings[toGame].byteToCheckForTrackChange = musicOverrideListings[fromGame].byteToCheckForTrackChange;
+    musicOverrideListings[toGame].valueToWriteIntoTrackChangedSlot = musicOverrideListings[fromGame].valueToWriteIntoTrackChangedSlot;
+    musicOverrideListings[toGame].byteToWriteToForNoMusic = musicOverrideListings[fromGame].byteToWriteToForNoMusic;
+    musicOverrideListings[toGame].valueToWriteForNoMusic = musicOverrideListings[fromGame].valueToWriteForNoMusic;
 
+    sprintf(nameOfTrigger[toGame], nameOfTrigger[fromGame]);
 }
 
 void saveStateForCurrentBoss() {

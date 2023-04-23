@@ -91,5 +91,9 @@ extern void aa_genesis_revertToLastRam();
 extern uint8 aa_genesis_getVRamValue(int index);
 extern void aa_genesis_setVRamValue(int index, uint8 value);
 
+// music
+extern void aa_genesis_setZ80Ram(unsigned int location, uint8 value);
+extern uint8 aa_genesis_getZ80Ram(unsigned int location);
+
 #endif /* _GEN_H_ */
 

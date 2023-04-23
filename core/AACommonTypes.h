@@ -36,6 +36,15 @@ typedef struct
     int postRingEffectCooldown;
 } AAGameListing;
 
+typedef struct
+{
+    int shouldEditZ80;
+    int byteToCheckForTrackChange;
+    int valueToWriteIntoTrackChangedSlot;
+    int byteToWriteToForNoMusic;
+    int valueToWriteForNoMusic;
+} AAMusicOverrideListing;
+
 typedef struct {
     int standingByte;
     int standingBit;
