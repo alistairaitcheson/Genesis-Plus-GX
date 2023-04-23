@@ -129,6 +129,7 @@ typedef struct {
 
     int showProgress;
     int shouldExposeTrackerData;
+    int shouldUseExternalMusic;
 } BossRushOptions;
 
 extern void menuDisplay_showMenu(int menuNum);

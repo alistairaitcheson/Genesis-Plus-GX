@@ -43,6 +43,13 @@ typedef struct
     int valueToWriteIntoTrackChangedSlot;
     int byteToWriteToForNoMusic;
     int valueToWriteForNoMusic;
+    int haltMusicCountdown;
+    int lastTrackChangeValue;
+    int secondByteToWriteToForNoMusic;
+    int secondValueToWriteForNoMusic;
+    int byteStringCheckForTrackChange;
+    int applyChangeDuration;
+    int byteStringLengthToWriteForNoMusic;
 } AAMusicOverrideListing;
 
 typedef struct {

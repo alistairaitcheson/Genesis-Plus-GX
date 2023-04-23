@@ -126,12 +126,106 @@ static int terminalRotorValues[8];
 static int hasLEDdisplay = 0;
 static int idleModeCooldown = 0;
 
-static int haltMusicCountdown = 0;
-static int lastMusicTempo = 0;
+static int debug_lastMusicTempo = 0;
+static int debug_haltMusicCountdown = 0;
 
-void beginHaltMusic() {
-    haltMusicCountdown = 3;
+void checkToHaltMusic() {
+    if (shouldUseBossRush() && menuDisplay_getBossRushOptions().shouldUseExternalMusic) {
+        vdp_clearGraphicLayer(3);
+        layerRenderer_writeWord256(3, 0, 0, "Boss rush music silencer on", 0x5);
+
+        int shouldOverrideNow = 0;
+        AAMusicOverrideListing musicListing = cartLoader_getActiveMusicOverrideListing();
+        if (musicListing.byteToCheckForTrackChange != 0) {
+            int currentValue = 0;
+            if (musicListing.shouldEditZ80 == 0) {
+                currentValue = aa_genesis_getWorkRam(musicListing.byteToCheckForTrackChange);
+            } else {
+                // check z80 ram
+                currentValue = aa_genesis_getZ80Ram(musicListing.byteToCheckForTrackChange);
+                if (musicListing.byteStringCheckForTrackChange > 0) {
+                    currentValue = 0;
+                    for (int i = 0; i < musicListing.byteStringCheckForTrackChange; i++) {
+                        currentValue += aa_genesis_getZ80Ram(musicListing.byteToCheckForTrackChange + i);
+                    }
+                }
+            }
+
+            // check work ram
+            if (musicListing.lastTrackChangeValue != currentValue) {
+                musicListing.lastTrackChangeValue = currentValue;
+                cartLoader_beginCurrentHaltCountdown();
+                shouldOverrideNow = 1;
+
+                if (musicListing.shouldEditZ80 == 0) {
+                    aa_genesis_setWorkRam(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
+                } else {
+                    // check z80 ram
+                    aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
+                    if (musicListing.byteStringCheckForTrackChange > 0) {
+                        for (int i = 0; i < musicListing.byteStringCheckForTrackChange; i++) {
+                            aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange + i, 0);
+                        }
+                    }
+                }
+
+            }
+
+            char detailsBuf[0x100];
+            sprintf(detailsBuf, "(%i) %04X - %02X > %02X - ctdn %i - ovr %i", musicListing.shouldEditZ80, musicListing.byteToCheckForTrackChange, musicListing.lastTrackChangeValue, currentValue, musicListing.haltMusicCountdown, shouldOverrideNow);
+            layerRenderer_writeWord256(3, 0, 8, detailsBuf, 0x5);
+
+
+            if (musicListing.haltMusicCountdown > 0 || shouldOverrideNow != 0) {
+                enforceHaltMusic();
+                cartLoader_reduceCurrentHaltCountdown();
+            }
+        }
+    }
 }
+
+void enforceHaltMusic() {
+    AAMusicOverrideListing musicListing = cartLoader_getActiveMusicOverrideListing();
+    if (musicListing.shouldEditZ80 == 0) {
+        // set the "stop all sounds" flag
+        aa_genesis_setWorkRam(musicListing.byteToWriteToForNoMusic, musicListing.valueToWriteForNoMusic);
+        // set the tempo to 0
+        if (musicListing.haltMusicCountdown < 3) {
+            aa_genesis_setWorkRam(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
+        }
+
+        if (musicListing.secondByteToWriteToForNoMusic != 0) {
+            aa_genesis_setWorkRam(musicListing.secondByteToWriteToForNoMusic, musicListing.secondValueToWriteForNoMusic);
+        }
+    } else {
+        // set the "stop all sounds" flag
+        aa_genesis_setZ80Ram(musicListing.byteToWriteToForNoMusic, musicListing.valueToWriteForNoMusic);
+        if (musicListing.byteStringLengthToWriteForNoMusic > 0) {
+            for (int i = 0; i < musicListing.byteStringLengthToWriteForNoMusic; i++) {
+                aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange + i, 0);
+            }
+        }
+
+        // set the tempo to 0
+        // if (musicListing.haltMusicCountdown < 3) {
+        aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
+        // }
+
+        if (musicListing.byteStringCheckForTrackChange > 0) {
+            for (int i = 0; i < musicListing.byteStringCheckForTrackChange; i++) {
+                aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange + i, 0);
+            }
+        }
+
+        if (musicListing.secondByteToWriteToForNoMusic != 0) {
+            aa_genesis_setZ80Ram(musicListing.secondByteToWriteToForNoMusic, musicListing.secondValueToWriteForNoMusic);
+        }
+    }
+    // when we load new music its tempo will not be 0
+    // so we can check "oh the music has changed!"
+    // and fire this flag
+}
+
 
 void setHasLEDDisplay(int toValue) {
     hasLEDdisplay = toValue;
@@ -925,27 +1019,22 @@ void modConsole_updateFrame() {
         checkDeathCounter();
         applyHeldValues();
 
-        // Below: how to halt music in Sonic 2
-        if (haltMusicCountdown > 0) {
-            // set the "stop all sounds" flag
-            aa_genesis_setZ80Ram(0x1B88, 0);
-            // set the tempo to 0
-            aa_genesis_setZ80Ram(0x1B82, 0);
-            // when we load new music its tempo will not be 0
-            // so we can check "oh the music has changed!"
-            // and fire this flag
-            haltMusicCountdown--;
-        }
+        // // // Below: how to halt music in Sonic 2
+        // if (debug_haltMusicCountdown > 0) {
+        //     // set the "stop all sounds" flag
+        //     aa_genesis_setZ80Ram(0x1B88, 0);
+        //     // set the tempo to 0
+        //     aa_genesis_setZ80Ram(0x1B82, 0);
+        //     // when we load new music its tempo will not be 0
+        //     // so we can check "oh the music has changed!"
+        //     // and fire this flag
+        //     debug_haltMusicCountdown--;
+        // }
 
-        if (aa_genesis_getZ80Ram(0x1B82) != lastMusicTempo) {
-            lastMusicTempo = aa_genesis_getZ80Ram(0x1B82);
-            beginHaltMusic();
-
-            // set the "stop all sounds" flag
-            aa_genesis_setZ80Ram(0x1B88, 0);
-            // set the tempo to 0
-            aa_genesis_setZ80Ram(0x1B82, 0);
-        }
+        // if (aa_genesis_getZ80Ram(0x1B82) != debug_lastMusicTempo) {
+        //     debug_lastMusicTempo = aa_genesis_getZ80Ram(0x1B82);
+        //     debug_haltMusicCountdown = 10;
+        // }
 
         // writeWRAMintoLevelLayout();
         // writeWRAMintoSpriteBuffer();
@@ -1094,6 +1183,8 @@ void modConsole_updateFrame() {
         // );
         // layerRenderer_clearLayer(0);
         // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
+
+        checkToHaltMusic();
 
         if (menuDisplay_areSoloEffectsAllowed() != 0) {
             if (hackOpts.speedUpOnRing != 0) {

@@ -174,4 +174,8 @@ void abortAllBossRushSettings();
 void cartLoader_blockGamesWithCartNumber(int cartNumber);
 void cartLoader_loadCurrentStartupStateFromDisk();
 
+AAMusicOverrideListing cartLoader_getActiveMusicOverrideListing();
+void cartLoader_reduceCurrentHaltCountdown();
+void cartLoader_beginCurrentHaltCountdown();
+
 #endif

@@ -928,6 +928,7 @@ void applyDefaultBossRushValues() {
     bossRushOptions.seedEditingLocationIndex = 0;
     bossRushOptions.shouldRevealSeed = 0;
     bossRushOptions.shouldExposeTrackerData = 1;
+    bossRushOptions.shouldUseExternalMusic = 0;
 }
 
 void applyDefaultRamDetectiveValues() {
@@ -2187,8 +2188,11 @@ void incrementBossRushOption(int direction, int buttonIndex) {
     if (bossRushItemIndex == 11) {
         bossRushOptions.shouldExposeTrackerData += direction;
     }
-
     if (bossRushItemIndex == 12) {
+        bossRushOptions.shouldUseExternalMusic += direction;
+    }
+
+    if (bossRushItemIndex == 13) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -4217,7 +4221,7 @@ void showBossRushMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Boss Rush", 5);
 
-    int lineCount = 13;
+    int lineCount = 14;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -4403,10 +4407,20 @@ void showBossRushMenu() {
         sprintf(lines[11], "Expose data to tracker:  yes");
     }
 
+    if (bossRushOptions.shouldUseExternalMusic < 0) {
+        bossRushOptions.shouldUseExternalMusic = 1;
+    }
+    if (bossRushOptions.shouldUseExternalMusic > 1) {
+        bossRushOptions.shouldUseExternalMusic = 0;
+    }
+    if (bossRushOptions.shouldUseExternalMusic == 0) {
+        sprintf(lines[12], "External music player:    no");
+    } else {
+        sprintf(lines[12], "External music player:   yes");
+    }
 
-    sprintf(lines[12], "back >");
-    linesWithBreakAfter[12] = 1;
 
+    sprintf(lines[13], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

@@ -160,4 +160,7 @@ void reportToLED(char actionId[]) ;
 void endIdleMode();
 int getIsIdleModeActive();
 
+void checkToHaltMusic();
+void enforceHaltMusic();
+
 #endif

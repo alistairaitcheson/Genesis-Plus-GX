@@ -275,10 +275,12 @@ void cartLoader_run() {
     standTriggerListings[1].standingRequiredValue = 0;
     standTriggerListings[1].standingCooldown = 5;
     sprintf(nameOfTrigger[1], "Sonic gets a ring");
-    musicOverrideListings[1].byteToCheckForTrackChange = 0xF002;
+    musicOverrideListings[1].shouldEditZ80 = 0;
+    musicOverrideListings[1].byteToCheckForTrackChange = 0xF003;
     musicOverrideListings[1].valueToWriteIntoTrackChangedSlot = 0;
-    musicOverrideListings[1].byteToWriteToForNoMusic = 0xF002;
+    musicOverrideListings[1].byteToWriteToForNoMusic = 0xF008;
     musicOverrideListings[1].valueToWriteForNoMusic = 0;
+    musicOverrideListings[1].applyChangeDuration = 5;
 
     writeStringToArray32("SONICTHEHEDGEHOG2", gameListings[2].gameId);//gameListings[1].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','2','\0'};
     terminalNamePerRom[2] = "Sonic the Hedgehog 2";
@@ -305,10 +307,11 @@ void cartLoader_run() {
     standTriggerListings[2].standingRequiredValue = 0;
     standTriggerListings[2].standingCooldown = 5;
     musicOverrideListings[2].shouldEditZ80 = 1;
-    musicOverrideListings[2].byteToCheckForTrackChange = 0xF002;
+    musicOverrideListings[2].byteToCheckForTrackChange = 0x1B82;
     musicOverrideListings[2].valueToWriteIntoTrackChangedSlot = 0;
-    musicOverrideListings[2].byteToWriteToForNoMusic = 0xF002;
+    musicOverrideListings[2].byteToWriteToForNoMusic = 0x1B88;
     musicOverrideListings[2].valueToWriteForNoMusic = 0;
+    musicOverrideListings[2].applyChangeDuration = 5;
 
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
     terminalNamePerRom[3] = "Sonic the Hedgehog 3";
@@ -363,6 +366,16 @@ void cartLoader_run() {
     standTriggerListings[3].standingBit = 1;
     standTriggerListings[3].standingRequiredValue = 0;
     standTriggerListings[3].standingCooldown = 5;
+    musicOverrideListings[3].shouldEditZ80 = 1;
+    musicOverrideListings[3].byteToCheckForTrackChange = 0x1C34; //0x1C34;
+    musicOverrideListings[3].valueToWriteIntoTrackChangedSlot = 0x00;
+    musicOverrideListings[3].byteStringCheckForTrackChange = 32;
+    musicOverrideListings[3].byteToWriteToForNoMusic = 0x1FF4;
+    musicOverrideListings[3].valueToWriteForNoMusic = 0;
+    musicOverrideListings[3].secondByteToWriteToForNoMusic = 0x1FF5;
+    musicOverrideListings[3].secondValueToWriteForNoMusic = 0;
+    musicOverrideListings[3].byteStringLengthToWriteForNoMusic = 2;
+    musicOverrideListings[3].applyChangeDuration = 10;
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     terminalNamePerRom[4] = "Sonic & Knuckles";
@@ -1986,10 +1999,18 @@ void zeroAllListings() {
         sprintf(terminalNamePerRom[gameIndex], "UNKNOWN %i", gameIndex);
         sprintf(nameOfTrigger[gameIndex], "");
 
+        musicOverrideListings[gameIndex].shouldEditZ80 = 0;
         musicOverrideListings[gameIndex].byteToCheckForTrackChange = 0;
         musicOverrideListings[gameIndex].valueToWriteIntoTrackChangedSlot = 0;
         musicOverrideListings[gameIndex].byteToWriteToForNoMusic = 0;
         musicOverrideListings[gameIndex].valueToWriteForNoMusic = 0;
+        musicOverrideListings[gameIndex].haltMusicCountdown = 0;
+        musicOverrideListings[gameIndex].lastTrackChangeValue = 0;
+        musicOverrideListings[gameIndex].secondByteToWriteToForNoMusic = 0;
+        musicOverrideListings[gameIndex].secondValueToWriteForNoMusic = 0;
+        musicOverrideListings[gameIndex].byteStringCheckForTrackChange = 0;
+        musicOverrideListings[gameIndex].byteStringLengthToWriteForNoMusic = 0;
+        musicOverrideListings[gameIndex].applyChangeDuration = 1;
     }
 }
 
@@ -2494,6 +2515,19 @@ int cartLoader_getActiveCartIndex() {
 AAGameListing cartLoader_getActiveGameListing() {
     return gameListings[cartLoader_getActiveCartIndex()];
 }
+
+AAMusicOverrideListing cartLoader_getActiveMusicOverrideListing() {
+    return musicOverrideListings[cartLoader_getActiveCartIndex()];
+}
+
+void cartLoader_beginCurrentHaltCountdown() {
+    musicOverrideListings[cartLoader_getActiveCartIndex()].haltMusicCountdown = musicOverrideListings[cartLoader_getActiveCartIndex()].applyChangeDuration;
+}
+
+void cartLoader_reduceCurrentHaltCountdown() {
+    musicOverrideListings[cartLoader_getActiveCartIndex()].haltMusicCountdown--;
+}
+
 
 AAStandTriggerListing cartLoader_getActiveStandTriggerListing() {
     return standTriggerListings[cartLoader_getActiveCartIndex()];
@@ -3041,10 +3075,18 @@ void copyGameListing(int fromGame, int toGame) {
     }
     pixelMonitorListings[toGame].changeMustAffectColour = pixelMonitorListings[fromGame].changeMustAffectColour;
 
+    musicOverrideListings[toGame].shouldEditZ80 = musicOverrideListings[fromGame].shouldEditZ80;
     musicOverrideListings[toGame].byteToCheckForTrackChange = musicOverrideListings[fromGame].byteToCheckForTrackChange;
     musicOverrideListings[toGame].valueToWriteIntoTrackChangedSlot = musicOverrideListings[fromGame].valueToWriteIntoTrackChangedSlot;
     musicOverrideListings[toGame].byteToWriteToForNoMusic = musicOverrideListings[fromGame].byteToWriteToForNoMusic;
     musicOverrideListings[toGame].valueToWriteForNoMusic = musicOverrideListings[fromGame].valueToWriteForNoMusic;
+    musicOverrideListings[toGame].lastTrackChangeValue = musicOverrideListings[fromGame].lastTrackChangeValue;
+    musicOverrideListings[toGame].haltMusicCountdown = musicOverrideListings[fromGame].haltMusicCountdown;
+    musicOverrideListings[toGame].secondByteToWriteToForNoMusic = musicOverrideListings[fromGame].secondByteToWriteToForNoMusic;
+    musicOverrideListings[toGame].secondValueToWriteForNoMusic = musicOverrideListings[fromGame].secondValueToWriteForNoMusic;
+    musicOverrideListings[toGame].byteStringCheckForTrackChange = musicOverrideListings[fromGame].byteStringCheckForTrackChange;
+    musicOverrideListings[toGame].applyChangeDuration = musicOverrideListings[fromGame].applyChangeDuration;
+    musicOverrideListings[toGame].byteStringLengthToWriteForNoMusic = musicOverrideListings[fromGame].byteStringLengthToWriteForNoMusic;
 
     sprintf(nameOfTrigger[toGame], nameOfTrigger[fromGame]);
 }
