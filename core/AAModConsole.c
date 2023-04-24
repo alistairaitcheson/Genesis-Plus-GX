@@ -131,8 +131,8 @@ static int debug_haltMusicCountdown = 0;
 
 void checkToHaltMusic() {
     if (shouldUseBossRush() && menuDisplay_getBossRushOptions().shouldUseExternalMusic /*&& aa_genesis_getWorkRam(0xF601) < 0x80*/) {
-        vdp_clearGraphicLayer(3);
-        layerRenderer_writeWord256(3, 0, 0, "Boss rush music silencer on", 0x5);
+        // vdp_clearGraphicLayer(3);
+        // layerRenderer_writeWord256(3, 0, 0, "Boss rush music silencer on", 0x5);
 
         int shouldOverrideNow = 0;
         AAMusicOverrideListing musicListing = cartLoader_getActiveMusicOverrideListing();
@@ -143,12 +143,12 @@ void checkToHaltMusic() {
             } else {
                 // check z80 ram
                 currentValue = aa_genesis_getZ80Ram(musicListing.byteToCheckForTrackChange);
-                if (musicListing.byteStringCheckForTrackChange > 0) {
-                    currentValue = 0;
-                    for (int i = 0; i < musicListing.byteStringCheckForTrackChange; i++) {
-                        currentValue += aa_genesis_getZ80Ram(musicListing.byteToCheckForTrackChange + i);
-                    }
-                }
+                // if (musicListing.byteStringCheckForTrackChange > 0) {
+                //     currentValue = 0;
+                //     for (int i = 0; i < musicListing.byteStringCheckForTrackChange; i++) {
+                //         currentValue += aa_genesis_getZ80Ram(musicListing.byteToCheckForTrackChange + i);
+                //     }
+                // }
             }
 
             // check work ram
@@ -161,7 +161,7 @@ void checkToHaltMusic() {
                     aa_genesis_setWorkRam(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
                 } else {
                     // check z80 ram
-                    // aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
+                    aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
                     // if (musicListing.byteStringCheckForTrackChange > 0) {
                     //     for (int i = 0; i < musicListing.byteStringCheckForTrackChange; i++) {
                     //         aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange + i, 0);
@@ -171,15 +171,15 @@ void checkToHaltMusic() {
 
             }
 
-            char detailsBuf[0x100];
-            sprintf(detailsBuf, "(%i) %04X - %02X > %02X - ctdn %i - ovr %i", musicListing.shouldEditZ80, musicListing.byteToCheckForTrackChange, musicListing.lastTrackChangeValue, currentValue, musicListing.haltMusicCountdown, shouldOverrideNow);
-            layerRenderer_writeWord256(3, 0, 8, detailsBuf, 0x5);
+            // char detailsBuf[0x100];
+            // sprintf(detailsBuf, "(%i) %04X - %02X > %02X - ctdn %i - ovr %i", musicListing.shouldEditZ80, musicListing.byteToCheckForTrackChange, musicListing.lastTrackChangeValue, currentValue, musicListing.haltMusicCountdown, shouldOverrideNow);
+            // layerRenderer_writeWord256(3, 0, 8, detailsBuf, 0x5);
 
-            char detailsBuf2[0x100];
-            sprintf(detailsBuf2, "(%04X = %02X / %02X) (%04X = %02X / %02X)", 
-                musicListing.byteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.byteToWriteToForNoMusic), musicListing.valueToWriteForNoMusic, 
-                musicListing.secondByteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.secondByteToWriteToForNoMusic), musicListing.secondValueToWriteForNoMusic);
-            layerRenderer_writeWord256(3, 0, 16, detailsBuf2, 0x5);
+            // char detailsBuf2[0x100];
+            // sprintf(detailsBuf2, "(%04X = %02X / %02X) (%04X = %02X / %02X)", 
+            //     musicListing.byteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.byteToWriteToForNoMusic), musicListing.valueToWriteForNoMusic, 
+            //     musicListing.secondByteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.secondByteToWriteToForNoMusic), musicListing.secondValueToWriteForNoMusic);
+            // layerRenderer_writeWord256(3, 0, 16, detailsBuf2, 0x5);
 
             if (musicListing.haltMusicCountdown > 0 || shouldOverrideNow != 0) {
                 // if (frameCount % 5 == 0) {
@@ -188,11 +188,11 @@ void checkToHaltMusic() {
                 
                 cartLoader_reduceCurrentHaltCountdown();
 
-                char detailsBuf3[0x100];
-                sprintf(detailsBuf3, "(%04X = %02X / %02X) (%04X = %02X / %02X)", 
-                    musicListing.byteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.byteToWriteToForNoMusic), musicListing.valueToWriteForNoMusic, 
-                    musicListing.secondByteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.secondByteToWriteToForNoMusic), musicListing.secondValueToWriteForNoMusic);
-                layerRenderer_writeWord256(3, 0, 24, detailsBuf3, 0x5);
+                // char detailsBuf3[0x100];
+                // sprintf(detailsBuf3, "(%04X = %02X / %02X) (%04X = %02X / %02X)", 
+                //     musicListing.byteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.byteToWriteToForNoMusic), musicListing.valueToWriteForNoMusic, 
+                //     musicListing.secondByteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.secondByteToWriteToForNoMusic), musicListing.secondValueToWriteForNoMusic);
+                // layerRenderer_writeWord256(3, 0, 24, detailsBuf3, 0x5);
             }
         }
         
@@ -243,15 +243,15 @@ void enforceHaltMusic() {
     } else {
         // set the "stop all sounds" flag
         aa_genesis_setZ80Ram(musicListing.byteToWriteToForNoMusic, musicListing.valueToWriteForNoMusic);
-        if (musicListing.secondByteToWriteToForNoMusic != 0) {
-            aa_genesis_setZ80Ram(musicListing.secondByteToWriteToForNoMusic, musicListing.secondValueToWriteForNoMusic);
-        }
+        // if (musicListing.secondByteToWriteToForNoMusic != 0) {
+        //     aa_genesis_setZ80Ram(musicListing.secondByteToWriteToForNoMusic, musicListing.secondValueToWriteForNoMusic);
+        // }
 
-        if (musicListing.byteStringLengthToWriteForNoMusic > 0) {
-            for (int i = 0; i < musicListing.byteStringLengthToWriteForNoMusic; i++) {
-                aa_genesis_setZ80Ram(musicListing.byteToWriteToForNoMusic + i, 0);
-            }
-        }
+        // if (musicListing.byteStringLengthToWriteForNoMusic > 0) {
+        //     for (int i = 0; i < musicListing.byteStringLengthToWriteForNoMusic; i++) {
+        //         aa_genesis_setZ80Ram(musicListing.byteToWriteToForNoMusic + i, 0);
+        //     }
+        // }
 
         // // tricky option in case of Sonic 3
         // if (cartLoader_getActiveCartIndex() == 3 && frameCount % 5 == 0) {
@@ -263,7 +263,7 @@ void enforceHaltMusic() {
         // }
 
         // set the tempo to 0
-        // aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
+        aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
 
         // if (musicListing.byteStringCheckForTrackChange > 0) {
         //     for (int i = 0; i < musicListing.byteStringCheckForTrackChange; i++) {
