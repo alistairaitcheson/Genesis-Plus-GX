@@ -206,21 +206,21 @@ void checkToHaltMusic() {
 
         // // nuclear option in case of Sonic & knuckles
         if (cartLoader_getActiveCartIndex() == 4) {
-            char skBufTop[0x100];
-            sprintf(skBufTop, "");
-            char skBufBottom[0x100];
-            sprintf(skBufBottom, "");
+            // char skBufTop[0x100];
+            // sprintf(skBufTop, "");
+            // char skBufBottom[0x100];
+            // sprintf(skBufBottom, "");
 
             for (int i = 0x1FE0; i < 0x1FF0; i++) {
                 sprintf(skBufTop, "%s %02X", skBufTop, aa_genesis_getZ80Ram(i));
-                aa_genesis_setZ80Ram(i, 0);
+                // aa_genesis_setZ80Ram(i, 0);
             }
             for (int i = 0x1FF0; i < 0x2000; i++) {
                 sprintf(skBufBottom, "%s %02X", skBufBottom, aa_genesis_getZ80Ram(i));
-                aa_genesis_setZ80Ram(i, 0);
+                // aa_genesis_setZ80Ram(i, 0);
             }
-            layerRenderer_writeWord256(3, 0, 8, skBufTop, 0x5);
-            layerRenderer_writeWord256(3, 0, 16, skBufBottom, 0x5);
+            // layerRenderer_writeWord256(3, 0, 8, skBufTop, 0x5);
+            // layerRenderer_writeWord256(3, 0, 16, skBufBottom, 0x5);
         }
     }
 }
