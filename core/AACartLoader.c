@@ -366,16 +366,16 @@ void cartLoader_run() {
     standTriggerListings[3].standingBit = 1;
     standTriggerListings[3].standingRequiredValue = 0;
     standTriggerListings[3].standingCooldown = 5;
-    // musicOverrideListings[3].shouldEditZ80 = 1;
-    // musicOverrideListings[3].byteToCheckForTrackChange = 0x1C34; //0x1C34;
-    // musicOverrideListings[3].valueToWriteIntoTrackChangedSlot = 0x00;
-    // musicOverrideListings[3].byteStringCheckForTrackChange = 4;
-    // musicOverrideListings[3].byteToWriteToForNoMusic = 0x1FF4; //0x1FF2; //0x1FF4;
-    // musicOverrideListings[3].valueToWriteForNoMusic = 0x00;
-    // musicOverrideListings[3].secondByteToWriteToForNoMusic = 0x1FF5; //0x1FF3; //0x1FF5;
-    // musicOverrideListings[3].secondValueToWriteForNoMusic = 0x00;
-    // // musicOverrideListings[3].byteStringLengthToWriteForNoMusic = 4;
-    // musicOverrideListings[3].applyChangeDuration = 180;
+    musicOverrideListings[3].shouldEditZ80 = 1;
+    musicOverrideListings[3].byteToCheckForTrackChange = 0; //0x1C34;
+    musicOverrideListings[3].valueToWriteIntoTrackChangedSlot = 0x00;
+    musicOverrideListings[3].byteStringCheckForTrackChange = 4;
+    musicOverrideListings[3].byteToWriteToForNoMusic = 0x1FF4; //0x1FF2; //0x1FF4;
+    musicOverrideListings[3].valueToWriteForNoMusic = 0x00;
+    musicOverrideListings[3].secondByteToWriteToForNoMusic = 0x1FF5; //0x1FF3; //0x1FF5;
+    musicOverrideListings[3].secondValueToWriteForNoMusic = 0x00;
+    // musicOverrideListings[3].byteStringLengthToWriteForNoMusic = 4;
+    musicOverrideListings[3].applyChangeDuration = 180;
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     terminalNamePerRom[4] = "Sonic & Knuckles";

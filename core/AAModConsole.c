@@ -194,15 +194,33 @@ void checkToHaltMusic() {
                     musicListing.secondByteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.secondByteToWriteToForNoMusic), musicListing.secondValueToWriteForNoMusic);
                 layerRenderer_writeWord256(3, 0, 24, detailsBuf3, 0x5);
             }
-
-            // // nuclear option in case of Sonic 3
-            if (cartLoader_getActiveCartIndex() == 3) {
-                // for (int i = 0x1078; i < 0x114A; i++) {
-                for (int i = 0x10E0; i < 0x1100; i++) {
-                    aa_genesis_setZ80Ram(i, 0);
-                }
+        }
+        
+        // // nuclear option in case of Sonic 3
+        if (cartLoader_getActiveCartIndex() == 3) {
+            // for (int i = 0x1078; i < 0x114A; i++) {
+            for (int i = 0x10E0; i < 0x1100; i++) {//7AB3231B
+                aa_genesis_setZ80Ram(i, 0);
             }
+        }
 
+        // // nuclear option in case of Sonic & knuckles
+        if (cartLoader_getActiveCartIndex() == 4) {
+            char skBufTop[0x100];
+            sprintf(skBufTop, "");
+            char skBufBottom[0x100];
+            sprintf(skBufBottom, "");
+
+            for (int i = 0x1FE0; i < 0x1FF0; i++) {
+                sprintf(skBufTop, "%s %02X", skBufTop, aa_genesis_getZ80Ram(i));
+                aa_genesis_setZ80Ram(i, 0);
+            }
+            for (int i = 0x1FF0; i < 0x2000; i++) {
+                sprintf(skBufBottom, "%s %02X", skBufBottom, aa_genesis_getZ80Ram(i));
+                aa_genesis_setZ80Ram(i, 0);
+            }
+            layerRenderer_writeWord256(3, 0, 8, skBufTop, 0x5);
+            layerRenderer_writeWord256(3, 0, 16, skBufBottom, 0x5);
         }
     }
 }
@@ -235,14 +253,14 @@ void enforceHaltMusic() {
             }
         }
 
-        // tricky option in case of Sonic 3
-        if (cartLoader_getActiveCartIndex() == 3 && frameCount % 5 == 0) {
-            queueZ80MemoryChange(0x1FF2, 0);
-            queueZ80MemoryChange(0x1FF3, 0);
+        // // tricky option in case of Sonic 3
+        // if (cartLoader_getActiveCartIndex() == 3 && frameCount % 5 == 0) {
+        //     queueZ80MemoryChange(0x1FF2, 0);
+        //     queueZ80MemoryChange(0x1FF3, 0);
 
-            queueZ80MemoryChange(0x1FF4, 0);
-            queueZ80MemoryChange(0x1FF5, 0);
-        }
+        //     queueZ80MemoryChange(0x1FF4, 0);
+        //     queueZ80MemoryChange(0x1FF5, 0);
+        // }
 
         // set the tempo to 0
         // aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
