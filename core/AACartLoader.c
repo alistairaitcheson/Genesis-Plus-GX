@@ -3326,8 +3326,14 @@ void cartLoader_loadBossRushSaveStatesFromDisk() {
         char path[256];
         BossRushChallengeListing listing = bossRushCallenges[i];
 
+        char silentModeFlag[16];
+        sprintf(silentModeFlag, "");
+        if (menuDisplay_getBossRushOptions().shouldUseExternalMusic) {
+        sprintf(silentModeFlag, "/silent");
+        }
+
         // sprintf(path, "%s/0_0_2.savestate", folderPath); // 
-        sprintf(path, "%s/.boss_rush_source/%i_%i_%i.savestate", folderPath, listing.gameIndex, listing.zoneIndex, listing.actIndex);
+        sprintf(path, "%s/.boss_rush_source%s/%i_%i_%i.savestate", folderPath, silentModeFlag, listing.gameIndex, listing.zoneIndex, listing.actIndex);
         // sprintf(path, "%s/.boss_rush_source/%i.savestate", folderPath, listing.gameIndex);
 
         // LOGGING HERE SEEMS TO CRASH THE EMU!!!
