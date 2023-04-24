@@ -3417,8 +3417,20 @@ void z80_reset(void)
  ****************************************************************************/
 void z80_run(unsigned int cycles)
 {
+  // TO TRY: write a think to ensure 0x1FF4 and 0x1FF5 stay at 0 during every loop
+
+  // int shouldBlockMusic = 0;
+  // if (zram[0x1FF4] == 0 || zram[0x1FF5] == 0) {
+  //   shouldBlockMusic = 1;
+  // }
+
   while( Z80.cycles < cycles )
   {
+    // if (shouldBlockMusic == 1 && rand() % 100 == 0) {
+    //   zram[0x1FF4] = 0;
+    //   zram[0x1FF5] = 0;
+    // }
+
     /* check for IRQs before each instruction */
     if (Z80.irq_state && IFF1 && !Z80.after_ei)
     {

@@ -117,5 +117,7 @@ extern void system_frame_gen(int do_skip);
 extern void system_frame_scd(int do_skip);
 extern void system_frame_sms(int do_skip);
 
+extern void queueZ80MemoryChange(int location, int value);
+
 #endif /* _SYSTEM_H_ */
 

@@ -307,8 +307,37 @@ int audio_update(int16 *buffer)
 /****************************************************************
  * Virtual System emulation
  ****************************************************************/
+
+static int pendingZ80MemoryChanges[0x100];
+
+void clearz80MemoryChanges() {
+  for (int i = 0; i < 0x100; i++) {
+    pendingZ80MemoryChanges[i] = 0;
+  }
+}
+
+void queueZ80MemoryChange(int location, int value) {
+  for (int i = 0; i < 0x100; i += 2) {
+    if (pendingZ80MemoryChanges[i] == 0) {
+      pendingZ80MemoryChanges[i] = location;
+      pendingZ80MemoryChanges[i + 1] = value;
+      return;
+    }
+  }
+}
+
+void applyQueuedZ80MemoryChanges() {
+  for (int i = 0; i < 0x100; i += 2) {
+    if (pendingZ80MemoryChanges[i] != 0) {
+      aa_genesis_setZ80Ram(pendingZ80MemoryChanges[i], pendingZ80MemoryChanges[i + 1]);
+    }
+  }
+}
+
 void system_init(void)
 {
+  clearz80MemoryChanges();
+
   gen_init();
   io_init();
   vdp_init();
@@ -333,6 +362,7 @@ void system_frame_gen(int do_skip)
   /* line counters */
   int start, end, line;
 
+  clearz80MemoryChanges();
   modConsole_updateFrame();
 
   /* reset frame cycle counter */
@@ -1182,6 +1212,8 @@ void system_frame_sms(int do_skip)
   /* refresh inputs just before VINT */
   osd_input_update();
 
+    applyQueuedZ80MemoryChanges();
+
   /* run Z80 until end of line */
   z80_run(MCYCLES_PER_LINE);
 
@@ -1208,6 +1240,8 @@ void system_frame_sms(int do_skip)
   /* initialize overscan area */
   start = lines_per_frame - bitmap.viewport.y;
   end   = bitmap.viewport.h + bitmap.viewport.y;
+
+    applyQueuedZ80MemoryChanges();
 
   /* Vertical Blanking */
   do
@@ -1318,6 +1352,8 @@ void system_frame_sms(int do_skip)
   /* update 6-Buttons & Lightguns */
   input_refresh();
 
+    applyQueuedZ80MemoryChanges();
+
   /* run Z80 until end of line */
   z80_run(mcycles_vdp + MCYCLES_PER_LINE);
 
@@ -1329,6 +1365,7 @@ void system_frame_sms(int do_skip)
   
   /* reset line count */
   line = 0;
+    applyQueuedZ80MemoryChanges();
 
   /* Active Display */
   do
@@ -1383,6 +1420,8 @@ void system_frame_sms(int do_skip)
       /* decrement H-Int counter */
       h_counter--;
     }
+
+    applyQueuedZ80MemoryChanges();
 
     /* run Z80 until end of line */
     z80_run(mcycles_vdp + MCYCLES_PER_LINE);
