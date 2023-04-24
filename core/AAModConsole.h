@@ -163,4 +163,6 @@ int getIsIdleModeActive();
 void checkToHaltMusic();
 void enforceHaltMusic();
 
+int getDeathCount();
+
 #endif
