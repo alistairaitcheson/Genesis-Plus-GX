@@ -1007,10 +1007,12 @@ void saveBossRushProgress() {
             int useMusic = bossOptions.shouldUseExternalMusic;
             // and send the final line "state to be used by music tracker"
             char musicStateText[0x100];
-            sprintf(musicStateText, "!!%i/%i/%i", 
+            sprintf(musicStateText, "!!%i/%i/%i/%i/%i", 
                 useMusic, // should I play music?
                 aa_genesis_getWorkRam(0xF601), // am I on a screen transition? (if this value is <0x80 then switch track)
-                getDeathCount()// am I dying? (if this number changes, fade out)
+                getDeathCount(),// am I dying? (if this number changes, fade out)
+                rand() % 0x1000,
+                getBossRushComplete()
             );
             fprintf(progressWriter, musicStateText);
             fprintf(progressWriter, "\n");
