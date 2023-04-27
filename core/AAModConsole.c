@@ -417,6 +417,7 @@ void modConsole_initialise() {
             holdDurations[i] = 0;
         }
         initialiseRewindRAM();
+        cartloader_initialiseNetworkDirectories();
 
         layerRenderer_populateLetters();
         menuDisplay_initialise();
