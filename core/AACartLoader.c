@@ -24,6 +24,9 @@ static int romsRemovedFromRandomiser[MAX_ROMS];
 static char *logLines[0x100];
 static unsigned int logLineCount;
 
+static char* debug_lastFileSystemInteraction[0x100];
+static int framesSinceLastFileSystemInteraction = 0;
+
 static AAGameListing gameListings[MAX_ROMS];
 static AAMusicOverrideListing musicOverrideListings[MAX_ROMS];
 static AAStandTriggerListing standTriggerListings[MAX_ROMS];
@@ -2624,7 +2627,7 @@ void initialiseDirectory() {
 }
 
 void cartloader_initialiseRewindDirectory() {
-        initialiseDirectory();
+    initialiseDirectory();
 
     cartLoader_appendToLog("cartloader_initialiseRewindDirectory - BEGINS");
 
@@ -2999,7 +3002,7 @@ void cartLoader_appendToLog(char *text) {
 
     fprintf(globalLogWriter, text);
     fprintf(globalLogWriter, "\n");
-
+    // I'll need to do fclose if I want to see the changes during play
 }
 
 void concatenate_string(char *original, char *add)

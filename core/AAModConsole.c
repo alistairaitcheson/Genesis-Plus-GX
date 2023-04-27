@@ -1520,14 +1520,14 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_A) != 0)
         {
-            menuDisplay_showTerminalMenu();
+            // menuDisplay_showTerminalMenu();
         } else if (
             buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_LEFT) != 0
         ) {
             // FOR ALISTAIR
-            saveSaveStateForCurrentGame();
-            cartLoader_saveAllSaveStatesToDisk();
+            // saveSaveStateForCurrentGame();
+            // cartLoader_saveAllSaveStatesToDisk();
         }
 
         if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 && buttonStateAtIndex(INPUT_INDEX_B) != 0 && hasDismissedStartupHint == 0) {
