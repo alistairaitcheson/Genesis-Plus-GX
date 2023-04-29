@@ -22,6 +22,10 @@ typedef struct {
     int score[4];
 } PersistValuesData;
 
+extern int bumpThreadIndex();
+
+void saveSaveStateForCurrentGameInBackground();
+
 extern void initialiseBossRush();
 extern void cartLoader_run();
 extern void cartLoader_appendToLog(char *text);

@@ -5,6 +5,7 @@
         "ostream": "cpp",
         "xlocmon": "cpp",
         "vdp_render.h": "c",
-        "genesis.h": "c"
+        "genesis.h": "c",
+        "string.h": "c"
     }
 }

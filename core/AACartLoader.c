@@ -20,6 +20,14 @@
 static int threadIndex = 1;
 HANDLE  hThreads[MAX_THREADS] = { NULL }; // Handles for created threads
 
+int bumpThreadIndex() {
+    threadIndex++;
+    if (threadIndex >= MAX_THREADS) {
+        threadIndex = 0;
+    }
+    return threadIndex;
+}
+
 static int MAX_SIMULTANEOUS_BOSSES = 8;
 
 static unsigned int romCount;
@@ -3000,11 +3008,13 @@ void cartLoader_appendToLog(char *text) {
     // return; // <----------------- replace this with something togglable!
 
     if (openedLogWriter == 0) {
-        openedLogWriter = 1;
         char path[0x100];
         sprintf(path, "%s/__log.txt", folderPath);
         remove(path);
         globalLogWriter = fopen(path, "w");
+        if (globalLogWriter) {
+                openedLogWriter = 1;
+        }
     }
 
     fprintf(globalLogWriter, text);
@@ -3142,6 +3152,19 @@ void loadStateForCurrentBoss() {
     state_load(bossRushSaveStates[getActiveBossRushIndex()]);
 }
 
+void saveSaveStateForCurrentGame_THREADED(void* threadIndex) {
+    // char tempLog[256];
+    // sprintf(tempLog,"Caching save state %d (%s)", lastLoadedIndex, loadedRomName);
+    // cartLoader_appendToLog(tempLog);
+
+    state_save(cachedSaveStates[lastLoadedIndex]);
+    hasCachedSaveState[lastLoadedIndex] = 1;
+}
+
+void saveSaveStateForCurrentGameInBackground() {
+    int index = bumpThreadIndex();
+    hThreads[index] = (HANDLE)_beginthread(saveSaveStateForCurrentGame_THREADED, 0, (void*)(uintptr_t)index);
+}
 
 void saveSaveStateForCurrentGame() {
     // char tempLog[256];
@@ -3211,13 +3234,8 @@ void cartLoader_saveRewindStateForCurrentGame_THREADED(void* threadIndex) {
 }
 
 void cartLoader_saveRewindStateForCurrentGame() {
-    if (threadIndex < MAX_THREADS) {
-        hThreads[threadIndex] = (HANDLE)_beginthread(cartLoader_saveRewindStateForCurrentGame_THREADED, 0, (void*)(uintptr_t)threadIndex);
-        threadIndex++;
-        if (threadIndex >= MAX_THREADS) {
-            threadIndex = 0;
-        }
-    }
+    int index = bumpThreadIndex();
+    hThreads[index] = (HANDLE)_beginthread(cartLoader_saveRewindStateForCurrentGame_THREADED, 0, (void*)(uintptr_t)index);
 }
 
 void deleteRewindState(int gameIndex, int stateIndex) {
@@ -3270,7 +3288,7 @@ int cartLoader_loadRewindStateForCurrentGame() {
     return success;
 }
 
-void cartLoader_saveAllSaveStatesToDisk() {
+void cartLoader_saveAllSaveStatesToDisk_THREADED(void* threadIndex) {
     cartLoader_appendToLog("cartLoader_saveAllSaveStatesToDisk");
 
     for (int i = 0; i < romCount; i++) {
@@ -3299,6 +3317,12 @@ void cartLoader_saveAllSaveStatesToDisk() {
         }
         cartLoader_appendToLog(" -- ");
     }
+}
+
+
+void cartLoader_saveAllSaveStatesToDisk() {
+    int index = bumpThreadIndex();
+    hThreads[index] = (HANDLE)_beginthread(cartLoader_saveAllSaveStatesToDisk_THREADED, 0, (void*)(uintptr_t)index);
 }
 
 void cartLoader_loadAllSaveStatesFromDisk() {
