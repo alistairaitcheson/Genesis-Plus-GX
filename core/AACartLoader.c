@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/types.h>
+#include <stdlib.h>
 #include "include/dirent.h"
 #include "vdp_render.h"
 #include "AAModConsole.h"
@@ -12,6 +13,12 @@
 #include "AALayerRenderer.h"
 #include "genesis.h"
 #include "AAMenuDisplay.h"
+
+#include <process.h>
+
+#define MAX_THREADS  0x100
+static int threadIndex = 1;
+HANDLE  hThreads[MAX_THREADS] = { NULL }; // Handles for created threads
 
 static int MAX_SIMULTANEOUS_BOSSES = 8;
 
@@ -3171,7 +3178,7 @@ void cartLoader_loadSaveStateForQuitMenu() {
     state_load(saveStateBeforeMenu);
 }
 
-void cartLoader_saveRewindStateForCurrentGame() {
+void cartLoader_saveRewindStateForCurrentGame_THREADED(void* threadIndex) {
     // cartLoader_appendToLog("cartLoader_saveRewindStateForCurrentGame");
 
     // get the current save state
@@ -3200,6 +3207,16 @@ void cartLoader_saveRewindStateForCurrentGame() {
         }
     } else {
         // cartLoader_appendToLog("no state found");
+    }
+}
+
+void cartLoader_saveRewindStateForCurrentGame() {
+    if (threadIndex < MAX_THREADS) {
+        hThreads[threadIndex] = (HANDLE)_beginthread(cartLoader_saveRewindStateForCurrentGame_THREADED, 0, (void*)(uintptr_t)threadIndex);
+        threadIndex++;
+        if (threadIndex >= MAX_THREADS) {
+            threadIndex = 0;
+        }
     }
 }
 
