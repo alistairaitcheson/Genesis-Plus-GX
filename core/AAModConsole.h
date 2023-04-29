@@ -53,6 +53,8 @@
 
 #include "AACommonTypes.h"
 
+extern void modConsole_updateFrame_inBackground();
+
 extern void modConsole_initialise();
 
 extern void modConsole_updateFrame();

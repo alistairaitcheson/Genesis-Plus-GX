@@ -182,4 +182,6 @@ AAMusicOverrideListing cartLoader_getActiveMusicOverrideListing();
 void cartLoader_reduceCurrentHaltCountdown();
 void cartLoader_beginCurrentHaltCountdown();
 
+void cartLoader_updateFrame_inBackground();
+
 #endif

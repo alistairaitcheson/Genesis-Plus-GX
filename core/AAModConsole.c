@@ -1178,6 +1178,7 @@ void modConsole_updateFrame() {
             saveAllStatesTimeCounter ++;
             if (saveAllStatesTimeCounter > saveAllStatesTimePeriod) {
                 saveAllStatesTimeCounter = 0;
+                int whichThread = bumpThreadIndex();
                 saveSaveStateForCurrentGame();
                 cartLoader_saveAllSaveStatesToDisk();
             }

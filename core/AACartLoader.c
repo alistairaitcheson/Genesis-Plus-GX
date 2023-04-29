@@ -19,6 +19,7 @@
 #define MAX_THREADS  0x100
 static int threadIndex = 1;
 HANDLE  hThreads[MAX_THREADS] = { NULL }; // Handles for created threads
+HANDLE  hUpdateMutex;
 
 int bumpThreadIndex() {
     threadIndex++;
@@ -182,6 +183,8 @@ void initialiseBossRush() {
 }
 
 void cartLoader_run() {
+    hUpdateMutex = CreateMutexW(NULL, FALSE, NULL);
+
     for (int i = 0; i < MAX_ROMS; i++) {
         hasCachedSaveState[i] = 0;
         romsRemovedFromRandomiser[i] = 0;
@@ -3805,4 +3808,16 @@ void cartLoader_checkPixelTrackerForStateChange() {
             }
         }
     }
+}
+
+void cartLoader_updateFrame_THREADED(void* threadIndex) {
+    WaitForSingleObject(hUpdateMutex, INFINITE);
+    modConsole_updateFrame();
+    ReleaseMutex(hUpdateMutex);
+}
+
+
+void cartLoader_updateFrame_inBackground() {
+    int index = bumpThreadIndex();
+    hThreads[index] = (HANDLE)_beginthread(cartLoader_updateFrame_THREADED, 0, (void*)(uintptr_t)index);
 }

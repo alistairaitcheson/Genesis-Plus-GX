@@ -42,6 +42,7 @@
 #include "shared.h"
 #include "eq.h"
 #include "AAModConsole.h"
+#include "AACartLoader.h"
 
 /* Global variables */
 t_bitmap bitmap;
@@ -363,7 +364,8 @@ void system_frame_gen(int do_skip)
   int start, end, line;
 
   clearz80MemoryChanges();
-  modConsole_updateFrame();
+  // modConsole_updateFrame();
+  cartLoader_updateFrame_inBackground();
 
   /* reset frame cycle counter */
   mcycles_vdp = 0;
