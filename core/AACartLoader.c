@@ -19,6 +19,7 @@
 #define MAX_THREADS  0x100
 static int threadIndex = 1;
 HANDLE  hThreads[MAX_THREADS] = { NULL }; // Handles for created threads
+HANDLE hUpdateThread = NULL;
 HANDLE  hUpdateMutex;
 
 int bumpThreadIndex() {
@@ -3810,14 +3811,28 @@ void cartLoader_checkPixelTrackerForStateChange() {
     }
 }
 
+static int isRunningBackgroundUpdate = 0;
+
+
 void cartLoader_updateFrame_THREADED(void* threadIndex) {
-    WaitForSingleObject(hUpdateMutex, INFINITE);
-    modConsole_updateFrame();
-    ReleaseMutex(hUpdateMutex);
+    // WaitForSingleObject(hUpdateMutex, INFINITE);
+    int cycleCount = 0;
+    while (cycleCount < 1000)
+    {
+        modConsole_updateFrame();
+    }
+    
+   
+    // ReleaseMutex(hUpdateMutex);
+    isRunningBackgroundUpdate = 0;
 }
 
 
 void cartLoader_updateFrame_inBackground() {
-    int index = bumpThreadIndex();
-    hThreads[index] = (HANDLE)_beginthread(cartLoader_updateFrame_THREADED, 0, (void*)(uintptr_t)index);
+    // TODO: Try adding a "check that the frame has advanced"
+    // TODO: Try adding a "apply RAM changes" before the frame advances
+    if (isRunningBackgroundUpdate == 0) {
+        isRunningBackgroundUpdate = 1;
+        hUpdateThread = (HANDLE)_beginthread(cartLoader_updateFrame_THREADED, 0, (void*)(uintptr_t)0);
+    }
 }
