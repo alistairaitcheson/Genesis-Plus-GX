@@ -3828,20 +3828,30 @@ static int updateLoopIndex = 0;
 
 static int shouldEndBackgroundUpdate = 0;
 
+void showSlowFrameLogs() {
+    if (modConsole_getHasInitialised() == 1) {
+        if (menuDisplay_getMultithreadingOptions().shouldShowMultithreadingStats) {
+            layerRenderer_fill(2, 0, 0, vdp_getScreenWidth(), 16, 0);
+            char fastText[0x10];
+            sprintf(fastText, "FAST: %04X", cached_fastFrames);
+            layerRenderer_writeWord256(2, 0, 0, fastText, 5);
+            char slowText[0x10];
+            sprintf(slowText, "SLOW: %04X", cached_slowFrames);
+            layerRenderer_writeWord256(2, 0, 8, slowText, 5);
+            
+            copyLayersToMultithreadState();
+        }
+    }
+}
+
 void updateFrameWithWrapping() {
     modConsole_updateFrame();
 
-    layerRenderer_fill(2, 0, 0, vdp_getScreenWidth(), 16, 0);
-    char fastText[0x10];
-    sprintf(fastText, "FAST: %04X", cached_fastFrames);
-    layerRenderer_writeWord256(2, 0, 0, fastText, 5);
-    char slowText[0x10];
-    sprintf(slowText, "SLOW: %04X", cached_slowFrames);
-    layerRenderer_writeWord256(2, 0, 8, slowText, 5);
-    
+    showSlowFrameLogs();
     copyLayersToMultithreadState();
     aa_genesis_updateLastRam(0);
 }
+
 
 void cartLoader_updateFrame_THREADED(void* threadIndex) {
     srand(time(NULL));
@@ -3851,7 +3861,7 @@ void cartLoader_updateFrame_THREADED(void* threadIndex) {
 
     int lastFrameIndex = 0;
 
-    while (cycleCount < 1000)
+    while (shouldEndBackgroundUpdate == 0)
     {
         if (frameIndex != lastFrameIndex) {
             cached_fastFrames = backgroundCyclesIgnoredDueToFastBackground;
@@ -3864,17 +3874,9 @@ void cartLoader_updateFrame_THREADED(void* threadIndex) {
         } else {
             backgroundCyclesIgnoredDueToFastBackground++;
         }
-
-        // char fastText[0x10];
-        // sprintf(fastText, "FAST: %04X", backgroundCyclesIgnoredDueToFastBackground);
-        // layerRenderer_writeWord256(2, 0, 0, fastText, 5);
-
-        // copyLayersToMultithreadState();
     }
     
-   
-    // ReleaseMutex(hUpdateMutex);
-    isRunningBackgroundUpdate = 0;
+    shouldEndBackgroundUpdate = 0;
 }
 
 static uint8 threadsafeSaveStates[2][STATE_SIZE];
@@ -3903,42 +3905,33 @@ void cartLoader_updateFrame_inBackground() {
 
     cacheTreadsafeWorkRam();
 
-    if (/*menuDisplay_getMultithreadingOptions().shouldMultithread*/ true) {
+    if (modConsole_getHasInitialised() == 1) {
+        if (menuDisplay_getMultithreadingOptions().shouldMultithread) {
+                if (updateLoopIndex != lastUpdateLoopIndex) {
+                    lastUpdateLoopIndex = updateLoopIndex;
+                    cached_slowFrames = framesLostToSlowBackground;
+                    framesLostToSlowBackground = 0;
+                    if (menuDisplay_isShowing()) {
+                        checkToHaltMusic(); // halting music must be done on the main thread (only for S&K as far as I can tell)
+                    }
+                } else {
+                    framesLostToSlowBackground++;
+                }
 
-        if (updateLoopIndex != lastUpdateLoopIndex) {
-            lastUpdateLoopIndex = updateLoopIndex;
-            cached_slowFrames = framesLostToSlowBackground;
-            framesLostToSlowBackground = 0;
-        } else {
-            framesLostToSlowBackground++;
-        }
-
-        // if (/*menuDisplay_getMultithreadingOptions().shouldShowMultithreadingStats*/ true) {
-        //     layerRenderer_fill(2, 0, 0, vdp_getScreenWidth(), 16, 0);
-
-        //     // layerRenderer_writeWord256(2, 0, 0, "FAST", 5);
-        //     // layerRenderer_writeWord256(2, 0, 8, "SLOW", 5);
-        //     // for (int i = 0; i < backgroundCyclesIgnoredDueToFastBackground && i < 0x40; i++) {
-        //     //     layerRenderer_fill(2, 32 + (i * 4) + 1, 1, 2, 6, 5);
-        //     // }
-        //     // for (int i = 0; i < framesLostToSlowBackground && i < 0x40; i++) {
-        //     //     layerRenderer_fill(2, 32 + (i * 4) + 1, 8 + 1, 2, 6, 5);
-        //     // }
-        //     char slowText[0x10];
-        //     sprintf(slowText, "SLOW: %04X", framesLostToSlowBackground);
-        //     layerRenderer_writeWord256(2, 0, 8, slowText, 5);
-        // }
-
-        if (isRunningBackgroundUpdate == 0) {
-            isRunningBackgroundUpdate = 1;
-            hUpdateThread = (HANDLE)_beginthread(cartLoader_updateFrame_THREADED, 0, (void*)(uintptr_t)0);
-        }
-
+                if (isRunningBackgroundUpdate == 0) {
+                    isRunningBackgroundUpdate = 1;
+                    hUpdateThread = (HANDLE)_beginthread(cartLoader_updateFrame_THREADED, 0, (void*)(uintptr_t)0);
+                }
+            } else {
+                if (isRunningBackgroundUpdate) {
+                    shouldEndBackgroundUpdate = 1;
+                } else {
+                    updateFrameWithWrapping();
+                }
+            }
     } else {
         updateFrameWithWrapping();
     }
-
-
 }
 
 

@@ -2319,8 +2319,16 @@ void incrementQualityOfLifeOption(int direction) {
         secondaryHackOptions.shouldSaveRewindStates += direction;
     }
 
-
     if (qualityOfLifeOptionIndex == 4) {
+        multithreadingOptions.shouldMultithread += direction;
+    }
+
+    if (qualityOfLifeOptionIndex == 5) {
+        multithreadingOptions.shouldShowMultithreadingStats += direction;
+    }
+
+
+    if (qualityOfLifeOptionIndex == 6) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -2649,14 +2657,6 @@ void incrementRamEditingOptionWithDPad(int direction) {
     }
     
     if (ramEditingOptionsIndex == 4) {
-        multithreadingOptions.shouldMultithread += direction;
-    }
-
-    if (ramEditingOptionsIndex == 5) {
-        multithreadingOptions.shouldShowMultithreadingStats += direction;
-    }
-
-    if (ramEditingOptionsIndex == 6) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }

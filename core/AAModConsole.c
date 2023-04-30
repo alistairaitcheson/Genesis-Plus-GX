@@ -432,6 +432,10 @@ void modConsole_initialise() {
     }
 }
 
+int modConsole_getHasInitialised() {
+    return hasInitialised;
+}
+
 void showRomList() {
     layerRenderer_fill(0, 0, 0, 256, 256, 1);
 
@@ -1240,7 +1244,9 @@ void modConsole_updateFrame() {
         // layerRenderer_clearLayer(0);
         // layerRenderer_writeWord256(0, 0, 0, optionsDisplay, 6);
 
-        checkToHaltMusic();
+        if (menuDisplay_getMultithreadingOptions().shouldMultithread == 0) {
+            checkToHaltMusic();
+        }
 
         if (menuDisplay_areSoloEffectsAllowed() != 0) {
             if (hackOpts.speedUpOnRing != 0) {
