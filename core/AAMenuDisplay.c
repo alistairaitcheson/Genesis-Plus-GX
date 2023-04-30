@@ -51,6 +51,7 @@ static PixelDetectiveOptions pixelDetectiveOptions;
 static NetworkOptions networkOptions;
 static SecondaryHackOptions secondaryHackOptions;
 static BossRushOptions bossRushOptions;
+static MultithreadingOptions multithreadingOptions;
 static int logRamStateCounter[0x10000];
 
 static int trackedRamFrameCounts[0x10000];
@@ -159,6 +160,9 @@ void menudisplay_applyToggleVRAMState(int vramState) {
     hackOptions.copyVram = vramState;
 }
 
+MultithreadingOptions menuDisplay_getMultithreadingOptions() {
+    return multithreadingOptions;
+}
 
 SecondaryHackOptions menuDisplay_getSecondaryHackOptions() {
     return secondaryHackOptions;
@@ -304,8 +308,10 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     applySecondaryHacksDefaultValues();
     applyNetworkOptionsDefaultValues();
     applyDefaultBossRushValues();
+    applyMultithreadingDefaultValues();
     vdp_healAllColours();
     abortAllBossRushSettings();
+
 
     // FOR ALISTAIR
     // hackOptions.shouldWriteToLog = 1;
@@ -619,6 +625,18 @@ void menuDisplay_initialise() {
     } else {
         applySecondaryHacksDefaultValues();
     }
+
+    FILE *multithreadingPrefsReader = fopen("_magicbox/__multithreadingPrefs.data", "rb");
+
+    if (multithreadingPrefsReader) {
+        int prefsBuffer[0x100];
+        fread(prefsBuffer, sizeof(int), 0x100, multithreadingPrefsReader);
+        fclose(prefsReader);
+        applyMutlithreadingFromArray256(prefsBuffer);
+    } else {
+        applyMultithreadingDefaultValues();
+    }
+
 
     FILE *persistValuesReader = fopen("_magicbox/__persistValues.data", "rb");
     if (persistValuesReader) {
@@ -987,6 +1005,11 @@ void applySecondaryHacksDefaultValues() {
     secondaryHackOptions.vramWritesPerRing = 0;
 }
 
+void applyMultithreadingDefaultValues() {
+    multithreadingOptions.shouldMultithread = 0;
+    multithreadingOptions.shouldShowMultithreadingStats = 0;
+}
+
 void applySecondaryHacksFromArray256(int array256[]) {
     secondaryHackOptions.colourDeleteAffectsAudio = array256[0];
     secondaryHackOptions.screenSnapOnGetRing = array256[1];
@@ -1004,6 +1027,11 @@ void applySecondaryHacksFromArray256(int array256[]) {
 
     secondaryHackOptions.shouldSaveRewindStates = array256[11];
     secondaryHackOptions.vramWritesPerRing = array256[12];
+}
+
+void applyMutlithreadingFromArray256(int array256[]) {
+    multithreadingOptions.shouldMultithread = array256[0];
+    multithreadingOptions.shouldShowMultithreadingStats = array256[1];
 }
 
 void applySettingsFromArray256(int array256[]) {
@@ -1131,6 +1159,20 @@ void saveHackOptions() {
     }
     fclose(secondaryPrefsWriter);
 
+    int multithreadingPrefs[0x100];
+    for (int i = 0; i < 0x100; i++) {
+        multithreadingPrefs[i] = 0;
+    }
+    multithreadingPrefs[0] = multithreadingOptions.shouldMultithread;
+    multithreadingPrefs[1] = multithreadingOptions.shouldShowMultithreadingStats;
+
+    remove("_magicbox/__multithreadingPrefs.data");
+    FILE *multithreadingPrefsWriter = fopen("_magicbox/__multithreadingPrefs.data", "wb");
+
+    for (int i = 0; i < 0x100; i++) {
+        fwrite(multithreadingPrefs, sizeof(int), 0x100, multithreadingPrefsWriter);
+    }
+    fclose(multithreadingPrefsWriter);
 
     int persistValues[0x100];
     for (int i = 0; i < 0x100; i++) {
@@ -2607,6 +2649,14 @@ void incrementRamEditingOptionWithDPad(int direction) {
     }
     
     if (ramEditingOptionsIndex == 4) {
+        multithreadingOptions.shouldMultithread += direction;
+    }
+
+    if (ramEditingOptionsIndex == 5) {
+        multithreadingOptions.shouldShowMultithreadingStats += direction;
+    }
+
+    if (ramEditingOptionsIndex == 6) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -3473,11 +3523,13 @@ void showQualityOfLifeOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Quality of life", 5);
 
-    int lineCount = 5;
+    int lineCount = 7;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
+    int linesWithBreakAfter[lineCount];
     for (int i = 0; i < lineCount; i++) {
         blockedLines[i] = 0;
+        linesWithBreakAfter[i] = 0;
     }
 
     if (qualityOfLifeOptionIndex < 0) {
@@ -3534,8 +3586,33 @@ void showQualityOfLifeOptionsMenu() {
     } else {
         sprintf(lines[3], "Allow game rewind:        ON"); 
     }
+    linesWithBreakAfter[3] = 1;
+    
+    if (multithreadingOptions.shouldMultithread > 1) {
+        multithreadingOptions.shouldMultithread = 0;
+    }
+    if (multithreadingOptions.shouldMultithread < 0) {
+        multithreadingOptions.shouldMultithread = 1;
+    }
+    if (multithreadingOptions.shouldMultithread == 0) {
+        sprintf(lines[4], "Enable multithreading:   OFF");
+    } else {
+        sprintf(lines[4], "Enable multithreading:    ON");
+    }
+        
+    if (multithreadingOptions.shouldShowMultithreadingStats > 1) {
+        multithreadingOptions.shouldShowMultithreadingStats = 0;
+    }
+    if (multithreadingOptions.shouldShowMultithreadingStats < 0) {
+        multithreadingOptions.shouldShowMultithreadingStats = 1;
+    }
+    if (multithreadingOptions.shouldShowMultithreadingStats == 0) {
+        sprintf(lines[5], "Show threading stats:    OFF");
+    } else {
+        sprintf(lines[5], "Show threading stats:     ON");
+    }
 
-    sprintf(lines[4], "back >");
+    sprintf(lines[6], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -3557,6 +3634,9 @@ void showQualityOfLifeOptionsMenu() {
         }
 
         yPos += 8;
+        if (linesWithBreakAfter[i] != 0) {
+            yPos += 8;
+        }
     }
 }
 
@@ -4424,9 +4504,9 @@ void showBossRushMenu() {
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
-        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
-            yPos += 8;
-        }
+        // if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+        //     yPos += 8;
+        // }
 
         char toPrint[0x100];
         if (i == bossRushItemIndex) {

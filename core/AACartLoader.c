@@ -3166,8 +3166,9 @@ void saveSaveStateForCurrentGame_THREADED(void* threadIndex) {
 }
 
 void saveSaveStateForCurrentGameInBackground() {
-    int index = bumpThreadIndex();
-    hThreads[index] = (HANDLE)_beginthread(saveSaveStateForCurrentGame_THREADED, 0, (void*)(uintptr_t)index);
+    // int index = bumpThreadIndex();
+    // hThreads[index] = (HANDLE)_beginthread(saveSaveStateForCurrentGame_THREADED, 0, (void*)(uintptr_t)index);
+    saveSaveStateForCurrentGame_THREADED((void*)(uintptr_t)0);
 }
 
 void saveSaveStateForCurrentGame() {
@@ -3238,8 +3239,9 @@ void cartLoader_saveRewindStateForCurrentGame_THREADED(void* threadIndex) {
 }
 
 void cartLoader_saveRewindStateForCurrentGame() {
-    int index = bumpThreadIndex();
-    hThreads[index] = (HANDLE)_beginthread(cartLoader_saveRewindStateForCurrentGame_THREADED, 0, (void*)(uintptr_t)index);
+    // int index = bumpThreadIndex();
+    // hThreads[index] = (HANDLE)_beginthread(cartLoader_saveRewindStateForCurrentGame_THREADED, 0, (void*)(uintptr_t)index);
+    cartLoader_saveRewindStateForCurrentGame_THREADED((void*)(uintptr_t)0);
 }
 
 void deleteRewindState(int gameIndex, int stateIndex) {
@@ -3325,8 +3327,9 @@ void cartLoader_saveAllSaveStatesToDisk_THREADED(void* threadIndex) {
 
 
 void cartLoader_saveAllSaveStatesToDisk() {
-    int index = bumpThreadIndex();
-    hThreads[index] = (HANDLE)_beginthread(cartLoader_saveAllSaveStatesToDisk_THREADED, 0, (void*)(uintptr_t)index);
+    // int index = bumpThreadIndex();
+    // hThreads[index] = (HANDLE)_beginthread(cartLoader_saveAllSaveStatesToDisk_THREADED, 0, (void*)(uintptr_t)index);
+    cartLoader_saveAllSaveStatesToDisk_THREADED((void*)(uintptr_t)0);
 }
 
 void cartLoader_loadAllSaveStatesFromDisk() {
@@ -3812,14 +3815,37 @@ void cartLoader_checkPixelTrackerForStateChange() {
 }
 
 static int isRunningBackgroundUpdate = 0;
+static int frameIndex = 0;
 
+static int framesLostToSlowBackground = 0;
+static int backgroundCyclesIgnoredDueToFastBackground = 0;
 
 void cartLoader_updateFrame_THREADED(void* threadIndex) {
+    srand(time(NULL));
+
     // WaitForSingleObject(hUpdateMutex, INFINITE);
     int cycleCount = 0;
+
+    int lastFrameIndex = 0;
+
     while (cycleCount < 1000)
     {
-        modConsole_updateFrame();
+        if (frameIndex != lastFrameIndex) {
+            backgroundCyclesIgnoredDueToFastBackground = 0;
+
+            modConsole_updateFrame();
+            lastFrameIndex = frameIndex;
+
+            char optionsDisplay[0x10];
+            sprintf(optionsDisplay, "%04X %04X", frameIndex, lastFrameIndex);
+            layerRenderer_clearLayer(2);
+            layerRenderer_writeWord256(2, 0, 0, optionsDisplay, 6);
+        } else {
+            backgroundCyclesIgnoredDueToFastBackground++;
+
+            layerRenderer_clearLayer(2);
+            layerRenderer_writeWord256(2, 0, 0, "---- ----", 6); // <-- this suggests we are doing more cycles than frames
+        }
     }
     
    
@@ -3829,10 +3855,36 @@ void cartLoader_updateFrame_THREADED(void* threadIndex) {
 
 
 void cartLoader_updateFrame_inBackground() {
-    // TODO: Try adding a "check that the frame has advanced"
+    // DONE: Try adding a "check that the frame has advanced"
     // TODO: Try adding a "apply RAM changes" before the frame advances
-    if (isRunningBackgroundUpdate == 0) {
-        isRunningBackgroundUpdate = 1;
-        hUpdateThread = (HANDLE)_beginthread(cartLoader_updateFrame_THREADED, 0, (void*)(uintptr_t)0);
+    // TODO: Am I saving states when I shouldn't be? As in, it's getting half the state from one frame, and half a state from the next? Midway through a sound effect?
+    frameIndex++;
+
+    if (menuDisplay_getMultithreadingOptions().shouldMultithread) {
+        if (isRunningBackgroundUpdate == 0) {
+            isRunningBackgroundUpdate = 1;
+            framesLostToSlowBackground = 0;
+            hUpdateThread = (HANDLE)_beginthread(cartLoader_updateFrame_THREADED, 0, (void*)(uintptr_t)0);
+        } else {
+            framesLostToSlowBackground++;
+        }
+
+        if (menuDisplay_getMultithreadingOptions().shouldShowMultithreadingStats) {
+            layerRenderer_fill(2, 0, 0, vdp_getScreenWidth(), 16, 5);
+            layerRenderer_writeWord256(2, 0, 0, "FAST", 5);
+            layerRenderer_writeWord256(2, 0, 8, "SLOW", 5);
+            for (int i = 0; i < backgroundCyclesIgnoredDueToFastBackground && i < 0x10; i++) {
+                layerRenderer_fill(2, 32 + (i * 8) + 1, 1, 6, 6, 5);
+            }
+            for (int i = 0; i < framesLostToSlowBackground && i < 0x10; i++) {
+                layerRenderer_fill(2, 32 + (i * 8) + 1, 8 + 1, 6, 6, 5);
+            }
+        }
+    } else {
+        cartLoader_updateFrame_THREADED((void*)(uintptr_t)0);
     }
+
+
 }
+
+

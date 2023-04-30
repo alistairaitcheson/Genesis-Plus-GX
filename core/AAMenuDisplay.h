@@ -67,6 +67,11 @@ typedef struct {
 } HackOptions;
 
 typedef struct {
+    int shouldMultithread;
+    int shouldShowMultithreadingStats;
+} MultithreadingOptions;
+
+typedef struct {
     int colourDeleteAffectsAudio; // 0 = off, 1 = on
     int screenSnapOnGetRing; // 0 = off, 1 = on
     int ramWritesPerRing; // 0 = off, 1 = 1x, 2 = 5x, 3 = 25x, 4 = 100x
@@ -154,6 +159,9 @@ void applySecondaryHacksFromArray256(int array256[]);
 void applySecondaryHacksDefaultValues();
 extern BossRushOptions menuDisplay_getBossRushOptions();
 void applyDefaultBossRushValues();
+extern MultithreadingOptions menuDisplay_getMultithreadingOptions();
+void applyMultithreadingDefaultValues();
+void applyMutlithreadingFromArray256(int array256[]);
 
 extern void menuDisplay_toggleVisibleLayers();
 extern void menuDisplay_showAllVisibleLayers();
