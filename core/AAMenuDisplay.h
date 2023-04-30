@@ -28,6 +28,7 @@
 #define MENU_LISTING_BOSS_RUSH 17
 #define MENU_LISTING_TERMINAL_SHUFFLER 19
 #define MENU_LISTING_TERMINAL_GAME_LIST 20
+#define MENU_LISTING_MULTITHREADING 21
 
 
 #define TERMINAL_RULSET_SHUFFLER 1
@@ -206,6 +207,7 @@ void showPixelDetectiveMenu();
 void showNetworkingOptionsMenu();
 void showRamEditingOptionsMenu();
 void showBossRushMenu();
+void showMultithreadingOptionsMenu();
 
 void incrementGameSwapOption(int direction);
 void incrementQualityOfLifeOption(int direction);
@@ -214,6 +216,7 @@ void incrementSonicSpecificOption(int direction);
 void incrementVisualsOption(int direction);
 void incrementNetworkOption(int direction);
 void incrementBossRushOption(int direction, int buttonIndex);
+void incrementMultithreadingOption(int direction);
 
 void clearLogRamState();
 

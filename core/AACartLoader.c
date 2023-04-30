@@ -3830,16 +3830,19 @@ static int shouldEndBackgroundUpdate = 0;
 
 void showSlowFrameLogs() {
     if (modConsole_getHasInitialised() == 1) {
-        if (menuDisplay_getMultithreadingOptions().shouldShowMultithreadingStats) {
+        if (menuDisplay_getMultithreadingOptions().shouldMultithread) {
             layerRenderer_fill(2, 0, 0, vdp_getScreenWidth(), 16, 0);
-            char fastText[0x10];
-            sprintf(fastText, "FAST: %04X", cached_fastFrames);
-            layerRenderer_writeWord256(2, 0, 0, fastText, 5);
-            char slowText[0x10];
-            sprintf(slowText, "SLOW: %04X", cached_slowFrames);
-            layerRenderer_writeWord256(2, 0, 8, slowText, 5);
-            
-            copyLayersToMultithreadState();
+
+            if (menuDisplay_getMultithreadingOptions().shouldShowMultithreadingStats) {
+                char fastText[0x10];
+                sprintf(fastText, "FAST: %04X", cached_fastFrames);
+                layerRenderer_writeWord256(2, 0, 0, fastText, 5);
+                char slowText[0x10];
+                sprintf(slowText, "SLOW: %04X", cached_slowFrames);
+                layerRenderer_writeWord256(2, 0, 8, slowText, 5);
+                
+                copyLayersToMultithreadState();
+            }
         }
     }
 }
@@ -3877,6 +3880,7 @@ void cartLoader_updateFrame_THREADED(void* threadIndex) {
     }
     
     shouldEndBackgroundUpdate = 0;
+    isRunningBackgroundUpdate = 0;
 }
 
 static uint8 threadsafeSaveStates[2][STATE_SIZE];
@@ -3911,7 +3915,7 @@ void cartLoader_updateFrame_inBackground() {
                     lastUpdateLoopIndex = updateLoopIndex;
                     cached_slowFrames = framesLostToSlowBackground;
                     framesLostToSlowBackground = 0;
-                    if (menuDisplay_isShowing()) {
+                    if (menuDisplay_isShowing() == 0) {
                         checkToHaltMusic(); // halting music must be done on the main thread (only for S&K as far as I can tell)
                     }
                 } else {
@@ -3925,6 +3929,7 @@ void cartLoader_updateFrame_inBackground() {
             } else {
                 if (isRunningBackgroundUpdate) {
                     shouldEndBackgroundUpdate = 1;
+                    layerRenderer_fill(2, 0, 0, vdp_getScreenWidth(), 16, 0);
                 } else {
                     updateFrameWithWrapping();
                 }

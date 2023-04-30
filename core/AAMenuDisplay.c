@@ -32,6 +32,7 @@ static int ramEditingLocationIndex = 0;
 static int terminalLocationIndex = 0;
 static int bossRushItemIndex = 0;
 static int gameSuiteSelectIndex = 0;
+static int multithreadingOptionsIndex = 0;
 
 static int majorVersion = 0;
 static int minorVersion = 36;
@@ -538,6 +539,13 @@ int menuDisplay_shouldGameSwapOptionsShowAsOn() {
 
 int menuDisplay_shouldRamEditingOptionsShowAsOn() {
     if (secondaryHackOptions.ramWritesPerRing != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int menuDisplay_shouldMultithreadingOptionsShowAsOn() {
+    if (multithreadingOptions.shouldMultithread != 0) {
         return 1;
     }
     return 0;
@@ -1263,6 +1271,11 @@ void menuDisplay_showMenu(int menuNum) {
     if (activeMenu == MENU_LISTING_QUALITY_OF_LIFE) {
         showQualityOfLifeOptionsMenu(); 
     }
+    
+    if (activeMenu == MENU_LISTING_MULTITHREADING) {
+        showMultithreadingOptionsMenu(); 
+    }
+
 
     if (activeMenu == MENU_LISTING_BOSS_RUSH) {
         showBossRushMenu(); 
@@ -1675,6 +1688,31 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         
         if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
             incrementQualityOfLifeOption(1);
+            refreshMenu();
+            return 1;
+        }
+    }
+
+    if (activeMenu == MENU_LISTING_MULTITHREADING) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            multithreadingOptionsIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            multithreadingOptionsIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_LEFT) {
+            incrementMultithreadingOption(-1);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
+            incrementMultithreadingOption(1);
             refreshMenu();
             return 1;
         }
@@ -2320,15 +2358,20 @@ void incrementQualityOfLifeOption(int direction) {
     }
 
     if (qualityOfLifeOptionIndex == 4) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
+    }
+}
+
+void incrementMultithreadingOption(int direction) {
+    if (multithreadingOptionsIndex == 0) {
         multithreadingOptions.shouldMultithread += direction;
     }
 
-    if (qualityOfLifeOptionIndex == 5) {
+    if (multithreadingOptionsIndex == 1) {
         multithreadingOptions.shouldShowMultithreadingStats += direction;
     }
-
-
-    if (qualityOfLifeOptionIndex == 6) {
+    
+    if (multithreadingOptionsIndex == 2) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -2625,11 +2668,17 @@ void chooseMainMenuOption() {
     }
 
     if (optionsItemIndex == 7) {
-        qualityOfLifeOptionIndex = 0;
+        multithreadingOptionsIndex = 0;
+        menuDisplay_showMenu(MENU_LISTING_MULTITHREADING);
+    }
+
+
+    if (optionsItemIndex == 8) {
+        bossRushItemIndex = 0;
         menuDisplay_showMenu(MENU_LISTING_BOSS_RUSH);
     }
 
-    if (optionsItemIndex == 8) {
+    if (optionsItemIndex == 9) {
         saveHackOptions();
         if (gameHasStarted == 0) {
             menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
@@ -2803,7 +2852,7 @@ void showOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
 
-    int lineCount = 9;
+    int lineCount = 10;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -2863,13 +2912,19 @@ void showOptionsMenu() {
         sprintf(lines[6], "     RAM Editing >");
     }
 
-    if (shouldUseBossRush()) {
-        sprintf(lines[7], "[ON] Boss Rush (Beta)>");
+    if (menuDisplay_shouldMultithreadingOptionsShowAsOn() != 0) {
+        sprintf(lines[7], "[ON] Multithreading >");
     } else {
-        sprintf(lines[7], "     Boss Rush (Beta)>");
+        sprintf(lines[7], "     Multithreading >");
     }
 
-    sprintf(lines[8], "Start game");
+    if (shouldUseBossRush()) {
+        sprintf(lines[8], "[ON] Boss Rush (Beta)>");
+    } else {
+        sprintf(lines[8], "     Boss Rush (Beta)>");
+    }
+
+    sprintf(lines[9], "Start game");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -3523,7 +3578,7 @@ void showQualityOfLifeOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Quality of life", 5);
 
-    int lineCount = 7;
+    int lineCount = 5;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -3587,32 +3642,8 @@ void showQualityOfLifeOptionsMenu() {
         sprintf(lines[3], "Allow game rewind:        ON"); 
     }
     linesWithBreakAfter[3] = 1;
-    
-    if (multithreadingOptions.shouldMultithread > 1) {
-        multithreadingOptions.shouldMultithread = 0;
-    }
-    if (multithreadingOptions.shouldMultithread < 0) {
-        multithreadingOptions.shouldMultithread = 1;
-    }
-    if (multithreadingOptions.shouldMultithread == 0) {
-        sprintf(lines[4], "Enable multithreading:   OFF");
-    } else {
-        sprintf(lines[4], "Enable multithreading:    ON");
-    }
-        
-    if (multithreadingOptions.shouldShowMultithreadingStats > 1) {
-        multithreadingOptions.shouldShowMultithreadingStats = 0;
-    }
-    if (multithreadingOptions.shouldShowMultithreadingStats < 0) {
-        multithreadingOptions.shouldShowMultithreadingStats = 1;
-    }
-    if (multithreadingOptions.shouldShowMultithreadingStats == 0) {
-        sprintf(lines[5], "Show threading stats:    OFF");
-    } else {
-        sprintf(lines[5], "Show threading stats:     ON");
-    }
 
-    sprintf(lines[6], "back >");
+    sprintf(lines[4], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -3622,6 +3653,81 @@ void showQualityOfLifeOptionsMenu() {
 
         char toPrint[0x100];
         if (i == qualityOfLifeOptionIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "   %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+        if (linesWithBreakAfter[i] != 0) {
+            yPos += 8;
+        }
+    }
+}
+
+void showMultithreadingOptionsMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Multithreading", 5);
+
+    int lineCount = 3;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    int linesWithBreakAfter[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+        linesWithBreakAfter[i] = 0;
+    }
+
+    if (multithreadingOptionsIndex < 0) {
+        multithreadingOptionsIndex = lineCount - 1;
+    }
+    if (multithreadingOptionsIndex >= lineCount) {
+        multithreadingOptionsIndex = 0;
+    }
+
+    
+    if (multithreadingOptions.shouldMultithread > 1) {
+        multithreadingOptions.shouldMultithread = 0;
+    }
+    if (multithreadingOptions.shouldMultithread < 0) {
+        multithreadingOptions.shouldMultithread = 1;
+    }
+    if (multithreadingOptions.shouldMultithread == 0) {
+        sprintf(lines[0], "Enable multithreading:   OFF");
+    } else {
+        sprintf(lines[0], "Enable multithreading:    ON");
+    }
+        
+    if (multithreadingOptions.shouldShowMultithreadingStats > 1) {
+        multithreadingOptions.shouldShowMultithreadingStats = 0;
+    }
+    if (multithreadingOptions.shouldShowMultithreadingStats < 0) {
+        multithreadingOptions.shouldShowMultithreadingStats = 1;
+    }
+    if (multithreadingOptions.shouldShowMultithreadingStats == 0) {
+        sprintf(lines[1], "Show threading stats:    OFF");
+    } else {
+        sprintf(lines[1], "Show threading stats:     ON");
+    }
+
+    sprintf(lines[2], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
+        char toPrint[0x100];
+        if (i == multithreadingOptionsIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
             sprintf(toPrint, "   %s", lines[i]);
