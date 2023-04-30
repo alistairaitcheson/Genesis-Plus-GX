@@ -96,8 +96,8 @@ extern void aa_genesis_setZ80Ram(unsigned int location, uint8 value);
 extern uint8 aa_genesis_getZ80Ram(unsigned int location);
 
 extern void cacheTreadsafeWorkRam();
-extern uint8[] getThreadsafeWorkRam();
 extern uint8 getThreadsafeWorkRamAt(int index);
+void setThreadsafeWorkRamAt(int index, int value);
 
 #endif /* _GEN_H_ */
 

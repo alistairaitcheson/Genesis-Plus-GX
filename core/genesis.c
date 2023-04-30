@@ -591,7 +591,7 @@ void setCartValueAtIndex(int index, uint8 value) {
 
 uint8 aa_genesis_getWorkRam(unsigned int location) {
   if (location < 0x10000) {
-    return work_ram[location];
+    return getThreadsafeWorkRamAt(location);
   } else {
     return 0;
   }
@@ -600,6 +600,7 @@ uint8 aa_genesis_getWorkRam(unsigned int location) {
 void aa_genesis_setWorkRam(unsigned int location, uint8 value) {
   if (location < 0x10000) {
     work_ram[location] = value;
+    setThreadsafeWorkRamAt(location, value);
   }
 }
 
@@ -627,8 +628,8 @@ void aa_genesis_updateLastRam(int toLiveWorkRam) {
     for (int i = 0; i < 0x10000; i++) {
       lastWorkRam[i] = getThreadsafeWorkRamAt(i);
     }
-    cacheTreadsafeWorkRam();
   }
+  cacheTreadsafeWorkRam();
 }
 
 uint8 aa_genesis_getLastWorkRam(unsigned int location) {
@@ -650,12 +651,12 @@ void cacheTreadsafeWorkRam() {
   threadsafeWorkRamIndex = nextIndex;
 }
 
-uint8[] getThreadsafeWorkRam() {
-  return threadsafeWorkRam[threadsafeWorkRamIndex];
-}
-
 uint8 getThreadsafeWorkRamAt(int index) {
   return threadsafeWorkRam[threadsafeWorkRamIndex][index];
+}
+
+void setThreadsafeWorkRamAt(int index, int value) {
+  threadsafeWorkRam[threadsafeWorkRamIndex][index] = (uint8)value;
 }
 
 // use this to hide a change so it doesn't trigger effects
@@ -680,7 +681,7 @@ void aa_genesis_incrementWorkRamCompoundValueByInt(int index, int length, int am
         for (int j = 0; j < i; j++) {
             multiplicand *= 0x100;
         }
-        currentTotal += (int)work_ram[index + i] * multiplicand;
+        currentTotal += (int)getThreadsafeWorkRamAt(index + i) * multiplicand;
     }
     
     currentTotal += amount;
@@ -692,6 +693,7 @@ void aa_genesis_incrementWorkRamCompoundValueByInt(int index, int length, int am
         }
         int valueThisIndex = (currentTotal / multiplicand) % 0x100;
         work_ram[index + i] = (uint8)valueThisIndex;
+        setThreadsafeWorkRamAt(index + i, (uint8)valueThisIndex);
     }
 }
 

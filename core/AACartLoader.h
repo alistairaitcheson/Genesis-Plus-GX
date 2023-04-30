@@ -183,5 +183,7 @@ void cartLoader_reduceCurrentHaltCountdown();
 void cartLoader_beginCurrentHaltCountdown();
 
 void cartLoader_updateFrame_inBackground();
+int getThreadsafeSaveStateAt(int index);
+void state_save_threadsafe(unsigned char *location);
 
 #endif
