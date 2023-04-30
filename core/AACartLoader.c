@@ -3820,6 +3820,17 @@ static int frameIndex = 0;
 static int framesLostToSlowBackground = 0;
 static int backgroundCyclesIgnoredDueToFastBackground = 0;
 
+static int lastUpdateLoopIndex = 0;
+static int updateLoopIndex = 0;
+
+static int shouldEndBackgroundUpdate = 0;
+
+void updateFrameWithWrapping() {
+    modConsole_updateFrame();
+
+    copyLayersToMultithreadState();
+}
+
 void cartLoader_updateFrame_THREADED(void* threadIndex) {
     srand(time(NULL));
 
@@ -3832,20 +3843,26 @@ void cartLoader_updateFrame_THREADED(void* threadIndex) {
     {
         if (frameIndex != lastFrameIndex) {
             backgroundCyclesIgnoredDueToFastBackground = 0;
-
-            modConsole_updateFrame();
+            updateLoopIndex++;
+            updateFrameWithWrapping();
             lastFrameIndex = frameIndex;
 
-            char optionsDisplay[0x10];
-            sprintf(optionsDisplay, "%04X %04X", frameIndex, lastFrameIndex);
-            layerRenderer_clearLayer(2);
-            layerRenderer_writeWord256(2, 0, 0, optionsDisplay, 6);
+            // char optionsDisplay[0x10];
+            // sprintf(optionsDisplay, "%04X %04X", frameIndex, lastFrameIndex);
+            // layerRenderer_clearLayer(2);
+            // layerRenderer_writeWord256(2, 0, 0, optionsDisplay, 6);
         } else {
             backgroundCyclesIgnoredDueToFastBackground++;
 
-            layerRenderer_clearLayer(2);
-            layerRenderer_writeWord256(2, 0, 0, "---- ----", 6); // <-- this suggests we are doing more cycles than frames
+            // layerRenderer_clearLayer(2);
+            // layerRenderer_writeWord256(2, 0, 0, "---- ----", 6); // <-- this suggests we are doing more cycles than frames
         }
+
+        // char fastText[0x10];
+        // sprintf(fastText, "FAST: %04X", backgroundCyclesIgnoredDueToFastBackground);
+        // layerRenderer_writeWord256(2, 0, 0, fastText, 5);
+
+        // copyLayersToMultithreadState();
     }
     
    
@@ -3860,28 +3877,38 @@ void cartLoader_updateFrame_inBackground() {
     // TODO: Am I saving states when I shouldn't be? As in, it's getting half the state from one frame, and half a state from the next? Midway through a sound effect?
     frameIndex++;
 
-    if (menuDisplay_getMultithreadingOptions().shouldMultithread) {
-        if (isRunningBackgroundUpdate == 0) {
-            isRunningBackgroundUpdate = 1;
+    if (/*menuDisplay_getMultithreadingOptions().shouldMultithread*/ true) {
+
+        if (updateLoopIndex != lastUpdateLoopIndex) {
+            lastUpdateLoopIndex = updateLoopIndex;
             framesLostToSlowBackground = 0;
-            hUpdateThread = (HANDLE)_beginthread(cartLoader_updateFrame_THREADED, 0, (void*)(uintptr_t)0);
         } else {
             framesLostToSlowBackground++;
         }
 
-        if (menuDisplay_getMultithreadingOptions().shouldShowMultithreadingStats) {
-            layerRenderer_fill(2, 0, 0, vdp_getScreenWidth(), 16, 5);
-            layerRenderer_writeWord256(2, 0, 0, "FAST", 5);
-            layerRenderer_writeWord256(2, 0, 8, "SLOW", 5);
-            for (int i = 0; i < backgroundCyclesIgnoredDueToFastBackground && i < 0x10; i++) {
-                layerRenderer_fill(2, 32 + (i * 8) + 1, 1, 6, 6, 5);
-            }
-            for (int i = 0; i < framesLostToSlowBackground && i < 0x10; i++) {
-                layerRenderer_fill(2, 32 + (i * 8) + 1, 8 + 1, 6, 6, 5);
-            }
+        if (/*menuDisplay_getMultithreadingOptions().shouldShowMultithreadingStats*/ true) {
+            layerRenderer_fill(2, 0, 0, vdp_getScreenWidth(), 16, 0);
+
+            // layerRenderer_writeWord256(2, 0, 0, "FAST", 5);
+            // layerRenderer_writeWord256(2, 0, 8, "SLOW", 5);
+            // for (int i = 0; i < backgroundCyclesIgnoredDueToFastBackground && i < 0x40; i++) {
+            //     layerRenderer_fill(2, 32 + (i * 4) + 1, 1, 2, 6, 5);
+            // }
+            // for (int i = 0; i < framesLostToSlowBackground && i < 0x40; i++) {
+            //     layerRenderer_fill(2, 32 + (i * 4) + 1, 8 + 1, 2, 6, 5);
+            // }
+            char slowText[0x10];
+            sprintf(slowText, "SLOW: %04X", framesLostToSlowBackground);
+            layerRenderer_writeWord256(2, 0, 8, slowText, 5);
         }
+
+        if (isRunningBackgroundUpdate == 0) {
+            isRunningBackgroundUpdate = 1;
+            hUpdateThread = (HANDLE)_beginthread(cartLoader_updateFrame_THREADED, 0, (void*)(uintptr_t)0);
+        }
+
     } else {
-        cartLoader_updateFrame_THREADED((void*)(uintptr_t)0);
+        updateFrameWithWrapping();
     }
 
 

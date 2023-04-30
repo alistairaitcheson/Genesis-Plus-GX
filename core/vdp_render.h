@@ -152,6 +152,8 @@ extern void vdp_clearGraphicLayer(int whichLayer);
 extern void vdp_setShouldRandomiseColours(int toValue);
 extern int vdp_getShouldRandomiseColours();
 
+extern void copyLayersToMultithreadState();
+
 extern void vdp_setShouldSortPixels(int toValue);
 extern int vdp_getShouldSortPixels();
 void sortLineBuffer();
