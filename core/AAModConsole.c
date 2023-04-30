@@ -1143,7 +1143,7 @@ void modConsole_updateFrame() {
         if (shouldApplyCacheNextFrame > 0) {
             shouldApplyCacheNextFrame--;
             cartLoader_restoreCarriedOverData();
-            aa_genesis_updateLastRam();
+            aa_genesis_updateLastRam(1);
         }
 
         if (framesUntilClearLayer > 0) {
@@ -1720,8 +1720,6 @@ void modConsole_updateFrame() {
     }
 
     frameCount++;
-
-    aa_genesis_updateLastRam();
 } 
 
 void modConsole_beginRewindAction() {
@@ -2369,7 +2367,7 @@ void modConsole_queuePanic() {
 
 void modConsole_activateReset() {
     system_reset();
-    aa_genesis_updateLastRam();
+    aa_genesis_updateLastRam(1);
 }
 
 void applyRandomiseVelocity() {

@@ -78,7 +78,7 @@ extern void gen_zbank_w(unsigned int state);
 extern int z80_irq_callback(int param);
 
 /* Alistair's stufff */
-extern void aa_genesis_updateLastRam();
+extern void aa_genesis_updateLastRam(int toLiveWorkRam);
 extern uint8 aa_genesis_getWorkRam(unsigned int location);
 extern void aa_genesis_setWorkRam(unsigned int location, uint8 value);
 extern uint8 aa_genesis_getLastWorkRam(unsigned int location);
@@ -94,6 +94,10 @@ extern void aa_genesis_setVRamValue(int index, uint8 value);
 // music
 extern void aa_genesis_setZ80Ram(unsigned int location, uint8 value);
 extern uint8 aa_genesis_getZ80Ram(unsigned int location);
+
+extern void cacheTreadsafeWorkRam();
+extern uint8[] getThreadsafeWorkRam();
+extern uint8 getThreadsafeWorkRamAt(int index);
 
 #endif /* _GEN_H_ */
 

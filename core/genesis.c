@@ -618,11 +618,19 @@ void aa_genesis_setZ80Ram(unsigned int location, uint8 value) {
 }
 
 uint8 lastWorkRam[0x10000];
-void aa_genesis_updateLastRam() {
-  for (int i = 0; i < 0x10000; i++) {
-    lastWorkRam[i] = work_ram[i];
+void aa_genesis_updateLastRam(int toLiveWorkRam) {
+  if (toLiveWorkRam == 1) {
+    for (int i = 0; i < 0x10000; i++) {
+      lastWorkRam[i] = work_ram[i];
+    }
+  } else {
+    for (int i = 0; i < 0x10000; i++) {
+      lastWorkRam[i] = getThreadsafeWorkRamAt(i);
+    }
+    cacheTreadsafeWorkRam();
   }
 }
+
 uint8 aa_genesis_getLastWorkRam(unsigned int location) {
   if (location < 0x10000) {
     return lastWorkRam[location];
@@ -631,7 +639,24 @@ uint8 aa_genesis_getLastWorkRam(unsigned int location) {
   }
 }
 
+uint8 threadsafeWorkRam[2][0x10000];
+int threadsafeWorkRamIndex = 0;
 
+void cacheTreadsafeWorkRam() {
+  int nextIndex = 1 - threadsafeWorkRamIndex;
+  for (int i = 0; i < 0x10000; i++) {
+    threadsafeWorkRam[nextIndex][i] = work_ram[i];
+  }
+  threadsafeWorkRamIndex = nextIndex;
+}
+
+uint8[] getThreadsafeWorkRam() {
+  return threadsafeWorkRam[threadsafeWorkRamIndex];
+}
+
+uint8 getThreadsafeWorkRamAt(int index) {
+  return threadsafeWorkRam[threadsafeWorkRamIndex][index];
+}
 
 // use this to hide a change so it doesn't trigger effects
 // (e.g. fixing the lives count shouldn't trigger a 

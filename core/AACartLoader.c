@@ -2342,7 +2342,7 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
         cartLoader_restoreCarriedOverData();
         modConsole_flagToApplyCache();
     }
-    aa_genesis_updateLastRam();
+    aa_genesis_updateLastRam(1);
 
     if (shouldCache != 0 && menuDisplay_getHackOptions().copyVram > 0) {
         int probality = 100;
@@ -3828,6 +3828,10 @@ static int shouldEndBackgroundUpdate = 0;
 void updateFrameWithWrapping() {
     modConsole_updateFrame();
 
+    char fastText[0x10];
+    sprintf(fastText, "FAST: %04X", backgroundCyclesIgnoredDueToFastBackground);
+    layerRenderer_writeWord256(2, 0, 0, fastText, 5);
+
     copyLayersToMultithreadState();
 }
 
@@ -3870,12 +3874,25 @@ void cartLoader_updateFrame_THREADED(void* threadIndex) {
     isRunningBackgroundUpdate = 0;
 }
 
+static uint8 threadsafeSaveStates[2][STATE_SIZE];
+int currentThreadsafeSaveState = 0;
+
+uint8[] getThreadsafeSaveState() {
+    return threadsafeSaveStates[currentThreadsafeSaveState];
+}
 
 void cartLoader_updateFrame_inBackground() {
     // DONE: Try adding a "check that the frame has advanced"
     // TODO: Try adding a "apply RAM changes" before the frame advances
     // TODO: Am I saving states when I shouldn't be? As in, it's getting half the state from one frame, and half a state from the next? Midway through a sound effect?
     frameIndex++;
+
+    int nextSaveStateSlot = 1 - threadsafeSaveStates;
+    state_save(threadsafeSaveStates[nextSaveStateSlot]);
+    currentThreadsafeSaveState = nextSaveStateSlot;
+
+    cacheTreadsafeWorkRam();
+    aa_genesis_updateLastRam(0);
 
     if (/*menuDisplay_getMultithreadingOptions().shouldMultithread*/ true) {
 

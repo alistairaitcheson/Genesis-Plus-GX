@@ -614,7 +614,8 @@ void (*update_bg_pattern_cache)(int index);
 
 static uint mod_activeLineIndex;
 static uint8 mod_graphicLayers[4][400][400];
-static uint8 mod_graphicLayers_threadOutput[4][400][400];
+static uint8 mod_graphicLayers_threadOutput[2][4][400][400];
+static int whichThreadedOutputToUse = 0;
 static int mod_bufferPerLayer[4];
 static int shouldLimitColourPalette = 0;
 static int shouldHideSprites = 0;
@@ -4452,20 +4453,22 @@ void vdp_setCurrentLineIndex(int lineIdx) {
 }
 
 void copyLayersToMultithreadState() {
+  int nextThreadedOutputToUse = 1 - whichThreadedOutputToUse;
   for (int whichLayer = 0; whichLayer < 4; whichLayer++) {
       for (int x = 0; x < 400; x++) {
         for (int y = 0; y < 400; y++) {
-            mod_graphicLayers_threadOutput[whichLayer][x][y] = mod_graphicLayers[whichLayer][x][y];
+            mod_graphicLayers_threadOutput[nextThreadedOutputToUse][whichLayer][x][y] = mod_graphicLayers[whichLayer][x][y];
         }
       }
   }
+  whichThreadedOutputToUse = nextThreadedOutputToUse;
 }
 
 void drawTextLayers(int lineIdx) {
     for (int i = 0; i < 4; i++) {
         int readableBuffer = mod_bufferPerLayer[i];
         for (int x = 0; x < bitmap.viewport.w; x++) {
-            uint8 value = mod_graphicLayers_threadOutput[i][lineIdx][x];
+            uint8 value = mod_graphicLayers_threadOutput[whichThreadedOutputToUse][i][lineIdx][x];
             if (value != 0) {
                 linebuf[0][0x20 + x] = value;
             }
