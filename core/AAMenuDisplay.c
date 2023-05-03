@@ -32,9 +32,10 @@ static int ramEditingLocationIndex = 0;
 static int terminalLocationIndex = 0;
 static int bossRushItemIndex = 0;
 static int gameSuiteSelectIndex = 0;
+static int ninesChallengeItemIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 35;
+static int minorVersion = 37;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;
@@ -51,6 +52,7 @@ static PixelDetectiveOptions pixelDetectiveOptions;
 static NetworkOptions networkOptions;
 static SecondaryHackOptions secondaryHackOptions;
 static BossRushOptions bossRushOptions;
+static NinesChallengeOptions ninesChallengeOptions;
 static int logRamStateCounter[0x10000];
 
 static int trackedRamFrameCounts[0x10000];
@@ -63,6 +65,7 @@ static int trackedPixelValues[8];
 static int activeTerminalRuleId = -1;
 
 static int shouldRerollBossRushRandomTime = 0;
+static int shouldRerollNinesChallengeRandomTime = 0;
 
 static int terminalActiveRules = 0;
 
@@ -1225,6 +1228,11 @@ void menuDisplay_showMenu(int menuNum) {
     if (activeMenu == MENU_LISTING_BOSS_RUSH) {
         showBossRushMenu(); 
     }
+    
+    if (activeMenu == MENU_LISTING_NINES_CHALLENGE) {
+        showNinesChallengeMenu(); 
+    }
+
 
     if (activeMenu == MENU_LISTING_SAVE_STATE_OPTIONS) {
         showSaveStateOptionsMenu(); 
@@ -1923,6 +1931,31 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
     }
 
+    if (activeMenu == MENU_LISTING_NINES_CHALLENGE) {
+        if (buttonIndex == INPUT_INDEX_UP) {
+            ninesChallengeItemIndex--;
+            refreshMenu();
+            return 1;
+        }
+        if (buttonIndex == INPUT_INDEX_DOWN) {
+            ninesChallengeItemIndex++;
+            refreshMenu();
+            return 1;
+        }
+
+        if (buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_LEFT) {
+            incrementNinesChallengeOption(-1, buttonIndex);
+            refreshMenu();
+            return 1;
+        }
+        
+        if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_C || buttonIndex == INPUT_INDEX_RIGHT) {
+            incrementNinesChallengeOption(1, buttonIndex);
+            refreshMenu();
+            return 1;
+        }
+    }
+
 
     return 0;
 }
@@ -2136,6 +2169,41 @@ void enterTerminalOption() {
         terminalActiveRules = TERMINAL_RULSET_NO_SPRITES_ALT;
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
+    }
+}
+
+void incrementNinesChallengeOption(int direction, int buttonIndex) {
+    if (ninesChallengeItemIndex == 0) {
+        toggleStartNinesChallenge();
+    }
+    if (ninesChallengeItemIndex == 1) {
+        setShouldResetNinesChallenge(1 - getShouldResetNinesChallenge());
+    }
+    if (ninesChallengeItemIndex == 2) {
+        ninesChallengeOptions.shouldUseAllGames += direction;
+    }
+    if (ninesChallengeItemIndex == 3) {
+        ninesChallengeOptions.shouldUseRandomOrder += direction;
+    }
+
+    if (ninesChallengeItemIndex == 4) {
+        if (ninesChallengeOptions.shouldRevealSeed == 0) {
+            ninesChallengeOptions.shouldRevealSeed = 1;
+        } else {
+            if (buttonIndex == INPUT_INDEX_A || buttonIndex == INPUT_INDEX_B || buttonIndex == INPUT_INDEX_C) {
+                ninesChallengeOptions.orderSeed[ninesChallengeOptions.seedEditingLocationIndex] += direction;
+            } else {
+                ninesChallengeOptions.seedEditingLocationIndex += direction;
+            }
+        }
+    }
+
+    if (ninesChallengeItemIndex == 5) {
+        shouldRerollNinesChallengeRandomTime = 30;
+    }
+    
+    if (bossRushItemIndex == 6) {
+        menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
 
@@ -4521,6 +4589,20 @@ void menuDisplay_onUpdate() {
         }
         showBossRushMenu();
     }
+
+    if (shouldRerollNinesChallengeRandomTime > 0) {
+        ninesChallengeOptions.shouldRevealSeed = 1;
+        shouldRerollNinesChallengeRandomTime --;
+        ninesChallengeOptions.orderSeed[0] = rand() % 0x10;
+        ninesChallengeOptions.orderSeed[1] = rand() % 0x10;
+        ninesChallengeOptions.orderSeed[2] = rand() % 0x10;
+        ninesChallengeOptions.orderSeed[3] = rand() % 0x10;
+
+        if (shouldRerollNinesChallengeRandomTime == 0) {
+            ninesChallengeOptions.shouldRevealSeed = 0;
+        }
+        showNinesChallengeMenu();
+    }
 }
 
 void showTerminalMenu() {
@@ -4715,4 +4797,139 @@ void showTerminalGameListMenu() {
             yPos += 8;
         }
     }
+}
+
+void showNinesChallengeMenu() {
+    layerRenderer_clearLayer(0);
+
+    layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
+    layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "999 Challenge", 5);
+
+    int lineCount = 7;
+    char lines[lineCount][0x80];
+    int blockedLines[lineCount];
+    int linesWithBreakAfter[lineCount];
+    for (int i = 0; i < lineCount; i++) {
+        blockedLines[i] = 0;
+        linesWithBreakAfter[i] = 0;
+    }
+
+    if (bossRushItemIndex < 0) {
+        bossRushItemIndex = lineCount - 1;
+    }
+    if (bossRushItemIndex >= lineCount) {
+        bossRushItemIndex = 0;
+    }
+
+    if (awaitingNinesChallengeStart() == 1) {
+        sprintf(lines[0], "999 Challenge:            ON");
+    } else {
+        sprintf(lines[0], "999 Challenge:           OFF");
+        blockedLines[1] = 1;
+        blockedLines[2] = 1;
+        blockedLines[3] = 1;
+        blockedLines[4] = 1;
+        blockedLines[5] = 1;
+    }
+
+    // reset boss rush
+    if (get() == 1) {
+        sprintf(lines[1], "start new challenge:     YES");
+    } else {
+        sprintf(lines[1], "start new challenge:      NO");
+    }
+    linesWithBreakAfter[1] = 1;
+
+    if (ninesChallengeOptions.shouldUseAllGames < 0) {
+        ninesChallengeOptions.shouldUseAllGames = 1;
+    }
+    if (ninesChallengeOptions.shouldUseAllGames > 1) {
+        ninesChallengeOptions.shouldUseAllGames = 0;
+    }
+    if (ninesChallengeOptions.shouldUseAllGames == 0) {
+        sprintf(lines[2], "Game selection:     One Game");
+    } else {
+        sprintf(lines[2], "Game selection:   Multi-Game");
+    }
+
+    if (ninesChallengeOptions.shouldUseRandomOrder < 0) {
+        ninesChallengeOptions.shouldUseRandomOrder = 1;
+    }
+    if (ninesChallengeOptions.shouldUseRandomOrder > 1) {
+        ninesChallengeOptions.shouldUseRandomOrder = 0;
+    }
+    if (ninesChallengeOptions.shouldUseRandomOrder == 0) {
+        sprintf(lines[3], "Level order:          Normal");
+        blockedLines[4] = 1;
+        blockedLines[5] = 1;
+    } else {
+        sprintf(lines[3], "Level order:          Random");
+    }
+    linesWithBreakAfter[3] = 1;
+
+    if (ninesChallengeOptions.shouldRevealSeed == 0) {
+        if (ninesChallengeItemIndex == 8) {
+            sprintf(lines[4], "ORDER SEED: push c to reveal");
+        } else {
+            sprintf(lines[4], "ORDER SEED:           hidden");
+        }
+    } else {
+        char seedValuesText[4][0x10];
+        for (int i = 0; i < 4; i++) {
+            if (ninesChallengeOptions.orderSeed[i] < 0) {
+                ninesChallengeOptions.orderSeed[i] = 0xF;
+            }
+            if (ninesChallengeOptions.orderSeed[i] > 0xF) {
+                ninesChallengeOptions.orderSeed[i] = 0;
+            }
+
+            if (ninesChallengeItemIndex == 8 && ninesChallengeOptions.seedEditingLocationIndex == i) {
+                sprintf(seedValuesText[i], "<%X>", ninesChallengeOptions.orderSeed[i]);
+            } else {
+                sprintf(seedValuesText[i], " %X ", ninesChallengeOptions.orderSeed[i]);
+            }
+        }
+        sprintf(lines[4], "ORDER SEED:      %s%s%s%s", seedValuesText[0], seedValuesText[1], seedValuesText[2], seedValuesText[3]);
+    }
+    
+    sprintf(lines[5], "shuffle seed");
+    linesWithBreakAfter[5] = 1;
+
+    sprintf(lines[6], "back >");
+
+    int yPos = 32;
+    for (int i = 0; i < lineCount; i++) {
+        if (cartLoader_string32AreEqual(lines[i], "back >") == 1) {
+            yPos += 8;
+        }
+
+        char toPrint[0x100];
+        if (i == bossRushItemIndex) {
+            sprintf(toPrint, ">> %s", lines[i]);
+        } else {
+            sprintf(toPrint, "   %s", lines[i]);
+        }
+
+        layerRenderer_writeWord256WithBorder(0, 16, yPos, toPrint, 5, 1, 0);
+
+        if (blockedLines[i] != 0) {
+            layerRenderer_fill(0, 16 + 32, yPos + 3, DEFAULT_WIDTH - 48 - 16, 2, 5);
+        }
+
+        yPos += 8;
+        if (linesWithBreakAfter[i] != 0) {
+            yPos += 8;
+        }
+    }
+
+    char elapsedText[0x80];
+    if (getShouldShowBossRushAsReadyToReset()) {
+        sprintf(elapsedText, "Elapsed: --:--:--");
+    } else {
+        sprintf(elapsedText, "Elapsed: %02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
+    }
+
+    layerRenderer_writeWord256WithBorder(0, 16, yPos, elapsedText, 5, 1, 0);
+
+    showVersionNumber();
 }

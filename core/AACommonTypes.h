@@ -148,6 +148,13 @@ typedef struct {
     int isComplete;
 } BossRushProgress;
 
+typedef struct {
+    int gameId;
+    int zoneId;
+    int actId;
+    int completionCount;
+} NinesChallengeStageListing;
+
 static int INPUT_INDEX_UP = 0;
 static int INPUT_INDEX_DOWN = 1;
 static int INPUT_INDEX_LEFT = 2;

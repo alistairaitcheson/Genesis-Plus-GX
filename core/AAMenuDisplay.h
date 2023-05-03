@@ -28,7 +28,7 @@
 #define MENU_LISTING_BOSS_RUSH 17
 #define MENU_LISTING_TERMINAL_SHUFFLER 19
 #define MENU_LISTING_TERMINAL_GAME_LIST 20
-
+#define MENU_LISTING_NINES_CHALLENGE 22
 
 #define TERMINAL_RULSET_SHUFFLER 1
 #define TERMINAL_RULSET_SHUFFLER_WITH_VRAM 2
@@ -131,6 +131,16 @@ typedef struct {
     int shouldExposeTrackerData;
     int shouldUseExternalMusic;
 } BossRushOptions;
+
+typedef struct {
+    int shouldUseAllGames;
+    int shouldUseRandomOrder;
+    int showProgress;
+
+    int orderSeed[4];
+    int seedEditingLocationIndex;
+    int shouldRevealSeed;
+} NinesChallengeOptions;
 
 extern void menuDisplay_showMenu(int menuNum);
 extern void menuDisplay_hideMenu();
@@ -236,5 +246,7 @@ extern char* menuDisplay_getCurrentRulesName();
 void showVersionNumber();
 void switchToRandomAllowedGame();
 int terminalRulesAreActive();
+
+void showNinesChallengeMenu();
 
 #endif

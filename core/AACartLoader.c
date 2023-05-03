@@ -1910,6 +1910,10 @@ static int shouldInitialiseBossRush = 0;
 
 void setStartBossRush(int toValue) {
     shouldStartBossRush = toValue;
+
+    if (shouldStartBossRush != 0) {
+        abortAllNinesChallengeSettings();
+    }
 }
 
 void abortAllBossRushSettings() {
@@ -3764,4 +3768,63 @@ void cartLoader_checkPixelTrackerForStateChange() {
             }
         }
     }
+}
+
+
+static int shouldStartNinesChallenge = 0;
+static int ninesChallengeIsActive = 0;
+static int shouldInitialiseNinesChallenge = 0;
+
+static int ninesChallengeComplete = 0;
+
+static int shouldResetNinesChallenge = 0;
+static int hasInitialisedNinesChallenge = 0;
+
+void setStartNinesChallenge(int toValue) {
+    shouldStartNinesChallenge = toValue;
+
+    if (shouldResetNinesChallenge != 0) {
+        abortAllBossRushSettings();
+    }
+}
+
+void abortAllNinesChallengeSettings() {
+    shouldStartNinesChallenge = 0;
+    ninesChallengeIsActive = 0;
+    shouldInitialiseNinesChallenge = 0;
+}
+
+void toggleStartNinesChallenge() {
+    shouldStartNinesChallenge = 1 - shouldStartNinesChallenge;
+
+    if (shouldStartNinesChallenge == 1 && (hasInitialisedNinesChallenge == 0 || shouldResetNinesChallenge == 1)) {
+        shouldInitialiseNinesChallenge = 1;
+    }
+}
+
+
+int awaitingNinesChallengeStart() {
+    return shouldInitialiseNinesChallenge;
+}
+
+int getNinesChallengeComplete() {
+    return ninesChallengeComplete;
+}
+
+void setShouldResetNinesChallenge(int val) {
+    shouldStartNinesChallenge = val;
+}
+
+int getShouldShowNinesChallengeAsReadyToReset() {
+    if (shouldResetNinesChallenge == 1) {
+        return 1;
+    }
+    if (hasInitialisedNinesChallenge == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+int getShouldResetNinesChallenge() {
+    return shouldResetNinesChallenge;
 }
