@@ -248,5 +248,6 @@ void switchToRandomAllowedGame();
 int terminalRulesAreActive();
 
 void showNinesChallengeMenu();
+void incrementNinesChallengeOption(int direction, int buttonIndex);
 
 #endif
