@@ -4832,8 +4832,8 @@ void showNinesChallengeMenu() {
         blockedLines[5] = 1;
     }
 
-    // reset boss rush
-    if (get() == 1) {
+    // reset 999 challenge
+    if (getShouldShowNinesChallengeAsReadyToReset() == 1) {
         sprintf(lines[1], "start new challenge:     YES");
     } else {
         sprintf(lines[1], "start new challenge:      NO");

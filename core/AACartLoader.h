@@ -178,6 +178,7 @@ AAMusicOverrideListing cartLoader_getActiveMusicOverrideListing();
 void cartLoader_reduceCurrentHaltCountdown();
 void cartLoader_beginCurrentHaltCountdown();
 
+void abortAllNinesChallengeSettings()
 int awaitingNinesChallengeStart();
 int getNinesChallengeComplete();
 void setShouldResetNinesChallenge(int val);
