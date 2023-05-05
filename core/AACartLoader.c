@@ -1773,6 +1773,25 @@ void populateBossRushes() {
     applyEndValuesToMostRecentBossRush(0xFE11, 0x0D); // <-- detect ending
     bossRushCallenges[bossRushChallengeCount - 1].blockRingZeroing = 1;
 
+    // Sonic 3D Blast
+    addBossRushListing(6, 0, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
+    addBossRushListing(6, 1, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
+    addBossRushListing(6, 2, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
+    addBossRushListing(6, 3, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
+    addBossRushListing(6, 4, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
+    addBossRushListing(6, 5, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
+    addBossRushListing(6, 6, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
+    addBossRushListing(6, 7, 0, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
+
+
     // Steps:
     //  - get to boss
     //  - find health value on boss (check for 8 hp on Robotnik and 6hp on minibosses)
