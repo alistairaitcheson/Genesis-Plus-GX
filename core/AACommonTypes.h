@@ -69,6 +69,7 @@ typedef struct
     int gameStateByte;
     int gameStatesToBlockSwitch[0x10];
     int gameStatesToBlockScramble[0x10];
+    int ringCalculatationType;
 } AAGameTransferListing;
 
 typedef struct

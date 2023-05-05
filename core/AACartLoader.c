@@ -85,6 +85,7 @@ static uint8 bossRushSaveStates[MAX_ROMS][STATE_SIZE];
 static uint8 hasBossRushSaveState[MAX_ROMS];
 
 static int bossRushRingCarryValue[2];
+static int bossRushRingCarryTotal = 0;
 static int bossRushSwitchCount = 0;
 
 static int cheatFlagsPerBossRush[MAX_ROMS][8];
@@ -390,7 +391,7 @@ void cartLoader_run() {
 
     writeStringToArray32("SONIC3DBLAST", gameListings[6].gameId);
     terminalNamePerRom[6] = "Sonic 3D Blast";
-    gameListings[6].ringByte = 0x0A5A;
+    gameListings[6].ringByte = 0x0A56; // <-- it's a weird number!! 
     gameListings[6].specialRingByte = 0xA17C;    // <-- to do!
     gameListings[6].livesBytes[0] = 0x0680;
     gameListings[6].livesByteDestinations[0] = 0x5; 
@@ -398,6 +399,8 @@ void cartLoader_run() {
     gameListings[6].valueWriteDuration = 60; // once per second
     scoreMonitorListings[6].allowStackRingInputs = 1;
     sprintf(nameOfTrigger[6], "Sonic gets a ring");
+    gameTransferListings[6].ringBytesForTransfer[0] = 0x0A56; // low byte
+    gameTransferListings[6].ringBytesForTransfer[1] = 0x0A57; // high byte
 
     writeStringToArray32("SonicSpinball", gameListings[7].gameId);
     terminalNamePerRom[7] = "Sonic  Spinball";
@@ -876,6 +879,20 @@ void applyBossRushCachedRings() {
     if (shouldUseBossRush()) {
         if (bossRushOptions.carryRingsAcrossGames == 1 && 
             (bossRushOptions.preventCarryInDoomsday == 0 || getActiveBossRushListing().blockRingZeroing == 0)){
+            
+            if (gameTransferListing.ringCalculatationType == 1) {
+                int units = bossRushRingCarryTotal % 10;
+                int tens = (bossRushRingCarryTotal / 10) % 10;
+                int hundreds = (bossRushRingCarryTotal / 100) % 10;
+                int thousands = (bossRushRingCarryTotal / 1000) % 10;
+
+                bossRushRingCarryValue[0] = units + (tens * 0x10);
+                bossRushRingCarryValue[1] = hundreds + (thousands * 0x10);
+            } else {
+                bossRushRingCarryValue[0] = bossRushRingCarryTotal % 0x100;
+                bossRushRingCarryValue[1] = bossRushRingCarryTotal / 0x100;
+            }
+            
             if (gameTransferListing.ringBytesForTransfer[0] > 0) {
                 aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0] % 0x10000, bossRushRingCarryValue[0]);
             }
@@ -1069,6 +1086,7 @@ void beginBossRush() {
 
     bossRushRingCarryValue[0] = 0;
     bossRushRingCarryValue[1] = 0;
+    bossRushRingCarryTotal = 0;
     bossRushSwitchCount = 0;
     gameSwapCount = 0;
     zeroDeathCount();
@@ -1130,11 +1148,25 @@ void cacheRingCountInBossRush() {
                 );
             cartLoader_appendToLog(carryLog);
 
+            bossRushRingCarryValue[0] = 0;
+            bossRushRingCarryValue[1] = 0;
+            bossRushRingCarryTotal = 0;
+
             if (gameTransferListing.ringBytesForTransfer[0] > 0) {
                 bossRushRingCarryValue[0] = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0] % 0x10000);
             }
             if (gameTransferListing.ringBytesForTransfer[1] > 0) {
                 bossRushRingCarryValue[1] = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1] % 0x10000);
+            }
+
+            if (gameTransferListing.ringCalculatationType == 1) {
+                int units = bossRushRingCarryValue[0] % 0x10;
+                int tens = bossRushRingCarryValue[0] / 0x10;
+                int hundreds = bossRushRingCarryValue[1] % 0x10;
+                int thousands = bossRushRingCarryValue[1] / 0x10;
+                bossRushRingCarryTotal = (1000 * thousands) + (100 * hundreds) + (10 * tens) + units;
+            } else {
+                bossRushRingCarryTotal = bossRushRingCarryValue[0] + (0x100 * bossRushRingCarryValue[1]);
             }
         }
     }
@@ -1774,22 +1806,22 @@ void populateBossRushes() {
     bossRushCallenges[bossRushChallengeCount - 1].blockRingZeroing = 1;
 
     // Sonic 3D Blast
-    addBossRushListing(6, 0, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
-    addBossRushListing(6, 1, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
-    addBossRushListing(6, 2, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
-    addBossRushListing(6, 3, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
-    addBossRushListing(6, 4, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
-    addBossRushListing(6, 5, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
-    addBossRushListing(6, 6, 2, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
-    addBossRushListing(6, 7, 0, 0x0BA9, 0x0BAA, 0x10, 0x00, 0x0232, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040D; // switch off level select
+    addBossRushListing(6, 0, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
+    addBossRushListing(6, 1, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
+    addBossRushListing(6, 2, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
+    addBossRushListing(6, 3, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
+    addBossRushListing(6, 4, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
+    addBossRushListing(6, 5, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
+    addBossRushListing(6, 6, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
+    addBossRushListing(6, 7, 0, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
 
 
     // Steps:
@@ -1999,6 +2031,7 @@ void zeroAllListings() {
 
             gameListings[gameIndex].bytesToTestForChange[i] = 0;
         }
+        gameTransferListings[gameIndex].ringCalculatationType = 0;
 
         gameTransferListings[gameIndex].gameStateByte = 0;
         for (int i = 0; i < 0x10; i++) {
@@ -3079,6 +3112,7 @@ void copyGameListing(int fromGame, int toGame) {
         gameTransferListings[toGame].momentumBytesForTransfer[i] = gameTransferListings[fromGame].momentumBytesForTransfer[i];
         gameTransferListings[toGame].scoreBytesForTransfer[i] = gameTransferListings[fromGame].scoreBytesForTransfer[i];
     }
+    gameTransferListings[toGame].ringCalculatationType = gameTransferListings[fromGame].ringCalculatationType;
 
     gameTransferListings[toGame].gameStateByte = gameTransferListings[fromGame].gameStateByte;
     for (int i = 0; i < 0x10; i++) {

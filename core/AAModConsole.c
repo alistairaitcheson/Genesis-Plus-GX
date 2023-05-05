@@ -700,6 +700,16 @@ void checkForBossHits() {
         objStep = 4;
     }
 
+    if (listing.objectLocationStart == listing.objectLocationEnd) {
+        int locationToCheck = listing.objectLocationStart;
+        if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
+            && aa_genesis_getWorkRam(locationToCheck) != 0
+            && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
+            promptSwitchGame();
+            fireScreenSnapOnEvent();
+        }        
+    }
+
     for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
         int indexToCheck = i;
 
