@@ -734,6 +734,11 @@ void checkForBossHits() {
                 }     
             }
         }
+
+        // DEBUG!!
+        if (aa_genesis_getWorkRam(locationToCheck) > 2) {
+            aa_genesis_setWorkRam(locationToCheck, 2);
+        }
     }
 
     for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {

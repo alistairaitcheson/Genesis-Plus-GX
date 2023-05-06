@@ -391,7 +391,7 @@ void cartLoader_run() {
 
     writeStringToArray32("SONIC3DBLAST", gameListings[6].gameId);
     terminalNamePerRom[6] = "Sonic 3D Blast";
-    gameListings[6].ringByte = 0x0A56; // <-- it's a weird number!! 
+    gameListings[6].ringByte = 0x0A5A; // <-- it's a weird number!! 
     gameListings[6].specialRingByte = 0xA17C;    // <-- to do!
     gameListings[6].livesBytes[0] = 0x0680;
     gameListings[6].livesByteDestinations[0] = 0x5; 
@@ -899,6 +899,21 @@ void applyBossRushCachedRings() {
             if (gameTransferListing.ringBytesForTransfer[1] > 0) {
                 aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1] % 0x10000, bossRushRingCarryValue[1]);
             }
+
+            // Sonic 3D blast - need to copy these values into display
+            if (getActiveBossRushListing().gameIndex == 6) {
+                // if (bossRushRingCarryValue == 0) {
+                //     aa_genesis_setWorkRam(0x0A56, 0);
+                //     aa_genesis_setWorkRam(0x0A57, 0);
+                //     aa_genesis_setWorkRam(0x0A58, 0);
+                //     aa_genesis_setWorkRam(0x0A59, 0);
+                //     aa_genesis_setWorkRam(0x0A5A, 0);
+                //     aa_genesis_setWorkRam(0x0A5B, 0);
+                // } else {
+                //     aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], (bossRushRingCarryValue[0] + 0xFF) % 0x100);
+                //     aa_genesis_setWorkRam(0x0A52, 1);
+                // }
+            }
         }
     }    
 }
@@ -1141,38 +1156,50 @@ void cacheRingCountInBossRush(int becauseOfHit) {
             // in Sonic 3D blast, don't cache if the boss is dead, as we're about to switch,
             // unless we're calling this because of a boss hit
             if (becauseOfHit == 0) {
+                cartLoader_appendToLog("Caching rings on game switch");
                 BossRushChallengeListing activeListing = getActiveBossRushListing();
                 if (activeListing.gameIndex == 6) {
-                    int bossIsAlive = 0;
-                    if (aa_genesis_getWorkRam(activeListing.objectLocationStart) != 0) {
-                        bossIsAlive = 1;
-                    }
-                    for (int i = 0; i < 0x20; i++) {
-                        int index = activeListing.additionalHealthByteLocations[i];
-                        if (index > 0) {
-                            if (aa_genesis_getWorkRam(index) != 0) {
-                                bossIsAlive = 1;
-                            }
-                        }
-                    }
+                    return;
+                    // int bossIsAlive = 0;
+                    // if (aa_genesis_getWorkRam(activeListing.objectLocationStart) != 0) {
+                    //     bossIsAlive = 1;
 
-                    if (bossIsAlive == 0) {
-                        // abort early if we've done a level transition!
-                        return;
-                    }
+                    //     char bossAliveLog[0x100];
+                    //     sprintf(bossAliveLog, "----- Sonic 3D: boss is alive at objectLocationStart %04X (%02X)",
+                    //         activeListing.objectLocationStart, aa_genesis_getWorkRam(activeListing.objectLocationStart)
+                    //         );
+                    //     cartLoader_appendToLog(bossAliveLog);
+                    // }
+                    // for (int i = 0; i < 0x20; i++) {
+                    //     int index = activeListing.additionalHealthByteLocations[i];
+                    //     if (index > 0) {
+                    //         if (aa_genesis_getWorkRam(index) != 0) {
+                    //             bossIsAlive = 1;
+
+                    //             char bossAliveLog[0x100];
+                    //             sprintf(bossAliveLog, "----- Sonic 3D: boss is alive at additionalHealthByteLocations[%i] %04X (%02X)",
+                    //                 index,
+                    //                 activeListing.objectLocationStart, aa_genesis_getWorkRam(activeListing.objectLocationStart)
+                    //                 );
+                    //             cartLoader_appendToLog(bossAliveLog);
+                    //         }
+                    //     }
+                    // }
+
+                    // char carryLog[0x100];
+                    // sprintf(carryLog, "Sonic 3D: is boss alive?? %i",
+                    //     bossIsAlive
+                    //     );
+                    // cartLoader_appendToLog(carryLog);
+
+                    // if (bossIsAlive == 0) {
+                    //     // abort early if we've done a level transition!
+                    //     return;
+                    // }
                 }
+            } else {
+                cartLoader_appendToLog("Caching rings on boss hit");
             }
-
-            char carryLog[0x100];
-            sprintf(carryLog, "Carrying rings %i %i %i (game %i %i %i)",
-                bossRushOptions.carryRingsAcrossGames,
-                bossRushOptions.preventCarryInDoomsday,
-                getActiveBossRushListing().blockRingZeroing,
-                getActiveBossRushListing().gameIndex,
-                getActiveBossRushListing().zoneIndex,
-                getActiveBossRushListing().actIndex
-                );
-            cartLoader_appendToLog(carryLog);
 
             bossRushRingCarryValue[0] = 0;
             bossRushRingCarryValue[1] = 0;
@@ -1194,6 +1221,18 @@ void cacheRingCountInBossRush(int becauseOfHit) {
             } else {
                 bossRushRingCarryTotal = bossRushRingCarryValue[0] + (0x100 * bossRushRingCarryValue[1]);
             }
+
+            char carryLog[0x100];
+            sprintf(carryLog, "Carrying %i rings %i %i %i (game %i %i %i)",
+                bossRushRingCarryTotal,
+                bossRushOptions.carryRingsAcrossGames,
+                bossRushOptions.preventCarryInDoomsday,
+                getActiveBossRushListing().blockRingZeroing,
+                getActiveBossRushListing().gameIndex,
+                getActiveBossRushListing().zoneIndex,
+                getActiveBossRushListing().actIndex
+                );
+            cartLoader_appendToLog(carryLog);
         }
     }
 }
@@ -1854,7 +1893,7 @@ void populateBossRushes() {
     // panic puppet is different
     addBossRushListing(6, 6, 2, 0x0B82, 0x0B82, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
-    bossRushCallenges[bossRushChallengeCount - 1].additionalHealthByteLocations[0] = 0x0B95;
+    bossRushCallenges[bossRushChallengeCount - 1].additionalHealthByteLocations[0] = 0x0B94;
     
     addBossRushListing(6, 7, 0, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
