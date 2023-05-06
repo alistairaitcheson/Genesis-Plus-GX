@@ -712,6 +712,9 @@ void checkForBossHits() {
         if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
             && aa_genesis_getWorkRam(locationToCheck) != 0
             && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
+            // account for the fact that the ring count is zeroed before the switch in Sonic 3D
+            cacheRingCountInBossRush(1);
+
             promptSwitchGame();
             fireScreenSnapOnEvent();
         }        
@@ -723,6 +726,9 @@ void checkForBossHits() {
                 if (aa_genesis_getWorkRam(index) != aa_genesis_getLastWorkRam(index)
                     && aa_genesis_getWorkRam(index) != 0
                     && aa_genesis_getLastWorkRam(index) != 0) {
+                    // account for the fact that the ring count is zeroed before the switch in Sonic 3D
+                    cacheRingCountInBossRush(1);
+
                     promptSwitchGame();
                     fireScreenSnapOnEvent();
                 }     

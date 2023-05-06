@@ -147,7 +147,7 @@ int getCountOfQueueableRushes();
 void applyBossRushCachedRings();
 int getBossRushRandomSeedFromMenu();
 int getBossRushSeedWithPrefix(int prefix);
-void cacheRingCountInBossRush();
+void cacheRingCountInBossRush(int becauseOfHit);
 
 void clearBossRushProgress();
 int indexOfBossRushProgress(int gameId, int zoneId, int actId);

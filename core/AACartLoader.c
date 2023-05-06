@@ -1131,12 +1131,38 @@ BossRushChallengeListing getActiveBossRushListing() {
     return bossRushCallenges[rushToLoad];
 }
 
-void cacheRingCountInBossRush() {
+void cacheRingCountInBossRush(int becauseOfHit) {
     if (shouldUseBossRush() && hasInitialisedBossRush == 1) {
         BossRushOptions bossRushOptions = menuDisplay_getBossRushOptions();
         AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
         if (bossRushOptions.carryRingsAcrossGames == 1 && 
             (bossRushOptions.preventCarryInDoomsday == 0 || getActiveBossRushListing().blockRingZeroing == 0)) {
+
+            // in Sonic 3D blast, don't cache if the boss is dead, as we're about to switch,
+            // unless we're calling this because of a boss hit
+            if (becauseOfHit == 0) {
+                BossRushChallengeListing activeListing = getActiveBossRushListing();
+                if (activeListing.gameIndex == 6) {
+                    int bossIsAlive = 0;
+                    if (aa_genesis_getWorkRam(activeListing.objectLocationStart) != 0) {
+                        bossIsAlive = 1;
+                    }
+                    for (int i = 0; i < 0x20; i++) {
+                        int index = activeListing.additionalHealthByteLocations[i];
+                        if (index > 0) {
+                            if (aa_genesis_getWorkRam(index) != 0) {
+                                bossIsAlive = 1;
+                            }
+                        }
+                    }
+
+                    if (bossIsAlive == 0) {
+                        // abort early if we've done a level transition!
+                        return;
+                    }
+                }
+            }
+
             char carryLog[0x100];
             sprintf(carryLog, "Carrying rings %i %i %i (game %i %i %i)",
                 bossRushOptions.carryRingsAcrossGames,
@@ -1174,7 +1200,7 @@ void cacheRingCountInBossRush() {
 
 void bumpToNextBossRush() {
     queueBossRushSlots();
-    cacheRingCountInBossRush();
+    cacheRingCountInBossRush(0);
 
     int allowedIndexes[MAX_ROMS];
     int indexesWithoutActivity[MAX_ROMS];
@@ -1826,10 +1852,9 @@ void populateBossRushes() {
     addBossRushListing(6, 5, 2, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
     // panic puppet is different
-    addBossRushListing(6, 6, 2, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    addBossRushListing(6, 6, 2, 0x0B82, 0x0B82, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
-    bossRushCallenges[bossRushChallengeCount - 1].additionalHealthByteLocations[0] = 0x0B82;
-    bossRushCallenges[bossRushChallengeCount - 1].additionalHealthByteLocations[1] = 0x0B95;
+    bossRushCallenges[bossRushChallengeCount - 1].additionalHealthByteLocations[0] = 0x0B95;
     
     addBossRushListing(6, 7, 0, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
