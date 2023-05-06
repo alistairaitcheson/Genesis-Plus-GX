@@ -402,6 +402,7 @@ void cartLoader_run() {
     sprintf(nameOfTrigger[6], "Sonic gets a ring");
     gameTransferListings[6].ringBytesForTransfer[0] = 0x0A56; // low byte
     gameTransferListings[6].ringBytesForTransfer[1] = 0x0A57; // high byte
+    gameTransferListings[6].ringCalculatationType = 1; // 0x34 = 34 rings
 
     writeStringToArray32("SonicSpinball", gameListings[7].gameId);
     terminalNamePerRom[7] = "Sonic  Spinball";
@@ -887,6 +888,10 @@ void applyBossRushCachedRings() {
             if (lastRingCalculatationType == gameTransferListing.ringCalculatationType) {
                 lowValue = bossRushRingCarryValue[0];
                 highValue = bossRushRingCarryValue[1];
+
+                // char cacheMsg[0x100];
+                // sprintf(cacheMsg, "%02X %02X --> %02X %02X", bossRushRingCarryValue[0], bossRushRingCarryValue[1], lowValue, highValue);
+                // cartLoader_appendToLog(cacheMsg);
             }
 
             if (lastRingCalculatationType == 0 && gameTransferListing.ringCalculatationType == 1) {
@@ -899,6 +904,10 @@ void applyBossRushCachedRings() {
 
                 lowValue = units + (tens * 0x10);
                 highValue = hundreds + (thousands * 0x10);
+
+                // char cacheMsg[0x100];
+                // sprintf(cacheMsg, "%02X %02X --> %i --> %02X %02X", bossRushRingCarryValue[0], bossRushRingCarryValue[1], total, lowValue, highValue);
+                // cartLoader_appendToLog(cacheMsg);
             }
 
             if (lastRingCalculatationType == 1 && gameTransferListing.ringCalculatationType == 0) {
@@ -910,6 +919,10 @@ void applyBossRushCachedRings() {
 
                 lowValue = total % 0x100;
                 highValue = total / 0x100;
+
+                // char cacheMsg[0x100];
+                // sprintf(cacheMsg, "%02X %02X --> %i --> %02X %02X", bossRushRingCarryValue[0], bossRushRingCarryValue[1], total, lowValue, highValue);
+                // cartLoader_appendToLog(cacheMsg);
             }
 
             if (gameTransferListing.ringBytesForTransfer[0] > 0) {
@@ -1252,6 +1265,11 @@ void cacheRingCountInBossRush(int becauseOfHit) {
                 bossRushRingCarryTotal = bossRushRingCarryValue[0] + (0x100 * bossRushRingCarryValue[1]);
             }
             lastRingCalculatationType = gameTransferListing.ringCalculatationType;
+            // char cacheMsg[0x100];
+            // sprintf(cacheMsg, "Setting ring calculation (game %i): %i (%02X, %02X)", 
+            //     getActiveBossRushListing().gameIndex, lastRingCalculatationType, bossRushRingCarryValue[0], bossRushRingCarryValue[1]);
+            // cartLoader_appendToLog(cacheMsg);
+
 
             // char carryLog[0x100];
             // sprintf(carryLog, "Carrying %i rings %i %i %i (game %i %i %i)",
