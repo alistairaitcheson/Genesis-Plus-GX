@@ -345,6 +345,11 @@ void setShouldShuffleController(int toValue) {
 
 void beginCountdownToApplyBossRushRings() {
     countdownToApplyBossRushRings = 3;
+
+    // Sonic 3D blast
+    if (getActiveBossRushListing().gameIndex == 6) {
+        countdownToApplyBossRushRings = 60;
+    }
 }
 
 void zeroDeathCount() {
@@ -706,6 +711,26 @@ void checkForBossHits() {
         objStep = 4;
     }
 
+    // Sonic 3D Blast nullifies ring count at odd points so I account for it here
+    if (listing.gameIndex == 6 && countdownToApplyBossRushRings == 0) {
+        AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
+        // cache ring count every frame, unless:
+        //  (1) ring count is reset to 0, and Sonic is NOT damaged
+        if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 || aa_genesis_getWorkRam(0xC224) > 0xE0) {
+            char debugText[0x40];
+            sprintf(debugText, "will cache rings %02X %02X", 
+                aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]), 
+                aa_genesis_getWorkRam(0xC224));
+            cartLoader_appendToLog(debugText);
+            cacheRingCountInBossRush(1);
+        }
+    }
+
+    if (listing.gameIndex != 6 && countdownToApplyBossRushRings == 0) {
+        cacheRingCountInBossRush(1);
+    }
+
+
     // right now this is just used in Sonic 3D Blast
     if (listing.objectLocationStart == listing.objectLocationEnd) {
         int locationToCheck = listing.objectLocationStart;
@@ -713,7 +738,7 @@ void checkForBossHits() {
             && aa_genesis_getWorkRam(locationToCheck) != 0
             && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
             // account for the fact that the ring count is zeroed before the switch in Sonic 3D
-            cacheRingCountInBossRush(1);
+            // cacheRingCountInBossRush(1);
 
             promptSwitchGame();
             fireScreenSnapOnEvent();
@@ -727,7 +752,7 @@ void checkForBossHits() {
                     && aa_genesis_getWorkRam(index) != 0
                     && aa_genesis_getLastWorkRam(index) != 0) {
                     // account for the fact that the ring count is zeroed before the switch in Sonic 3D
-                    cacheRingCountInBossRush(1);
+                    // cacheRingCountInBossRush(1);
 
                     promptSwitchGame();
                     fireScreenSnapOnEvent();
@@ -1112,6 +1137,7 @@ void modConsole_updateFrame() {
 
         rewindFrameCounter = 0;
     } else {
+        layerRenderer_clearLayer(3);
         checkDeathCounter();
         applyHeldValues();
 
@@ -1461,11 +1487,12 @@ void modConsole_updateFrame() {
                 
                 if (countdownToApplyBossRushRings > 0) {
                     // only count down once level is loaded!
-                    if (aa_genesis_getWorkRam(0xF601) == 0x0C) {
+                    if (aa_genesis_getWorkRam(0xF601) == 0x0C || getActiveBossRushListing().gameIndex == 6) {
                         countdownToApplyBossRushRings--;
-                        if (countdownToApplyBossRushRings == 0) {
-                            applyBossRushCachedRings();
-                        }
+                        applyBossRushCachedRings();
+                        // if (countdownToApplyBossRushRings == 0) {
+                        //     applyBossRushCachedRings();
+                        // }
                     }
                 }
             }

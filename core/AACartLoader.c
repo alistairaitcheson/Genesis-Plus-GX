@@ -902,6 +902,12 @@ void applyBossRushCachedRings() {
 
             // Sonic 3D blast - need to copy these values into display
             if (getActiveBossRushListing().gameIndex == 6) {
+                    aa_genesis_setWorkRam(0x0A56, bossRushRingCarryValue[0]);
+                    aa_genesis_setWorkRam(0x0A57, bossRushRingCarryValue[1]);
+                    // aa_genesis_setWorkRam(0x0A58, bossRushRingCarryValue[0]);
+                    // aa_genesis_setWorkRam(0x0A59, bossRushRingCarryValue[1]);
+                    aa_genesis_setWorkRam(0x0A5A, bossRushRingCarryValue[0]);
+                    aa_genesis_setWorkRam(0x0A5B, bossRushRingCarryValue[1]);
                 // if (bossRushRingCarryValue == 0) {
                 //     aa_genesis_setWorkRam(0x0A56, 0);
                 //     aa_genesis_setWorkRam(0x0A57, 0);
@@ -914,6 +920,11 @@ void applyBossRushCachedRings() {
                 //     aa_genesis_setWorkRam(0x0A52, 1);
                 // }
             }
+
+            char cacheMsg[0x100];
+            sprintf(cacheMsg, "   Put ring count: %i", bossRushRingCarryTotal);
+            layerRenderer_fill(3, 0, 8, 240, 8, 0xFF);
+            layerRenderer_writeWord256(3, 0, 8, cacheMsg, 0x5);
         }
     }    
 }
@@ -1156,7 +1167,7 @@ void cacheRingCountInBossRush(int becauseOfHit) {
             // in Sonic 3D blast, don't cache if the boss is dead, as we're about to switch,
             // unless we're calling this because of a boss hit
             if (becauseOfHit == 0) {
-                cartLoader_appendToLog("Caching rings on game switch");
+                // cartLoader_appendToLog("Caching rings on game switch");
                 BossRushChallengeListing activeListing = getActiveBossRushListing();
                 if (activeListing.gameIndex == 6) {
                     return;
@@ -1198,7 +1209,7 @@ void cacheRingCountInBossRush(int becauseOfHit) {
                     // }
                 }
             } else {
-                cartLoader_appendToLog("Caching rings on boss hit");
+                // cartLoader_appendToLog("Caching rings on boss hit");
             }
 
             bossRushRingCarryValue[0] = 0;
@@ -1233,13 +1244,18 @@ void cacheRingCountInBossRush(int becauseOfHit) {
                 getActiveBossRushListing().actIndex
                 );
             cartLoader_appendToLog(carryLog);
+
+            char cacheMsg[0x100];
+            sprintf(cacheMsg, "Cached ring count: %i", bossRushRingCarryTotal);
+            layerRenderer_fill(3, 0, 0, 240, 8, 0xFF);
+            layerRenderer_writeWord256(3, 0, 0, cacheMsg, 0x5);
         }
     }
 }
 
 void bumpToNextBossRush() {
+    // cacheRingCountInBossRush(0);
     queueBossRushSlots();
-    cacheRingCountInBossRush(0);
 
     int allowedIndexes[MAX_ROMS];
     int indexesWithoutActivity[MAX_ROMS];
