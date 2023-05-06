@@ -1251,7 +1251,9 @@ void bumpToNextBossRush() {
             // aa_genesis_setWorkRam(0xFE10, getActiveBossRushListing().actPointer);
             
             // for sonic games, send value 0x8C to location 0xF601 to force a level reset - should fix version clashes!
-            aa_genesis_setWorkRam(0xF601, 0x8C);
+            if (getActiveBossRushListing().gameIndex <= 4) {
+                aa_genesis_setWorkRam(0xF601, 0x8C);
+            }
             beginCountdownToApplyBossRushRings();
 
             for (int i = 0; i < 8; i++) {
@@ -1403,6 +1405,11 @@ void onBossRushComplete() {
     if (getActiveBossRushListing().gameIndex == 4) {
         // SONIC & KNUCKLES - you stop in end credits, so go to get blue spheres
         aa_genesis_setWorkRam(0xF601, 0xAC);
+    }
+    if (getActiveBossRushListing().gameIndex == 6) {
+        // SONIC 3D Blast
+        // go to the secret level select?
+        aa_genesis_setWorkRam(0x03B7, 0x12);
     }
 
     flagAllBossRushProgressAsComplete();
@@ -1806,21 +1813,25 @@ void populateBossRushes() {
     bossRushCallenges[bossRushChallengeCount - 1].blockRingZeroing = 1;
 
     // Sonic 3D Blast
-    addBossRushListing(6, 0, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    addBossRushListing(6, 0, 2, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
-    addBossRushListing(6, 1, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    addBossRushListing(6, 1, 2, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
-    addBossRushListing(6, 2, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    addBossRushListing(6, 2, 2, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
-    addBossRushListing(6, 3, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    addBossRushListing(6, 3, 2, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
-    addBossRushListing(6, 4, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    addBossRushListing(6, 4, 2, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
-    addBossRushListing(6, 5, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    addBossRushListing(6, 5, 2, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
-    addBossRushListing(6, 6, 2, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    // panic puppet is different
+    addBossRushListing(6, 6, 2, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
-    addBossRushListing(6, 7, 0, 0x0BA8, 0x0BA8, 0x10, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
+    bossRushCallenges[bossRushChallengeCount - 1].additionalHealthByteLocations[0] = 0x0B82;
+    bossRushCallenges[bossRushChallengeCount - 1].additionalHealthByteLocations[1] = 0x0B95;
+    
+    addBossRushListing(6, 7, 0, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0x040C; // switch off level select
 
 
@@ -1878,6 +1889,7 @@ void addBossRushListing(int gameIndex, int zoneIndex, int actIndex, unsigned int
     for (int i = 0; i < 0x20; i++) {
         bossRushCallenges[bossRushChallengeCount].objectIdNumbers[i] = 0;
         bossRushCallenges[bossRushChallengeCount].healthByteOffsets[i] = healthByteOffset;
+        bossRushCallenges[bossRushChallengeCount].additionalHealthByteLocations[i] = 0;
     }
 
     bossRushCallenges[bossRushChallengeCount].romAtIndex = -1;

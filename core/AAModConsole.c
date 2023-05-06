@@ -222,6 +222,12 @@ void checkToHaltMusic() {
             // layerRenderer_writeWord256(3, 0, 8, skBufTop, 0x5);
             // layerRenderer_writeWord256(3, 0, 16, skBufBottom, 0x5);
         }
+
+        // // nuclear option in case of Sonic 3D Blast
+        if (cartLoader_getActiveCartIndex() == 6) {
+            aa_genesis_setZ80Ram(0x1FF8, 0);
+            aa_genesis_setZ80Ram(0x1FF9, 0);
+        }
     }
 }
 
@@ -700,6 +706,7 @@ void checkForBossHits() {
         objStep = 4;
     }
 
+    // right now this is just used in Sonic 3D Blast
     if (listing.objectLocationStart == listing.objectLocationEnd) {
         int locationToCheck = listing.objectLocationStart;
         if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
@@ -708,6 +715,19 @@ void checkForBossHits() {
             promptSwitchGame();
             fireScreenSnapOnEvent();
         }        
+
+        // right now this is just used in Panic Puppet
+        for (int i = 0; i < 0x20; i++) {
+            int index = listing.additionalHealthByteLocations[i];
+            if (index > 0) {
+                if (aa_genesis_getWorkRam(index) != aa_genesis_getLastWorkRam(index)
+                    && aa_genesis_getWorkRam(index) != 0
+                    && aa_genesis_getLastWorkRam(index) != 0) {
+                    promptSwitchGame();
+                    fireScreenSnapOnEvent();
+                }     
+            }
+        }
     }
 
     for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
