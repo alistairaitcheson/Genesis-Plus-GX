@@ -90,6 +90,7 @@ static int bossRushSwitchCount = 0;
 
 static int cheatFlagsPerBossRush[MAX_ROMS][8];
 
+static int lastRingCalculatationType = 0;
 
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
@@ -880,34 +881,52 @@ void applyBossRushCachedRings() {
         if (bossRushOptions.carryRingsAcrossGames == 1 && 
             (bossRushOptions.preventCarryInDoomsday == 0 || getActiveBossRushListing().blockRingZeroing == 0)){
             
-            if (gameTransferListing.ringCalculatationType == 1) {
-                int units = bossRushRingCarryTotal % 10;
-                int tens = (bossRushRingCarryTotal / 10) % 10;
-                int hundreds = (bossRushRingCarryTotal / 100) % 10;
-                int thousands = (bossRushRingCarryTotal / 1000) % 10;
+            int lowValue = 0;
+            int highValue = 0;
 
-                bossRushRingCarryValue[0] = units + (tens * 0x10);
-                bossRushRingCarryValue[1] = hundreds + (thousands * 0x10);
-            } else {
-                bossRushRingCarryValue[0] = bossRushRingCarryTotal % 0x100;
-                bossRushRingCarryValue[1] = bossRushRingCarryTotal / 0x100;
+            if (lastRingCalculatationType == gameTransferListing.ringCalculatationType) {
+                lowValue = bossRushRingCarryValue[0];
+                highValue = bossRushRingCarryValue[1];
             }
-            
+
+            if (lastRingCalculatationType == 0 && gameTransferListing.ringCalculatationType == 1) {
+                // converting from HEX byte to DEC
+                int total = bossRushRingCarryValue[0] + (bossRushRingCarryValue[1] * 0x100);
+                int units = total % 10;
+                int tens = (total / 10) % 10;
+                int hundreds = (total / 100) % 10;
+                int thousands = (total / 1000) % 10;
+
+                lowValue = units + (tens * 0x10);
+                highValue = hundreds + (thousands * 0x10);
+            }
+
+            if (lastRingCalculatationType == 1 && gameTransferListing.ringCalculatationType == 0) {
+                int units = bossRushRingCarryValue[0] % 0x10;
+                int tens = bossRushRingCarryValue[0] / 0x10;
+                int hundreds = bossRushRingCarryValue[1] % 0x10;
+                int thousands = bossRushRingCarryValue[1] / 0x10;
+                int total = units + (tens * 10) + (hundreds * 100) + (thousands * 1000);
+
+                lowValue = total % 0x100;
+                highValue = total / 0x100;
+            }
+
             if (gameTransferListing.ringBytesForTransfer[0] > 0) {
-                aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0] % 0x10000, bossRushRingCarryValue[0]);
+                aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0] % 0x10000, lowValue);
             }
             if (gameTransferListing.ringBytesForTransfer[1] > 0) {
-                aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1] % 0x10000, bossRushRingCarryValue[1]);
+                aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1] % 0x10000, highValue);
             }
 
             // Sonic 3D blast - need to copy these values into display
             if (getActiveBossRushListing().gameIndex == 6) {
-                    aa_genesis_setWorkRam(0x0A56, bossRushRingCarryValue[0]);
-                    aa_genesis_setWorkRam(0x0A57, bossRushRingCarryValue[1]);
+                    aa_genesis_setWorkRam(0x0A56, lowValue);
+                    aa_genesis_setWorkRam(0x0A57, highValue);
                     // aa_genesis_setWorkRam(0x0A58, bossRushRingCarryValue[0]);
                     // aa_genesis_setWorkRam(0x0A59, bossRushRingCarryValue[1]);
-                    aa_genesis_setWorkRam(0x0A5A, bossRushRingCarryValue[0]);
-                    aa_genesis_setWorkRam(0x0A5B, bossRushRingCarryValue[1]);
+                    aa_genesis_setWorkRam(0x0A5A, lowValue);
+                    aa_genesis_setWorkRam(0x0A5B, highValue);
                 // if (bossRushRingCarryValue == 0) {
                 //     aa_genesis_setWorkRam(0x0A56, 0);
                 //     aa_genesis_setWorkRam(0x0A57, 0);
@@ -921,10 +940,10 @@ void applyBossRushCachedRings() {
                 // }
             }
 
-            char cacheMsg[0x100];
-            sprintf(cacheMsg, "   Put ring count: %i", bossRushRingCarryTotal);
-            layerRenderer_fill(3, 0, 8, 240, 8, 0xFF);
-            layerRenderer_writeWord256(3, 0, 8, cacheMsg, 0x5);
+            // char cacheMsg[0x100];
+            // sprintf(cacheMsg, "   Put ring count: %i - %04X", bossRushRingCarryTotal, bossRushRingCarryTotal);
+            // layerRenderer_fill(3, 0, 8, 240, 8, 0xFF);
+            // layerRenderer_writeWord256(3, 0, 8, cacheMsg, 0x5);
         }
     }    
 }
@@ -1232,23 +1251,24 @@ void cacheRingCountInBossRush(int becauseOfHit) {
             } else {
                 bossRushRingCarryTotal = bossRushRingCarryValue[0] + (0x100 * bossRushRingCarryValue[1]);
             }
+            lastRingCalculatationType = gameTransferListing.ringCalculatationType;
 
-            char carryLog[0x100];
-            sprintf(carryLog, "Carrying %i rings %i %i %i (game %i %i %i)",
-                bossRushRingCarryTotal,
-                bossRushOptions.carryRingsAcrossGames,
-                bossRushOptions.preventCarryInDoomsday,
-                getActiveBossRushListing().blockRingZeroing,
-                getActiveBossRushListing().gameIndex,
-                getActiveBossRushListing().zoneIndex,
-                getActiveBossRushListing().actIndex
-                );
-            cartLoader_appendToLog(carryLog);
+            // char carryLog[0x100];
+            // sprintf(carryLog, "Carrying %i rings %i %i %i (game %i %i %i)",
+            //     bossRushRingCarryTotal,
+            //     bossRushOptions.carryRingsAcrossGames,
+            //     bossRushOptions.preventCarryInDoomsday,
+            //     getActiveBossRushListing().blockRingZeroing,
+            //     getActiveBossRushListing().gameIndex,
+            //     getActiveBossRushListing().zoneIndex,
+            //     getActiveBossRushListing().actIndex
+            //     );
+            // cartLoader_appendToLog(carryLog);
 
-            char cacheMsg[0x100];
-            sprintf(cacheMsg, "Cached ring count: %i", bossRushRingCarryTotal);
-            layerRenderer_fill(3, 0, 0, 240, 8, 0xFF);
-            layerRenderer_writeWord256(3, 0, 0, cacheMsg, 0x5);
+            // char cacheMsg[0x100];
+            // sprintf(cacheMsg, "Cached ring count: %i", bossRushRingCarryTotal);
+            // layerRenderer_fill(3, 0, 0, 240, 8, 0xFF);
+            // layerRenderer_writeWord256(3, 0, 0, cacheMsg, 0x5);
         }
     }
 }

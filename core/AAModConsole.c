@@ -717,11 +717,11 @@ void checkForBossHits() {
         // cache ring count every frame, unless:
         //  (1) ring count is reset to 0, and Sonic is NOT damaged
         if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 || aa_genesis_getWorkRam(0xC224) > 0xE0) {
-            char debugText[0x40];
-            sprintf(debugText, "will cache rings %02X %02X", 
-                aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]), 
-                aa_genesis_getWorkRam(0xC224));
-            cartLoader_appendToLog(debugText);
+            // char debugText[0x40];
+            // sprintf(debugText, "will cache rings %02X %02X", 
+            //     aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]), 
+            //     aa_genesis_getWorkRam(0xC224));
+            // cartLoader_appendToLog(debugText);
             cacheRingCountInBossRush(1);
         }
     }
