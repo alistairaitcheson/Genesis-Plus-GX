@@ -185,5 +185,7 @@ void setShouldResetNinesChallenge(int val);
 int getShouldShowNinesChallengeAsReadyToReset();
 int getShouldResetNinesChallenge();
 void toggleStartNinesChallenge();
+int shouldUseNinesChallenge();
+void beginNinesChallenge();
 
 #endif

@@ -179,6 +179,10 @@ BossRushOptions menuDisplay_getBossRushOptions() {
     return bossRushOptions;
 }
 
+NinesChallengeOptions menuDisplay_getNinesChallengeOptions() {
+    return ninesChallengeOptions;
+}
+
 void switchToRandomAllowedGame() {
     if (terminalActiveRules == TERMINAL_RULSET_SHUFFLER || terminalActiveRules == TERMINAL_RULSET_SHUFFLER_WITH_VRAM) {        
         gameSuiteSelectIndex = rand() % 7;
@@ -1326,6 +1330,9 @@ int menuDisplay_onButtonPress(int buttonIndex) {
             if (awaitingBossRushStart()) {
                 beginGame();
                 beginBossRush();
+            } else if (awaitingNinesChallengeStart()) {
+                beginGame();
+                beginNinesChallenge();
             } else {
                 beginGame();
             }
@@ -2646,8 +2653,13 @@ void chooseMainMenuOption() {
         qualityOfLifeOptionIndex = 0;
         menuDisplay_showMenu(MENU_LISTING_BOSS_RUSH);
     }
-
+    
     if (optionsItemIndex == 8) {
+        qualityOfLifeOptionIndex = 0;
+        menuDisplay_showMenu(MENU_LISTING_NINES_CHALLENGE);
+    }
+
+    if (optionsItemIndex == 9) {
         saveHackOptions();
         if (gameHasStarted == 0) {
             menuDisplay_showMenu(MENU_LISTING_CHOOSE_GAME);
@@ -2821,7 +2833,7 @@ void showOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "options", 5);
 
-    int lineCount = 9;
+    int lineCount = 10;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -2887,7 +2899,13 @@ void showOptionsMenu() {
         sprintf(lines[7], "     Boss Rush (Beta)>");
     }
 
-    sprintf(lines[8], "Start game");
+    if (shouldUseNinesChallenge()) {
+        sprintf(lines[8], "[ON] 999 Challenge (Beta)>");
+    } else {
+        sprintf(lines[8], "     999 Challenge (Beta)>");
+    }
+
+    sprintf(lines[9], "Start game");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -4814,11 +4832,11 @@ void showNinesChallengeMenu() {
         linesWithBreakAfter[i] = 0;
     }
 
-    if (bossRushItemIndex < 0) {
-        bossRushItemIndex = lineCount - 1;
+    if (ninesChallengeItemIndex < 0) {
+        ninesChallengeItemIndex = lineCount - 1;
     }
-    if (bossRushItemIndex >= lineCount) {
-        bossRushItemIndex = 0;
+    if (ninesChallengeItemIndex >= lineCount) {
+        ninesChallengeItemIndex = 0;
     }
 
     if (awaitingNinesChallengeStart() == 1) {
@@ -4904,7 +4922,7 @@ void showNinesChallengeMenu() {
         }
 
         char toPrint[0x100];
-        if (i == bossRushItemIndex) {
+        if (i == ninesChallengeItemIndex) {
             sprintf(toPrint, ">> %s", lines[i]);
         } else {
             sprintf(toPrint, "   %s", lines[i]);

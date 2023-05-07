@@ -3953,6 +3953,10 @@ void cartLoader_checkPixelTrackerForStateChange() {
     }
 }
 
+static NinesChallengeStageListing ninesChallengeLevelsSource[0x1000];
+static NinesChallengeStageListing ninesChallengeLevelOrder[0x1000];
+static int ninesChallengeStageIndex = 0;
+static int totalNinesChallengeStages = 0;
 
 static int shouldStartNinesChallenge = 0;
 static int ninesChallengeIsActive = 0;
@@ -4010,4 +4014,187 @@ int getShouldShowNinesChallengeAsReadyToReset() {
 
 int getShouldResetNinesChallenge() {
     return shouldResetNinesChallenge;
+}
+
+int shouldUseNinesChallenge() {
+    return ninesChallengeIsActive;
+}
+
+void addNinesChallengeLevel(int gameId, int actId, int zoneId) {
+    for (int i = 0; i < 0x1000; i++) {
+        if (ninesChallengeLevelsSource[i].gameId == -1) {
+            ninesChallengeLevelsSource[i].gameId = gameId;
+            ninesChallengeLevelsSource[i].actId = actId;
+            ninesChallengeLevelsSource[i].zoneId = zoneId;
+            break;
+        }
+    }
+}
+
+
+void populateNinesChallengeLevelSource() {
+    for (int i = 0; i < 0x1000; i++) {
+        ninesChallengeLevelsSource[i].gameId = -1;
+        ninesChallengeLevelsSource[i].actId = 0;
+        ninesChallengeLevelsSource[i].zoneId = 0;
+        ninesChallengeLevelsSource[i].completionCount = 0;        
+    }
+    // these should match the actual zone/act hex values as used by each game
+    // in the order they appear
+    // (so in Sonic 1 we want GHZ, MZ, SYZ but internally the game goes
+    //  GHZ, LZ, MZ...)
+
+    // And we only want levels with rings!
+
+    // SONIC 1
+    addNinesChallengeLevel(1,0,0);
+    addNinesChallengeLevel(1,0,1);
+    addNinesChallengeLevel(1,0,2);
+    addNinesChallengeLevel(1,1,0);
+    addNinesChallengeLevel(1,1,1);
+    addNinesChallengeLevel(1,1,2);
+    addNinesChallengeLevel(1,2,0);
+    addNinesChallengeLevel(1,2,1);
+    addNinesChallengeLevel(1,2,2);
+    addNinesChallengeLevel(1,3,0);
+    addNinesChallengeLevel(1,3,1);
+    addNinesChallengeLevel(1,3,2);
+    addNinesChallengeLevel(1,4,0);
+    addNinesChallengeLevel(1,4,1);
+    addNinesChallengeLevel(1,4,2);
+    addNinesChallengeLevel(1,5,0);
+    addNinesChallengeLevel(1,5,1);
+    addNinesChallengeLevel(1,5,2);
+
+    // SONIC 2
+    addNinesChallengeLevel(2,0,0);
+    addNinesChallengeLevel(2,0,1);
+}
+
+
+void populateNinesChallengeLevelOrder() {
+    populateNinesChallengeLevelSource();
+
+    int usedGameIndexes[MAX_ROMS];
+    int totalUsedGameIndexes = 0;
+    for (int i = 0; i < MAX_ROMS; i++) {
+        cartIndexForEachRom[i] = -1;
+        usedGameIndexes[i] = -1;
+    }
+
+    for (int i = 0; i < romCount; i++) {
+        cartLoader_loadRomAtIndex(i, 0);
+        int index = cartLoader_getActiveCartIndex();
+        cartIndexForEachRom[i] = index;
+
+        for (int j = 0; j < MAX_ROMS; j++) {
+            if (usedGameIndexes[j] == -1) {
+                usedGameIndexes[j] = index;
+                totalUsedGameIndexes++;
+            }
+        }
+    }
+
+    NinesChallengeStageListing orderedLevels[0x1000];
+    int totalOrderedLevels = 0;
+    for (int i = 0; i < 0x1000; i++) {
+        orderedLevels[i].gameId = -1;
+        orderedLevels[i].actId = 0;
+        orderedLevels[i].zoneId = 0;
+        orderedLevels[i].completionCount = 0;        
+    }
+    for (int gameIndex = 0; gameIndex < MAX_ROMS; gameIndex++) {
+        int gameIsAllowed = 0;
+        for (int i = 0; i < totalUsedGameIndexes; i++) {
+            if (totalUsedGameIndexes[i] == gameIndex) {
+                gameIsAllowed = 1;
+                break;
+            }
+        }
+
+        if (gameIsAllowed) {
+            for (int stageIndex = 0; stageIndex < 0x1000; stageIndex++) {
+                if(ninesChallengeLevelsSource[stageIndex].gameId == gameIndex) {
+                    orderedLevels[totalOrderedLevels].gameId = ninesChallengeLevelsSource[stageIndex].gameId;
+                    orderedLevels[totalOrderedLevels].actId = ninesChallengeLevelsSource[stageIndex].actId;
+                    orderedLevels[totalOrderedLevels].zoneId = ninesChallengeLevelsSource[stageIndex].zoneId;
+                    totalOrderedLevels++;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < 0x1000; i++) {
+        ninesChallengeLevelOrder[i] = orderedLevels[i];
+    }
+
+    if (menuDisplay_getNinesChallengeOptions().shouldUseRandomOrder == 1 && totalOrderedLevels > 0) {
+        int stageOrder[0x1000];
+        for (int i = 0; i < 0x1000; i++) {
+            stageOrder[i] = -1;
+        }
+
+        int shuffledIndexes[totalOrderedLevels];
+        int shuffledIndexesPopulated = 0;
+
+        while (shuffledIndexesPopulated < totalOrderedLevels)
+        {
+            int nextIndex = rand() % totalOrderedLevels;
+            int indexAlreadyHere = 0;
+            for (int i = 0; i < shuffledIndexesPopulated; i++) {
+                if (shuffledIndexes[i] == nextIndex) {
+                    indexAlreadyHere = 1;
+                }
+            }
+
+            if (indexAlreadyHere == 0) {
+                shuffledIndexes[shuffledIndexesPopulated] = nextIndex;
+                shuffledIndexesPopulated++;
+            }
+        }
+        
+        for (int i = 0; i < 0x1000; i++) {
+            ninesChallengeLevelOrder[i] = orderedLevels[shuffledIndexes[i]];
+        }
+    }
+
+    totalNinesChallengeStages = totalOrderedLevels;
+}
+
+void loadNinesChallengeStage() {
+    
+}
+
+void beginNinesChallenge() {
+    populateNinesChallengeLevelOrder();
+
+    bossRushRingCarryTotal = 0;
+    bossRushRingCarryValue[0] = 0;
+    bossRushRingCarryValue[1] = 0;
+
+    ninesChallengeStageIndex = 0;
+
+    // load the rom for the appropriate game
+    // send it to the correct stage loading screen
+    loadNinesChallengeStage();
+}
+
+int incrementNinesChallengeStageCompletionCount() {
+    ninesChallengeLevelOrder[ninesChallengeStageIndex % totalNinesChallengeStages].completionCount++;
+}
+
+NinesChallengeStageListing getCurrentNinesChallengeStage() {
+    return ninesChallengeLevelOrder[ninesChallengeStageIndex % totalNinesChallengeStages];
+}
+
+/*
+    Call this when (1) score totaliser appears
+                   (2) load level is called but we didn't call it
+                   (3) a special stage enter is triggered
+*/
+void bumpNinesChallengeLevel() {
+    incrementNinesChallengeStageCompletionCount();
+
+    ninesChallengeStageIndex++;
+    loadNinesChallengeStage();
 }

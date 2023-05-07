@@ -249,5 +249,6 @@ int terminalRulesAreActive();
 
 void showNinesChallengeMenu();
 void incrementNinesChallengeOption(int direction, int buttonIndex);
+NinesChallengeOptions menuDisplay_getNinesChallengeOptions() ;
 
 #endif
