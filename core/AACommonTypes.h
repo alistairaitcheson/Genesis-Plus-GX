@@ -155,7 +155,18 @@ typedef struct {
     int zoneId;
     int actId;
     int completionCount;
+
+    int romIndex;
 } NinesChallengeStageListing;
+
+typedef struct {
+    int resetStageFlagLocation;
+    int resetStageFlagValueToSet;
+    int zoneFlagLocation;
+    int actFlagLocation;
+    int damageBoostLocation;
+    int damageBoostMaximum; // value should be 0xE0 for Sonic 3D Blast
+} NinesChallengeGameParameters;
 
 static int INPUT_INDEX_UP = 0;
 static int INPUT_INDEX_DOWN = 1;

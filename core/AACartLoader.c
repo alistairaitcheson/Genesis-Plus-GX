@@ -3953,6 +3953,7 @@ void cartLoader_checkPixelTrackerForStateChange() {
     }
 }
 
+static NinesChallengeGameParameters ninesChallengeGamesParameters[MAX_ROMS];
 static NinesChallengeStageListing ninesChallengeLevelsSource[0x1000];
 static NinesChallengeStageListing ninesChallengeLevelOrder[0x1000];
 static int ninesChallengeStageIndex = 0;
@@ -4047,6 +4048,13 @@ void populateNinesChallengeLevelSource() {
     // And we only want levels with rings!
 
     // SONIC 1
+    ninesChallengeGamesParameters[1].resetStageFlagLocation = 0xF601;
+    ninesChallengeGamesParameters[1].resetStageFlagValueToSet = 0x8C;
+    ninesChallengeGamesParameters[1].actFlagLocation = 0xFE10;
+    ninesChallengeGamesParameters[1].zoneFlagLocation = 0xFE11;
+    ninesChallengeGamesParameters[1].damageBoostLocation = 0xD030;
+    ninesChallengeGamesParameters[1].damageBoostMaximum = 0x40;
+
     addNinesChallengeLevel(1,0,0);
     addNinesChallengeLevel(1,0,1);
     addNinesChallengeLevel(1,0,2);
@@ -4067,10 +4075,20 @@ void populateNinesChallengeLevelSource() {
     addNinesChallengeLevel(1,5,2);
 
     // SONIC 2
+    ninesChallengeGamesParameters[2].resetStageFlagLocation = 0xF601;
+    ninesChallengeGamesParameters[2].resetStageFlagValueToSet = 0x8C;
+    ninesChallengeGamesParameters[2].actFlagLocation = 0xFE10;
+    ninesChallengeGamesParameters[2].zoneFlagLocation = 0xFE11;
+    ninesChallengeGamesParameters[2].damageBoostLocation = 0xB030;
+    ninesChallengeGamesParameters[2].damageBoostMaximum = 0x40;
+
     addNinesChallengeLevel(2,0,0);
     addNinesChallengeLevel(2,0,1);
 }
 
+NinesChallengeGameParameters getActiveNinesChallengeGameParameters() {
+    return ninesChallengeGamesParameters[getCurrentNinesChallengeStage().gameId];
+}
 
 void populateNinesChallengeLevelOrder() {
     populateNinesChallengeLevelSource();
@@ -4101,7 +4119,9 @@ void populateNinesChallengeLevelOrder() {
         orderedLevels[i].gameId = -1;
         orderedLevels[i].actId = 0;
         orderedLevels[i].zoneId = 0;
-        orderedLevels[i].completionCount = 0;        
+        orderedLevels[i].completionCount = 0; 
+
+        orderedLevels[i].romIndex = -1;       
     }
     for (int gameIndex = 0; gameIndex < MAX_ROMS; gameIndex++) {
         int gameIsAllowed = 0;
@@ -4118,6 +4138,7 @@ void populateNinesChallengeLevelOrder() {
                     orderedLevels[totalOrderedLevels].gameId = ninesChallengeLevelsSource[stageIndex].gameId;
                     orderedLevels[totalOrderedLevels].actId = ninesChallengeLevelsSource[stageIndex].actId;
                     orderedLevels[totalOrderedLevels].zoneId = ninesChallengeLevelsSource[stageIndex].zoneId;
+                    orderedLevels[totalOrderedLevels].romIndex = cartIndexForEachRom[gameIndex];
                     totalOrderedLevels++;
                 }
             }
@@ -4162,7 +4183,12 @@ void populateNinesChallengeLevelOrder() {
 }
 
 void loadNinesChallengeStage() {
-    
+    cartLoader_loadRomAtIndex(getCurrentNinesChallengeStage().romIndex);
+
+    // honestly I think I need to load a start state from the disk...
+
+    // and then...
+    beginCountdownToApplyBossRushRings();
 }
 
 void beginNinesChallenge() {
@@ -4173,10 +4199,16 @@ void beginNinesChallenge() {
     bossRushRingCarryValue[1] = 0;
 
     ninesChallengeStageIndex = 0;
+    
+    hasInitialisedNinesChallenge = 1;
+    shouldResetNinesChallenge = 0;
 
     // load the rom for the appropriate game
     // send it to the correct stage loading screen
     loadNinesChallengeStage();
+
+    cartLoader_cacheSaveStateBeforeMenu();
+    vdp_setShouldRandomiseColours(0);
 }
 
 int incrementNinesChallengeStageCompletionCount() {

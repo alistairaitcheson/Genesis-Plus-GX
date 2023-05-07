@@ -1308,6 +1308,45 @@ void modConsole_updateFrame() {
 
         checkToHaltMusic();
 
+        if (shouldUseNinesChallenge()) {
+            // ADD READ/WRITE RING COUNT HERE
+            if (getNinesChallengeComplete() == 0) {
+                bossRushElapsedFrames++;
+
+                int damageBoostIndex = getActiveNinesChallengeGameParameters().damageBoostLocation;
+                int damageBoostMaximum = getActiveNinesChallengeGameParameters().damageBoostMaximum
+                
+                if (countdownToApplyBossRushRings > 0) {
+                    // only count down once level is loaded!
+                    if (aa_genesis_getWorkRam(0xF601) == 0x0C || getActiveBossRushListing().gameIndex == 6) {
+                        countdownToApplyBossRushRings--;
+                        applyBossRushCachedRings();
+                    }
+                } else if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 
+                    || aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) > 0
+                    || aa_genesis_getWorkRam(damageBoostIndex) > damageBoostMaximum) {
+                    cacheRingCountInBossRush();
+                }
+                            
+                // ADD CHECK FOR END OF LEVEL HERE
+
+                // this check will need to be different in Sonic 3D blast
+                int levelSwitchIndex = getActiveNinesChallengeGameParameters().resetStageFlagLocation;
+                if (countdownToApplyBossRushRings == 0) {
+                    // check for load trigger changed
+                    if (aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80
+                        && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex)) {
+                        
+
+                    } else {
+                        // check for score totaliser spawned
+
+                    }
+                }
+            }
+
+        }
+
         if (menuDisplay_areSoloEffectsAllowed() != 0) {
             if (hackOpts.speedUpOnRing != 0) {
                 updateSpeedUpOnRing();
@@ -1428,6 +1467,10 @@ void modConsole_updateFrame() {
                 }
             }
         }
+        if (shouldUseNinesChallenge()) {
+            // SHOW NINES CHALLENGE TIMER
+        }
+
         if (showShuffleAlertCountdown > 0) {
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2) - 2, (vdp_getScreenHeight() / 4) - 6, 8 * 18 + 4, 12, 0xFF);
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2), (vdp_getScreenHeight() / 4) - 4, 8 * 18, 8, 0x5);
@@ -2338,6 +2381,8 @@ void switchGame() {
 
     if (shouldUseBossRush()) {
         bumpToNextBossRush();
+    } else if(shouldUseNinesChallenge()) {
+        bumpNinesChallengeLevel();
     } else {
         cartLoader_loadRandomRom();
     }

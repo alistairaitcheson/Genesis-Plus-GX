@@ -187,5 +187,8 @@ int getShouldResetNinesChallenge();
 void toggleStartNinesChallenge();
 int shouldUseNinesChallenge();
 void beginNinesChallenge();
+NinesChallengeStageListing getCurrentNinesChallengeStage();
+void bumpNinesChallengeLevel();
+NinesChallengeGameParameters getActiveNinesChallengeGameParameters();
 
 #endif
