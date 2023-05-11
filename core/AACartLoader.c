@@ -92,6 +92,25 @@ static int cheatFlagsPerBossRush[MAX_ROMS][8];
 
 static int lastRingCalculatationType = 0;
 
+static NinesChallengeGameParameters ninesChallengeGamesParameters[MAX_ROMS];
+static NinesChallengeStageListing ninesChallengeLevelsSource[0x1000];
+static NinesChallengeStageListing ninesChallengeLevelOrder[0x1000];
+static int ninesChallengeStageIndex = 0;
+static int totalNinesChallengeStages = 0;
+
+static int shouldStartNinesChallenge = 0;
+static int ninesChallengeIsActive = 0;
+static int shouldInitialiseNinesChallenge = 0;
+
+static int ninesChallengeComplete = 0;
+
+static int shouldResetNinesChallenge = 0;
+static int hasInitialisedNinesChallenge = 0;
+
+// todo - what if we have more than 256 levels in the whole thing?
+static uint8 ninesChallengeSaveStates[0x100][STATE_SIZE];
+static uint8 hasNinesChallengeSaveState[0x100];
+
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
 }
@@ -878,7 +897,7 @@ static int shouldResetBossRush = 0;
 void applyBossRushCachedRings() {
     BossRushOptions bossRushOptions = menuDisplay_getBossRushOptions();
     AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
-    if (shouldUseBossRush()) {
+    if (shouldUseBossRush() || shouldUseNinesChallenge()) {
         if (bossRushOptions.carryRingsAcrossGames == 1 && 
             (bossRushOptions.preventCarryInDoomsday == 0 || getActiveBossRushListing().blockRingZeroing == 0)){
             
@@ -1184,7 +1203,17 @@ BossRushChallengeListing getActiveBossRushListing() {
 }
 
 void cacheRingCountInBossRush(int becauseOfHit) {
+    int usingBossRush = 0;
     if (shouldUseBossRush() && hasInitialisedBossRush == 1) {
+        usingBossRush = 1;
+    }
+
+    int usingNinesChallenge = 0;
+    if (shouldUseNinesChallenge() && hasInitialisedNinesChallenge == 1) {
+        usingNinesChallenge = 1;
+    }
+
+    if (usingBossRush || usingNinesChallenge) {
         BossRushOptions bossRushOptions = menuDisplay_getBossRushOptions();
         AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
         if (bossRushOptions.carryRingsAcrossGames == 1 && 
@@ -1197,45 +1226,7 @@ void cacheRingCountInBossRush(int becauseOfHit) {
                 BossRushChallengeListing activeListing = getActiveBossRushListing();
                 if (activeListing.gameIndex == 6) {
                     return;
-                    // int bossIsAlive = 0;
-                    // if (aa_genesis_getWorkRam(activeListing.objectLocationStart) != 0) {
-                    //     bossIsAlive = 1;
-
-                    //     char bossAliveLog[0x100];
-                    //     sprintf(bossAliveLog, "----- Sonic 3D: boss is alive at objectLocationStart %04X (%02X)",
-                    //         activeListing.objectLocationStart, aa_genesis_getWorkRam(activeListing.objectLocationStart)
-                    //         );
-                    //     cartLoader_appendToLog(bossAliveLog);
-                    // }
-                    // for (int i = 0; i < 0x20; i++) {
-                    //     int index = activeListing.additionalHealthByteLocations[i];
-                    //     if (index > 0) {
-                    //         if (aa_genesis_getWorkRam(index) != 0) {
-                    //             bossIsAlive = 1;
-
-                    //             char bossAliveLog[0x100];
-                    //             sprintf(bossAliveLog, "----- Sonic 3D: boss is alive at additionalHealthByteLocations[%i] %04X (%02X)",
-                    //                 index,
-                    //                 activeListing.objectLocationStart, aa_genesis_getWorkRam(activeListing.objectLocationStart)
-                    //                 );
-                    //             cartLoader_appendToLog(bossAliveLog);
-                    //         }
-                    //     }
-                    // }
-
-                    // char carryLog[0x100];
-                    // sprintf(carryLog, "Sonic 3D: is boss alive?? %i",
-                    //     bossIsAlive
-                    //     );
-                    // cartLoader_appendToLog(carryLog);
-
-                    // if (bossIsAlive == 0) {
-                    //     // abort early if we've done a level transition!
-                    //     return;
-                    // }
                 }
-            } else {
-                // cartLoader_appendToLog("Caching rings on boss hit");
             }
 
             bossRushRingCarryValue[0] = 0;
@@ -1283,6 +1274,19 @@ void cacheRingCountInBossRush(int becauseOfHit) {
             // layerRenderer_writeWord256(3, 0, 0, cacheMsg, 0x5);
         }
     }
+}
+
+char bossRushRingCarryValuesForLogs[256];
+char* getBossRushRingCarryValuesForLogs() {
+    sprintf(bossRushRingCarryValuesForLogs, "%02X %02X (%i)", bossRushRingCarryValue[0], bossRushRingCarryValue[1], bossRushRingCarryTotal);
+    return bossRushRingCarryValuesForLogs;
+}
+
+int getBossRushRingCarryValues(int index) {
+    if (index < 2) {
+        bossRushRingCarryValue[index];
+    }
+    return bossRushRingCarryTotal;
 }
 
 void bumpToNextBossRush() {
@@ -3947,24 +3951,7 @@ void cartLoader_checkPixelTrackerForStateChange() {
     }
 }
 
-static NinesChallengeGameParameters ninesChallengeGamesParameters[MAX_ROMS];
-static NinesChallengeStageListing ninesChallengeLevelsSource[0x1000];
-static NinesChallengeStageListing ninesChallengeLevelOrder[0x1000];
-static int ninesChallengeStageIndex = 0;
-static int totalNinesChallengeStages = 0;
-
-static int shouldStartNinesChallenge = 0;
-static int ninesChallengeIsActive = 0;
-static int shouldInitialiseNinesChallenge = 0;
-
-static int ninesChallengeComplete = 0;
-
-static int shouldResetNinesChallenge = 0;
-static int hasInitialisedNinesChallenge = 0;
-
-// todo - what if we have more than 256 levels in the whole thing?
-static uint8 ninesChallengeSaveStates[0x100][STATE_SIZE];
-static uint8 hasNinesChallengeSaveState[0x100];
+// -- nines challenge begins!
 
 void setStartNinesChallenge(int toValue) {
     shouldStartNinesChallenge = toValue;
@@ -4238,7 +4225,9 @@ void beginNinesChallenge() {
     
     hasInitialisedNinesChallenge = 1;
     shouldResetNinesChallenge = 0;
-
+    ninesChallengeIsActive = 1;
+    shouldInitialiseNinesChallenge = 0;
+    
     // load the rom for the appropriate game
     // send it to the correct stage loading screen
     loadNinesChallengeStage();
@@ -4269,7 +4258,7 @@ void bumpNinesChallengeLevel() {
 }
 
 void cartLoader_loadNinesChallengeSaveStatesFromDisk() {
-    for (int i = 0; i < 0x1000; i++) {
+    for (int i = 0; i < 0x100; i++) {
         hasNinesChallengeSaveState[i] = 0;
     }
 

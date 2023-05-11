@@ -1323,31 +1323,53 @@ void modConsole_updateFrame() {
             // ADD READ/WRITE RING COUNT HERE
             if (getNinesChallengeComplete() == 0) {
                 AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
+                NinesChallengeGameParameters ninesParams = getActiveNinesChallengeGameParameters();
+                NinesChallengeStageListing ninesStage = getCurrentNinesChallengeStage();
                 
                 bossRushElapsedFrames++;
 
-                int damageBoostIndex = getActiveNinesChallengeGameParameters().damageBoostLocation;
-                int damageBoostMaximum = getActiveNinesChallengeGameParameters().damageBoostMaximum;
+                int damageBoostIndex = ninesParams.damageBoostLocation;
+                int damageBoostMaximum = ninesParams.damageBoostMaximum;
                 
                 if (countdownToApplyBossRushRings > 0) {
-                    // only count down once level is loaded!
-                    if (aa_genesis_getWorkRam(0xF601) == 0x0C || getActiveBossRushListing().gameIndex == 6) {
+                    // only count down once level is loaded! (except sonic 3D blast which has a 1-sec lead time)
+                    applyBossRushCachedRings();
+                    if (aa_genesis_getWorkRam(0xF601) == 0x0C || ninesStage.gameId == 6) {
                         countdownToApplyBossRushRings--;
-                        applyBossRushCachedRings();
+                        layerRenderer_fill(3, 100, 18, 100, 2, 0xFF);
                     }
                 } else if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 
                     || aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) > 0
                     || aa_genesis_getWorkRam(damageBoostIndex) > damageBoostMaximum) {
                     cacheRingCountInBossRush(1);
+                    layerRenderer_fill(3, 0, 18, 300, 2, 0xFF);
                 }
                             
                 // ADD CHECK FOR END OF LEVEL HERE
 
                 // this check will need to be different in Sonic 3D blast
-                int levelSwitchIndex = getActiveNinesChallengeGameParameters().resetStageFlagLocation;
-                unsigned int levelEndLocation = getActiveNinesChallengeGameParameters().levelCompleteLocation;
-                unsigned int levelEndValue = getActiveNinesChallengeGameParameters().levelCompleteValue;
+                int levelSwitchIndex = ninesParams.resetStageFlagLocation;
+                unsigned int levelEndLocation = ninesParams.levelCompleteLocation;
+                unsigned int levelEndValue = ninesParams.levelCompleteValue;
+
+                char tempLog[256];
+                sprintf(tempLog,"--> (%04X - %02X) (%04X - %02X / %02X) - ", 
+                    levelSwitchIndex, aa_genesis_getWorkRam(levelSwitchIndex),
+                    levelEndLocation, aa_genesis_getWorkRam(levelEndLocation), levelEndValue);
+                cartLoader_appendToLog(tempLog);
+
+                char tempLog2[256];
+                sprintf(tempLog2,"     %04X %04X / %02X %02X / %02X %02X - %i", 
+                    gameTransferListing.ringBytesForTransfer[0], gameTransferListing.ringBytesForTransfer[1],
+                    aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]), aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]),
+                    getBossRushRingCarryValues(0), getBossRushRingCarryValues(1), getBossRushRingCarryValues(2));
+                cartLoader_appendToLog(tempLog2);
+
                 if (countdownToApplyBossRushRings == 0) {
+                    layerRenderer_fill(3, 0, 0, 300, 16, 0xFF);
+                    layerRenderer_writeWord256(3, 0, 0, tempLog, 0x5);
+                    layerRenderer_writeWord256(3, 0, 8, tempLog2, 0x5);
+
                     // check for load trigger changed
                     if (aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80
                         && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex)) {
@@ -1364,6 +1386,10 @@ void modConsole_updateFrame() {
                                 bumpNinesChallengeLevel();
                             }
                         }
+                    }
+
+                    if (buttonStateAtIndex(INPUT_INDEX_A)) {
+                        bumpNinesChallengeLevel();
                     }
                 }
             }

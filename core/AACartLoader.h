@@ -192,4 +192,7 @@ void bumpNinesChallengeLevel();
 NinesChallengeGameParameters getActiveNinesChallengeGameParameters();
 void cartLoader_loadNinesChallengeSaveStatesFromDisk();
 
+char* getBossRushRingCarryValuesForLogs();
+int getBossRushRingCarryValues(int index);
+
 #endif

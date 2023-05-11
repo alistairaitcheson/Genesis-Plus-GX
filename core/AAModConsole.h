@@ -108,6 +108,7 @@ void showCooldownVisualiser();
 void overwriteLevelOnRing();
 void overwriteLevel(int cycleCount, int overwriteType);
 void sendNetworkMessageOnGetRing();
+void sendNetworkMessageOnHitBoss();
 
 void unpauseGame();
 extern void fireSnapEffect(int isFromTwitch);
