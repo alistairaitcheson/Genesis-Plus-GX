@@ -683,7 +683,38 @@ int checkForBossDefeats() {
     return 0;
 }
 
-void checkForBossHits() {
+void cacheBossRushRingCount() {
+    BossRushChallengeListing listing = getActiveBossRushListing();
+
+    // Sonic 3D Blast nullifies ring count at odd points so I account for it here
+    if (listing.gameIndex == 6 && countdownToApplyBossRushRings == 0) {
+        AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
+        // cache ring count every frame, unless:
+        //  (1) ring count is reset to 0, and Sonic is NOT damaged
+        if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 || aa_genesis_getWorkRam(0xC224) > 0xE0) {
+            // char debugText[0x40];
+            // sprintf(debugText, "will cache rings %02X %02X", 
+            //     aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]), 
+            //     aa_genesis_getWorkRam(0xC224));
+            // cartLoader_appendToLog(debugText);
+            cacheRingCountInBossRush(1);
+        }
+    }
+
+    if (listing.gameIndex != 6 && countdownToApplyBossRushRings == 0) {
+        cacheRingCountInBossRush(1);
+    }
+}
+
+void fireEventOnBossHit(int asNetwork) {
+    if (asNetwork == 1) {
+        sendNetworkMessageOnHitBoss();
+    } else {
+        promptSwitchGame();
+    }
+}
+
+void checkForBossHits(int asNetwork) {
     BossRushChallengeListing listing = getActiveBossRushListing();
 
     int indexX = 0;
@@ -711,26 +742,6 @@ void checkForBossHits() {
         objStep = 4;
     }
 
-    // Sonic 3D Blast nullifies ring count at odd points so I account for it here
-    if (listing.gameIndex == 6 && countdownToApplyBossRushRings == 0) {
-        AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
-        // cache ring count every frame, unless:
-        //  (1) ring count is reset to 0, and Sonic is NOT damaged
-        if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 || aa_genesis_getWorkRam(0xC224) > 0xE0) {
-            // char debugText[0x40];
-            // sprintf(debugText, "will cache rings %02X %02X", 
-            //     aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]), 
-            //     aa_genesis_getWorkRam(0xC224));
-            // cartLoader_appendToLog(debugText);
-            cacheRingCountInBossRush(1);
-        }
-    }
-
-    if (listing.gameIndex != 6 && countdownToApplyBossRushRings == 0) {
-        cacheRingCountInBossRush(1);
-    }
-
-
     // right now this is just used in Sonic 3D Blast
     if (listing.objectLocationStart == listing.objectLocationEnd) {
         int locationToCheck = listing.objectLocationStart;
@@ -740,7 +751,7 @@ void checkForBossHits() {
             // account for the fact that the ring count is zeroed before the switch in Sonic 3D
             // cacheRingCountInBossRush(1);
 
-            promptSwitchGame();
+            fireEventOnBossHit(asNetwork);
             fireScreenSnapOnEvent();
         }        
 
@@ -754,7 +765,7 @@ void checkForBossHits() {
                     // account for the fact that the ring count is zeroed before the switch in Sonic 3D
                     // cacheRingCountInBossRush(1);
 
-                    promptSwitchGame();
+                    fireEventOnBossHit(asNetwork);
                     fireScreenSnapOnEvent();
                 }     
             }
@@ -825,7 +836,7 @@ void checkForBossHits() {
                     if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
                         && aa_genesis_getWorkRam(locationToCheck) != 0
                         && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
-                        promptSwitchGame();
+                        fireEventOnBossHit(asNetwork);
                         fireScreenSnapOnEvent();
                     }
 
@@ -1567,9 +1578,13 @@ void modConsole_updateFrame() {
             int defeated = checkForBossDefeats();
             if (defeated == 0) {
                 int activeBossRushIndex = getActiveBossRushIndex();
+                cacheBossRushRingCount();
 
+                if (menuDisplay_getBossRushOptions().switchTriggers.networkBossHit == 1) {
+                    checkForBossHits(1);
+                }
                 if (menuDisplay_getBossRushOptions().switchTriggers.bossHit == 1) {
-                    checkForBossHits();
+                    checkForBossHits(0);
                 } 
                 if (activeBossRushIndex == getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTriggers.ring == 1) {
                     updateSwitchGameOnRing();
@@ -2305,6 +2320,12 @@ void overwriteLevelOnRing() {
         overwriteLevel(cycleCount, hackOpts.overwriteLevelType);
 
         fireScreenSnapOnEvent();
+    }
+}
+
+void sendNetworkMessageOnHitBoss() {
+    if (menuDisplay_getBossRushOptions().switchTriggers.networkBossHit) {
+        queueNetworkMessage(NETWORK_MSG_SWITCH_GAME);
     }
 }
 

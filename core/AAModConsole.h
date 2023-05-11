@@ -164,5 +164,6 @@ void checkToHaltMusic();
 void enforceHaltMusic();
 
 int getDeathCount();
+void checkForBossHits(int asNetwork);
 
 #endif

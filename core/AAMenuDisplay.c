@@ -183,7 +183,8 @@ BossRushOptions menuDisplay_getBossRushOptions() {
 int menuDisplay_bossRushUsesNoTriggers() {
     if (bossRushOptions.switchTriggers.bossHit == 0
         && bossRushOptions.switchTriggers.land == 0
-        && bossRushOptions.switchTriggers.ring == 0) 
+        && bossRushOptions.switchTriggers.ring == 0
+        && bossRushOptions.switchTriggers.networkBossHit == 0) 
     {
         return 1;
     }
@@ -936,6 +937,7 @@ void applyDefaultBossRushValues() {
     bossRushOptions.switchTriggers.bossHit = 1;
     bossRushOptions.switchTriggers.ring = 0;
     bossRushOptions.switchTriggers.land = 0;
+    bossRushOptions.switchTriggers.networkBossHit = 0;
 
     bossRushOptions.totalBossesIdx = 2;
     bossRushOptions.ringsOff = 0;
@@ -2243,6 +2245,21 @@ void incrementBossRushTiggerSelectOption(int direction, int buttonIndex) {
     }
 
     if (bossRushTriggerSelectItemIndex == 3) {
+        bossRushOptions.switchTriggers.networkBossHit += direction;
+
+        if (bossRushOptions.switchTriggers.networkBossHit == 1) {
+            networkOptions.networkingIsActive = 1;
+            networkOptions.sendRandomiseVelocity = 0;
+            networkOptions.sendRemoveColour = 0;
+            networkOptions.sendSpeedUp = 0;
+            networkOptions.sendSwitchGame = 0;
+            networkOptions.sendWriteIntoLevelDifficulty = 0;
+            networkOptions.allowSoloEffectswhenNetworked = 1;
+        }
+    }
+
+
+    if (bossRushTriggerSelectItemIndex == 4) {
         menuDisplay_showMenu(MENU_LISTING_BOSS_RUSH);
     }
 }
@@ -4384,19 +4401,22 @@ void showRamEditingOptionsMenu() {
 }
 
 char* getCurrentBossRushTriggerSummary() {
-    if (bossRushOptions.switchTriggers.bossHit == 0 && bossRushOptions.switchTriggers.ring == 0 && bossRushOptions.switchTriggers.land == 0) {
+    if (bossRushOptions.switchTriggers.bossHit == 0 && bossRushOptions.switchTriggers.ring == 0 && bossRushOptions.switchTriggers.land == 0 && bossRushOptions.switchTriggers.networkBossHit == 0) {
         return "switch game on: (WIN ONLY) >";
     }
-    if (bossRushOptions.switchTriggers.bossHit == 1 && bossRushOptions.switchTriggers.ring == 0 && bossRushOptions.switchTriggers.land == 0) {
+    if (bossRushOptions.switchTriggers.bossHit == 1 && bossRushOptions.switchTriggers.ring == 0 && bossRushOptions.switchTriggers.land == 0 && bossRushOptions.switchTriggers.networkBossHit == 0) {
         return "switch game on:   BOSS HIT >";
     }
-    if (bossRushOptions.switchTriggers.bossHit == 0 && bossRushOptions.switchTriggers.ring == 1 && bossRushOptions.switchTriggers.land == 0) {
+    if (bossRushOptions.switchTriggers.bossHit == 0 && bossRushOptions.switchTriggers.ring == 1 && bossRushOptions.switchTriggers.land == 0 && bossRushOptions.switchTriggers.networkBossHit == 0) {
         return "switch game on:   GET RING >";
     }
-    if (bossRushOptions.switchTriggers.bossHit == 0 && bossRushOptions.switchTriggers.ring == 0 && bossRushOptions.switchTriggers.land == 1) {
+    if (bossRushOptions.switchTriggers.bossHit == 0 && bossRushOptions.switchTriggers.ring == 0 && bossRushOptions.switchTriggers.land == 1 && bossRushOptions.switchTriggers.networkBossHit == 0) {
         return "switch game on:       LAND >";
     }
-    if (bossRushOptions.switchTriggers.bossHit == 1 && bossRushOptions.switchTriggers.ring == 1 && bossRushOptions.switchTriggers.land == 1) {
+    if (bossRushOptions.switchTriggers.bossHit == 0 && bossRushOptions.switchTriggers.ring == 0 && bossRushOptions.switchTriggers.land == 0 && bossRushOptions.switchTriggers.networkBossHit == 1) {
+        return "switch game on:    NETOWRK >";
+    }
+    if (bossRushOptions.switchTriggers.bossHit == 1 && bossRushOptions.switchTriggers.ring == 1 && bossRushOptions.switchTriggers.land == 1 && bossRushOptions.switchTriggers.networkBossHit == 1) {
         return "switch game on:      (ALL) >";
     }
 
@@ -5048,7 +5068,7 @@ void showBossRushTriggerSelectMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "WHEN DO YOU WANT TO SWITCH?", 5);
 
-    int lineCount = 4;
+    int lineCount = 5;
 
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
@@ -5101,6 +5121,19 @@ void showBossRushTriggerSelectMenu() {
         sprintf(lines[2], "Switch on touch ground:   no");
     } else {
         sprintf(lines[2], "Switch on touch ground:  yes");
+    }
+    linesWithBreakAfter[2] = 1;
+    
+    if (bossRushOptions.switchTriggers.land < 0) {
+        bossRushOptions.switchTriggers.land = 1;
+    }
+    if (bossRushOptions.switchTriggers.land > 1) {
+        bossRushOptions.switchTriggers.land = 0;
+    }
+    if (bossRushOptions.switchTriggers.land == 0) {
+        sprintf(lines[3], "On Networked boss hit     no");
+    } else {
+        sprintf(lines[3], "On Networked boss hit    yes");
     }
 
     sprintf(lines[lineCount - 1], "back >");

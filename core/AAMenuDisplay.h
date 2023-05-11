@@ -121,6 +121,7 @@ typedef struct {
     int bossHit;
     int ring;
     int land;
+    int networkBossHit;
 } BossRushSwitchTriggerSet;
 
 typedef struct {
