@@ -933,7 +933,7 @@ void applyDefaultPersistValues() {
 void applyDefaultBossRushValues() {
     bossRushOptions.bossOrder = 0;
 
-    bossRushOptions.switchTriggers.bossHit = 0;
+    bossRushOptions.switchTriggers.bossHit = 1;
     bossRushOptions.switchTriggers.ring = 0;
     bossRushOptions.switchTriggers.land = 0;
 
@@ -1199,6 +1199,12 @@ void menuDisplay_showMenu(int menuNum) {
     // char tempLog[256];
     // sprintf(tempLog, "menuDisplay_showMenu %d", menuNum);
     // cartLoader_appendToLog(tempLog);
+
+    // // the seed has been revealed by the end-screen at this stage, so make sure
+    // // that is reflected in the stats and menus
+    // if (shouldUseBossRush() == 1 && getBossRushComplete() == 1) {
+    //     bossRushOptions.shouldRevealSeed = 1;
+    // }
 
     activeMenu = menuNum;
     vdp_setShouldRandomiseColours(1);
@@ -2278,7 +2284,7 @@ void incrementNinesChallengeOption(int direction, int buttonIndex) {
         shouldRerollNinesChallengeRandomTime = 30;
     }
     
-    if (bossRushItemIndex == 6) {
+    if (ninesChallengeItemIndex == 6) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -5056,7 +5062,7 @@ void showBossRushTriggerSelectMenu() {
         bossRushTriggerSelectItemIndex = lineCount - 1;
     }
     if (bossRushTriggerSelectItemIndex > lineCount - 1) {
-        bossRushTriggerSelectItemIndex = 1;
+        bossRushTriggerSelectItemIndex = 0;
     }
 
     if (bossRushOptions.switchTriggers.bossHit < 0) {
