@@ -1453,6 +1453,23 @@ void modConsole_updateFrame() {
                 char elapsedText[0x80];
                 sprintf(elapsedText, "%02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
                 layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 16, elapsedText, 0xFF);
+
+                BossRushOptions bossRushOptions = menuDisplay_getBossRushOptions();
+                char seedText[0x80];
+                sprintf(seedText, "YOUR SEED: %X%X%X%X", bossRushOptions.orderSeed[0], bossRushOptions.orderSeed[1], bossRushOptions.orderSeed[2], bossRushOptions.orderSeed[3]);
+                if (bossRushOptions.shouldRevealSeed) {
+                    sprintf(seedText, "%s (revealed)", seedText);
+                }
+                if (bossRushOptions.didEditSeed) {
+                    sprintf(seedText, "%s (edited)", seedText);
+                }
+                for (int xOff = -1; xOff <= 1; xOff++) {
+                    for (int yOff = -1; yOff <= 1; yOff++) {
+                        layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, (vdp_getScreenHeight() / 2) + 54 + yOff, seedText, 0xFF);
+                    }
+                }
+                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2), (vdp_getScreenHeight() / 2) + 54, seedText, 0x6);
+
             } else {
                 if (menuDisplay_getBossRushOptions().showProgress) {
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 12, 9 * 8, 8, 0x5);
@@ -1547,15 +1564,15 @@ void modConsole_updateFrame() {
             // layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8, rushText, 0x5);
             int defeated = checkForBossDefeats();
             if (defeated == 0) {
-                if (menuDisplay_getBossRushOptions().switchTrigger == 0) {
+                int activeBossRushIndex = getActiveBossRushIndex();
+
+                if (menuDisplay_getBossRushOptions().switchTriggers.bossHit == 1) {
                     checkForBossHits();
-                } else if (menuDisplay_getBossRushOptions().switchTrigger == 1) {
+                } 
+                if (activeBossRushIndex != getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTriggers.ring == 1) {
                     updateSwitchGameOnRing();
-                } else if (menuDisplay_getBossRushOptions().switchTrigger == 2) {
-                    updateSwitchGameOnLand();
-                } else if (menuDisplay_getBossRushOptions().switchTrigger == 3) {
-                    checkForBossHits();
-                    updateSwitchGameOnRing();
+                } 
+                if (activeBossRushIndex != getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTrigger.land == 1) {
                     updateSwitchGameOnLand();
                 }
             }

@@ -29,6 +29,7 @@
 #define MENU_LISTING_TERMINAL_SHUFFLER 19
 #define MENU_LISTING_TERMINAL_GAME_LIST 20
 #define MENU_LISTING_NINES_CHALLENGE 22
+#define MENU_LISTING_BOSS_RUSH_TRIGGER_SELECT 23
 
 #define TERMINAL_RULSET_SHUFFLER 1
 #define TERMINAL_RULSET_SHUFFLER_WITH_VRAM 2
@@ -117,7 +118,13 @@ typedef struct {
 } NetworkOptions;
 
 typedef struct {
-    int switchTrigger;
+    int bossHit;
+    int ring;
+    int land;
+} BossRushSwitchTriggerSet;
+
+typedef struct {
+    BossRushSwitchTriggerSet switchTriggers;
     int bossOrder;
     int totalBossesIdx; // 0 = 4, 1 = 6, 2 = 8, 3 = 12, 4 = all
     int ringsOff;
@@ -126,6 +133,7 @@ typedef struct {
     int orderSeed[4];
     int seedEditingLocationIndex;
     int shouldRevealSeed;
+    int didEditSeed;
 
     int showProgress;
     int shouldExposeTrackerData;
@@ -140,6 +148,7 @@ typedef struct {
     int orderSeed[4];
     int seedEditingLocationIndex;
     int shouldRevealSeed;
+    int didEditSeed;
 } NinesChallengeOptions;
 
 extern void menuDisplay_showMenu(int menuNum);
@@ -250,5 +259,7 @@ int terminalRulesAreActive();
 void showNinesChallengeMenu();
 void incrementNinesChallengeOption(int direction, int buttonIndex);
 NinesChallengeOptions menuDisplay_getNinesChallengeOptions() ;
+char* getCurrentBossRushTriggerSummary()
+int menuDisplay_bossRushUsesNoTriggers();
 
 #endif

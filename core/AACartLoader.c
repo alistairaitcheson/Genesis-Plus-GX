@@ -927,30 +927,24 @@ void applyBossRushCachedRings() {
 
             if (gameTransferListing.ringBytesForTransfer[0] > 0) {
                 aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0] % 0x10000, lowValue);
+                aa_genesis_setLastWorkRam(gameTransferListing.ringBytesForTransfer[0] % 0x10000, lowValue);
             }
             if (gameTransferListing.ringBytesForTransfer[1] > 0) {
                 aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1] % 0x10000, highValue);
+                aa_genesis_setLastWorkRam(gameTransferListing.ringBytesForTransfer[1] % 0x10000, highValue);
             }
 
             // Sonic 3D blast - need to copy these values into display
             if (getActiveBossRushListing().gameIndex == 6) {
-                    aa_genesis_setWorkRam(0x0A56, lowValue);
-                    aa_genesis_setWorkRam(0x0A57, highValue);
-                    // aa_genesis_setWorkRam(0x0A58, bossRushRingCarryValue[0]);
-                    // aa_genesis_setWorkRam(0x0A59, bossRushRingCarryValue[1]);
-                    aa_genesis_setWorkRam(0x0A5A, lowValue);
-                    aa_genesis_setWorkRam(0x0A5B, highValue);
-                // if (bossRushRingCarryValue == 0) {
-                //     aa_genesis_setWorkRam(0x0A56, 0);
-                //     aa_genesis_setWorkRam(0x0A57, 0);
-                //     aa_genesis_setWorkRam(0x0A58, 0);
-                //     aa_genesis_setWorkRam(0x0A59, 0);
-                //     aa_genesis_setWorkRam(0x0A5A, 0);
-                //     aa_genesis_setWorkRam(0x0A5B, 0);
-                // } else {
-                //     aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], (bossRushRingCarryValue[0] + 0xFF) % 0x100);
-                //     aa_genesis_setWorkRam(0x0A52, 1);
-                // }
+                aa_genesis_setWorkRam(0x0A56, lowValue);
+                aa_genesis_setWorkRam(0x0A57, highValue);
+                aa_genesis_setWorkRam(0x0A5A, lowValue);
+                aa_genesis_setWorkRam(0x0A5B, highValue);
+
+                aa_genesis_setLastWorkRam(0x0A56, lowValue);
+                aa_genesis_setLastWorkRam(0x0A57, highValue);
+                aa_genesis_setLastWorkRam(0x0A5A, lowValue);
+                aa_genesis_setLastWorkRam(0x0A5B, highValue);
             }
 
             // char cacheMsg[0x100];
@@ -1321,7 +1315,7 @@ void bumpToNextBossRush() {
 
     int isUnplayedRush = 0;
     // prefer rushes that haven't been started yet, unless we're on no-switching! (Otherwise the first 3 zones never come up)
-    if (maxIndexWithoutActivity > 0 && menuDisplay_getBossRushOptions().switchTrigger != 4) {
+    if (maxIndexWithoutActivity > 0 && menuDisplay_bossRushUsesNoTriggers() == 0) {
         isUnplayedRush = 1;
         for (int i = 0; i < MAX_ROMS; i++) {
             allowedIndexes[i] = indexesWithoutActivity[i];
