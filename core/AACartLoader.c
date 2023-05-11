@@ -4120,7 +4120,7 @@ void populateNinesChallengeLevelOrder() {
     for (int gameIndex = 0; gameIndex < MAX_ROMS; gameIndex++) {
         int gameIsAllowed = 0;
         for (int i = 0; i < totalUsedGameIndexes; i++) {
-            if (totalUsedGameIndexes[i] == gameIndex) {
+            if (usedGameIndexes[i] == gameIndex) {
                 gameIsAllowed = 1;
                 break;
             }
@@ -4177,7 +4177,7 @@ void populateNinesChallengeLevelOrder() {
 }
 
 void loadNinesChallengeStage() {
-    cartLoader_loadRomAtIndex(getCurrentNinesChallengeStage().romIndex);
+    cartLoader_loadRomAtIndex(getCurrentNinesChallengeStage().romIndex, 1);
 
     // honestly I think I need to load a start state from the disk...
 

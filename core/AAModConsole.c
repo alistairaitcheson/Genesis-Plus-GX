@@ -1311,10 +1311,12 @@ void modConsole_updateFrame() {
         if (shouldUseNinesChallenge()) {
             // ADD READ/WRITE RING COUNT HERE
             if (getNinesChallengeComplete() == 0) {
+                AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
+                
                 bossRushElapsedFrames++;
 
                 int damageBoostIndex = getActiveNinesChallengeGameParameters().damageBoostLocation;
-                int damageBoostMaximum = getActiveNinesChallengeGameParameters().damageBoostMaximum
+                int damageBoostMaximum = getActiveNinesChallengeGameParameters().damageBoostMaximum;
                 
                 if (countdownToApplyBossRushRings > 0) {
                     // only count down once level is loaded!
@@ -1325,7 +1327,7 @@ void modConsole_updateFrame() {
                 } else if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 
                     || aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) > 0
                     || aa_genesis_getWorkRam(damageBoostIndex) > damageBoostMaximum) {
-                    cacheRingCountInBossRush();
+                    cacheRingCountInBossRush(1);
                 }
                             
                 // ADD CHECK FOR END OF LEVEL HERE
@@ -1569,10 +1571,10 @@ void modConsole_updateFrame() {
                 if (menuDisplay_getBossRushOptions().switchTriggers.bossHit == 1) {
                     checkForBossHits();
                 } 
-                if (activeBossRushIndex != getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTriggers.ring == 1) {
+                if (activeBossRushIndex == getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTriggers.ring == 1) {
                     updateSwitchGameOnRing();
                 } 
-                if (activeBossRushIndex != getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTrigger.land == 1) {
+                if (activeBossRushIndex == getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTriggers.land == 1) {
                     updateSwitchGameOnLand();
                 }
             }

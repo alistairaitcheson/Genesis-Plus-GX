@@ -932,7 +932,11 @@ void applyDefaultPersistValues() {
 
 void applyDefaultBossRushValues() {
     bossRushOptions.bossOrder = 0;
-    bossRushOptions.switchTrigger = 0;
+
+    bossRushOptions.switchTriggers.bossHit = 0;
+    bossRushOptions.switchTriggers.ring = 0;
+    bossRushOptions.switchTriggers.land = 0;
+
     bossRushOptions.totalBossesIdx = 2;
     bossRushOptions.ringsOff = 0;
     bossRushOptions.showProgress = 1;
@@ -4374,19 +4378,19 @@ void showRamEditingOptionsMenu() {
 }
 
 char* getCurrentBossRushTriggerSummary() {
-    if (bossRushOptions.switchTriggers.bossHit = 0 && bossRushOptions.switchTriggers.ring = 0 && bossRushOptions.switchTriggers.land = 0) {
+    if (bossRushOptions.switchTriggers.bossHit == 0 && bossRushOptions.switchTriggers.ring == 0 && bossRushOptions.switchTriggers.land == 0) {
         return "switch game on: (WIN ONLY) >";
     }
-    if (bossRushOptions.switchTriggers.bossHit = 1 && bossRushOptions.switchTriggers.ring = 0 && bossRushOptions.switchTriggers.land = 0) {
+    if (bossRushOptions.switchTriggers.bossHit == 1 && bossRushOptions.switchTriggers.ring == 0 && bossRushOptions.switchTriggers.land == 0) {
         return "switch game on:   BOSS HIT >";
     }
-    if (bossRushOptions.switchTriggers.bossHit = 0 && bossRushOptions.switchTriggers.ring = 1 && bossRushOptions.switchTriggers.land = 0) {
+    if (bossRushOptions.switchTriggers.bossHit == 0 && bossRushOptions.switchTriggers.ring == 1 && bossRushOptions.switchTriggers.land == 0) {
         return "switch game on:   GET RING >";
     }
-    if (bossRushOptions.switchTriggers.bossHit = 0 && bossRushOptions.switchTriggers.ring = 0 && bossRushOptions.switchTriggers.land = 1) {
+    if (bossRushOptions.switchTriggers.bossHit == 0 && bossRushOptions.switchTriggers.ring == 0 && bossRushOptions.switchTriggers.land == 1) {
         return "switch game on:       LAND >";
     }
-    if (bossRushOptions.switchTriggers.bossHit = 1 && bossRushOptions.switchTriggers.ring = 1 && bossRushOptions.switchTriggers.land = 1) {
+    if (bossRushOptions.switchTriggers.bossHit == 1 && bossRushOptions.switchTriggers.ring == 1 && bossRushOptions.switchTriggers.land == 1) {
         return "switch game on:      (ALL) >";
     }
 

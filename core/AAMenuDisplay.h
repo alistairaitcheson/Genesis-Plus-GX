@@ -259,7 +259,9 @@ int terminalRulesAreActive();
 void showNinesChallengeMenu();
 void incrementNinesChallengeOption(int direction, int buttonIndex);
 NinesChallengeOptions menuDisplay_getNinesChallengeOptions() ;
-char* getCurrentBossRushTriggerSummary()
+char* getCurrentBossRushTriggerSummary();
 int menuDisplay_bossRushUsesNoTriggers();
+void showBossRushTriggerSelectMenu();
+void incrementBossRushTiggerSelectOption(int direction, int buttonIndex);
 
 #endif
