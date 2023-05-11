@@ -3962,6 +3962,10 @@ static int ninesChallengeComplete = 0;
 static int shouldResetNinesChallenge = 0;
 static int hasInitialisedNinesChallenge = 0;
 
+// todo - what if we have more than 256 levels in the whole thing?
+static uint8 ninesChallengeSaveStates[0x100][STATE_SIZE];
+static uint8 hasNinesChallengeSaveState[0x100];
+
 void setStartNinesChallenge(int toValue) {
     shouldStartNinesChallenge = toValue;
 
@@ -4015,7 +4019,7 @@ int shouldUseNinesChallenge() {
     return ninesChallengeIsActive;
 }
 
-void addNinesChallengeLevel(int gameId, int actId, int zoneId) {
+void addNinesChallengeLevel(int gameId, int zoneId, int actId) {
     for (int i = 0; i < 0x1000; i++) {
         if (ninesChallengeLevelsSource[i].gameId == -1) {
             ninesChallengeLevelsSource[i].gameId = gameId;
@@ -4048,6 +4052,8 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[1].zoneFlagLocation = 0xFE11;
     ninesChallengeGamesParameters[1].damageBoostLocation = 0xD030;
     ninesChallengeGamesParameters[1].damageBoostMaximum = 0x40;
+    ninesChallengeGamesParameters[1].levelCompleteLocation = 0xF7D7;
+    ninesChallengeGamesParameters[1].levelCompleteValue = 0x100;
 
     addNinesChallengeLevel(1,0,0);
     addNinesChallengeLevel(1,0,1);
@@ -4073,11 +4079,23 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[2].resetStageFlagValueToSet = 0x8C;
     ninesChallengeGamesParameters[2].actFlagLocation = 0xFE10;
     ninesChallengeGamesParameters[2].zoneFlagLocation = 0xFE11;
-    ninesChallengeGamesParameters[2].damageBoostLocation = 0xB030;
+    ninesChallengeGamesParameters[2].damageBoostLocation = 0xB430;
     ninesChallengeGamesParameters[2].damageBoostMaximum = 0x40;
+    ninesChallengeGamesParameters[2].levelCompleteLocation = 0xF7D7;
+    ninesChallengeGamesParameters[2].levelCompleteValue = 0x100;
 
     addNinesChallengeLevel(2,0,0);
     addNinesChallengeLevel(2,0,1);
+
+    // SONIC 3
+    ninesChallengeGamesParameters[3].resetStageFlagLocation = 0xF601;
+    ninesChallengeGamesParameters[3].resetStageFlagValueToSet = 0x8C;
+    ninesChallengeGamesParameters[3].actFlagLocation = 0xFE10;
+    ninesChallengeGamesParameters[3].zoneFlagLocation = 0xFE11;
+    ninesChallengeGamesParameters[3].damageBoostLocation = 0xB035;
+    ninesChallengeGamesParameters[3].damageBoostMaximum = 0x40;
+    ninesChallengeGamesParameters[3].levelCompleteLocation = 0xF7D2;
+    ninesChallengeGamesParameters[3].levelCompleteValue = 0x100;
 }
 
 NinesChallengeGameParameters getActiveNinesChallengeGameParameters() {
@@ -4086,9 +4104,12 @@ NinesChallengeGameParameters getActiveNinesChallengeGameParameters() {
 
 void populateNinesChallengeLevelOrder() {
     populateNinesChallengeLevelSource();
+    cartLoader_loadNinesChallengeSaveStatesFromDisk();
 
     int usedGameIndexes[MAX_ROMS];
     int totalUsedGameIndexes = 0;
+    int romIndexForEachGameId[MAX_ROMS];
+
     for (int i = 0; i < MAX_ROMS; i++) {
         cartIndexForEachRom[i] = -1;
         usedGameIndexes[i] = -1;
@@ -4098,6 +4119,9 @@ void populateNinesChallengeLevelOrder() {
         cartLoader_loadRomAtIndex(i, 0);
         int index = cartLoader_getActiveCartIndex();
         cartIndexForEachRom[i] = index;
+        if (index >= 0 && index < MAX_ROMS) {
+            romIndexForEachGameId[index] = i;
+        }
 
         for (int j = 0; j < MAX_ROMS; j++) {
             if (usedGameIndexes[j] == -1) {
@@ -4128,11 +4152,13 @@ void populateNinesChallengeLevelOrder() {
 
         if (gameIsAllowed) {
             for (int stageIndex = 0; stageIndex < 0x1000; stageIndex++) {
-                if(ninesChallengeLevelsSource[stageIndex].gameId == gameIndex) {
+                if(ninesChallengeLevelsSource[stageIndex].gameId == gameIndex && hasNinesChallengeSaveState[stageIndex] == 1) {
                     orderedLevels[totalOrderedLevels].gameId = ninesChallengeLevelsSource[stageIndex].gameId;
                     orderedLevels[totalOrderedLevels].actId = ninesChallengeLevelsSource[stageIndex].actId;
                     orderedLevels[totalOrderedLevels].zoneId = ninesChallengeLevelsSource[stageIndex].zoneId;
-                    orderedLevels[totalOrderedLevels].romIndex = cartIndexForEachRom[gameIndex];
+
+                    orderedLevels[totalOrderedLevels].romIndex = romIndexForEachGameId[gameIndex];
+                    orderedLevels[totalOrderedLevels].saveStateIndex = stageIndex;
                     totalOrderedLevels++;
                 }
             }
@@ -4177,12 +4203,28 @@ void populateNinesChallengeLevelOrder() {
 }
 
 void loadNinesChallengeStage() {
-    cartLoader_loadRomAtIndex(getCurrentNinesChallengeStage().romIndex, 1);
+    cartLoader_appendToLog("loadNinesChallengeStage");
+
+    NinesChallengeStageListing stageListing = getCurrentNinesChallengeStage();
+
+    char tempLog[256];
+    sprintf(tempLog,"  -----> stage params ROM %i, GAME %i, ZONE %i, ACT %i, STATE %i", 
+        stageListing.romIndex, stageListing.gameId, stageListing.zoneId, stageListing.actId, stageListing.saveStateIndex);
+    cartLoader_appendToLog(tempLog);
+
+    cartLoader_loadRomAtIndex(stageListing.romIndex, 1);
+
+    cartLoader_appendToLog("loadNinesChallengeStage - loaded rom");
 
     // honestly I think I need to load a start state from the disk...
+    state_load(ninesChallengeSaveStates[getCurrentNinesChallengeStage().saveStateIndex]);
+
+    cartLoader_appendToLog("loadNinesChallengeStage - loaded state");
 
     // and then...
     beginCountdownToApplyBossRushRings();
+
+    cartLoader_appendToLog("loadNinesChallengeStage - applied boss rush rings");
 }
 
 void beginNinesChallenge() {
@@ -4219,8 +4261,43 @@ NinesChallengeStageListing getCurrentNinesChallengeStage() {
                    (3) a special stage enter is triggered
 */
 void bumpNinesChallengeLevel() {
+    cartLoader_appendToLog("bumpNinesChallengeLevel");
     incrementNinesChallengeStageCompletionCount();
 
     ninesChallengeStageIndex++;
     loadNinesChallengeStage();
+}
+
+void cartLoader_loadNinesChallengeSaveStatesFromDisk() {
+    for (int i = 0; i < 0x1000; i++) {
+        hasNinesChallengeSaveState[i] = 0;
+    }
+
+    for (int i = 0; i < 0x1000; i++) {
+        if (ninesChallengeLevelsSource[i].gameId == -1) {
+            break;
+        }
+
+        char path[256];
+        NinesChallengeStageListing listing = ninesChallengeLevelsSource[i];
+
+        sprintf(path, "%s/.nines_source/%i_%i_%i.savestate", folderPath, listing.gameId, listing.zoneId, listing.actId);
+
+        char tempLog[256];
+        sprintf(tempLog,"Loading nines challenge state %d", i);
+        cartLoader_appendToLog(tempLog);
+        cartLoader_appendToLog(path);
+        
+        FILE *f = fopen(path,"rb");
+        if (f)
+        {
+            fread(&ninesChallengeSaveStates[i], STATE_SIZE, 1, f);
+            fclose(f);
+            cartLoader_appendToLog("success!");
+            hasNinesChallengeSaveState[i] = 1;
+        } else {
+            cartLoader_appendToLog("no state found");
+        }
+        cartLoader_appendToLog(" -- ");
+    }
 }

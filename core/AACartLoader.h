@@ -190,5 +190,6 @@ void beginNinesChallenge();
 NinesChallengeStageListing getCurrentNinesChallengeStage();
 void bumpNinesChallengeLevel();
 NinesChallengeGameParameters getActiveNinesChallengeGameParameters();
+void cartLoader_loadNinesChallengeSaveStatesFromDisk();
 
 #endif

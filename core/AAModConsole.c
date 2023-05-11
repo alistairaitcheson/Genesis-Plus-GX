@@ -1345,15 +1345,25 @@ void modConsole_updateFrame() {
 
                 // this check will need to be different in Sonic 3D blast
                 int levelSwitchIndex = getActiveNinesChallengeGameParameters().resetStageFlagLocation;
+                unsigned int levelEndLocation = getActiveNinesChallengeGameParameters().levelCompleteLocation;
+                unsigned int levelEndValue = getActiveNinesChallengeGameParameters().levelCompleteValue;
                 if (countdownToApplyBossRushRings == 0) {
                     // check for load trigger changed
                     if (aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80
                         && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex)) {
                         
-
+                        bumpNinesChallengeLevel();
                     } else {
                         // check for score totaliser spawned
-
+                        if (levelEndValue >= 0x100) {
+                            if (aa_genesis_getWorkRam(levelEndLocation) > 0) {
+                                bumpNinesChallengeLevel();
+                            }
+                        } else {
+                            if (aa_genesis_getWorkRam(levelEndLocation) == levelEndValue) {
+                                bumpNinesChallengeLevel();
+                            }
+                        }
                     }
                 }
             }

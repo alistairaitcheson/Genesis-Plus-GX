@@ -2992,13 +2992,13 @@ void showOptionsMenu() {
         sprintf(lines[6], "     RAM Editing >");
     }
 
-    if (shouldUseBossRush()) {
+    if (shouldUseBossRush() || awaitingBossRushStart()) {
         sprintf(lines[7], "[ON] Boss Rush (Beta)>");
     } else {
         sprintf(lines[7], "     Boss Rush (Beta)>");
     }
 
-    if (shouldUseNinesChallenge()) {
+    if (shouldUseNinesChallenge() || awaitingNinesChallengeStart()) {
         sprintf(lines[8], "[ON] 999 Challenge (Beta)>");
     } else {
         sprintf(lines[8], "     999 Challenge (Beta)>");

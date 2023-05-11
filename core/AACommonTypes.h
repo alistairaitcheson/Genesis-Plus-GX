@@ -157,6 +157,7 @@ typedef struct {
     int completionCount;
 
     int romIndex;
+    int saveStateIndex;
 } NinesChallengeStageListing;
 
 typedef struct {
@@ -166,6 +167,9 @@ typedef struct {
     int actFlagLocation;
     int damageBoostLocation;
     int damageBoostMaximum; // value should be 0xE0 for Sonic 3D Blast
+
+    unsigned int levelCompleteLocation; // e.g. signpost landed or capsule opened
+    unsigned int levelCompleteValue;
 } NinesChallengeGameParameters;
 
 static int INPUT_INDEX_UP = 0;
