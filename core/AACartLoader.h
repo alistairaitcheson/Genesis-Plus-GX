@@ -195,5 +195,7 @@ void cartLoader_loadNinesChallengeSaveStatesFromDisk();
 char* getBossRushRingCarryValuesForLogs();
 int getBossRushRingCarryValues(int index);
 int getNinesChallengeRandomSeedFromMenu();
+int getBossRushRingCarryTotal();
+void completeNinesChallenge();
 
 #endif

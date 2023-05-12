@@ -129,6 +129,8 @@ static int idleModeCooldown = 0;
 static int debug_lastMusicTempo = 0;
 static int debug_haltMusicCountdown = 0;
 
+static int ninesChallengeElapsedFrames = 0;
+
 void checkToHaltMusic() {
     if (shouldUseBossRush() && menuDisplay_getBossRushOptions().shouldUseExternalMusic /*&& aa_genesis_getWorkRam(0xF601) < 0x80*/) {
         // vdp_clearGraphicLayer(3);
@@ -359,6 +361,28 @@ void zeroDeathCount() {
 int getDeathCount() {
     return playerDeathCount;
 }
+
+int getNinesChallengeElapsedFrames() {
+    return ninesChallengeElapsedFrames;
+}
+
+void resetNinesChallengeElapsedTimer() {
+    ninesChallengeElapsedFrames = 0;
+}
+
+
+int getNinesChallengeElapsedSecs() {
+    return (ninesChallengeElapsedFrames / 60) % 60;
+}
+
+int getNinesChallengeElapsedMins() {
+    return (ninesChallengeElapsedFrames / 3600) % 60;
+}
+
+int getNinesChallengeElapsedHours() {
+    return ninesChallengeElapsedFrames / (3600 * 60);
+}
+
 
 int getBossRushElapsedFrames() {
     return bossRushElapsedFrames;
@@ -1326,7 +1350,7 @@ void modConsole_updateFrame() {
                 NinesChallengeGameParameters ninesParams = getActiveNinesChallengeGameParameters();
                 NinesChallengeStageListing ninesStage = getCurrentNinesChallengeStage();
                 
-                bossRushElapsedFrames++;
+                ninesChallengeElapsedFrames++;
 
                 int damageBoostIndex = ninesParams.damageBoostLocation;
                 int damageBoostMaximum = ninesParams.damageBoostMaximum;
@@ -1344,6 +1368,7 @@ void modConsole_updateFrame() {
                     cacheRingCountInBossRush(1);
                     layerRenderer_fill(3, 0, 18, 300, 2, 0xFF);
                 }
+
                             
                 // ADD CHECK FOR END OF LEVEL HERE
 
@@ -1388,9 +1413,15 @@ void modConsole_updateFrame() {
                         }
                     }
 
-                    if (buttonStateAtIndex(INPUT_INDEX_A)) {
-                        bumpNinesChallengeLevel();
-                    }
+                    // for debug!
+                    // if (buttonStateAtIndex(INPUT_INDEX_A)) {
+                    //     bumpNinesChallengeLevel();
+                    // }
+                }
+
+                // CHECK FOR END OF GAME!!
+                if (getBossRushRingCarryTotal() >= 999) {
+                    completeNinesChallenge();
                 }
             }
 
@@ -1403,7 +1434,7 @@ void modConsole_updateFrame() {
             // boss rush deals with these behaviours if toggled on
             // in the rush settings, so ignore them here if
             // we're in boss rush, lest we confuse players
-            if (shouldUseBossRush() == 0) {
+            if (shouldUseBossRush() == 0 && shouldUseNinesChallenge() == 0) {
                 if (hackOpts.switchGameType == 1) {
                     updateSwitchGameOnRing();
                 }
@@ -1535,6 +1566,47 @@ void modConsole_updateFrame() {
         }
         if (shouldUseNinesChallenge()) {
             // SHOW NINES CHALLENGE TIMER
+            if ( getNinesChallengeComplete() == 1) {
+                layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
+                layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
+                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "CHALLENGE COMPLETE!", 0xFF);
+                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "YOUR TIME", 0xFF);
+
+                char elapsedText[0x80];
+                sprintf(elapsedText, "%02i:%02i:%02i", getNinesChallengeElapsedHours(), getNinesChallengeElapsedMins(), getNinesChallengeElapsedSecs());
+                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 16, elapsedText, 0xFF);
+
+                NinesChallengeOptions ninesChallengeOptions = menuDisplay_getNinesChallengeOptions();
+                char seedText[0x80];
+                sprintf(seedText, "YOUR SEED: %X%X%X%X", ninesChallengeOptions.orderSeed[0], ninesChallengeOptions.orderSeed[1], ninesChallengeOptions.orderSeed[2], ninesChallengeOptions.orderSeed[3]);
+                if (ninesChallengeOptions.shouldRevealSeed) {
+                    sprintf(seedText, "%s (revealed)", seedText);
+                }
+                if (ninesChallengeOptions.didEditSeed) {
+                    sprintf(seedText, "%s (edited)", seedText);
+                }
+                for (int xOff = -1; xOff <= 1; xOff++) {
+                    for (int yOff = -1; yOff <= 1; yOff++) {
+                        layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, (vdp_getScreenHeight() / 2) + 54 + yOff, seedText, 0xFF);
+                    }
+                }
+                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2), (vdp_getScreenHeight() / 2) + 54, seedText, 0x6);
+            } else {
+                if (menuDisplay_getNinesChallengeOptions().showProgress) {
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 12, 9 * 8, 8, 0x5);
+                    char elapsedText[0x80];
+                    sprintf(elapsedText, "%02i:%02i:%02i", getNinesChallengeElapsedHours(), getNinesChallengeElapsedMins(), getNinesChallengeElapsedSecs());
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 8, elapsedText, 0xFF);
+
+                    // do the below if I want to show your record highest ring count!
+                    // or best time if they have a previous completion
+
+                    // layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 20, 9 * 8, 8, 0x5);
+                    // char progressText[0x80];
+                    // sprintf(progressText, "%02i / %02i", getCompletedRushCount(), getEnabledRushCount());
+                    // layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
+                }
+            }
         }
 
         if (showShuffleAlertCountdown > 0) {

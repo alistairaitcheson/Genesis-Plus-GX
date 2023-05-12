@@ -1289,6 +1289,10 @@ int getBossRushRingCarryValues(int index) {
     return bossRushRingCarryTotal;
 }
 
+int getBossRushRingCarryTotal() {
+    return bossRushRingCarryTotal;
+}
+
 void bumpToNextBossRush() {
     // cacheRingCountInBossRush(0);
     queueBossRushSlots();
@@ -4229,6 +4233,10 @@ void loadNinesChallengeStage() {
 void beginNinesChallenge() {
     populateNinesChallengeLevelOrder();
 
+    if (hasInitialisedNinesChallenge == 0 || shouldResetNinesChallenge != 0) {
+        resetNinesChallengeElapsedTimer();
+    }
+
     bossRushRingCarryTotal = 0;
     bossRushRingCarryValue[0] = 0;
     bossRushRingCarryValue[1] = 0;
@@ -4300,5 +4308,38 @@ void cartLoader_loadNinesChallengeSaveStatesFromDisk() {
             cartLoader_appendToLog("no state found");
         }
         cartLoader_appendToLog(" -- ");
+    }
+}
+
+void completeNinesChallenge() {
+    if (ninesChallengeComplete == 0) {
+        ninesChallengeComplete = 1;
+
+        // take us to the ending screen!
+
+        // load the credits!
+        if (getCurrentNinesChallengeStage().gameId == 1) {
+            // SONIC 1 - end credits
+            aa_genesis_setWorkRam(0xF601, 0x9C);
+        }
+        if (getCurrentNinesChallengeStage().gameId == 2) {
+            // SONIC 2 - end credits
+            aa_genesis_setWorkRam(0xF601, 0x9C);
+        }
+        if (getCurrentNinesChallengeStage().gameId == 3) {
+            // SONIC 3 - so go to 2P race over screen
+            aa_genesis_setWorkRam(0xF601, 0xC4);
+        }
+        if (getCurrentNinesChallengeStage().gameId == 4) {
+            // SONIC & KNUCKLES - go to level select
+            aa_genesis_setWorkRam(0xF601, 0x9C);
+        }
+        if (getCurrentNinesChallengeStage().gameId == 6) {
+            // SONIC 3D Blast
+            // go to the secret level select?
+            for (int i = 0x03B0; i < 0x03C0, i++) {
+                aa_genesis_setWorkRam(i, 0x12);
+            }
+        }
     }
 }

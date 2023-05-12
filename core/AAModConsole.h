@@ -167,4 +167,10 @@ void enforceHaltMusic();
 int getDeathCount();
 void checkForBossHits(int asNetwork);
 
+int getNinesChallengeElapsedFrames();
+void resetNinesChallengeElapsedTimer();
+int getNinesChallengeElapsedSecs();
+int getNinesChallengeElapsedMins();
+int getNinesChallengeElapsedHours();
+
 #endif
