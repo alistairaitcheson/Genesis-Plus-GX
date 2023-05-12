@@ -323,6 +323,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     applySecondaryHacksDefaultValues();
     applyNetworkOptionsDefaultValues();
     applyDefaultBossRushValues();
+    applyDefaultNinesChallengeValues();
     vdp_healAllColours();
     abortAllBossRushSettings();
 
@@ -668,6 +669,7 @@ void menuDisplay_initialise() {
     }
 
     applyDefaultBossRushValues();
+    applyDefaultNinesChallengeValues();
 
     saveHackOptions();
 }
@@ -955,6 +957,18 @@ void applyDefaultBossRushValues() {
     bossRushOptions.shouldUseExternalMusic = 0;
 
     bossRushOptions.didEditSeed = 0;
+}
+
+void applyDefaultNinesChallengeValues() {
+    ninesChallengeOptions.shouldUseAllGames = 1;
+    ninesChallengeOptions.shouldUseRandomOrder = 1;
+    ninesChallengeOptions.orderSeed[0] = rand() % 0x10;
+    ninesChallengeOptions.orderSeed[1] = rand() % 0x10;
+    ninesChallengeOptions.orderSeed[2] = rand() % 0x10;
+    ninesChallengeOptions.orderSeed[3] = rand() % 0x10;
+    ninesChallengeOptions.didEditSeed = 0;
+    ninesChallengeOptions.shouldRevealSeed = 0;
+    ninesChallengeOptions.showProgress = 1;
 }
 
 void applyDefaultRamDetectiveValues() {

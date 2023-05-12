@@ -264,5 +264,6 @@ char* getCurrentBossRushTriggerSummary();
 int menuDisplay_bossRushUsesNoTriggers();
 void showBossRushTriggerSelectMenu();
 void incrementBossRushTiggerSelectOption(int direction, int buttonIndex);
+void applyDefaultNinesChallengeValues();
 
 #endif

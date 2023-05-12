@@ -1695,6 +1695,13 @@ int getBossRushRandomSeedFromMenu() {
             + (menuDisplay_getBossRushOptions().orderSeed[3] * 0x1);
 }
 
+int getNinesChallengeRandomSeedFromMenu() {
+    return (menuDisplay_getNinesChallengeOptions().orderSeed[0] * 0x1000)
+            + (menuDisplay_getNinesChallengeOptions().orderSeed[1] * 0x100)
+            + (menuDisplay_getNinesChallengeOptions().orderSeed[2] * 0x10)
+            + (menuDisplay_getNinesChallengeOptions().orderSeed[3] * 0x1);
+}
+
 void populateBossRushes() {
     // do addBossRushListing for each game
     bossRushChallengeCount = 0;
@@ -4165,6 +4172,9 @@ void populateNinesChallengeLevelOrder() {
         int shuffledIndexes[totalOrderedLevels];
         int shuffledIndexesPopulated = 0;
 
+
+        srand(getNinesChallengeRandomSeedFromMenu());
+
         while (shuffledIndexesPopulated < totalOrderedLevels)
         {
             int nextIndex = rand() % totalOrderedLevels;
@@ -4184,6 +4194,8 @@ void populateNinesChallengeLevelOrder() {
         for (int i = 0; i < 0x1000; i++) {
             ninesChallengeLevelOrder[i] = orderedLevels[shuffledIndexes[i]];
         }
+
+        srand(time(NULL));
     }
 
     totalNinesChallengeStages = totalOrderedLevels;
