@@ -77,6 +77,8 @@ static int hasMappedRomsToLevels = 0;
 
 static char currentRulesName[100];
 
+static int requestedNinesChallengeStartRom = 0;
+
 void menuDisplay_generateRulesNameForCurrentGame() {
     sprintf(currentRulesName, "");
 
@@ -1363,6 +1365,10 @@ void beginGame() {
     gameHasStarted = 1;
 }
 
+int getRequestedNinesChallengeStartRom() {
+    return requestedNinesChallengeStartRom;
+}
+
 int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_TITLE && buttonIndex == INPUT_INDEX_START) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
@@ -1378,6 +1384,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
                 beginBossRush();
             } else if (awaitingNinesChallengeStart()) {
                 beginGame();
+                requestedNinesChallengeStartRom = chosenGameIndex;
                 beginNinesChallenge();
             } else {
                 beginGame();

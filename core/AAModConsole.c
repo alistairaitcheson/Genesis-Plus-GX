@@ -1302,7 +1302,6 @@ void modConsole_updateFrame() {
             }
         }
 
-
         // colour effects should also come before switching so they don't get lost
         if (hackOpts.colourDeleteTrigger == 1) {
             removeColourOnRing(1);
@@ -1386,6 +1385,17 @@ void modConsole_updateFrame() {
                 int damageBoostIndex = ninesParams.damageBoostLocation;
                 int damageBoostMaximum = ninesParams.damageBoostMaximum;
                 
+
+                // update the "do I play life jingle" flags
+                if (ninesParams.lifeUpFlaggedLocation > 0) {
+                    aa_genesis_setWorkRam(ninesParams.lifeUpFlaggedLocation, 0xFF);
+                }
+
+                // debug - bonus rings!!
+                // if (buttonStateAtIndex(INPUT_INDEX_A) != 0) { 
+                //     aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], 0xFF);
+                // }
+
                 if (countdownToApplyBossRushRings > 0) {
                     // only count down once level is loaded! (except sonic 3D blast which has a 1-sec lead time)
                     applyBossRushCachedRings();
@@ -1400,10 +1410,18 @@ void modConsole_updateFrame() {
                     // layerRenderer_fill(3, 0, 18, 300, 2, 0xFF);
 
                     if (getBossRushRingCarryTotal() == 0) {
+                        char tempLog[256];
+                        sprintf(tempLog,"Rings went to zero %04X = %02X, %04X = %02X, %04X = %02X > %02X", 
+                            gameTransferListing.ringBytesForTransfer[0], aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]),
+                            gameTransferListing.ringBytesForTransfer[1], aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]),
+                            damageBoostIndex, aa_genesis_getWorkRam(damageBoostIndex), damageBoostMaximum);
+                        cartLoader_appendToLog(tempLog);
+
+
                         ringsWentToZero = 1;
                     }
                 }
-                            
+    
                 // ADD CHECK FOR END OF LEVEL HERE
 
                 // this check will need to be different in Sonic 3D blast
@@ -1429,11 +1447,22 @@ void modConsole_updateFrame() {
                     // layerRenderer_writeWord256(3, 0, 0, tempLog, 0x5);
                     // layerRenderer_writeWord256(3, 0, 8, tempLog2, 0x5);
 
+                    // bump level in 3D blast if you die
+                    if (countdownToApplyBossRushRings == 0 && ninesOptions.allowTacticalDeaths == 1 && ninesStage.gameId == 6) {
+                        if (diedThisFrame) {
+                            bumpNinesChallengeLevel();
+                        }
+                    }
+                        
+
                     // check for load trigger changed
                     if ((aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80
                         && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex))
                         // or if we go to the end credits in Sonic 3
-                        || (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x20)) {
+                        || (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x20)
+                        // or if we go to sonic 3/K speical stage
+                        || (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x34)
+                        || (ninesStage.gameId == 4 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x34)) {
                         
                         bumpNinesChallengeLevel();
                     } else {

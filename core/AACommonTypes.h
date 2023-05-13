@@ -172,6 +172,7 @@ typedef struct {
     unsigned int levelCompleteValue;
 
     int cheatFlags[8];
+    int lifeUpFlaggedLocation;
 } NinesChallengeGameParameters;
 
 static int INPUT_INDEX_UP = 0;

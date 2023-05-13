@@ -110,6 +110,7 @@ static int hasInitialisedNinesChallenge = 0;
 // todo - what if we have more than 256 levels in the whole thing?
 static uint8 ninesChallengeSaveStates[0x100][STATE_SIZE];
 static uint8 hasNinesChallengeSaveState[0x100];
+int hasLoadedNinesChallengeSaveStates = 0;
 
 static int bestNinesChallengeRingCount = 0;
 
@@ -196,6 +197,11 @@ void cartLoader_run() {
         rewindStateMinimumPerGame[i] = 0;
         rewindStateCounterPerGame[i] = 0;
     }
+
+    for (int i = 0; i < 0x100; i++) {
+        hasNinesChallengeSaveState[i] = 0;
+    }
+
     
     cartLoader_appendToLog("cartLoader_run");
 
@@ -1877,10 +1883,10 @@ void populateBossRushes() {
     int sonicKindex = bossRushChallengeCount;
     addBossRushListing(4, 0, 0, 0xB001, 0xCFCB, 0x1, 0x28, 0xF7D2, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
     bossRushCallenges[bossRushChallengeCount - 1].objectIdsArePointers = 1;
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0xFFD0;
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][1] = 0xFFD1;
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][2] = 0xFFD2;
-    cheatFlagsPerBossRush[bossRushChallengeCount - 1][3] = 0xFFD3;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][0] = 0xFFE0;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][1] = 0xFFE1;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][2] = 0xFFE2;
+    cheatFlagsPerBossRush[bossRushChallengeCount - 1][3] = 0xFFE3;
     // MHZ1 - 0007 51CA
     populateMostRecentBossRush4(0x07, 0x00, 0xCA, 0x51);
 
@@ -3193,16 +3199,22 @@ void cartLoader_appendToLog(char *text) {
     }
     // return; // <----------------- replace this with something togglable!
 
+    char path[0x100];
+    sprintf(path, "%s/__log.txt", folderPath);
+
     if (openedLogWriter == 0) {
         openedLogWriter = 1;
-        char path[0x100];
-        sprintf(path, "%s/__log.txt", folderPath);
+
         remove(path);
         globalLogWriter = fopen(path, "w");
     }
 
     fprintf(globalLogWriter, text);
     fprintf(globalLogWriter, "\n");
+
+    fclose(globalLogWriter);
+    globalLogWriter = fopen(path, "a");
+
     // I'll need to do fclose if I want to see the changes during play
 }
 
@@ -4034,8 +4046,14 @@ void addNinesChallengeLevel(int gameId, int zoneId, int actId) {
     }
 }
 
+int hasPopulatedNinesChallengeLevelSource = 0;
 
 void populateNinesChallengeLevelSource() {
+    if (hasPopulatedNinesChallengeLevelSource == 1) {
+        return;
+    }
+    hasPopulatedNinesChallengeLevelSource = 1;
+
     for (int i = 0; i < 0x1000; i++) {
         ninesChallengeLevelsSource[i].gameId = -1;
         ninesChallengeLevelsSource[i].actId = 0;
@@ -4070,6 +4088,7 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[1].cheatFlags[3] = 0xFFE3;
     ninesChallengeGamesParameters[1].cheatFlags[4] = 0xFFEA;
     ninesChallengeGamesParameters[1].cheatFlags[5] = 0xFFEB;
+    ninesChallengeGamesParameters[1].lifeUpFlaggedLocation = 0xFE1A;
 
     for (int i = 0; i <= 5; i++) {
         addNinesChallengeLevel(1,i,0);
@@ -4082,7 +4101,7 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[2].resetStageFlagValueToSet = 0x8C;
     ninesChallengeGamesParameters[2].actFlagLocation = 0xFE10;
     ninesChallengeGamesParameters[2].zoneFlagLocation = 0xFE11;
-    ninesChallengeGamesParameters[2].damageBoostLocation = 0xB430;
+    ninesChallengeGamesParameters[2].damageBoostLocation = 0xB030;
     ninesChallengeGamesParameters[2].damageBoostMaximum = 0x40;
     ninesChallengeGamesParameters[2].levelCompleteLocation = 0xF7D7;
     ninesChallengeGamesParameters[2].levelCompleteValue = 0x100;
@@ -4091,6 +4110,7 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[2].cheatFlags[1] = 0xFFD1;
     ninesChallengeGamesParameters[2].cheatFlags[2] = 0xFFFA;
     ninesChallengeGamesParameters[2].cheatFlags[3] = 0xFFFB;
+    ninesChallengeGamesParameters[2].lifeUpFlaggedLocation = 0xFE1A;
 
     for (int i = 0; i <= 7; i++) {
         addNinesChallengeLevel(2,i,0);
@@ -4114,6 +4134,7 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[3].cheatFlags[1] = 0xFFD1;
     ninesChallengeGamesParameters[3].cheatFlags[2] = 0xFFD2;
     ninesChallengeGamesParameters[3].cheatFlags[3] = 0xFFD3;
+    ninesChallengeGamesParameters[2].lifeUpFlaggedLocation = 0xFE1A;
 
     for (int i = 0; i <= 5; i++) {
         addNinesChallengeLevel(3,i,0);
@@ -4129,11 +4150,12 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[4].damageBoostMaximum = 0x40;
     ninesChallengeGamesParameters[4].levelCompleteLocation = 0xF7D2;
     ninesChallengeGamesParameters[4].levelCompleteValue = 0x100;
+    ninesChallengeGamesParameters[4].lifeUpFlaggedLocation = 0xFE1A;
 
-    ninesChallengeGamesParameters[4].cheatFlags[0] = 0xFFD0;
-    ninesChallengeGamesParameters[4].cheatFlags[1] = 0xFFD1;
-    ninesChallengeGamesParameters[4].cheatFlags[2] = 0xFFD2;
-    ninesChallengeGamesParameters[4].cheatFlags[3] = 0xFFD3;
+    ninesChallengeGamesParameters[4].cheatFlags[0] = 0xFFE0;
+    ninesChallengeGamesParameters[4].cheatFlags[1] = 0xFFE1;
+    ninesChallengeGamesParameters[4].cheatFlags[2] = 0xFFE2;
+    ninesChallengeGamesParameters[4].cheatFlags[3] = 0xFFE3;
 
     for (int i = 0; i <= 3; i++) {
         addNinesChallengeLevel(4,i,0);
@@ -4145,16 +4167,16 @@ void populateNinesChallengeLevelSource() {
     addNinesChallengeLevel(4,6,1);
 
     // SONIC 3D Blast
-    ninesChallengeGamesParameters[5].resetStageFlagLocation = 0;
-    ninesChallengeGamesParameters[5].resetStageFlagValueToSet = 0;
-    ninesChallengeGamesParameters[5].actFlagLocation = 0;
-    ninesChallengeGamesParameters[5].zoneFlagLocation = 0;
-    ninesChallengeGamesParameters[5].damageBoostLocation = 0xC224;
-    ninesChallengeGamesParameters[5].damageBoostMaximum = 0xE0;
-    ninesChallengeGamesParameters[5].levelCompleteLocation = 0x0233;
-    ninesChallengeGamesParameters[5].levelCompleteValue = 0x100;
+    ninesChallengeGamesParameters[6].resetStageFlagLocation = 0;
+    ninesChallengeGamesParameters[6].resetStageFlagValueToSet = 0;
+    ninesChallengeGamesParameters[6].actFlagLocation = 0;
+    ninesChallengeGamesParameters[6].zoneFlagLocation = 0;
+    ninesChallengeGamesParameters[6].damageBoostLocation = 0xC224;
+    ninesChallengeGamesParameters[6].damageBoostMaximum = 0xE0;
+    ninesChallengeGamesParameters[6].levelCompleteLocation = 0x0233;
+    ninesChallengeGamesParameters[6].levelCompleteValue = 0x100;
 
-    ninesChallengeGamesParameters[5].cheatFlags[0] = 0x040C;
+    ninesChallengeGamesParameters[6].cheatFlags[0] = 0x040C;
 
     for (int i = 0; i <= 6; i++) {
         addNinesChallengeLevel(6,i,0);
@@ -4177,6 +4199,7 @@ void populateNinesChallengeLevelOrder() {
     for (int i = 0; i < MAX_ROMS; i++) {
         cartIndexForEachRom[i] = -1;
         usedGameIndexes[i] = -1;
+        romIndexForEachGameId[i] = -1;
     }
 
     for (int i = 0; i < romCount; i++) {
@@ -4195,6 +4218,16 @@ void populateNinesChallengeLevelOrder() {
         }
     }
 
+    cartLoader_appendToLog("--- start populateNinesChallengeLevelOrder ---");
+    // for (int i = 0; i < MAX_ROMS; i++) {
+    //     char tempLog[256];
+    //     sprintf(tempLog,"  ROM index for game %i is %i", i, romIndexForEachGameId[i]);
+    //     cartLoader_appendToLog(tempLog);
+    // }
+
+    cartLoader_appendToLog("--- checking what games are allowed ---");
+
+    NinesChallengeOptions menuOptions = menuDisplay_getNinesChallengeOptions();
     NinesChallengeStageListing orderedLevels[0x1000];
     int totalOrderedLevels = 0;
     for (int i = 0; i < 0x1000; i++) {
@@ -4207,14 +4240,21 @@ void populateNinesChallengeLevelOrder() {
     }
     for (int gameIndex = 0; gameIndex < MAX_ROMS; gameIndex++) {
         int gameIsAllowed = 0;
-        for (int i = 0; i < totalUsedGameIndexes; i++) {
-            if (usedGameIndexes[i] == gameIndex) {
-                gameIsAllowed = 1;
-                break;
+        if (romIndexForEachGameId[gameIndex] != -1) {
+            gameIsAllowed = 1;
+        }
+
+        if (menuOptions.shouldUseAllGames == 0) {
+            if (romIndexForEachGameId[gameIndex] != getRequestedNinesChallengeStartRom()) {
+                gameIsAllowed = 0;
             }
         }
 
         if (gameIsAllowed) {
+            char tempLog[256];
+            sprintf(tempLog," Game %i is allowed", gameIndex, gameIsAllowed);
+            cartLoader_appendToLog(tempLog);
+
             for (int stageIndex = 0; stageIndex < 0x1000; stageIndex++) {
                 if(ninesChallengeLevelsSource[stageIndex].gameId == gameIndex && hasNinesChallengeSaveState[stageIndex] == 1) {
                     orderedLevels[totalOrderedLevels].gameId = ninesChallengeLevelsSource[stageIndex].gameId;
@@ -4229,11 +4269,23 @@ void populateNinesChallengeLevelOrder() {
         }
     }
 
+    cartLoader_appendToLog("--- Getting raw 999 level order ---");
+    for (int i = 0; i < totalOrderedLevels; i++) {
+        NinesChallengeStageListing stageListing = orderedLevels[i];
+        char tempLogA[256];
+        sprintf(tempLogA,"  ROM %i, GAME %i, ZONE %i, ACT %i, STATE %i", 
+            stageListing.romIndex, stageListing.gameId, stageListing.zoneId, stageListing.actId, stageListing.saveStateIndex);
+        cartLoader_appendToLog(tempLogA);
+    }
+    cartLoader_appendToLog("--- Got raw 999 level order ---");
+
     for (int i = 0; i < 0x1000; i++) {
         ninesChallengeLevelOrder[i] = orderedLevels[i];
     }
 
     if (menuDisplay_getNinesChallengeOptions().shouldUseRandomOrder == 1 && totalOrderedLevels > 0) {
+        cartLoader_appendToLog("--- Making random order ---");
+
         int stageOrder[0x1000];
         for (int i = 0; i < 0x1000; i++) {
             stageOrder[i] = -1;
@@ -4258,17 +4310,46 @@ void populateNinesChallengeLevelOrder() {
             if (indexAlreadyHere == 0) {
                 shuffledIndexes[shuffledIndexesPopulated] = nextIndex;
                 shuffledIndexesPopulated++;
+
+                char tempLogB[256];
+                sprintf(tempLogB,"  Adding index %i (%i / %i)", nextIndex, shuffledIndexesPopulated, totalOrderedLevels);
+                cartLoader_appendToLog(tempLogB);
+            } else {
+                char tempLogC[256];
+                sprintf(tempLogC,"       Cannot add index %i", nextIndex);
+                cartLoader_appendToLog(tempLogC);
             }
         }
         
-        for (int i = 0; i < 0x1000; i++) {
-            ninesChallengeLevelOrder[i] = orderedLevels[shuffledIndexes[i]];
+        cartLoader_appendToLog("--- made random order ---");
+        for (int i = 0; i < totalOrderedLevels; i++) {
+            int index = shuffledIndexes[i];
+            char tempLogC[256];
+            sprintf(tempLogC,"   ninesChallengeLevelOrder slot %i is stage %i", i, index);
+            cartLoader_appendToLog(tempLogC);
+
+            ninesChallengeLevelOrder[i] = orderedLevels[index];
         }
+        cartLoader_appendToLog("--- put them into nines challenge ---");
 
         srand(time(NULL));
+
+        cartLoader_appendToLog("--- reset randomiser ---");
     }
 
     totalNinesChallengeStages = totalOrderedLevels;
+
+
+    cartLoader_appendToLog("--- INITIALISED 999 CHALLENGE ---");
+    for (int i = 0; i < totalNinesChallengeStages; i++) {
+        NinesChallengeStageListing stageListing = ninesChallengeLevelOrder[i];
+        char tempLog[256];
+        sprintf(tempLog,"  ROM %i, GAME %i, ZONE %i, ACT %i, STATE %i", 
+            stageListing.romIndex, stageListing.gameId, stageListing.zoneId, stageListing.actId, stageListing.saveStateIndex);
+        cartLoader_appendToLog(tempLog);
+    }
+
+    cartLoader_appendToLog("^^^ INITIALISED 999 CHALLENGE ^^^");
 }
 
 void loadNinesChallengeStage() {
@@ -4365,11 +4446,11 @@ void enforceBumpToSameNinesStageAgain() {
 }
 
 void cartLoader_loadNinesChallengeSaveStatesFromDisk() {
-    for (int i = 0; i < 0x100; i++) {
-        hasNinesChallengeSaveState[i] = 0;
+    if (hasLoadedNinesChallengeSaveStates) {
+        return;
     }
 
-    for (int i = 0; i < 0x1000; i++) {
+    for (int i = 0; i < 0x100; i++) {
         if (ninesChallengeLevelsSource[i].gameId == -1) {
             break;
         }
@@ -4396,6 +4477,8 @@ void cartLoader_loadNinesChallengeSaveStatesFromDisk() {
         }
         cartLoader_appendToLog(" -- ");
     }
+
+    hasLoadedNinesChallengeSaveStates = 1;
 }
 
 void completeNinesChallenge() {
