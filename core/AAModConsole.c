@@ -1396,8 +1396,10 @@ void modConsole_updateFrame() {
                     layerRenderer_writeWord256(3, 0, 8, tempLog2, 0x5);
 
                     // check for load trigger changed
-                    if (aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80
-                        && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex)) {
+                    if ((aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80
+                        && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex))
+                        // or if we go to the end credits in Sonic 3
+                        || (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x20)) {
                         
                         bumpNinesChallengeLevel();
                     } else {

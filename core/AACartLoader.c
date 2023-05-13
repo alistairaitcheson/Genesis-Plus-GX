@@ -4065,24 +4065,11 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[1].cheatFlags[4] = 0xFFEA;
     ninesChallengeGamesParameters[1].cheatFlags[5] = 0xFFEB;
 
-    addNinesChallengeLevel(1,0,0);
-    addNinesChallengeLevel(1,0,1);
-    addNinesChallengeLevel(1,0,2);
-    addNinesChallengeLevel(1,1,0);
-    addNinesChallengeLevel(1,1,1);
-    addNinesChallengeLevel(1,1,2);
-    addNinesChallengeLevel(1,2,0);
-    addNinesChallengeLevel(1,2,1);
-    addNinesChallengeLevel(1,2,2);
-    addNinesChallengeLevel(1,3,0);
-    addNinesChallengeLevel(1,3,1);
-    addNinesChallengeLevel(1,3,2);
-    addNinesChallengeLevel(1,4,0);
-    addNinesChallengeLevel(1,4,1);
-    addNinesChallengeLevel(1,4,2);
-    addNinesChallengeLevel(1,5,0);
-    addNinesChallengeLevel(1,5,1);
-    addNinesChallengeLevel(1,5,2);
+    for (int i = 0; i <= 5; i++) {
+        addNinesChallengeLevel(1,i,0);
+        addNinesChallengeLevel(1,i,1);
+        addNinesChallengeLevel(1,i,2);
+    }
 
     // SONIC 2
     ninesChallengeGamesParameters[2].resetStageFlagLocation = 0xF601;
@@ -4099,8 +4086,13 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[2].cheatFlags[2] = 0xFFFA;
     ninesChallengeGamesParameters[2].cheatFlags[3] = 0xFFFB;
 
-    addNinesChallengeLevel(2,0,0);
-    addNinesChallengeLevel(2,0,1);
+    for (int i = 0; i <= 7; i++) {
+        addNinesChallengeLevel(2,i,0);
+        addNinesChallengeLevel(2,i,1);
+    }
+    addNinesChallengeLevel(2,7,2);
+    addNinesChallengeLevel(2,8,0);
+    addNinesChallengeLevel(2,9,0);
 
     // SONIC 3
     ninesChallengeGamesParameters[3].resetStageFlagLocation = 0xF601;
@@ -4393,7 +4385,7 @@ void completeNinesChallenge() {
         if (getCurrentNinesChallengeStage().gameId == 6) {
             // SONIC 3D Blast
             // go to the secret level select?
-            for (int i = 0x03B0; i < 0x03C0, i++) {
+            for (int i = 0x03B0; i < 0x03C0; i++) {
                 aa_genesis_setWorkRam(i, 0x12);
             }
         }
