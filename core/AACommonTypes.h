@@ -170,6 +170,8 @@ typedef struct {
 
     unsigned int levelCompleteLocation; // e.g. signpost landed or capsule opened
     unsigned int levelCompleteValue;
+
+    int cheatFlags[8];
 } NinesChallengeGameParameters;
 
 static int INPUT_INDEX_UP = 0;

@@ -4042,6 +4042,11 @@ void populateNinesChallengeLevelSource() {
     //  GHZ, LZ, MZ...)
 
     // And we only want levels with rings!
+    for (int i = 0; i < MAX_ROMS; i++) {
+        for (int j = 0; j < 8; j++) {
+            ninesChallengeGamesParameters[i].cheatFlags[j] = 0;
+        }
+    }
 
     // SONIC 1
     ninesChallengeGamesParameters[1].resetStageFlagLocation = 0xF601;
@@ -4052,6 +4057,13 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[1].damageBoostMaximum = 0x40;
     ninesChallengeGamesParameters[1].levelCompleteLocation = 0xF7D7;
     ninesChallengeGamesParameters[1].levelCompleteValue = 0x100;
+
+    ninesChallengeGamesParameters[1].cheatFlags[0] = 0xFFE0;
+    ninesChallengeGamesParameters[1].cheatFlags[1] = 0xFFE1;
+    ninesChallengeGamesParameters[1].cheatFlags[2] = 0xFFE2;
+    ninesChallengeGamesParameters[1].cheatFlags[3] = 0xFFE3;
+    ninesChallengeGamesParameters[1].cheatFlags[4] = 0xFFEA;
+    ninesChallengeGamesParameters[1].cheatFlags[5] = 0xFFEB;
 
     addNinesChallengeLevel(1,0,0);
     addNinesChallengeLevel(1,0,1);
@@ -4082,6 +4094,11 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[2].levelCompleteLocation = 0xF7D7;
     ninesChallengeGamesParameters[2].levelCompleteValue = 0x100;
 
+    ninesChallengeGamesParameters[2].cheatFlags[0] = 0xFFD0;
+    ninesChallengeGamesParameters[2].cheatFlags[1] = 0xFFD1;
+    ninesChallengeGamesParameters[2].cheatFlags[2] = 0xFFFA;
+    ninesChallengeGamesParameters[2].cheatFlags[3] = 0xFFFB;
+
     addNinesChallengeLevel(2,0,0);
     addNinesChallengeLevel(2,0,1);
 
@@ -4094,6 +4111,38 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[3].damageBoostMaximum = 0x40;
     ninesChallengeGamesParameters[3].levelCompleteLocation = 0xF7D2;
     ninesChallengeGamesParameters[3].levelCompleteValue = 0x100;
+
+    ninesChallengeGamesParameters[3].cheatFlags[0] = 0xFFD0;
+    ninesChallengeGamesParameters[3].cheatFlags[1] = 0xFFD1;
+    ninesChallengeGamesParameters[3].cheatFlags[2] = 0xFFD2;
+    ninesChallengeGamesParameters[3].cheatFlags[3] = 0xFFD3;
+    
+    // SONIC & KNUCKES
+    ninesChallengeGamesParameters[4].resetStageFlagLocation = 0xF601;
+    ninesChallengeGamesParameters[4].resetStageFlagValueToSet = 0x8C;
+    ninesChallengeGamesParameters[4].actFlagLocation = 0xFE10;
+    ninesChallengeGamesParameters[4].zoneFlagLocation = 0xFE11;
+    ninesChallengeGamesParameters[4].damageBoostLocation = 0xB035;
+    ninesChallengeGamesParameters[4].damageBoostMaximum = 0x40;
+    ninesChallengeGamesParameters[4].levelCompleteLocation = 0xF7D2;
+    ninesChallengeGamesParameters[4].levelCompleteValue = 0x100;
+
+    ninesChallengeGamesParameters[4].cheatFlags[0] = 0xFFD0;
+    ninesChallengeGamesParameters[4].cheatFlags[1] = 0xFFD1;
+    ninesChallengeGamesParameters[4].cheatFlags[2] = 0xFFD2;
+    ninesChallengeGamesParameters[4].cheatFlags[3] = 0xFFD3;
+    
+    // SONIC 3D Blast
+    ninesChallengeGamesParameters[5].resetStageFlagLocation = 0;
+    ninesChallengeGamesParameters[5].resetStageFlagValueToSet = 0;
+    ninesChallengeGamesParameters[5].actFlagLocation = 0;
+    ninesChallengeGamesParameters[5].zoneFlagLocation = 0;
+    ninesChallengeGamesParameters[5].damageBoostLocation = 0xC224;
+    ninesChallengeGamesParameters[5].damageBoostMaximum = 0xE0;
+    ninesChallengeGamesParameters[5].levelCompleteLocation = 0x0233;
+    ninesChallengeGamesParameters[5].levelCompleteValue = 0x100;
+
+    ninesChallengeGamesParameters[5].cheatFlags[0] = 0x040C;
 }
 
 NinesChallengeGameParameters getActiveNinesChallengeGameParameters() {
@@ -4226,6 +4275,13 @@ void loadNinesChallengeStage() {
 
     // and then...
     beginCountdownToApplyBossRushRings();
+    
+    NinesChallengeGameParameters paramsThisGame = getActiveNinesChallengeGameParameters();
+    for (int i = 0; i < 8; i++) {
+        if (paramsThisGame.cheatFlags[i] > 0) {
+            aa_genesis_setWorkRam(paramsThisGame.cheatFlags[i], 0);
+        }
+    }
 
     cartLoader_appendToLog("loadNinesChallengeStage - applied boss rush rings");
 }
