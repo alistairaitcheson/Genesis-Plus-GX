@@ -969,6 +969,9 @@ void applyDefaultNinesChallengeValues() {
     ninesChallengeOptions.didEditSeed = 0;
     ninesChallengeOptions.shouldRevealSeed = 0;
     ninesChallengeOptions.showProgress = 1;
+
+    ninesChallengeOptions.allowTacticalDeaths = 1;
+    ninesChallengeOptions.quitOnRingLoss = 1;
 }
 
 void applyDefaultRamDetectiveValues() {
@@ -2287,7 +2290,7 @@ void incrementNinesChallengeOption(int direction, int buttonIndex) {
 
         if (getShouldResetNinesChallenge() == 1) {
             if (ninesChallengeOptions.shouldRevealSeed == 0) {
-                shouldRerollBossRushRandomTime = 30;
+                shouldRerollNinesChallengeRandomTime = 30;
             }
         }
     }
@@ -2314,8 +2317,16 @@ void incrementNinesChallengeOption(int direction, int buttonIndex) {
     if (ninesChallengeItemIndex == 5) {
         shouldRerollNinesChallengeRandomTime = 30;
     }
-    
     if (ninesChallengeItemIndex == 6) {
+        ninesChallengeOptions.allowTacticalDeaths += direction;
+    }
+
+    if (ninesChallengeItemIndex == 7) {
+        ninesChallengeOptions.quitOnRingLoss += direction;
+    }
+
+    
+    if (ninesChallengeItemIndex == 8) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -4947,7 +4958,7 @@ void showNinesChallengeMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "999 Challenge", 5);
 
-    int lineCount = 7;
+    int lineCount = 9;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -5010,7 +5021,7 @@ void showNinesChallengeMenu() {
     linesWithBreakAfter[3] = 1;
 
     if (ninesChallengeOptions.shouldRevealSeed == 0) {
-        if (ninesChallengeItemIndex == 8) {
+        if (ninesChallengeItemIndex == 4) {
             sprintf(lines[4], "ORDER SEED: push c to reveal");
         } else {
             sprintf(lines[4], "ORDER SEED:           hidden");
@@ -5025,7 +5036,7 @@ void showNinesChallengeMenu() {
                 ninesChallengeOptions.orderSeed[i] = 0;
             }
 
-            if (ninesChallengeItemIndex == 8 && ninesChallengeOptions.seedEditingLocationIndex == i) {
+            if (ninesChallengeItemIndex == 4 && ninesChallengeOptions.seedEditingLocationIndex == i) {
                 sprintf(seedValuesText[i], "<%X>", ninesChallengeOptions.orderSeed[i]);
             } else {
                 sprintf(seedValuesText[i], " %X ", ninesChallengeOptions.orderSeed[i]);
@@ -5037,7 +5048,34 @@ void showNinesChallengeMenu() {
     sprintf(lines[5], "shuffle seed");
     linesWithBreakAfter[5] = 1;
 
-    sprintf(lines[6], "back >");
+    if (ninesChallengeOptions.allowTacticalDeaths < 0) {
+        ninesChallengeOptions.allowTacticalDeaths = 1;
+    }
+    if (ninesChallengeOptions.allowTacticalDeaths > 1) {
+        ninesChallengeOptions.allowTacticalDeaths = 0;
+    }
+    if (ninesChallengeOptions.allowTacticalDeaths == 0) {
+        sprintf(lines[6], "Use deaths as warp:       NO");
+    } else {
+        sprintf(lines[6], "Use deaths as warp:      YES");
+    }
+
+    if (ninesChallengeOptions.quitOnRingLoss < 0) {
+        ninesChallengeOptions.quitOnRingLoss = 1;
+    }
+    if (ninesChallengeOptions.quitOnRingLoss > 1) {
+        ninesChallengeOptions.quitOnRingLoss = 0;
+    }
+    if (ninesChallengeOptions.quitOnRingLoss == 0) {
+        sprintf(lines[7], "End run on ring loss:     NO");
+    } else {
+        sprintf(lines[7], "End run on ring loss:    YES");
+    }
+    linesWithBreakAfter[7] = 1;
+
+
+
+    sprintf(lines[8], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -5065,13 +5103,13 @@ void showNinesChallengeMenu() {
     }
 
     char elapsedText[0x80];
-    if (getShouldShowBossRushAsReadyToReset()) {
+    if (getShouldShowNinesChallengeAsReadyToReset()) {
         sprintf(elapsedText, "Elapsed: --:--:--");
     } else {
-        sprintf(elapsedText, "Elapsed: %02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
+        sprintf(elapsedText, "Elapsed: %02i:%02i:%02i", getNinesChallengeElapsedHours(), getNinesChallengeElapsedMins(), getNinesChallengeElapsedSecs());
     }
 
-    layerRenderer_writeWord256WithBorder(0, 16, yPos, elapsedText, 5, 1, 0);
+    layerRenderer_writeWord256WithBorder(0, 16, yPos + 8, elapsedText, 5, 1, 0);
 
     showVersionNumber();
 }

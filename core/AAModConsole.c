@@ -131,6 +131,8 @@ static int debug_haltMusicCountdown = 0;
 
 static int ninesChallengeElapsedFrames = 0;
 
+static int diedThisFrame = 0;
+
 void checkToHaltMusic() {
     if (shouldUseBossRush() && menuDisplay_getBossRushOptions().shouldUseExternalMusic /*&& aa_genesis_getWorkRam(0xF601) < 0x80*/) {
         // vdp_clearGraphicLayer(3);
@@ -500,6 +502,7 @@ void modConsole_updateActiveCart() {
 }
 
 static int bossRushStartCountDown = 0;
+static int ninesChallengeStartCountDown = 0;
 
 void dismissStartupHint(int andSave) {
     hasDismissedStartupHint = 1;
@@ -521,6 +524,11 @@ void modConsole_applyHackOptions() {
 
     if (checkForBossRushStart() == 1) {
         bossRushStartCountDown = 2;
+        hasDismissedStartupHint = 1;
+    }
+
+    if (checkForNinesChallengeStart() == 1) {
+        ninesChallengeStartCountDown = 2;
         hasDismissedStartupHint = 1;
     }
 
@@ -1358,6 +1366,20 @@ void modConsole_updateFrame() {
                 AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
                 NinesChallengeGameParameters ninesParams = getActiveNinesChallengeGameParameters();
                 NinesChallengeStageListing ninesStage = getCurrentNinesChallengeStage();
+                NinesChallengeOptions ninesOptions = menuDisplay_getNinesChallengeOptions();
+
+                int ringsWentToZero = 0;
+                if (diedThisFrame) {
+                    if (ninesOptions.allowTacticalDeaths == 0) {
+                        enforceBumpToSameNinesStageAgain();
+
+                        aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], 0);
+                        aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1], 0);
+                        cacheRingCountInBossRush(1);
+
+                        ringsWentToZero = 1;
+                    }
+                }
                 
                 ninesChallengeElapsedFrames++;
 
@@ -1376,8 +1398,11 @@ void modConsole_updateFrame() {
                     || aa_genesis_getWorkRam(damageBoostIndex) > damageBoostMaximum) {
                     cacheRingCountInBossRush(1);
                     layerRenderer_fill(3, 0, 18, 300, 2, 0xFF);
-                }
 
+                    if (getBossRushRingCarryTotal() == 0) {
+                        ringsWentToZero = 1;
+                    }
+                }
                             
                 // ADD CHECK FOR END OF LEVEL HERE
 
@@ -1432,6 +1457,10 @@ void modConsole_updateFrame() {
 
                 // CHECK FOR END OF GAME!!
                 if (getBossRushRingCarryTotal() >= 999) {
+                    completeNinesChallenge();
+                }
+
+                if (ringsWentToZero && ninesOptions.quitOnRingLoss) {
                     completeNinesChallenge();
                 }
             }
@@ -1578,30 +1607,42 @@ void modConsole_updateFrame() {
         if (shouldUseNinesChallenge()) {
             // SHOW NINES CHALLENGE TIMER
             if ( getNinesChallengeComplete() == 1) {
-                layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
-                layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
-                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "CHALLENGE COMPLETE!", 0xFF);
-                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "YOUR TIME", 0xFF);
+                if (getBestNinesChallengeRingCount() >= 999) {
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "CHALLENGE COMPLETE!", 0xFF);
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "YOUR TIME", 0xFF);
 
-                char elapsedText[0x80];
-                sprintf(elapsedText, "%02i:%02i:%02i", getNinesChallengeElapsedHours(), getNinesChallengeElapsedMins(), getNinesChallengeElapsedSecs());
-                layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 16, elapsedText, 0xFF);
+                    char elapsedText[0x80];
+                    sprintf(elapsedText, "%02i:%02i:%02i", getNinesChallengeElapsedHours(), getNinesChallengeElapsedMins(), getNinesChallengeElapsedSecs());
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 16, elapsedText, 0xFF);
 
-                NinesChallengeOptions ninesChallengeOptions = menuDisplay_getNinesChallengeOptions();
-                char seedText[0x80];
-                sprintf(seedText, "YOUR SEED: %X%X%X%X", ninesChallengeOptions.orderSeed[0], ninesChallengeOptions.orderSeed[1], ninesChallengeOptions.orderSeed[2], ninesChallengeOptions.orderSeed[3]);
-                if (ninesChallengeOptions.shouldRevealSeed) {
-                    sprintf(seedText, "%s (revealed)", seedText);
-                }
-                if (ninesChallengeOptions.didEditSeed) {
-                    sprintf(seedText, "%s (edited)", seedText);
-                }
-                for (int xOff = -1; xOff <= 1; xOff++) {
-                    for (int yOff = -1; yOff <= 1; yOff++) {
-                        layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, (vdp_getScreenHeight() / 2) + 54 + yOff, seedText, 0xFF);
+                    NinesChallengeOptions ninesChallengeOptions = menuDisplay_getNinesChallengeOptions();
+                    char seedText[0x80];
+                    sprintf(seedText, "YOUR SEED: %X%X%X%X", ninesChallengeOptions.orderSeed[0], ninesChallengeOptions.orderSeed[1], ninesChallengeOptions.orderSeed[2], ninesChallengeOptions.orderSeed[3]);
+                    if (ninesChallengeOptions.shouldRevealSeed) {
+                        sprintf(seedText, "%s (revealed)", seedText);
                     }
+                    if (ninesChallengeOptions.didEditSeed) {
+                        sprintf(seedText, "%s (edited)", seedText);
+                    }
+                    for (int xOff = -1; xOff <= 1; xOff++) {
+                        for (int yOff = -1; yOff <= 1; yOff++) {
+                            layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, (vdp_getScreenHeight() / 2) + 54 + yOff, seedText, 0xFF);
+                        }
+                    }
+                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2), (vdp_getScreenHeight() / 2) + 54, seedText, 0x6);
+                } else {
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "GAME OVER", 0xFF);
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 8, "YOUR BEST RING COUNT", 0xFF);
+
+                    char elapsedText[0x80];
+                    sprintf(elapsedText, "%i", getBestNinesChallengeRingCount());
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 16, elapsedText, 0xFF);
+
                 }
-                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2), (vdp_getScreenHeight() / 2) + 54, seedText, 0x6);
             } else {
                 if (menuDisplay_getNinesChallengeOptions().showProgress) {
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 12, 9 * 8, 8, 0x5);
@@ -1976,6 +2017,13 @@ void modConsole_updateFrame() {
             bossRushStartCountDown--;
             if (bossRushStartCountDown == 0) {
                 beginBossRush();
+            }
+        }
+
+        if (ninesChallengeStartCountDown > 0) {
+            ninesChallengeStartCountDown--;
+            if (ninesChallengeStartCountDown == 0) {
+                beginNinesChallenge();
             }
         }
 
@@ -2562,6 +2610,7 @@ void showCooldownVisualiser() {
 }
 
 void checkDeathCounter() {
+    diedThisFrame = 0;
     int shouldIncrement = 0;
 
     // this uses the assumption that bytes 0 and 1 are a life counter, and byte 2 is an "update plz" trigger so we shouldn't track it
@@ -2581,6 +2630,7 @@ void checkDeathCounter() {
     if (shouldIncrement != 0) {
         playerDeathCount++;
         reportToLED("4");
+        diedThisFrame = 1;
     }
 }
 

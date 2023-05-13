@@ -150,6 +150,9 @@ typedef struct {
     int seedEditingLocationIndex;
     int shouldRevealSeed;
     int didEditSeed;
+
+    int allowTacticalDeaths;
+    int quitOnRingLoss;
 } NinesChallengeOptions;
 
 extern void menuDisplay_showMenu(int menuNum);

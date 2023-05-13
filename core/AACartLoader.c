@@ -111,6 +111,8 @@ static int hasInitialisedNinesChallenge = 0;
 static uint8 ninesChallengeSaveStates[0x100][STATE_SIZE];
 static uint8 hasNinesChallengeSaveState[0x100];
 
+static int bestNinesChallengeRingCount = 0;
+
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
 }
@@ -1272,6 +1274,10 @@ void cacheRingCountInBossRush(int becauseOfHit) {
             // sprintf(cacheMsg, "Cached ring count: %i", bossRushRingCarryTotal);
             // layerRenderer_fill(3, 0, 0, 240, 8, 0xFF);
             // layerRenderer_writeWord256(3, 0, 0, cacheMsg, 0x5);
+
+            if (shouldUseNinesChallenge() && bossRushRingCarryTotal > bestNinesChallengeRingCount) {
+                bestNinesChallengeRingCount = bossRushRingCarryTotal;
+            }
         }
     }
 }
@@ -3988,7 +3994,7 @@ void toggleStartNinesChallenge() {
 
 
 int awaitingNinesChallengeStart() {
-    return shouldInitialiseNinesChallenge;
+    return shouldStartNinesChallenge;
 }
 
 int getNinesChallengeComplete() {
@@ -3996,7 +4002,7 @@ int getNinesChallengeComplete() {
 }
 
 void setShouldResetNinesChallenge(int val) {
-    shouldStartNinesChallenge = val;
+    shouldResetNinesChallenge = val;
 }
 
 int getShouldShowNinesChallengeAsReadyToReset() {
@@ -4297,6 +4303,10 @@ void loadNinesChallengeStage() {
     cartLoader_appendToLog("loadNinesChallengeStage - applied boss rush rings");
 }
 
+int getBestNinesChallengeRingCount() {
+    return bestNinesChallengeRingCount;
+}
+
 void beginNinesChallenge() {
     populateNinesChallengeLevelOrder();
 
@@ -4314,6 +4324,9 @@ void beginNinesChallenge() {
     shouldResetNinesChallenge = 0;
     ninesChallengeIsActive = 1;
     shouldInitialiseNinesChallenge = 0;
+
+    bestNinesChallengeRingCount = 0;
+    ninesChallengeComplete = 0;
     
     // load the rom for the appropriate game
     // send it to the correct stage loading screen
@@ -4342,6 +4355,13 @@ void bumpNinesChallengeLevel() {
 
     ninesChallengeStageIndex++;
     loadNinesChallengeStage();
+}
+
+void enforceBumpToSameNinesStageAgain() {
+    ninesChallengeStageIndex--;
+    if (ninesChallengeStageIndex < 0) {
+        ninesChallengeStageIndex = -1;
+    }
 }
 
 void cartLoader_loadNinesChallengeSaveStatesFromDisk() {
@@ -4410,3 +4430,14 @@ void completeNinesChallenge() {
         }
     }
 }
+
+int checkForNinesChallengeStart() {
+    ninesChallengeIsActive = shouldStartNinesChallenge;
+    if (shouldInitialiseNinesChallenge == 1 || shouldResetNinesChallenge== 1) {
+        shouldInitialiseNinesChallenge = 0;
+
+        return 1;
+    }
+    return 0;
+}
+

@@ -197,5 +197,8 @@ int getBossRushRingCarryValues(int index);
 int getNinesChallengeRandomSeedFromMenu();
 int getBossRushRingCarryTotal();
 void completeNinesChallenge();
+void enforceBumpToSameNinesStageAgain();
+int getBestNinesChallengeRingCount();
+int checkForNinesChallengeStart();
 
 #endif
