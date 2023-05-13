@@ -4108,6 +4108,11 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[3].cheatFlags[1] = 0xFFD1;
     ninesChallengeGamesParameters[3].cheatFlags[2] = 0xFFD2;
     ninesChallengeGamesParameters[3].cheatFlags[3] = 0xFFD3;
+
+    for (int i = 0; i <= 5; i++) {
+        addNinesChallengeLevel(3,i,0);
+        addNinesChallengeLevel(3,i,1);
+    }
     
     // SONIC & KNUCKES
     ninesChallengeGamesParameters[4].resetStageFlagLocation = 0xF601;
@@ -4123,7 +4128,16 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[4].cheatFlags[1] = 0xFFD1;
     ninesChallengeGamesParameters[4].cheatFlags[2] = 0xFFD2;
     ninesChallengeGamesParameters[4].cheatFlags[3] = 0xFFD3;
-    
+
+    for (int i = 0; i <= 3; i++) {
+        addNinesChallengeLevel(4,i,0);
+        addNinesChallengeLevel(4,i,1);
+    }
+    addNinesChallengeLevel(4,4,0);
+    addNinesChallengeLevel(4,5,0);
+    addNinesChallengeLevel(4,6,0);
+    addNinesChallengeLevel(4,6,1);
+
     // SONIC 3D Blast
     ninesChallengeGamesParameters[5].resetStageFlagLocation = 0;
     ninesChallengeGamesParameters[5].resetStageFlagValueToSet = 0;
@@ -4135,6 +4149,11 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[5].levelCompleteValue = 0x100;
 
     ninesChallengeGamesParameters[5].cheatFlags[0] = 0x040C;
+
+    for (int i = 0; i <= 6; i++) {
+        addNinesChallengeLevel(6,i,0);
+        addNinesChallengeLevel(6,i,1);
+    }
 }
 
 NinesChallengeGameParameters getActiveNinesChallengeGameParameters() {

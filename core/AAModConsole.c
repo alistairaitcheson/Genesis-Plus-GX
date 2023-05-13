@@ -1176,6 +1176,15 @@ void modConsole_updateFrame() {
         checkDeathCounter();
         applyHeldValues();
 
+        // DEBUG - activate sonic 3 level select
+        // if (aa_genesis_getWorkRam(0xF601) == 0x0C) {
+        //     aa_genesis_setWorkRam(0xFFD0, 1);
+        //     aa_genesis_setWorkRam(0xFFD1, 1);
+        //     aa_genesis_setWorkRam(0xFFD2, 1);
+        //     aa_genesis_setWorkRam(0xFFD3, 1);
+        // }
+
+
         // // // Below: how to halt music in Sonic 2
         // if (debug_haltMusicCountdown > 0) {
         //     // set the "stop all sounds" flag
