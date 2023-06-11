@@ -1224,8 +1224,16 @@ void cacheRingCountInBossRush(int becauseOfHit) {
     if (usingBossRush || usingNinesChallenge) {
         BossRushOptions bossRushOptions = menuDisplay_getBossRushOptions();
         AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
-        if (bossRushOptions.carryRingsAcrossGames == 1 && 
-            (bossRushOptions.preventCarryInDoomsday == 0 || getActiveBossRushListing().blockRingZeroing == 0)) {
+
+        int blockDueToDoomsday = 1;
+        if (bossRushOptions.preventCarryInDoomsday == 0 || getActiveBossRushListing().blockRingZeroing == 0) {
+            blockDueToDoomsday = 0;
+        }
+        if (getActiveBossRushListing().blockRingZeroing != 0 && becauseOfHit == 0) {
+            blockDueToDoomsday = 0;
+        }
+
+        if (bossRushOptions.carryRingsAcrossGames == 1 && blockDueToDoomsday == 0) {
 
             // in Sonic 3D blast, don't cache if the boss is dead, as we're about to switch,
             // unless we're calling this because of a boss hit
