@@ -1489,6 +1489,32 @@ void modConsole_updateFrame() {
                     completeNinesChallenge();
                 }
 
+                if (ringsWentToZero && ninesOptions.shouldUseCheckpoints) {
+                    int checkpoint = getCurrentNinesRingCheckpoint();
+                    if (checkpoint > 0) {
+                        int checkpointHighByte = 0;
+                        int checkpointLowByte = 0;
+                        if (gameTransferListing.ringCalculatationType == 0) {
+                            checkpointHighByte = checkpoint / 0x100;
+                            checkpointLowByte = checkpoint % 0x100;
+                        } else {
+                            int checkpointHighNum = checkpoint / 100;
+                            int checkpointLowNum = checkpoint % 100;
+
+                            checkpointHighByte = ((checkpointHighNum / 10) * 0x10) + (checkpointHighNum % 10);
+                            checkpointLowByte = ((checkpointLowNum / 10) * 0x10) + (checkpointLowNum % 10);
+                        }
+
+                        aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], checkpointLowByte);
+                        aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1], checkpointHighByte);
+
+                        cacheBossRushRingCount(1);
+
+                        ringsWentToZero = 0;
+                        stepBackNinesRingCheckpoint();
+                    }
+                }
+
                 if (ringsWentToZero && ninesOptions.quitOnRingLoss) {
                     completeNinesChallenge();
                 }

@@ -974,6 +974,7 @@ void applyDefaultNinesChallengeValues() {
 
     ninesChallengeOptions.allowTacticalDeaths = 1;
     ninesChallengeOptions.quitOnRingLoss = 1;
+    ninesChallengeOptions.shouldUseCheckpoints = 1;
 }
 
 void applyDefaultRamDetectiveValues() {
@@ -2332,8 +2333,12 @@ void incrementNinesChallengeOption(int direction, int buttonIndex) {
         ninesChallengeOptions.quitOnRingLoss += direction;
     }
 
-    
     if (ninesChallengeItemIndex == 8) {
+        ninesChallengeOptions.shouldUseCheckpoints += direction;
+    }
+
+    
+    if (ninesChallengeItemIndex == 9) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -4965,7 +4970,7 @@ void showNinesChallengeMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "999 Challenge", 5);
 
-    int lineCount = 9;
+    int lineCount = 10;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -5074,11 +5079,24 @@ void showNinesChallengeMenu() {
         ninesChallengeOptions.quitOnRingLoss = 0;
     }
     if (ninesChallengeOptions.quitOnRingLoss == 0) {
-        sprintf(lines[7], "End run on ring loss:     NO");
+        sprintf(lines[7], "End run on zero rings:    NO");
     } else {
-        sprintf(lines[7], "End run on ring loss:    YES");
+        sprintf(lines[7], "End run on zero rings:   YES");
     }
-    linesWithBreakAfter[7] = 1;
+
+    if (ninesChallengeOptions.shouldUseCheckpoints < 0) {
+        ninesChallengeOptions.shouldUseCheckpoints = 1;
+    }
+    if (ninesChallengeOptions.shouldUseCheckpoints > 1) {
+        ninesChallengeOptions.shouldUseCheckpoints = 0;
+    }
+    if (ninesChallengeOptions.shouldUseCheckpoints == 0) {
+        sprintf(lines[8], "Bank rings on level end:   NO");
+    } else {
+        sprintf(lines[8], "Bank rings on level end:  YES");
+    }
+    linesWithBreakAfter[8] = 1;
+
 
 
 

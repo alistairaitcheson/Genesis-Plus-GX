@@ -114,6 +114,9 @@ int hasLoadedNinesChallengeSaveStates = 0;
 
 static int bestNinesChallengeRingCount = 0;
 
+static int ninesRingCheckpoints[0x1000];
+static int ninesRingCheckpointCount = 0;
+
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
 }
@@ -4420,6 +4423,8 @@ void beginNinesChallenge() {
 
     bestNinesChallengeRingCount = 0;
     ninesChallengeComplete = 0;
+
+    clearNinesRingCheckpoints();
     
     // load the rom for the appropriate game
     // send it to the correct stage loading screen
@@ -4443,6 +4448,8 @@ NinesChallengeStageListing getCurrentNinesChallengeStage() {
                    (3) a special stage enter is triggered
 */
 void bumpNinesChallengeLevel() {
+    storeNinesRingCheckpoint(bossRushRingCarryTotal);
+
     cartLoader_appendToLog("bumpNinesChallengeLevel");
     incrementNinesChallengeStageCompletionCount();
 
@@ -4536,3 +4543,38 @@ int checkForNinesChallengeStart() {
     return 0;
 }
 
+void clearNinesRingCheckpoints() {
+    for (int i = 0; i < 0x1000; i++) {
+        ninesRingCheckpoints[i] = 0;
+    }
+    ninesRingCheckpointCount = 0;
+}
+
+int getCurrentNinesRingCheckpoint() {
+    if (ninesRingCheckpointCount > 0) {
+        return ninesRingCheckpoints[ninesRingCheckpointCount - 1];
+    }
+    return 0;
+}
+
+int canStoreNinesRingCheckpoint(int ringCount) {
+    if (ringCount >= getCurrentNinesRingCheckpoint() + 50) {
+        return 1;
+    }
+    return 0;
+}
+
+
+void storeNinesRingCheckpoint(int ringCount) {
+    if (canStoreNinesRingCheckpoint(ringCount)) {
+        ninesRingCheckpoints[ninesRingCheckpointCount] = ringCount;
+        ninesRingCheckpointCount++;
+    }
+}
+
+void stepBackNinesRingCheckpoint() {
+    if (ninesRingCheckpointCount > 0) {
+        ninesRingCheckpoints[ninesRingCheckpointCount - 1] = 0;
+        ninesRingCheckpointCount--;
+    }
+} 

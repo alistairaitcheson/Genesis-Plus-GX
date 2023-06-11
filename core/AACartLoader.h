@@ -201,4 +201,10 @@ void enforceBumpToSameNinesStageAgain();
 int getBestNinesChallengeRingCount();
 int checkForNinesChallengeStart();
 
+void clearNinesRingCheckpoints();
+int getCurrentNinesRingCheckpoint();
+void storeNinesRingCheckpoint(int ringCount);
+void stepBackNinesRingCheckpoint();
+int canStoreNinesRingCheckpoint(int ringCount);
+
 #endif

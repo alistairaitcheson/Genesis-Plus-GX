@@ -153,6 +153,7 @@ typedef struct {
 
     int allowTacticalDeaths;
     int quitOnRingLoss;
+    int shouldUseCheckpoints;
 } NinesChallengeOptions;
 
 extern void menuDisplay_showMenu(int menuNum);
