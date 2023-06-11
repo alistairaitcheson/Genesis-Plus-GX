@@ -1739,7 +1739,7 @@ void modConsole_updateFrame() {
                     }
 
                     char progressText[0x80];
-                    sprintf(progressText, " RINGS: %03i - RESERVE: %03i%s", getBossRushRingCarryTotal(), getCurrentNinesRingCheckpoint(), canCache);
+                    sprintf(progressText, "  %03i   - ( %03i%s)", getBossRushRingCarryTotal(), getCurrentNinesRingCheckpoint(), canCache);
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
                 
                     if (flashRingsToGoCountTime > 0) {
