@@ -172,5 +172,6 @@ void resetNinesChallengeElapsedTimer();
 int getNinesChallengeElapsedSecs();
 int getNinesChallengeElapsedMins();
 int getNinesChallengeElapsedHours();
+void requestFlashRingsToGo();
 
 #endif

@@ -133,6 +133,14 @@ static int ninesChallengeElapsedFrames = 0;
 
 static int diedThisFrame = 0;
 
+static flashRingsToGoCountTime = 0;
+static flashRingsToGoPeriod = 5;
+static flashRingsToGoDuration = 180;
+
+void requestFlashRingsToGo() {
+    flashRingsToGoCountTime = flashRingsToGoDuration;
+}
+
 void checkToHaltMusic() {
     if (shouldUseBossRush() && menuDisplay_getBossRushOptions().shouldUseExternalMusic /*&& aa_genesis_getWorkRam(0xF601) < 0x80*/) {
         // vdp_clearGraphicLayer(3);
@@ -1698,6 +1706,20 @@ void modConsole_updateFrame() {
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 16, elapsedText, 0xFF);
 
                 }
+
+                for (int xOff = -1; xOff <= 1; xOff++) {
+                    for (int yOff = -1; yOff <= 1; yOff++) {
+                        layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, (vdp_getScreenHeight() / 2) + 80 + yOff, "(Press Start to Play Again)", 0xFF);
+                    }
+                }
+                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2), (vdp_getScreenHeight() / 2) + 80, "(Press Start to Play Again)", 0x6);
+
+                if (buttonStateAtIndex(INPUT_INDEX_START)) {
+                    if (!ninesChallengeOptions.shouldRevealSeed) {
+                        shuffleNineChallengeOrderSeed();
+                    }
+                    beginNinesChallenge();
+                }
             } else {
                 if (menuDisplay_getNinesChallengeOptions().showProgress) {
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 12, 9 * 8, 8, 0x5);
@@ -1708,10 +1730,32 @@ void modConsole_updateFrame() {
                     // do the below if I want to show your record highest ring count!
                     // or best time if they have a previous completion
 
-                    // layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 20, 9 * 8, 8, 0x5);
-                    // char progressText[0x80];
-                    // sprintf(progressText, "%02i / %02i", getCompletedRushCount(), getEnabledRushCount());
-                    // layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 20, 9 * 8, 8, 0x5);
+
+                    char canCache[0x80];
+                    sprintf(canCache, " ");
+                    if (canStoreNinesRingCheckpoint()) {
+                        sprintf(canCache,"*");
+                    }
+
+                    char progressText[0x80];
+                    sprintf(progressText, " RINGS: %03i - RESERVE: %03i%s", getBossRushRingCarryTotal(), getCurrentNinesRingCheckpoint(), canCache);
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
+                
+                    if (flashRingsToGoCountTime > 0) {
+                        flashRingsToGoCountTime--;
+                        if (flashRingsToGoCountTime % (flashRingsToGoCountPeriod * 2) < flashRingsToGoCountPeriod) {
+                            for (int xOff = -1; xOff <= 1; xOff++) {
+                                for (int yOff = -1; yOff <= 1; yOff++) {
+                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, vdp_getScreenHeight() / 2 + yOff, progressText, 0xFF);
+                                }
+                            }
+
+                            char ringsText[0x80];
+                            sprintf(ringsText, "%03i to go!", 999 - getBossRushRingCarryTotal());
+                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, vdp_getScreenHeight() / 2, progressText, 0x6);
+                        }
+                    }
                 }
             }
         }

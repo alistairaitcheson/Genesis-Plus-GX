@@ -270,5 +270,6 @@ void showBossRushTriggerSelectMenu();
 void incrementBossRushTiggerSelectOption(int direction, int buttonIndex);
 void applyDefaultNinesChallengeValues();
 int getRequestedNinesChallengeStartRom();
+void shuffleNineChallengeOrderSeed();
 
 #endif

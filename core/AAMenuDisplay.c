@@ -4770,6 +4770,13 @@ void menuDisplay_onUpdate() {
     }
 }
 
+void shuffleNineChallengeOrderSeed() {
+    ninesChallengeOptions.orderSeed[0] = rand() % 0x10;
+    ninesChallengeOptions.orderSeed[1] = rand() % 0x10;
+    ninesChallengeOptions.orderSeed[2] = rand() % 0x10;
+    ninesChallengeOptions.orderSeed[3] = rand() % 0x10;
+}
+
 void showTerminalMenu() {
     layerRenderer_clearLayer(0);
 

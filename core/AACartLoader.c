@@ -4397,6 +4397,9 @@ void loadNinesChallengeStage() {
     }
 
     cartLoader_appendToLog("loadNinesChallengeStage - applied boss rush rings");
+
+    // show 999 to go! etc
+    requestFlashRingsToGo();
 }
 
 int getBestNinesChallengeRingCount() {
