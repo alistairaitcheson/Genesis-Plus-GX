@@ -1176,6 +1176,11 @@ void onBossHit() {
 }
 
 void onBossDefeated() {
+    // PUTTING BACK THE DOOMSDAY BUG - make sure when you beat doomsday it carries your ring count to the next game
+    if (getActiveBossRushListing().blockRingZeroing != 0) {
+        cacheRingCountInBossRush(0);
+    }
+
     bossRushSwitchCount = 0;
     flagActiveBossRushProgressAsComplete();
 
@@ -1314,7 +1319,6 @@ int getBossRushRingCarryTotal() {
 }
 
 void bumpToNextBossRush() {
-    // cacheRingCountInBossRush(0);
     queueBossRushSlots();
 
     int allowedIndexes[MAX_ROMS];
