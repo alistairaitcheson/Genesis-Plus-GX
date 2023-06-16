@@ -1031,6 +1031,7 @@ void applySecondaryHacksDefaultValues() {
     secondaryHackOptions.ramWriteEndLoc[3] = 0xF;
     secondaryHackOptions.shouldSaveRewindStates = 0;
     secondaryHackOptions.vramWritesPerRing = 0;
+    secondaryHackOptions.eventCountForSwitch = 0;
 }
 
 void applySecondaryHacksFromArray256(int array256[]) {
@@ -1050,6 +1051,7 @@ void applySecondaryHacksFromArray256(int array256[]) {
 
     secondaryHackOptions.shouldSaveRewindStates = array256[11];
     secondaryHackOptions.vramWritesPerRing = array256[12];
+    secondaryHackOptions.eventCountForSwitch = array256[13];
 }
 
 void applySettingsFromArray256(int array256[]) {
@@ -1134,7 +1136,7 @@ void saveHackOptions() {
     options[19] = hackOptions.colourDeleteHealRate;
 
     options[20] = hackOptions.shouldShowDeathCount;
-
+    
     // char path[0x100];
     // char folder[0x10];
     // writeFolderPathIntoArray32(folder);
@@ -1168,6 +1170,8 @@ void saveHackOptions() {
     secondaryPrefs[10] = secondaryHackOptions.ramWriteEndLoc[3];
 
     secondaryPrefs[11] = secondaryHackOptions.shouldSaveRewindStates;
+
+    secondaryPrefs[13] = secondaryHackOptions.eventCountForSwitch;
 
     remove("_magicbox/__secondaryPrefs.data");
     FILE *secondaryPrefsWriter = fopen("_magicbox/__secondaryPrefs.data", "wb");
@@ -2455,20 +2459,23 @@ void incrementGameSwapOption(int direction) {
         hackOptions.cooldownOnSwitch += direction;
     }
     if (gameSwapOptionIndex == 2) {
-        hackOptions.copyVram += direction;
+        secondaryHackOptions.eventCountForSwitch += direction;
     }
     if (gameSwapOptionIndex == 3) {
-        hackOptions.swapOrder += direction;
+        hackOptions.copyVram += direction;
     }
     if (gameSwapOptionIndex == 4) {
+        hackOptions.swapOrder += direction;
+    }
+    if (gameSwapOptionIndex == 5) {
         hackOptions.shouldShowSwapCount += direction;
     }
 
-    if (gameSwapOptionIndex == 5) {
+    if (gameSwapOptionIndex == 6) {
         hackOptions.shouldShowDeathCount += direction;
     }
 
-    if (gameSwapOptionIndex == 6) {
+    if (gameSwapOptionIndex == 7) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -3550,7 +3557,7 @@ void showGameSwapOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Game swapping", 5);
 
-    int lineCount = 7;
+    int lineCount = 8;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -3564,11 +3571,11 @@ void showGameSwapOptionsMenu() {
         gameSwapOptionIndex = 0;
     }
 
-    if (hackOptions.switchGameType > 5) {
+    if (hackOptions.switchGameType > 6) {
         hackOptions.switchGameType = 0;
     }
     if (hackOptions.switchGameType < 0) {
-        hackOptions.switchGameType = 5;
+        hackOptions.switchGameType = 6;
     }
     if (hackOptions.switchGameType == 0) {
         sprintf(lines[0], "Switch games:            OFF");
@@ -3585,6 +3592,8 @@ void showGameSwapOptionsMenu() {
         sprintf(lines[0], "Switch games:  EVERY 30 secs");
     } else if (hackOptions.switchGameType == 5) {
         sprintf(lines[0], "Switch games:        ON LAND");
+    } else if (hackOptions.switchGameType == 6) {
+        sprintf(lines[0], "Switch games:   ON RING/BOSS");
     }
 
     if (hackOptions.cooldownOnSwitch > 6) {
@@ -3609,6 +3618,23 @@ void showGameSwapOptionsMenu() {
         sprintf(lines[1], "Cooldown after switch: 15 sec");
     }
 
+    if (secondaryHackOptions.eventCountForSwitch > 3) {
+        secondaryHackOptions.eventCountForSwitch = 0;
+    }
+    if (secondaryHackOptions.eventCountForSwitch < 0) {
+        secondaryHackOptions.eventCountForSwitch = 3;
+    }
+    if (secondaryHackOptions.eventCountForSwitch == 0) {
+        sprintf(lines[2], "Events needed to switch:   1");
+    } else if (secondaryHackOptions.eventCountForSwitch == 1) {
+        sprintf(lines[2], "Events needed to switch:   2");
+    } else if (secondaryHackOptions.eventCountForSwitch == 2) {
+        sprintf(lines[2], "Events needed to switch:   5");
+    } else if (secondaryHackOptions.eventCountForSwitch == 3) {
+        sprintf(lines[2], "Events needed to switch:  10");
+    }
+
+
     if (hackOptions.copyVram > 4) {
         hackOptions.copyVram = 0;
     }
@@ -3616,15 +3642,15 @@ void showGameSwapOptionsMenu() {
         hackOptions.copyVram = 3;
     }
     if (hackOptions.copyVram == 0) {
-        sprintf(lines[2], "Keep vram on switch:     OFF");
+        sprintf(lines[3], "Keep vram on switch:     OFF");
     } else if (hackOptions.copyVram == 1) {
-        sprintf(lines[2], "Keep vram on switch:   100%%");
+        sprintf(lines[3], "Keep vram on switch:   100%%");
     } else if (hackOptions.copyVram == 2) {
-        sprintf(lines[2], "Keep vram on switch:    50%%");
+        sprintf(lines[3], "Keep vram on switch:    50%%");
     } else if (hackOptions.copyVram == 3) {
-        sprintf(lines[2], "Keep vram on switch:    10%%");
+        sprintf(lines[3], "Keep vram on switch:    10%%");
     } else if (hackOptions.copyVram == 4) {
-        sprintf(lines[2], "Keep vram on switch:     1%%");
+        sprintf(lines[3], "Keep vram on switch:     1%%");
     }
 
     if (hackOptions.swapOrder > 1) {
@@ -3634,9 +3660,9 @@ void showGameSwapOptionsMenu() {
         hackOptions.swapOrder = 3;
     }
     if (hackOptions.swapOrder == 0) {
-        sprintf(lines[3], "Swap order:           random");
+        sprintf(lines[4], "Swap order:           random");
     } else {
-        sprintf(lines[3], "Swap order:     alphabetical");
+        sprintf(lines[4], "Swap order:     alphabetical");
     }
     
     if (hackOptions.shouldShowSwapCount > 1) {
@@ -3646,9 +3672,9 @@ void showGameSwapOptionsMenu() {
         hackOptions.shouldShowSwapCount = 1;
     }
     if (hackOptions.shouldShowSwapCount == 0) {
-        sprintf(lines[4], "Show swap counter:       OFF");
+        sprintf(lines[5], "Show swap counter:       OFF");
     } else {
-        sprintf(lines[4], "Show swap counter:        ON");
+        sprintf(lines[5], "Show swap counter:        ON");
     }
 
     if (hackOptions.shouldShowDeathCount > 1) {
@@ -3658,13 +3684,13 @@ void showGameSwapOptionsMenu() {
         hackOptions.shouldShowDeathCount = 1;
     }
     if (hackOptions.shouldShowDeathCount == 0) {
-        sprintf(lines[5], "Show death counter:      OFF");
+        sprintf(lines[6], "Show death counter:      OFF");
     } else {
-        sprintf(lines[5], "Show death counter:       ON");
+        sprintf(lines[6], "Show death counter:       ON");
     }
 
 
-    sprintf(lines[6], "back >");
+    sprintf(lines[7], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

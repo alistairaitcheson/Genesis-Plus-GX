@@ -137,6 +137,8 @@ static int flashRingsToGoCountTime = 0;
 static int flashRingsToGoPeriod = 5;
 static int flashRingsToGoDuration = 180;
 
+static int consecutiveEventCount = 0;
+
 void requestFlashRingsToGo() {
     flashRingsToGoCountTime = flashRingsToGoDuration;
 }
@@ -530,6 +532,12 @@ void modConsole_applyHackOptions() {
 
     saveAllStatesTimeCounter = 0;
 
+    consecutiveEventCount = 0;
+
+    if (shouldUseBossRush() == 0 && menuDisplay_getHackOptions().switchGameType == 6) {
+        populateBossRushes();
+    }
+
     if (checkForBossRushStart() == 1) {
         bossRushStartCountDown = 2;
         hasDismissedStartupHint = 1;
@@ -754,8 +762,39 @@ void fireEventOnBossHit(int asNetwork) {
     }
 }
 
-void checkForBossHits(int asNetwork) {
+void checkForAllBossHitsInCurrentGame() {
+    // cartLoader_appendToLog("-- checkForAllBossHitsInCurrentGame --");
+    int currentGameId = cartLoader_getActiveCartIndex();
+    for (int i = 0; i < MAX_ROMS; i++) {
+        dangerouslySetActiveBossRushSlotId(i);
+        BossRushChallengeListing listing = getBossRushChallengeWithIndex(i);
+
+        if (listing.gameIndex != 0) {
+            // char debugLog[0x100];
+            // sprintf(debugLog, "  boss %i (game %i zone % i act %i)", i, listing.gameIndex, listing.zoneIndex, listing.actIndex);
+
+            if (listing.gameIndex == currentGameId) {
+                // sprintf(debugLog, "%s CHECKING", debugLog);
+
+                checkForBossHits(0, i);
+
+                // // stop if we've switched game!
+                if (cartLoader_getActiveCartIndex() != currentGameId) {
+                    // break;
+                    // sprintf(debugLog, "%s CHECKING - SWITCHED!", debugLog);
+                }
+            }
+            // cartLoader_appendToLog(debugLog);
+        }
+    }
+}
+
+void checkForBossHits(int asNetwork, int challengeIndex) {
     BossRushChallengeListing listing = getActiveBossRushListing();
+    if (challengeIndex >= 0) {
+        listing = getBossRushChallengeWithIndex(challengeIndex);
+    }
+    
 
     int indexX = 0;
     int indexY = 0;
@@ -817,6 +856,11 @@ void checkForBossHits(int asNetwork) {
         // }
     }
 
+    // char listingDebug[0x100];
+    // sprintf(listingDebug, "    [%04X, %04X, %04X] (%02X, %02X, %02X, %02X)",
+    //     listing.objectLocationStart, listing.objectLocationEnd, listing.objectLocationSize,
+    //     listing.objectIdNumbers[0], listing.objectIdNumbers[1], listing.objectIdNumbers[2], listing.objectIdNumbers[3]);
+
     for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
         int indexToCheck = i;
 
@@ -836,6 +880,7 @@ void checkForBossHits(int asNetwork) {
 
             if (isPopulated == 1) {
                 int objectFoundHere = 0;
+
                 if (listing.objectIdsArePointers == 0) {
                     // layerRenderer_fill(2, 20, 10, 8 * 2, 8, 0xFF);
 
@@ -843,6 +888,8 @@ void checkForBossHits(int asNetwork) {
 
                     if (aa_genesis_getWorkRam(indexToCheck) == listing.objectIdNumbers[objectIdx]) {
                         objectFoundHere = 1;
+
+                        // sprintf(listingDebug, "%s found at %04X", listingDebug, indexToCheck);
                     } else {
                         objectFoundHere = 0;
                     }
@@ -865,6 +912,7 @@ void checkForBossHits(int asNetwork) {
                         && aa_genesis_getWorkRam(indexToCheck + 2) ==  listing.objectIdNumbers[objectIdx + 2]
                         && aa_genesis_getWorkRam(indexToCheck + 3) ==  listing.objectIdNumbers[objectIdx + 3]) {
                         objectFoundHere = 1;
+                        // sprintf(listingDebug, "%s found at %04X", listingDebug, indexToCheck);
                     } else {
                         objectFoundHere = 0;
                     }
@@ -911,6 +959,8 @@ void checkForBossHits(int asNetwork) {
             }
         }
     }
+
+    // cartLoader_appendToLog(listingDebug);
 }
 
 void resetRotorValues() {
@@ -1544,6 +1594,10 @@ void modConsole_updateFrame() {
                 if (hackOpts.switchGameType == 5) {
                     updateSwitchGameOnLand();
                 }
+                if (hackOpts.switchGameType == 6) {
+                    updateSwitchGameOnRing();
+                    checkForAllBossHitsInCurrentGame();
+                }
             }
 
             if (hackOpts.randomiseVelocityOnRing != 0) {
@@ -1841,10 +1895,10 @@ void modConsole_updateFrame() {
                 cacheBossRushRingCount();
 
                 if (menuDisplay_getBossRushOptions().switchTriggers.networkBossHit == 1) {
-                    checkForBossHits(1);
+                    checkForBossHits(1, -1);
                 }
                 if (menuDisplay_getBossRushOptions().switchTriggers.bossHit == 1) {
-                    checkForBossHits(0);
+                    checkForBossHits(0, -1);
                 } 
                 if (activeBossRushIndex == getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTriggers.ring == 1) {
                     updateSwitchGameOnRing();
@@ -2092,7 +2146,7 @@ void modConsole_updateFrame() {
         if (countdownUntilRingSwitch > 0) {
             countdownUntilRingSwitch--;
             if (countdownUntilRingSwitch == 0) {
-                promptSwitchGame();
+                bumpEventCountForSwitchGame();
             }
         }
 
@@ -2921,8 +2975,7 @@ void updateSwitchGameOnLand() {
         // if (cartLoader_getActiveStandTriggerListing().standingCooldown > 0) { // standingCooldown doesn't work as I expect...
             // || triggers.standingByte == 0) { // ... so I also check "is this a non-standing game!"
         if (standingHasChanged(0) != 0) {
-            promptSwitchGame();
-            fireScreenSnapOnEvent();
+            bumpEventCountForSwitchGame();
         }
 
         // account for pixel games if no standing byte declared
@@ -2931,6 +2984,27 @@ void updateSwitchGameOnLand() {
             cartLoader_checkPixelTrackerForStateChange();
         }
     }
+}
+
+void bumpEventCountForSwitchGame() {
+    consecutiveEventCount++;
+    int requiredEvents = 1;
+    int eventCountFlag = menuDisplay_getSecondaryHackOptions().eventCountForSwitch;
+    if (eventCountFlag == 1) {
+        requiredEvents = 2;
+    }
+    if (eventCountFlag == 2) {
+        requiredEvents = 5;
+    }
+    if (eventCountFlag == 3) {
+        requiredEvents = 10;
+    }
+
+    if (consecutiveEventCount >= requiredEvents) {
+        consecutiveEventCount = 0;
+        promptSwitchGame();
+        fireScreenSnapOnEvent();   
+    } 
 }
 
 void updateSwitchGameOnRing() {
@@ -2949,8 +3023,7 @@ void updateSwitchGameOnRing() {
             if (activeGameListing.ringSwitchCooldown > 0) {
                 countdownUntilRingSwitch = activeGameListing.ringSwitchCooldown;
             } else {
-                promptSwitchGame();
-                fireScreenSnapOnEvent();
+                bumpEventCountForSwitchGame();
             }
         }
 

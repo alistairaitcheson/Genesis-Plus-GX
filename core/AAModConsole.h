@@ -166,7 +166,7 @@ void checkToHaltMusic();
 void enforceHaltMusic();
 
 int getDeathCount();
-void checkForBossHits(int asNetwork);
+void checkForBossHits(int asNetwork, int challengeIndex);
 
 int getNinesChallengeElapsedFrames();
 void resetNinesChallengeElapsedTimer();
@@ -174,5 +174,7 @@ int getNinesChallengeElapsedSecs();
 int getNinesChallengeElapsedMins();
 int getNinesChallengeElapsedHours();
 void requestFlashRingsToGo();
+
+void bumpEventCountForSwitchGame();
 
 #endif

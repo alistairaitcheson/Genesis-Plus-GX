@@ -4614,3 +4614,13 @@ void stepBackNinesRingCheckpoint() {
         ninesRingCheckpointCount--;
     }
 } 
+
+// Only do this when iterating over boss rushes during non-rush play
+// - it's my lazy way of quering boss rushes!
+void dangerouslySetActiveBossRushSlotId(int newId) {
+    currentBossRushIndex = newId;
+}
+
+BossRushChallengeListing getBossRushChallengeWithIndex(int index) {
+    return bossRushCallenges[index];
+}
