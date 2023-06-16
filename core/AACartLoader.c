@@ -220,6 +220,8 @@ void cartLoader_run() {
 
     zeroAllListings();
 
+    cartLoader_appendToLog("Zeroed all listings");
+
     writeStringToArray32("NONE", gameListings[0].gameId);
     gameListings[0].ringByte = 0;
     gameListings[0].specialRingByte = 0;
@@ -2257,7 +2259,9 @@ void zeroAllListings() {
         musicOverrideListings[gameIndex].byteStringLengthToWriteForNoMusic = 0;
         musicOverrideListings[gameIndex].applyChangeDuration = 1;
 
-        writeStringToArray32(lockedOnGameIDs[gameIndex], "");
+        for (int i = 0; i < 0x20; i++) {
+            lockedOnGameIDs[gameIndex][i] = '\0';
+        }
     }
 }
 
