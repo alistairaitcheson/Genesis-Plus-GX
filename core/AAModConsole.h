@@ -58,6 +58,7 @@ extern void modConsole_initialise();
 extern void modConsole_updateFrame();
 
 extern void modConsole_getRomHeader(char intoArray[]);
+extern void modConsole_getLockOnRomHeader(char intoArray[]);
 extern void modConsole_getMasterSystemProductId(char intoArray[]);
 extern int modconsole_array32sAreEqual(char arrayA[], char arrayB[]);
 extern void modConsole_updateActiveCart();

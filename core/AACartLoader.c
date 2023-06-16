@@ -28,6 +28,7 @@ static char* debug_lastFileSystemInteraction[0x100];
 static int framesSinceLastFileSystemInteraction = 0;
 
 static AAGameListing gameListings[MAX_ROMS];
+static char lockedOnGameIDs[MAX_ROMS][0x20];
 static AAMusicOverrideListing musicOverrideListings[MAX_ROMS];
 static AAStandTriggerListing standTriggerListings[MAX_ROMS];
 static AAGameTransferListing gameTransferListings[MAX_ROMS];
@@ -46,6 +47,7 @@ static BossRushProgress bossRushProgress[MAX_ROMS];
 static int bossRushChallengeCount = 0;
 
 static unsigned char romHeaderBuffer[0x20];
+static unsigned char romLockOnHeaderBuffer[0x20];
 
 static int lastPixelStatesPerGame[MAX_ROMS][0x100];
 static int pixelStatesPerGame[MAX_ROMS][0x100];
@@ -887,6 +889,10 @@ void cartLoader_run() {
     scoreMonitorListings[39].scoreJumpForTrigger = 2;
     scoreMonitorListings[39].allowNegativeChange = 1;
     sprintf(nameOfTrigger[39], "you get air");
+
+    writeStringToArray32("SONIC&KNUCKLES", gameListings[40].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
+    writeStringToArray32("SONICTHEHEDGEHOG", lockedOnGameIDs[40]);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
+    terminalNamePerRom[40] = "Blue Spheres";
 
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
@@ -2250,6 +2256,8 @@ void zeroAllListings() {
         musicOverrideListings[gameIndex].byteStringCheckForTrackChange = 0;
         musicOverrideListings[gameIndex].byteStringLengthToWriteForNoMusic = 0;
         musicOverrideListings[gameIndex].applyChangeDuration = 1;
+
+        writeStringToArray32(lockedOnGameIDs[gameIndex], "");
     }
 }
 
@@ -2568,6 +2576,11 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
 
     cartLoader_appendToLog("*** Loaded game ***");
     cartLoader_appendToLog(cartLoader_getActiveGameListing().gameId);
+    if (lockedOnGameIDs[cartLoader_getActiveCartIndex()][0] != '\0') {
+        char lockOnDebugMessage[0x100];
+        sprintf(lockOnDebugMessage, "   with lock-on: %s", lockedOnGameIDs[cartLoader_getActiveCartIndex()]);
+    }
+    
 
     // if (hasBeenNonSMS) { //(previousConsoleType != cartLoader_consoleForCurrentCart()) {
     //     if (cartLoader_consoleForCurrentCart() != 0) {
@@ -2652,12 +2665,26 @@ int cartLoader_consoleForCurrentCart() {
     return CART_TYPE_MEGADRIVE;
 }
 
+
 int cartLoader_getActiveCartIndex() {
     modConsole_getRomHeader(romHeaderBuffer);
+    modConsole_getLockOnRomHeader(romLockOnHeaderBuffer);
 
     // cartLoader_appendToLog("cartLoader_getActiveCartIndex");
     // cartLoader_appendToLog(romHeaderBuffer);
 
+    // first check for lock-on matches
+    for (int i = 1; i < gameListingCount; i++) {
+        if (lockedOnGameIDs[i][0] != '\0') {
+            if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
+                if (modconsole_array32sAreEqual(romLockOnHeaderBuffer, lockedOnGameIDs[i])) {
+                    return i;
+                }
+            }
+        }
+    }
+
+    // then check for plain matches
     for (int i = 1; i < gameListingCount; i++) {
         if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
             return i;

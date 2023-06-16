@@ -3213,6 +3213,53 @@ void modConsole_getRomHeader(char intoArray[]) {
     }
 }
 
+void modConsole_getLockOnRomHeader(char intoArray[]) {
+    if (0x201000 < cart.romsize) {
+        uint8 tempHeader[0x20];
+        for (int i = 0; i < 0x20; i++) {
+            tempHeader[i] = 0;
+        }
+
+        uint8 byteArray[0x20];
+        for (int i = 0; i < 0x20; i++) {
+            int index = 0x200000 + 0x100 + 0x20 + i;
+            if (i % 2 == 0) {
+                index += 1;
+            } else {
+                index -= 1;
+            }
+            uint8 character = getCartValueAtIndex(index);
+            tempHeader[i] = character;
+        }
+        // cartLoader_appendToLog(tempHeader);
+        
+        uint8 tidiedHeader[0x20];
+        int tempIndex = 0;
+        for (int i = 0; i < 0x20; i++) {
+            // char logMsg[0x20];
+            // sprintf(logMsg, "%02X: %02X", i, tempHeader[i]);
+            // cartLoader_appendToLog(logMsg);
+            if (tempHeader[i] != 0 && tempHeader[i] != ' ') {
+                tidiedHeader[tempIndex] = tempHeader[i];
+                tempIndex++;
+            }
+        }
+        if (tempIndex < 0x20) {
+            tidiedHeader[tempIndex] = '\0';
+        }
+
+        for (int i = 0; i < 0x20; i++) {
+            if (i <= tempIndex) {
+                intoArray[i] = tidiedHeader[i];
+            }
+            else {
+                intoArray[i] = 0;
+            }
+        }
+    }
+    writeStringToArray32("TOO SMALL TO LOCK-ON", intoArray);
+}
+
 int modconsole_array32sAreEqual(char arrayA[], char arrayB[]) {
     // cartLoader_appendToLog("modconsole_array32sAreEqual");
     // cartLoader_appendToLog(arrayA);
