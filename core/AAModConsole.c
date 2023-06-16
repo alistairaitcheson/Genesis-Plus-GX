@@ -133,9 +133,9 @@ static int ninesChallengeElapsedFrames = 0;
 
 static int diedThisFrame = 0;
 
-static flashRingsToGoCountTime = 0;
-static flashRingsToGoPeriod = 5;
-static flashRingsToGoDuration = 180;
+static int flashRingsToGoCountTime = 0;
+static int flashRingsToGoPeriod = 5;
+static int flashRingsToGoDuration = 180;
 
 void requestFlashRingsToGo() {
     flashRingsToGoCountTime = flashRingsToGoDuration;
@@ -1715,6 +1715,7 @@ void modConsole_updateFrame() {
                 layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2), (vdp_getScreenHeight() / 2) + 80, "(Press Start to Play Again)", 0x6);
 
                 if (buttonStateAtIndex(INPUT_INDEX_START)) {
+                    NinesChallengeOptions ninesChallengeOptions = menuDisplay_getNinesChallengeOptions();
                     if (!ninesChallengeOptions.shouldRevealSeed) {
                         shuffleNineChallengeOrderSeed();
                     }
@@ -1734,7 +1735,7 @@ void modConsole_updateFrame() {
 
                     char canCache[0x80];
                     sprintf(canCache, " ");
-                    if (canStoreNinesRingCheckpoint()) {
+                    if (canStoreNinesRingCheckpoint(getBossRushRingCarryTotal())) {
                         sprintf(canCache,"*");
                     }
 
@@ -1744,7 +1745,7 @@ void modConsole_updateFrame() {
                 
                     if (flashRingsToGoCountTime > 0) {
                         flashRingsToGoCountTime--;
-                        if (flashRingsToGoCountTime % (flashRingsToGoCountPeriod * 2) < flashRingsToGoCountPeriod) {
+                        if (flashRingsToGoCountTime % (flashRingsToGoPeriod * 2) < flashRingsToGoPeriod) {
                             for (int xOff = -1; xOff <= 1; xOff++) {
                                 for (int yOff = -1; yOff <= 1; yOff++) {
                                     layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, vdp_getScreenHeight() / 2 + yOff, progressText, 0xFF);
