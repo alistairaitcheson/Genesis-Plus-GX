@@ -895,6 +895,7 @@ void cartLoader_run() {
     writeStringToArray32("SONIC&KNUCKLES", gameListings[40].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     writeStringToArray32("SONICTHEHEDGEHOG", lockedOnGameIDs[40]);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     terminalNamePerRom[40] = "Blue Spheres";
+    gameListings[40].ringByte = 0xE438;
 
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
