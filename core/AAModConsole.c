@@ -3256,8 +3256,9 @@ void modConsole_getLockOnRomHeader(char intoArray[]) {
                 intoArray[i] = 0;
             }
         }
+    } else {
+        writeStringToArray32("TOO SMALL TO LOCK-ON", intoArray);
     }
-    writeStringToArray32("TOO SMALL TO LOCK-ON", intoArray);
 }
 
 int modconsole_array32sAreEqual(char arrayA[], char arrayB[]) {

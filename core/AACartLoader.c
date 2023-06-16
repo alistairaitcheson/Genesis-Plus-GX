@@ -905,7 +905,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 40;
+    gameListingCount = 41;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
@@ -2579,12 +2579,9 @@ void cartLoader_loadRomAtIndex(int index, int shouldCache) {
     }
 
     cartLoader_appendToLog("*** Loaded game ***");
-    cartLoader_appendToLog(cartLoader_getActiveGameListing().gameId);
-    if (lockedOnGameIDs[cartLoader_getActiveCartIndex()][0] != '\0') {
-        char lockOnDebugMessage[0x100];
-        sprintf(lockOnDebugMessage, "   with lock-on: %s", lockedOnGameIDs[cartLoader_getActiveCartIndex()]);
-    }
-    
+    char loadedGameDebugMessage[0x100];
+    sprintf(loadedGameDebugMessage, "(%i) %s (lock-on: %s)", cartLoader_getActiveCartIndex(), cartLoader_getActiveGameListing().gameId, lockedOnGameIDs[cartLoader_getActiveCartIndex()]);
+    cartLoader_appendToLog(loadedGameDebugMessage);
 
     // if (hasBeenNonSMS) { //(previousConsoleType != cartLoader_consoleForCurrentCart()) {
     //     if (cartLoader_consoleForCurrentCart() != 0) {
@@ -2674,13 +2671,17 @@ int cartLoader_getActiveCartIndex() {
     modConsole_getRomHeader(romHeaderBuffer);
     modConsole_getLockOnRomHeader(romLockOnHeaderBuffer);
 
-    // cartLoader_appendToLog("cartLoader_getActiveCartIndex");
-    // cartLoader_appendToLog(romHeaderBuffer);
+    // char lockonStartMessage[0x100];
+    // sprintf(lockonStartMessage, "  got lock-on header: %s", romLockOnHeaderBuffer);
+    // cartLoader_appendToLog(lockonStartMessage);
 
     // first check for lock-on matches
     for (int i = 1; i < gameListingCount; i++) {
         if (lockedOnGameIDs[i][0] != '\0') {
             if (modconsole_array32sAreEqual(romHeaderBuffer, gameListings[i].gameId)) {
+                // char lockonDebugMessage[0x100];
+                // sprintf(lockonDebugMessage, "   checking for lock-on %i: %s", i, lockedOnGameIDs[i]);
+                // cartLoader_appendToLog(lockonDebugMessage);
                 if (modconsole_array32sAreEqual(romLockOnHeaderBuffer, lockedOnGameIDs[i])) {
                     return i;
                 }
