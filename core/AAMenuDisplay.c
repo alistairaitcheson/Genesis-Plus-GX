@@ -5079,7 +5079,13 @@ void showNinesChallengeMenu() {
         if (ninesChallengeItemIndex == 4) {
             sprintf(lines[4], "ORDER SEED: push c to reveal");
         } else {
-            sprintf(lines[4], "ORDER SEED:           hidden");
+            if (ninesChallengeOptions.receivedSeedFromOpponent) {
+                sprintf(lines[4], "ORDER SEED:   got opponent's");
+            } else if (ninesChallengeOptions.sentSeedToOpponent) {
+                sprintf(lines[4], "ORDER SEED: sent to opponent");
+            } else {
+                sprintf(lines[4], "ORDER SEED:           hidden");
+            }
         }
     } else {
         char seedValuesText[4][0x10];
