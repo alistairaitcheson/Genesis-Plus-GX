@@ -1457,7 +1457,7 @@ void modConsole_updateFrame() {
 
         checkToHaltMusic();
 
-        if (shouldUseNinesChallenge()) 
+         if (shouldUseNinesChallenge()) {
 
             // ADD READ/WRITE RING COUNT HERE
             if (getNinesChallengeComplete() == 0) {

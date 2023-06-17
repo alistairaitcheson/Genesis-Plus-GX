@@ -5333,7 +5333,7 @@ void applyBossRushSeedFromOpponent(int rawSeed) {
         for (int j = 0; j < i; j++) {
             divisor /= 10;
         }
-        ninesChallengeOptions.orderSeed[i] = (runningNumber / divisor) % 100;
+        ninesChallengeOptions.orderSeed[i] = (rawSeed / divisor) % 100;
     }            
     ninesChallengeOptions.receivedSeedFromOpponent = 1;  
 }
