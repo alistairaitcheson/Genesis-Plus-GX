@@ -435,6 +435,16 @@ void menuDisplay_showTerminalMenu() {
     bossRushOptions.orderSeed[3] = rand() % 0x10;
 }
 
+void menuDisplay_sendNinesSeedToOpponent() {
+    ninesChallengeOptions.sentSeedToOpponent = 1;
+
+    NinesChallengeOptions ninesOptions = menuDisplay_getNinesChallengeOptions();
+    char message[0x100];
+    sprintf(message, "%02d%02d%02d%02dx", ninesOptions.orderSeed[0], ninesOptions.orderSeed[1], ninesOptions.orderSeed[2], ninesOptions.orderSeed[3]);
+
+    cartLoader_writeActionToNetwork(message);
+}
+
 void menuDisplay_sendNetworkOptionsToOpponent() {
     char message[0x100];
     sprintf(message, "");
@@ -4782,10 +4792,7 @@ void menuDisplay_onUpdate() {
     if (shouldRerollNinesChallengeRandomTime > 0) {
         ninesChallengeOptions.shouldRevealSeed = 1;
         shouldRerollNinesChallengeRandomTime --;
-        ninesChallengeOptions.orderSeed[0] = rand() % 0x10;
-        ninesChallengeOptions.orderSeed[1] = rand() % 0x10;
-        ninesChallengeOptions.orderSeed[2] = rand() % 0x10;
-        ninesChallengeOptions.orderSeed[3] = rand() % 0x10;
+        shuffleNineChallengeOrderSeed();
 
         ninesChallengeOptions.didEditSeed = 0;
 
@@ -4801,6 +4808,9 @@ void shuffleNineChallengeOrderSeed() {
     ninesChallengeOptions.orderSeed[1] = rand() % 0x10;
     ninesChallengeOptions.orderSeed[2] = rand() % 0x10;
     ninesChallengeOptions.orderSeed[3] = rand() % 0x10;
+
+    ninesChallengeOptions.sentSeedToOpponent = 0;
+    ninesChallengeOptions.receivedSeedFromOpponent = 0;
 }
 
 void showTerminalMenu() {
@@ -5272,4 +5282,15 @@ void showBossRushTriggerSelectMenu() {
             yPos += 8;
         }
     }
+}
+
+void applyBossRushSeedFromOpponent(int rawSeed) {
+    for (int i = 0; i < 4; i++) {
+        int divisor = 10 * 10 * 10;
+        for (int j = 0; j < i; j++) {
+            divisor /= 10;
+        }
+        ninesChallengeOptions.orderSeed[i] = (runningNumber / divisor) % 100;
+    }            
+    ninesChallengeOptions.receivedSeedFromOpponent = 1;  
 }

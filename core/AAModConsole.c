@@ -1743,6 +1743,12 @@ void modConsole_updateFrame() {
                     if (ninesChallengeOptions.didEditSeed) {
                         sprintf(seedText, "%s (edited)", seedText);
                     }
+                    if (ninesChallengeOptions.receivedSeedFromOpponent) {
+                        sprintf(seedText, "%s (received)", seedText);
+                    }
+                    if (ninesChallengeOptions.sentSeedToOpponent) {
+                        sprintf(seedText, "%s (sent)", seedText);
+                    }
                     for (int xOff = -1; xOff <= 1; xOff++) {
                         for (int yOff = -1; yOff <= 1; yOff++) {
                             layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, (vdp_getScreenHeight() / 2) + 54 + yOff, seedText, 0xFF);

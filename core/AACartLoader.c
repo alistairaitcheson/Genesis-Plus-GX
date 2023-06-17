@@ -3081,6 +3081,17 @@ void cartLoader_checkNetworkForActions() {
                         continue;
                     }
 
+                    if (actionBuffer[i] == NETWORK_MSG_REQUEST_OPPONENT_SEED) {
+                        menuDisplay_sendNinesSeedToOpponent();
+                        continue;
+                    }
+
+                    if (actionBuffer[i] == NETWORK_MSG_APPLY_OPPONENT_SEED) {
+                        applyBossRushSeedFromOpponent(runningNumber);
+                        runningNumber = 0;
+                        continue;
+                    }
+
                     if (actionBuffer[i] == NETWORK_MSG_USE_ACTIVE_NUM_AS_LOCATION) {
                         eventLocation = runningNumber;
                         runningNumber = 0;

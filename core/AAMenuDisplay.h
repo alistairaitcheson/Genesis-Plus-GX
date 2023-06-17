@@ -155,6 +155,9 @@ typedef struct {
     int allowTacticalDeaths;
     int quitOnRingLoss;
     int shouldUseCheckpoints;
+
+    int receivedSeedFromOpponent;
+    int sentSeedToOpponent;
 } NinesChallengeOptions;
 
 extern void menuDisplay_showMenu(int menuNum);
@@ -174,6 +177,8 @@ extern NetworkOptions menuDisplay_getNetworkOptions();
 extern int menuDisplay_areSoloEffectsAllowed();
 extern void menuDisplay_applyNetworkOptionSwitch(char command, int asPositive);
 extern void menuDisplay_sendNetworkOptionsToOpponent();
+extern void menuDisplay_sendNinesSeedToOpponent();
+void applyBossRushSeedFromOpponent(int rawSeed);
 extern SecondaryHackOptions menuDisplay_getSecondaryHackOptions();
 void applySecondaryHacksFromArray256(int array256[]);
 void applySecondaryHacksDefaultValues();
