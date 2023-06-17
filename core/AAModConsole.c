@@ -1478,6 +1478,12 @@ void modConsole_updateFrame() {
                     } else {
                         ninesOpponentLeadCountDown = ninesOpponentLeadCoundDownDuration;
                     }
+
+                    if (frameCount % 10 == 0) {
+                        char action[0x80];
+                        sprintf(action, "%iv", getBossRushRingCarryTotal());
+                        cartLoader_writeActionToNetwork(action);
+                    }
                 }
 
                 int ringsWentToZero = 0;
@@ -1861,15 +1867,14 @@ void modConsole_updateFrame() {
                     if (flashRingsToGoCountTime > 0) {
                         flashRingsToGoCountTime--;
                         if (flashRingsToGoCountTime % (flashRingsToGoPeriod * 2) < flashRingsToGoPeriod) {
-                            for (int xOff = -1; xOff <= 1; xOff++) {
-                                for (int yOff = -1; yOff <= 1; yOff++) {
-                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, vdp_getScreenHeight() / 2 + yOff, progressText, 0xFF);
-                                }
-                            }
-
                             char ringsText[0x80];
                             sprintf(ringsText, "%03i to go!", 999 - getBossRushRingCarryTotal());
-                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, vdp_getScreenHeight() / 2, progressText, 0x6);
+                            for (int xOff = -1; xOff <= 1; xOff++) {
+                                for (int yOff = -1; yOff <= 1; yOff++) {
+                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, vdp_getScreenHeight() / 2 + yOff, ringsText, 0xFF);
+                                }
+                            }
+                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, vdp_getScreenHeight() / 2, ringsText, 0x6);
                         }
                     }
                 }
@@ -1892,7 +1897,23 @@ void modConsole_updateFrame() {
                                 sprintf(leadAlert, "Lost %i rings", opponentLead);
                             }
                         }
+
+                        for (int xOff = -1; xOff <= 1; xOff++) {
+                            for (int yOff = -1; yOff <= 1; yOff++) {
+                                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 24 + yOff, leadAlert, 0xFF);
+                            }
+                        }
+                        layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, leadAlert, 0x6);
                     }
+
+                    char scoreAlert[0x80];
+                    sprintf(scoreAlert, "     YOU %03d - %03d OPPONENT", opponentLead);
+                    for (int xOff = -1; xOff <= 1; xOff++) {
+                        for (int yOff = -1; yOff <= 1; yOff++) {
+                            layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 8 + yOff, scoreAlert, 0xFF);
+                        }
+                    }
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 8, scoreAlert, 0x6);
                 }
             }
         }

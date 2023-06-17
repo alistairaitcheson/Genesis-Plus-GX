@@ -120,6 +120,7 @@ static int ninesRingCheckpoints[0x1000];
 static int ninesRingCheckpointCount = 0;
 
 static int ninesOpponentLevelIndex = 0;
+static int ninesOpponentRingCount = 0;
 
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
@@ -3100,6 +3101,12 @@ void cartLoader_checkNetworkForActions() {
                         continue;
                     }
 
+                    if (actionBuffer[i] == NETWORK_MSG_APPLY_OPPONENT_RING_COUNT) {
+                        setNinesOpponentRingCount(runningNumber);
+                        runningNumber = 0;
+                        continue;
+                    }
+
                     if (actionBuffer[i] == NETWORK_MSG_USE_ACTIVE_NUM_AS_LOCATION) {
                         eventLocation = runningNumber;
                         runningNumber = 0;
@@ -4658,4 +4665,12 @@ BossRushChallengeListing getBossRushChallengeWithIndex(int index) {
 
 int getOpponentNinesChallengeLead() {
     return ninesOpponentLevelIndex - ninesChallengeStageIndex;
+}
+
+void setNinesOpponentRingCount(int amount) {
+    ninesOpponentRingCount = amount;
+}
+
+int getNinesOpponentRingCount() {
+    return ninesOpponentRingCount;
 }

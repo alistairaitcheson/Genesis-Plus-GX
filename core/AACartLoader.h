@@ -212,4 +212,7 @@ BossRushChallengeListing getBossRushChallengeWithIndex(int index);
 void setNinesChallengeOppponentStageIndex(int toIndex);
 int getOpponentNinesChallengeLead();
 
+void setNinesOpponentRingCount(int amount);
+int getNinesOpponentRingCount();
+
 #endif
