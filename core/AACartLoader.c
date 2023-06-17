@@ -119,6 +119,8 @@ static int bestNinesChallengeRingCount = 0;
 static int ninesRingCheckpoints[0x1000];
 static int ninesRingCheckpointCount = 0;
 
+static int ninesOpponentLevelIndex = 0;
+
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
 }
@@ -3086,6 +3088,12 @@ void cartLoader_checkNetworkForActions() {
                         continue;
                     }
 
+                    if (actionBuffer[i] == NETWORK_RECEIVE_OPPONENT_LEVEL_INDEX) {
+                        setNinesChallengeOppponentStageIndex(runningNumber);
+                        runningNumber = 0;
+                        continue;
+                    }
+
                     if (actionBuffer[i] == NETWORK_MSG_APPLY_OPPONENT_SEED) {
                         applyBossRushSeedFromOpponent(runningNumber);
                         runningNumber = 0;
@@ -4444,6 +4452,16 @@ void loadNinesChallengeStage() {
 
     // show 999 to go! etc
     requestFlashRingsToGo();
+
+    if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
+        char message[0x100];
+        sprintf(message, "%ic", ninesChallengeStageIndex);
+        cartLoader_writeActionToNetwork(message);
+    }
+}
+
+void setNinesChallengeOppponentStageIndex(int toIndex) {
+    ninesOpponentLevelIndex = toIndex;
 }
 
 int getBestNinesChallengeRingCount() {
@@ -4470,6 +4488,8 @@ void beginNinesChallenge() {
 
     bestNinesChallengeRingCount = 0;
     ninesChallengeComplete = 0;
+    ninesOpponentLevelIndex = 0;
+
 
     clearNinesRingCheckpoints();
     

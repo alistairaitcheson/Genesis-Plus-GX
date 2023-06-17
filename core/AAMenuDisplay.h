@@ -158,6 +158,7 @@ typedef struct {
 
     int receivedSeedFromOpponent;
     int sentSeedToOpponent;
+    int useOnlineRace;
 } NinesChallengeOptions;
 
 extern void menuDisplay_showMenu(int menuNum);

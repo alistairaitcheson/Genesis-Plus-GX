@@ -985,6 +985,10 @@ void applyDefaultNinesChallengeValues() {
     ninesChallengeOptions.allowTacticalDeaths = 1;
     ninesChallengeOptions.quitOnRingLoss = 1;
     ninesChallengeOptions.shouldUseCheckpoints = 1;
+
+    ninesChallengeOptions.useOnlineRace = 0;
+    ninesChallengeOptions.sentSeedToOpponent = 0;
+    ninesChallengeOptions.receivedSeedFromOpponent = 0;
 }
 
 void applyDefaultRamDetectiveValues() {
@@ -2351,8 +2355,26 @@ void incrementNinesChallengeOption(int direction, int buttonIndex) {
         ninesChallengeOptions.shouldUseCheckpoints += direction;
     }
 
-    
     if (ninesChallengeItemIndex == 9) {
+        ninesChallengeOptions.useOnlineRace += direction;
+
+        networkOptions.networkingIsActive = ninesChallengeOptions.useOnlineRace;
+        networkOptions.allowSoloEffectswhenNetworked = 0;
+        networkOptions.sendRemoveColour = 0;
+        networkOptions.sendSpeedUp = 0;
+        networkOptions.sendSwitchGame = 0;
+        networkOptions.sendRandomiseVelocity = 0;
+        networkOptions.sendWriteIntoLevelDifficulty = 0;
+    }
+
+    if (ninesChallengeItemIndex == 10) {
+        char requestMsg[0x100];
+        sprintf(requestMsg, "%c", NETWORK_MSG_REQUEST_OPPONENT_SEED);
+        cartLoader_writeActionToNetwork(requestMsg);
+    }
+
+    
+    if (ninesChallengeItemIndex == 11) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -5013,7 +5035,7 @@ void showNinesChallengeMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "999 Challenge", 5);
 
-    int lineCount = 10;
+    int lineCount = 12;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -5140,16 +5162,31 @@ void showNinesChallengeMenu() {
         ninesChallengeOptions.shouldUseCheckpoints = 0;
     }
     if (ninesChallengeOptions.shouldUseCheckpoints == 0) {
-        sprintf(lines[8], "Bank rings on level end:   NO");
+        sprintf(lines[8], "Bank rings on level end:  NO");
     } else {
-        sprintf(lines[8], "Bank rings on level end:  YES");
+        sprintf(lines[8], "Bank rings on level end: YES");
     }
     linesWithBreakAfter[8] = 1;
 
 
+    if (ninesChallengeOptions.useOnlineRace < 0) {
+        ninesChallengeOptions.useOnlineRace = 1;
+    }
+    if (ninesChallengeOptions.useOnlineRace > 1) {
+        ninesChallengeOptions.useOnlineRace = 0;
+    }
+    if (ninesChallengeOptions.useOnlineRace == 0) {
+        sprintf(lines[9], "Networked race:           NO");
+    } else {
+        sprintf(lines[9], "Networked race:          YES");
+    }
 
 
-    sprintf(lines[8], "back >");
+    sprintf(lines[10], "Request opponent's seed");
+    linesWithBreakAfter[10] = 1;
+
+
+    sprintf(lines[11], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

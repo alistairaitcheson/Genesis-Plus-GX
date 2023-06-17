@@ -49,6 +49,9 @@
 #define NETWORK_MSG_REPORT_TERMINAL_EVENT '?' // follow it with a number: ?0 = get ring, ?1 = swap game
 #define NETWORK_MSG_HAS_LED_DISPLAY 'b' // will be sent when an LED display is detected
 
+#define NETWORK_RECEIVE_OPPONENT_LEVEL_INDEX 'c'
+
+
 #define NETWORK_INTERPRET_TYPE_ACTION 0
 #define NETWORK_INTERPRET_TYPE_ASSIGN_RULES 1
 

@@ -209,5 +209,6 @@ int canStoreNinesRingCheckpoint(int ringCount);
 
 void dangerouslySetActiveBossRushSlotId(int newId);
 BossRushChallengeListing getBossRushChallengeWithIndex(int index);
+void setNinesChallengeOppponentStageIndex(int toIndex);
 
 #endif
