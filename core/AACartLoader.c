@@ -4655,3 +4655,7 @@ void dangerouslySetActiveBossRushSlotId(int newId) {
 BossRushChallengeListing getBossRushChallengeWithIndex(int index) {
     return bossRushCallenges[index];
 }
+
+int getOpponentNinesChallengeLead() {
+    return ninesOpponentLevelIndex - ninesChallengeStageIndex;
+}

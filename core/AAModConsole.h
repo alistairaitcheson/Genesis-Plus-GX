@@ -181,5 +181,6 @@ int getNinesChallengeElapsedHours();
 void requestFlashRingsToGo();
 
 void bumpEventCountForSwitchGame();
+void deductFromRingCount(int amount);
 
 #endif

@@ -138,6 +138,8 @@ static int flashRingsToGoPeriod = 5;
 static int flashRingsToGoDuration = 180;
 
 static int consecutiveEventCount = 0;
+static int ninesOpponentLeadCountDown = 0;
+static int ninesOpponentLeadCoundDownDuration = 60 * 5;
 
 void requestFlashRingsToGo() {
     flashRingsToGoCountTime = flashRingsToGoDuration;
@@ -1167,6 +1169,44 @@ void checkRotorValues() {
     resetRotorValues();
 }
 
+void deductFromRingCount(int amount) {
+    AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
+
+    for (int i = 0; i < amount; i++) {
+        int lowByte = gameTransferListing.ringBytesForTransfer[0];
+        int highByte = gameTransferListing.ringBytesForTransfer[1];
+
+        int total = (highByte * 0x100) + lowByte;
+        if (gameTransferListing.ringCalculatationType == 1) {
+            int convertedHigh = ((highByte / 0x10) * 10) + (highByte % 10);
+            int convertedLow = ((lowByte / 0x10) * 10) + (lowByte % 10);
+            total = (convertedHigh * 100) + convertedLow;
+        }
+
+        if (total > 0) {
+            total--;
+        }
+
+        int newHighByte = total / 0x100;
+        int newLowByte = total % 0x100;
+
+        if (gameTransferListing.ringCalculatationType == 1) {
+            int thousands = (total / 1000) % 10;
+            int hundreds = (total / 100) % 10;
+            int tens = (total / 10) % 10;
+            int units = (total) % 10;
+
+            newHighByte = (thousands * 0x10) + hundreds;
+            newLowByte = (tens * 0x10) + units;
+        }
+
+        
+        aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], newLowByte);
+        aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1], newHighByte);
+    }
+    cacheRingCountInBossRush(1);
+}
+
 void modConsole_updateFrame() {
     lastPadState = padState;
     padState = input.pad[0]; //reverseOutcomeOfControlShuffling(input.pad[0]);
@@ -1417,13 +1457,28 @@ void modConsole_updateFrame() {
 
         checkToHaltMusic();
 
-        if (shouldUseNinesChallenge()) {
+        if (shouldUseNinesChallenge()) 
+
             // ADD READ/WRITE RING COUNT HERE
             if (getNinesChallengeComplete() == 0) {
                 AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
                 NinesChallengeGameParameters ninesParams = getActiveNinesChallengeGameParameters();
                 NinesChallengeStageListing ninesStage = getCurrentNinesChallengeStage();
                 NinesChallengeOptions ninesOptions = menuDisplay_getNinesChallengeOptions();
+
+                // check for opponent being ahead!
+                if (ninesOptions.useOnlineRace) {
+                    int opponentLead = getOpponentNinesChallengeLead();
+                    if (opponentLead > 0) {
+                        ninesOpponentLeadCountDown--;
+                        if (ninesOpponentLeadCountDown <= 0) {
+                            deductFromRingCount(opponentLead);
+                            ninesOpponentLeadCountDown = ninesOpponentLeadCoundDownDuration;
+                        }
+                    } else {
+                        ninesOpponentLeadCountDown = ninesOpponentLeadCoundDownDuration;
+                    }
+                }
 
                 int ringsWentToZero = 0;
                 if (diedThisFrame) {
@@ -1815,6 +1870,27 @@ void modConsole_updateFrame() {
                             char ringsText[0x80];
                             sprintf(ringsText, "%03i to go!", 999 - getBossRushRingCarryTotal());
                             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, vdp_getScreenHeight() / 2, progressText, 0x6);
+                        }
+                    }
+                }
+
+                // check for opponent being ahead!
+                if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
+                    int opponentLead = getOpponentNinesChallengeLead();
+                    if (opponentLead > 0) {
+                        char leadAlert[0x80];
+                        if (ninesOpponentLeadCountDown < ninesOpponentLeadCoundDownDuration - 60) {
+                            if (opponentLead > 1) {
+                                sprintf(leadAlert, "Opponent ahead by %i stage", opponentLead);
+                            } else {
+                                sprintf(leadAlert, "Opponent ahead by %i stages", opponentLead);
+                            }
+                        } else {
+                            if (opponentLead > 1) {
+                                sprintf(leadAlert, "Lost %i ring", opponentLead);
+                            } else {
+                                sprintf(leadAlert, "Lost %i rings", opponentLead);
+                            }
                         }
                     }
                 }
