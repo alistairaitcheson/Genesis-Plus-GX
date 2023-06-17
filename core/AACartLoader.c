@@ -4632,7 +4632,7 @@ int getCurrentNinesRingCheckpoint() {
 }
 
 int canStoreNinesRingCheckpoint(int ringCount) {
-    if (ringCount >= getCurrentNinesRingCheckpoint() + 50) {
+    if (ringCount >= getCurrentNinesRingCheckpoint() + 1) {
         return 1;
     }
     return 0;

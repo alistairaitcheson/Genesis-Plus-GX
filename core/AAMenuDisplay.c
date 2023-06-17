@@ -983,7 +983,7 @@ void applyDefaultNinesChallengeValues() {
     ninesChallengeOptions.showProgress = 1;
 
     ninesChallengeOptions.allowTacticalDeaths = 1;
-    ninesChallengeOptions.quitOnRingLoss = 1;
+    ninesChallengeOptions.quitOnRingLoss = 0;
     ninesChallengeOptions.shouldUseCheckpoints = 1;
 
     ninesChallengeOptions.useOnlineRace = 0;

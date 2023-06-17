@@ -1575,13 +1575,16 @@ void modConsole_updateFrame() {
                         
 
                     // check for load trigger changed
-                    if ((aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80
+                    if ((aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80 && levelSwitchIndex > 0
                         && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex))
                         // or if we go to the end credits in Sonic 3
                         || (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x20)
                         // or if we go to sonic 3/K speical stage
                         || (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x34)
-                        || (ninesStage.gameId == 4 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x34)) {
+                        || (ninesStage.gameId == 4 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x34)
+                        /*s2 and s1 special stage*/
+                        || (ninesStage.gameId == 2 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x10)
+                        || (ninesStage.gameId == 1 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x10)) {
                         
                         bumpNinesChallengeLevel();
                     } else {
@@ -1861,7 +1864,7 @@ void modConsole_updateFrame() {
                     }
 
                     char progressText[0x80];
-                    sprintf(progressText, "  %03i   - ( %03i%s)", getBossRushRingCarryTotal(), getCurrentNinesRingCheckpoint(), canCache);
+                    sprintf(progressText, "%03i (%03i)", getBossRushRingCarryTotal(), getCurrentNinesRingCheckpoint());
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
                 
                     if (flashRingsToGoCountTime > 0) {
