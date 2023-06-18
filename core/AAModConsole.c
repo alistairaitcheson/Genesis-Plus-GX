@@ -702,6 +702,9 @@ void updatePendingRingTrigger() {
         if (pendingRingTriggerTimer <= 0) {
             pendingRingTriggers--;
             pendingRingTriggerTimer = intervalBetweenPendingTriggers;
+            if (pendingRingTriggerTimer < switchCooldownPeriod) {
+                pendingRingTriggerTimer = switchAfterTimePeriod + 2;
+            }
         }
     }
     hasFlaggedPendingRingsThisFrame = 0;
@@ -712,6 +715,9 @@ void increasePendingRingTriggers(int count) {
         pendingRingTriggers += count;
         hasFlaggedPendingRingsThisFrame = 1;
         pendingRingTriggerTimer = intervalBetweenPendingTriggers;
+        if (pendingRingTriggerTimer < switchCooldownPeriod) {
+            pendingRingTriggerTimer = switchAfterTimePeriod + 2;
+        }
     }
 }
 
