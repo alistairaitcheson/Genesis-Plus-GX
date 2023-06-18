@@ -1952,6 +1952,11 @@ void modConsole_updateFrame() {
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 9 / 2), 48 - 5, 8 * 9, 10, 0x5);
                     layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) - (8 * 9 / 2), 48, winnerMessage, 0xFF);
                 }
+
+                // DEBUG
+                if (buttonWasPressedAtIndex(INPUT_INDEX_A)) {
+                    aa_genesis_incrementWorkRamCompoundValueByInt(0xFE01, 1, 1);
+                }
             }
         }
 
