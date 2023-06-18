@@ -1173,12 +1173,12 @@ void deductFromRingCount(int amount) {
     AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
     
     char deductLog1[0x100];
-    sprintf(deductLog1, "deductFromRingCount: %i");
+    sprintf(deductLog1, "deductFromRingCount: %i", amount);
     cartLoader_appendToLog(deductLog1);
 
     for (int i = 0; i < amount; i++) {
-        int lowByte = gameTransferListing.ringBytesForTransfer[0];
-        int highByte = gameTransferListing.ringBytesForTransfer[1];
+        int lowByte = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]);
+        int highByte = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]);
 
         int total = (highByte * 0x100) + lowByte;
         if (gameTransferListing.ringCalculatationType == 1) {
