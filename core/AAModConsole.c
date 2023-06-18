@@ -1683,7 +1683,9 @@ void modConsole_updateFrame() {
                 }
                 if (hackOpts.switchGameType == 6) {
                     updateSwitchGameOnRing();
-                    checkForAllBossHitsInCurrentGame();
+                    if (switchCooldownCounter == 0) {
+                        checkForAllBossHitsInCurrentGame();
+                    }
                 }
             }
 
