@@ -5336,4 +5336,8 @@ void applyNinesChallengeSeedFromOpponent(int rawSeed) {
         ninesChallengeOptions.orderSeed[i] = (rawSeed / divisor) % 100;
     }            
     ninesChallengeOptions.receivedSeedFromOpponent = 1;  
+
+    if (activeMenu == MENU_LISTING_NINES_CHALLENGE) {
+        showNinesChallengeMenu();
+    }
 }
