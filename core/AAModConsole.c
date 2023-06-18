@@ -304,9 +304,9 @@ void setHasLEDDisplay(int toValue) {
 }
 
 void reportToLED(char actionId[]) {
-    char tempMessage[10];
-    sprintf(tempMessage, "?%s", actionId); 
-    cartLoader_writeActionToNetwork(tempMessage);
+    // char tempMessage[10];
+    // sprintf(tempMessage, "?%s", actionId); 
+    // cartLoader_writeActionToNetwork(tempMessage);
 }
 
 void incrementTerminalRotorValue(int whichRotor, int amount) {
@@ -2567,6 +2567,15 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
     if (eventId == NETWORK_MSG_SWITCH_GAME) {
         fireSnapEffect(isFromTwitch);
         int switchingIsAllowed = 1;
+
+        // check in case we're at the game over phase of a challenge
+        if (shouldUseBossRush() && getBossRushComplete()) {
+            switchingIsAllowed = 0;
+        }
+        if (shouldUseNinesChallenge() && getNinesChallengeComplete()) {
+            switchingIsAllowed = 0;
+        }
+
         // check in case we're in a gamestate where switching game would be dangerous/annoying
         // (e.g. in a menu)
         AAGameTransferListing transfer = cartLoader_getActiveGameTransferListing();

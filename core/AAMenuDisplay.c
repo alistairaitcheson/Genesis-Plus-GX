@@ -5287,13 +5287,13 @@ void showBossRushTriggerSelectMenu() {
     }
     linesWithBreakAfter[2] = 1;
     
-    if (bossRushOptions.switchTriggers.land < 0) {
-        bossRushOptions.switchTriggers.land = 1;
+    if (bossRushOptions.switchTriggers.networkBossHit < 0) {
+        bossRushOptions.switchTriggers.networkBossHit = 1;
     }
-    if (bossRushOptions.switchTriggers.land > 1) {
-        bossRushOptions.switchTriggers.land = 0;
+    if (bossRushOptions.switchTriggers.networkBossHit > 1) {
+        bossRushOptions.switchTriggers.networkBossHit = 0;
     }
-    if (bossRushOptions.switchTriggers.land == 0) {
+    if (bossRushOptions.switchTriggers.networkBossHit == 0) {
         sprintf(lines[3], "On Networked boss hit     no");
     } else {
         sprintf(lines[3], "On Networked boss hit    yes");

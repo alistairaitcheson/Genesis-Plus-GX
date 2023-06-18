@@ -2157,6 +2157,11 @@ void toggleStartBossRush() {
     if (shouldStartBossRush == 1 && (hasInitialisedBossRush == 0 || shouldResetBossRush == 1)) {
         shouldInitialiseBossRush = 1;
     }
+
+    if (shouldStartNinesChallenge) {
+        shouldStartNinesChallenge = 0;
+        shouldInitialiseNinesChallenge = 0;
+    }
 }
 
 int awaitingBossRushStart() {
@@ -4075,6 +4080,11 @@ void toggleStartNinesChallenge() {
 
     if (shouldStartNinesChallenge == 1 && (hasInitialisedNinesChallenge == 0 || shouldResetNinesChallenge == 1)) {
         shouldInitialiseNinesChallenge = 1;
+    }
+
+    if (shouldStartBossRush) {
+        shouldStartBossRush = 0;
+        shouldInitialiseBossRush = 0;
     }
 }
 
