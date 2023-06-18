@@ -3101,7 +3101,7 @@ void cartLoader_checkNetworkForActions() {
                     }
 
                     if (actionBuffer[i] == NETWORK_MSG_APPLY_OPPONENT_SEED) {
-                        applyBossRushSeedFromOpponent(runningNumber);
+                        applyNinesChallengeSeedFromOpponent(runningNumber);
                         runningNumber = 0;
                         continue;
                     }

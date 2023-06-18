@@ -5327,11 +5327,11 @@ void showBossRushTriggerSelectMenu() {
     }
 }
 
-void applyBossRushSeedFromOpponent(int rawSeed) {
+void applyNinesChallengeSeedFromOpponent(int rawSeed) {
     for (int i = 0; i < 4; i++) {
-        int divisor = 10 * 10 * 10;
+        int divisor = 100 * 100 * 100;
         for (int j = 0; j < i; j++) {
-            divisor /= 10;
+            divisor /= 100;
         }
         ninesChallengeOptions.orderSeed[i] = (rawSeed / divisor) % 100;
     }            
