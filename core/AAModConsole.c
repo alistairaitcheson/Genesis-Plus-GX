@@ -1935,6 +1935,23 @@ void modConsole_updateFrame() {
                     }
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 8, scoreAlert, 0x6);
                 }
+
+                // show "you win" or "you lose"
+                int thereIsAWinner = 0;
+                char winnerMessage[0x80];
+                if (getYouHaveWonNines()) {
+                    thereIsAWinner = 1;
+                    sprintf(winnerMessage, "You win!");
+                } else if (getOpponentHasWonNines()) {
+                    thereIsAWinner = 1;
+                    sprintf(winnerMessage, "You Lose");
+                }
+
+                if (thereIsAWinner) {
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 10 / 2) - 4, 48 - 9, 8 * 10, 18, 0xFF);
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 9 / 2), 48 - 5, 8 * 9, 10, 0x5);
+                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) - (8 * 9 / 2), 48, winnerMessage, 0xFF);
+                }
             }
         }
 

@@ -214,5 +214,8 @@ int getOpponentNinesChallengeLead();
 
 void setNinesOpponentRingCount(int amount);
 int getNinesOpponentRingCount();
+void onOpponentHasCompletedNines();
+int getYouHaveWonNines();
+int getOpponentHasWonNines();
 
 #endif

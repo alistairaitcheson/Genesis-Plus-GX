@@ -122,6 +122,10 @@ static int ninesRingCheckpointCount = 0;
 static int ninesOpponentLevelIndex = 0;
 static int ninesOpponentRingCount = 0;
 
+static int opponentHasCompletedNines = 0;
+static int youHaveWonNines = 0;
+static int opponentHasWonNines = 0;
+
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
 }
@@ -3112,6 +3116,10 @@ void cartLoader_checkNetworkForActions() {
                         continue;
                     }
 
+                    if (actionBuffer[i] == NETWORK_MSG_APPLY_OPPONENT_HAS_COMPLETED_CHALLENGE) {
+                        onOpponentHasCompletedNines();
+                    }
+
                     if (actionBuffer[i] == NETWORK_MSG_USE_ACTIVE_NUM_AS_LOCATION) {
                         eventLocation = runningNumber;
                         runningNumber = 0;
@@ -4481,7 +4489,7 @@ void setNinesChallengeOppponentStageIndex(int toIndex) {
     if (ninesOpponentLevelIndex != toIndex) {
         resetNinesOpponentLeadCountdown();
     }
-    
+
     ninesOpponentLevelIndex = toIndex;
 }
 
@@ -4511,6 +4519,9 @@ void beginNinesChallenge() {
     ninesChallengeComplete = 0;
     ninesOpponentLevelIndex = 0;
 
+    opponentHasCompletedNines = 0;
+    youHaveWonNines = 0;
+    opponentHasWonNines = 0;
 
     clearNinesRingCheckpoints();
     
@@ -4594,6 +4605,10 @@ void completeNinesChallenge() {
 
         if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
             cartLoader_writeActionToNetwork("999v");
+            cartLoader_writeActionToNetwork("s");
+            if (opponentHasCompletedNines == 0) {
+                youHaveWonNines = 1;
+            }
         }
 
         // take us to the ending screen!
@@ -4691,4 +4706,19 @@ void setNinesOpponentRingCount(int amount) {
 
 int getNinesOpponentRingCount() {
     return ninesOpponentRingCount;
+}
+
+void onOpponentHasCompletedNines() {
+    opponentHasCompletedNines = 1;
+    if (ninesChallengeComplete == 0) {
+        opponentHasWonNines = 1;
+    }
+}
+
+int getYouHaveWonNines() {
+    return youHaveWonNines;
+}
+
+int getOpponentHasWonNines() {
+    return opponentHasWonNines;
 }
