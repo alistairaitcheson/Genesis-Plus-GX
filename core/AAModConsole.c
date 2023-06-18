@@ -134,8 +134,8 @@ static int ninesChallengeElapsedFrames = 0;
 static int diedThisFrame = 0;
 
 static int flashRingsToGoCountTime = 0;
-static int flashRingsToGoPeriod = 5;
-static int flashRingsToGoDuration = 180;
+static int flashRingsToGoPeriod = 15;
+static int flashRingsToGoDuration = 300;
 
 static int consecutiveEventCount = 0;
 static int ninesOpponentLeadCountDown = 0;
