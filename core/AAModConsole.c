@@ -1910,7 +1910,7 @@ void modConsole_updateFrame() {
                     }
 
                     char scoreAlert[0x80];
-                    sprintf(scoreAlert, "     YOU %03d - %03d OPPONENT", opponentLead);
+                    sprintf(scoreAlert, "     YOU %03d - %03d OPPONENT", getBossRushRingCarryTotal(), getNinesOpponentRingCount());
                     for (int xOff = -1; xOff <= 1; xOff++) {
                         for (int yOff = -1; yOff <= 1; yOff++) {
                             layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 8 + yOff, scoreAlert, 0xFF);
