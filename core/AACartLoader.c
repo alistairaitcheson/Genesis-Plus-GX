@@ -4478,6 +4478,10 @@ void loadNinesChallengeStage() {
 }
 
 void setNinesChallengeOppponentStageIndex(int toIndex) {
+    if (ninesOpponentLevelIndex != toIndex) {
+        resetNinesOpponentLeadCountdown();
+    }
+    
     ninesOpponentLevelIndex = toIndex;
 }
 

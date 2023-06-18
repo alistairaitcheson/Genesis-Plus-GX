@@ -139,10 +139,14 @@ static int flashRingsToGoDuration = 180;
 
 static int consecutiveEventCount = 0;
 static int ninesOpponentLeadCountDown = 0;
-static int ninesOpponentLeadCoundDownDuration = 60 * 5;
+static int ninesOpponentLeadCoundDownDuration = 60 * 10;
 
 void requestFlashRingsToGo() {
     flashRingsToGoCountTime = flashRingsToGoDuration;
+}
+
+void resetNinesOpponentLeadCountdown() {
+    ninesOpponentLeadCountDown = ninesOpponentLeadCoundDownDuration - 60;
 }
 
 void checkToHaltMusic() {

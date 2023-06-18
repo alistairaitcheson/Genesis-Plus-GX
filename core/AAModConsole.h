@@ -183,5 +183,6 @@ void requestFlashRingsToGo();
 
 void bumpEventCountForSwitchGame();
 void deductFromRingCount(int amount);
+void resetNinesOpponentLeadCountdown();
 
 #endif
