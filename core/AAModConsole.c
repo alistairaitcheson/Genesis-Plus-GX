@@ -1479,7 +1479,7 @@ void modConsole_updateFrame() {
                         ninesOpponentLeadCountDown = ninesOpponentLeadCoundDownDuration;
                     }
 
-                    if (frameCount % 10 == 0) {
+                    if (frameCount % 60 == 0) {
                         char action[0x80];
                         sprintf(action, "%iv", getBossRushRingCarryTotal());
                         cartLoader_writeActionToNetwork(action);
