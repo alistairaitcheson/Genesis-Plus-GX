@@ -4588,6 +4588,10 @@ void completeNinesChallenge() {
     if (ninesChallengeComplete == 0) {
         ninesChallengeComplete = 1;
 
+        if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
+            cartLoader_writeActionToNetwork("999v");
+        }
+
         // take us to the ending screen!
 
         // load the credits!

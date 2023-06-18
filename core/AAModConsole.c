@@ -1171,6 +1171,10 @@ void checkRotorValues() {
 
 void deductFromRingCount(int amount) {
     AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
+    
+    char deductLog1[0x100];
+    sprintf(deductLog1, "deductFromRingCount: %i");
+    cartLoader_appendToLog(deductLog1);
 
     for (int i = 0; i < amount; i++) {
         int lowByte = gameTransferListing.ringBytesForTransfer[0];
@@ -1182,6 +1186,11 @@ void deductFromRingCount(int amount) {
             int convertedLow = ((lowByte / 0x10) * 10) + (lowByte % 10);
             total = (convertedHigh * 100) + convertedLow;
         }
+
+        char deductLog2[0x100];
+        sprintf(deductLog2, "   lowByte: %02X, highByte: %02X, total: %02X", lowByte, highByte, total);
+        cartLoader_appendToLog(deductLog2);
+
 
         if (total > 0) {
             total--;
@@ -1199,6 +1208,10 @@ void deductFromRingCount(int amount) {
             newHighByte = (thousands * 0x10) + hundreds;
             newLowByte = (tens * 0x10) + units;
         }
+
+        char deductLog3[0x100];
+        sprintf(deductLog3, "    -> lowByte: %02X, highByte: %02X, total: %02X", newLowByte, newHighByte, total);
+        cartLoader_appendToLog(deductLog3);
 
         
         aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], newLowByte);
@@ -1888,13 +1901,13 @@ void modConsole_updateFrame() {
                     if (opponentLead > 0) {
                         char leadAlert[0x80];
                         if (ninesOpponentLeadCountDown < ninesOpponentLeadCoundDownDuration - 60) {
-                            if (opponentLead > 1) {
+                            if (opponentLead == 1) {
                                 sprintf(leadAlert, "Opponent ahead by %i stage", opponentLead);
                             } else {
                                 sprintf(leadAlert, "Opponent ahead by %i stages", opponentLead);
                             }
                         } else {
-                            if (opponentLead > 1) {
+                            if (opponentLead == 1) {
                                 sprintf(leadAlert, "Lost %i ring", opponentLead);
                             } else {
                                 sprintf(leadAlert, "Lost %i rings", opponentLead);
