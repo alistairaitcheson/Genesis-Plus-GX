@@ -1489,6 +1489,13 @@ void modConsole_updateFrame() {
                 NinesChallengeStageListing ninesStage = getCurrentNinesChallengeStage();
                 NinesChallengeOptions ninesOptions = menuDisplay_getNinesChallengeOptions();
 
+                // check for Casino Night wheels
+                if (ninesStage.gameId == 2 && ninesStage.zoneId == 3) {
+                    if (aa_genesis_getWorkRam(0xFF52) > 0x40) {
+                        aa_genesis_setWorkRam(0xFF52, 0x22);
+                    }
+                }
+
                 // check for opponent being ahead!
                 if (ninesOptions.useOnlineRace) {
                     int opponentLead = getOpponentNinesChallengeLead();
