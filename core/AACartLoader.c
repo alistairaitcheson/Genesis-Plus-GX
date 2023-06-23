@@ -3116,6 +3116,12 @@ void cartLoader_checkNetworkForActions() {
                         continue;
                     }
 
+                    if (actionBuffer[i] == NETWORK_MSG_RECEIVE_RINGS_FROM_OPPONENT) {
+                        receiveRingsFromOpponent(runningNumber);
+                        runningNumber = 0;
+                        continue;
+                    }
+
                     if (actionBuffer[i] == NETWORK_MSG_APPLY_OPPONENT_HAS_COMPLETED_CHALLENGE) {
                         onOpponentHasCompletedNines();
                     }

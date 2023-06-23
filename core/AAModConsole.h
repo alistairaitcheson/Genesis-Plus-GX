@@ -38,6 +38,7 @@
 #define NETWORK_MSG_APPLY_OPPONENT_SEED 'x' // when called, this emu will reply with the seed for 999 challenge
 #define NETWORK_MSG_APPLY_OPPONENT_RING_COUNT 'v' // when called, this emu will reply with the seed for 999 challenge
 #define NETWORK_MSG_APPLY_OPPONENT_HAS_COMPLETED_CHALLENGE 's'
+#define NETWORK_MSG_RECEIVE_RINGS_FROM_OPPONENT 'd'
 #define NETWORK_MSG_ENFORCE_SONIC_SPEED 'X'
 // to do: implement this!!
 #define NETWORK_MSG_SHOW_TERMINAL_MENU 'C' // when using a USB terminal, send this to say "show the hack select menu please"
@@ -183,7 +184,8 @@ int getNinesChallengeElapsedHours();
 void requestFlashRingsToGo();
 
 void bumpEventCountForSwitchGame();
-void deductFromRingCount(int amount);
+int deductFromRingCount(int amount);
 void resetNinesOpponentLeadCountdown();
+int receiveRingsFromOpponent(int ringCount);
 
 #endif

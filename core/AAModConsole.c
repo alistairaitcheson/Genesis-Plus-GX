@@ -140,9 +140,86 @@ static int flashRingsToGoDuration = 300;
 static int consecutiveEventCount = 0;
 static int ninesOpponentLeadCountDown = 0;
 static int ninesOpponentLeadCoundDownDuration = 60 * 10;
+static int ninesLeadDepletionRate[5] = {1, 2, 5, 10, 25};
+
+static int ninesStatusMessageTime = 0;
+static char ninesStatusMessage[0x100];
 
 void requestFlashRingsToGo() {
     flashRingsToGoCountTime = flashRingsToGoDuration;
+}
+
+int getRingLossForCurrentOpponentLead() {
+    int opponentLead = getOpponentNinesChallengeLead();
+    if (opponentLead > 0) {
+        int ringLoss = 25;
+        if (opponentLead < 5) {
+            ringLoss = ninesLeadDepletionRate[opponentLead];
+        }
+        return ringLoss;
+    }
+    return 0;
+}
+
+int receiveRingsFromOpponent(int ringCount) {
+    AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
+    int amountAdded = 0;
+
+    char deductLog1[0x100];
+    sprintf(deductLog1, "deductFromRingCount: %i", amount);
+    cartLoader_appendToLog(deductLog1);
+
+    for (int i = 0; i < amount; i++) {
+        int lowByte = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]);
+        int highByte = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]);
+
+        int total = (highByte * 0x100) + lowByte;
+        if (gameTransferListing.ringCalculatationType == 1) {
+            int convertedHigh = ((highByte / 0x10) * 10) + (highByte % 10);
+            int convertedLow = ((lowByte / 0x10) * 10) + (lowByte % 10);
+            total = (convertedHigh * 100) + convertedLow;
+        }
+
+        char deductLog2[0x100];
+        sprintf(deductLog2, "   lowByte: %02X, highByte: %02X, total: %02X", lowByte, highByte, total);
+        cartLoader_appendToLog(deductLog2);
+
+
+        if (total < 0xFFFF) {
+            total++;
+        }
+
+        int newHighByte = total / 0x100;
+        int newLowByte = total % 0x100;
+
+        if (gameTransferListing.ringCalculatationType == 1) {
+            int thousands = (total / 1000) % 10;
+            int hundreds = (total / 100) % 10;
+            int tens = (total / 10) % 10;
+            int units = (total) % 10;
+
+            newHighByte = (thousands * 0x10) + hundreds;
+            newLowByte = (tens * 0x10) + units;
+        }
+
+        char deductLog3[0x100];
+        sprintf(deductLog3, "    -> lowByte: %02X, highByte: %02X, total: %02X", newLowByte, newHighByte, total);
+        cartLoader_appendToLog(deductLog3);
+
+        
+        aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], newLowByte);
+        aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1], newHighByte);
+
+        amountAdded++;
+    }
+    cacheRingCountInBossRush(1);
+
+    if (amountAdded == 1) {
+        sprintf(ninesStatusMessage, "Stole 1 ring from opponent");
+    } else {
+        sprintf(ninesStatusMessage, "Stole %i rings from opponent", amountAdded);
+    }
+    ninesStatusMessageTime = 120;
 }
 
 void resetNinesOpponentLeadCountdown() {
@@ -1179,9 +1256,10 @@ void checkRotorValues() {
     resetRotorValues();
 }
 
-void deductFromRingCount(int amount) {
+int deductFromRingCount(int amount) {
     AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
-    
+    int amountDeducted = 0;
+
     char deductLog1[0x100];
     sprintf(deductLog1, "deductFromRingCount: %i", amount);
     cartLoader_appendToLog(deductLog1);
@@ -1226,8 +1304,12 @@ void deductFromRingCount(int amount) {
         
         aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], newLowByte);
         aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1], newHighByte);
+
+        amountDeducted++;
     }
     cacheRingCountInBossRush(1);
+
+    return amountDeducted;
 }
 
 void modConsole_updateFrame() {
@@ -1500,10 +1582,23 @@ void modConsole_updateFrame() {
                 if (ninesOptions.useOnlineRace) {
                     int opponentLead = getOpponentNinesChallengeLead();
                     if (opponentLead > 0) {
+                        int ringLoss = getRingLossForCurrentOpponentLead();
                         ninesOpponentLeadCountDown--;
                         if (ninesOpponentLeadCountDown <= 0) {
-                            deductFromRingCount(opponentLead);
+                            int amountLost = deductFromRingCount(ringLoss);
                             ninesOpponentLeadCountDown = ninesOpponentLeadCoundDownDuration;
+                            if (amountLost > 0) {
+                                // send these rings to opponent!
+                                char action[0x80];
+                                sprintf(action, "%id");
+                                cartLoader_writeActionToNetwork(action);
+                                ninesStatusMessageTime = 120;
+                                if (amountLost == 1) {
+                                    sprintf(ninesStatusMessage, "Opponent stole 1 ring");
+                                } else {
+                                    sprintf(ninesStatusMessage, "Opponent stole %i rings", amountLost);
+                                }
+                            }
                         }
                     } else {
                         ninesOpponentLeadCountDown = ninesOpponentLeadCoundDownDuration;
@@ -1641,7 +1736,7 @@ void modConsole_updateFrame() {
                     completeNinesChallenge();
                 }
 
-                if (ringsWentToZero && ninesOptions.shouldUseCheckpoints) {
+                if (ringsWentToZero && ninesOptions.shouldUseCheckpoints > 0) {
                     int checkpoint = getCurrentNinesRingCheckpoint();
                     if (checkpoint > 0) {
                         int checkpointHighByte = 0;
@@ -1663,7 +1758,9 @@ void modConsole_updateFrame() {
                         cacheBossRushRingCount(1);
 
                         ringsWentToZero = 0;
-                        stepBackNinesRingCheckpoint();
+                        if (ninesOptions.shouldUseCheckpoints == 2) {
+                            stepBackNinesRingCheckpoint();
+                        }
                     }
                 }
 
@@ -1916,30 +2013,35 @@ void modConsole_updateFrame() {
 
                 // check for opponent being ahead!
                 if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
-                    int opponentLead = getOpponentNinesChallengeLead();
-                    if (opponentLead > 0) {
-                        char leadAlert[0x80];
-                        if (ninesOpponentLeadCountDown < ninesOpponentLeadCoundDownDuration - 60) {
-                            if (opponentLead == 1) {
-                                sprintf(leadAlert, "Opponent ahead by %i stage", opponentLead);
-                            } else {
-                                sprintf(leadAlert, "Opponent ahead by %i stages", opponentLead);
-                            }
-                        } else {
-                            if (opponentLead == 1) {
-                                sprintf(leadAlert, "Lost %i ring", opponentLead);
-                            } else {
-                                sprintf(leadAlert, "Lost %i rings", opponentLead);
-                            }
-                        }
-
+                    if (ninesStatusMessageTime > 0) {
+                        ninesStatusMessageTime--;
                         for (int xOff = -1; xOff <= 1; xOff++) {
                             for (int yOff = -1; yOff <= 1; yOff++) {
-                                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 24 + yOff, leadAlert, 0xFF);
+                                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 24 + yOff, ninesStatusMessage, 0xFF);
                             }
                         }
-                        layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, leadAlert, 0x6);
+                        layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, ninesStatusMessage, 0x6);
+                    } else {
+                        int opponentLead = getOpponentNinesChallengeLead();
+                        if (opponentLead > 0) {
+                            char leadAlert[0x80];
+                            if (ninesOpponentLeadCountDown < ninesOpponentLeadCoundDownDuration - 60) {
+                                if (opponentLead == 1) {
+                                    sprintf(leadAlert, "Opponent ahead by %i stage", opponentLead);
+                                } else {
+                                    sprintf(leadAlert, "Opponent ahead by %i stages", opponentLead);
+                                }
+                            }
+
+                            for (int xOff = -1; xOff <= 1; xOff++) {
+                                for (int yOff = -1; yOff <= 1; yOff++) {
+                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 24 + yOff, leadAlert, 0xFF);
+                                }
+                            }
+                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, leadAlert, 0x6);
+                        }
                     }
+
 
                     char scoreAlert[0x80];
                     sprintf(scoreAlert, "     YOU %03d - %03d OPPONENT", getBossRushRingCarryTotal(), getNinesOpponentRingCount());

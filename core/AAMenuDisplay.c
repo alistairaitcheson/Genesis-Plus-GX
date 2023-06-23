@@ -5156,15 +5156,17 @@ void showNinesChallengeMenu() {
     }
 
     if (ninesChallengeOptions.shouldUseCheckpoints < 0) {
-        ninesChallengeOptions.shouldUseCheckpoints = 1;
+        ninesChallengeOptions.shouldUseCheckpoints = 2;
     }
-    if (ninesChallengeOptions.shouldUseCheckpoints > 1) {
+    if (ninesChallengeOptions.shouldUseCheckpoints > 2) {
         ninesChallengeOptions.shouldUseCheckpoints = 0;
     }
     if (ninesChallengeOptions.shouldUseCheckpoints == 0) {
-        sprintf(lines[8], "Bank rings on level end:  NO");
+        sprintf(lines[8], "Ring bank:                OFF");
+    } else if (ninesChallengeOptions.shouldUseCheckpoints == 1) {
+        sprintf(lines[8], "Ring bank:    ON, CAN DEPLETE");
     } else {
-        sprintf(lines[8], "Bank rings on level end: YES");
+        sprintf(lines[8], "Ring bank:    ON,   PERMANENT");
     }
     linesWithBreakAfter[8] = 1;
 
