@@ -53,6 +53,7 @@
 #define NETWORK_MSG_HAS_LED_DISPLAY 'b' // will be sent when an LED display is detected
 
 #define NETWORK_RECEIVE_OPPONENT_LEVEL_COMPLETION_COUNT 'c'
+#define NETWORK_RECEIVE_OPPONENT_LEVEL_INDEX 'f'
 
 
 #define NETWORK_INTERPRET_TYPE_ACTION 0
@@ -187,5 +188,7 @@ void bumpEventCountForSwitchGame();
 int deductFromRingCount(int amount);
 void resetNinesOpponentLeadCountdown();
 int receiveRingsFromOpponent(int ringCount);
+void alertYouClearedStage();
+void alertOpponentClearedStage();
 
 #endif

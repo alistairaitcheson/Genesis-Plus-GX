@@ -218,5 +218,7 @@ void onOpponentHasCompletedNines();
 int getYouHaveWonNines();
 int getOpponentHasWonNines();
 void onNinesLevelFullyCompleted();
+int getNinesOpponentLevelIndex();
+int getNinesLevelIndex();
 
 #endif

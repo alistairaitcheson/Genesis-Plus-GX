@@ -145,6 +145,20 @@ static int ninesLeadDepletionRate[5] = {1, 2, 5, 10, 25};
 static int ninesStatusMessageTime = 0;
 static char ninesStatusMessage[0x100];
 
+void alertYouClearedStage() {
+    ninesStatusMessageTime = 120;
+    sprintf(ninesStatusMessage, "You cleared a stage!");
+}
+
+void alertOpponentClearedStage() {
+    ninesStatusMessageTime = 120;
+    sprintf(ninesStatusMessage, "Opponent has cleared a stage");
+}
+
+void alertOpponentClearedStage() {
+
+}
+
 void requestFlashRingsToGo() {
     flashRingsToGoCountTime = flashRingsToGoDuration;
 }
@@ -2066,10 +2080,10 @@ void modConsole_updateFrame() {
 
                             for (int xOff = -1; xOff <= 1; xOff++) {
                                 for (int yOff = -1; yOff <= 1; yOff++) {
-                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 24 + yOff, leadAlert, 0xFF);
+                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 32 + yOff, leadAlert, 0xFF);
                                 }
                             }
-                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, leadAlert, 0x6);
+                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 32, leadAlert, 0x6);
                         }
                     }
 
@@ -2082,6 +2096,15 @@ void modConsole_updateFrame() {
                         }
                     }
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 8, scoreAlert, 0x6);
+
+                    char stageAlert[0x80];
+                    sprintf(stageAlert, "     STAGE %02d - %02d         ", getNinesLevelIndex(), getNinesOpponentLevelIndex());
+                    for (int xOff = -1; xOff <= 1; xOff++) {
+                        for (int yOff = -1; yOff <= 1; yOff++) {
+                            layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 20 + yOff, stageAlert, 0xFF);
+                        }
+                    }
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 20, stageAlert, 0x6);
                 }
             }
     

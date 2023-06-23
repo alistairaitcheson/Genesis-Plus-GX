@@ -3106,6 +3106,12 @@ void cartLoader_checkNetworkForActions() {
                         continue;
                     }
 
+                    if (actionBuffer[i] == NETWORK_RECEIVE_OPPONENT_LEVEL_INDEX) {
+                        setNinesChallengeOppponentStageIndex(runningNumber);
+                        runningNumber = 0;
+                        continue;
+                    }
+
                     if (actionBuffer[i] == NETWORK_MSG_APPLY_OPPONENT_SEED) {
                         applyNinesChallengeSeedFromOpponent(runningNumber);
                         runningNumber = 0;
@@ -4494,10 +4500,6 @@ void loadNinesChallengeStage() {
 }
 
 void setNinesChallengeOppponentStageIndex(int toIndex) {
-    if (ninesOpponentLevelIndex != toIndex) {
-        resetNinesOpponentLeadCountdown();
-    }
-
     ninesOpponentLevelIndex = toIndex;
 }
 
@@ -4559,6 +4561,13 @@ NinesChallengeStageListing getCurrentNinesChallengeStage() {
 void bumpNinesChallengeLevel(int wasLevelClear) {
     if (wasLevelClear) {
         onNinesLevelFullyCompleted();
+    }
+    if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
+        char message[0x100];
+        sprintf(message, "%if", ninesChallengeStageIndex);
+        cartLoader_writeActionToNetwork(message);
+
+        alertYouClearedStage();
     }
 
     storeNinesRingCheckpoint(bossRushRingCarryTotal);
@@ -4710,6 +4719,14 @@ BossRushChallengeListing getBossRushChallengeWithIndex(int index) {
     return bossRushCallenges[index];
 }
 
+int getNinesOpponentLevelIndex() {
+    return ninesOpponentLevelIndex;
+}
+
+int getNinesLevelIndex() {
+    return ninesChallengeStageIndex;
+}
+
 int getOpponentNinesChallengeLead() {
     return ninesOpponentLevelCompletionCount - ninesLevelCompletionCount; //ninesOpponentLevelIndex - ninesChallengeStageIndex;
 }
@@ -4748,6 +4765,7 @@ int getLevelCompletionCount() {
 void setOpponentLevelCompletionCount(int toValue) {
     if (ninesOpponentLevelCompletionCount != toIndex) {
         resetNinesOpponentLeadCountdown();
+        alertOpponentClearedStage();
     }
 
     ninesOpponentLevelCompletionCount = toValue;
@@ -4762,7 +4780,9 @@ void onNinesLevelFullyCompleted() {
 
     if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
         char message[0x100];
-        sprintf(message, "%ic", ninesChallengeStageIndex);
+        sprintf(message, "%ic", ninesLevelCompletionCount);
         cartLoader_writeActionToNetwork(message);
+
+        alertYouClearedStage();
     }
 }
