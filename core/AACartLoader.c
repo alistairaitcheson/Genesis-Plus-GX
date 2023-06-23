@@ -97,6 +97,7 @@ static int lastRingCalculatationType = 0;
 static NinesChallengeGameParameters ninesChallengeGamesParameters[MAX_ROMS];
 static NinesChallengeStageListing ninesChallengeLevelsSource[0x1000];
 static NinesChallengeStageListing ninesChallengeLevelOrder[0x1000];
+static int ninesChallengeLevelIndexOrder[0x1000];
 static int ninesChallengeStageIndex = 0;
 static int totalNinesChallengeStages = 0;
 
@@ -127,6 +128,7 @@ static int ninesOpponentRingCount = 0;
 static int opponentHasCompletedNines = 0;
 static int youHaveWonNines = 0;
 static int opponentHasWonNines = 0;
+static int opponentLevelKey = 0;
 
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
@@ -3111,6 +3113,13 @@ void cartLoader_checkNetworkForActions() {
                         runningNumber = 0;
                         continue;
                     }
+                    
+                    if (actionBuffer[i] == NETWORK_RECEIVE_OPPONENT_LEVEL_IDENTIFIER) {
+                        setOpponentLevelKey(runningNumber);
+                        
+                        runningNumber = 0;
+                        continue;
+                    }
 
                     if (actionBuffer[i] == NETWORK_MSG_APPLY_OPPONENT_SEED) {
                         applyNinesChallengeSeedFromOpponent(runningNumber);
@@ -4387,6 +4396,7 @@ void populateNinesChallengeLevelOrder() {
 
     for (int i = 0; i < 0x1000; i++) {
         ninesChallengeLevelOrder[i] = orderedLevels[i];
+        ninesChallengeLevelIndexOrder[i] = i;
     }
 
     if (menuDisplay_getNinesChallengeOptions().shouldUseRandomOrder == 1 && totalOrderedLevels > 0) {
@@ -4435,6 +4445,7 @@ void populateNinesChallengeLevelOrder() {
             cartLoader_appendToLog(tempLogC);
 
             ninesChallengeLevelOrder[i] = orderedLevels[index];
+            ninesChallengeLevelIndexOrder[i] = index;
         }
         cartLoader_appendToLog("--- put them into nines challenge ---");
 
@@ -4564,7 +4575,7 @@ void bumpNinesChallengeLevel(int wasLevelClear) {
     }
     if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
         char message[0x100];
-        sprintf(message, "%if", ninesChallengeStageIndex);
+        sprintf(message, "%if%g", ninesChallengeStageIndex, ninesChallengeLevelIndexOrder[ninesChallengeStageIndex]);
         cartLoader_writeActionToNetwork(message);
 
         alertYouClearedStage();
@@ -4785,4 +4796,8 @@ void onNinesLevelFullyCompleted() {
 
         alertYouClearedStage();
     }
+}
+
+void setOpponentLevelKey(int toValue) {
+    opponentLevelKey = toValue;
 }

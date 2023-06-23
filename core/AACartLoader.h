@@ -220,5 +220,6 @@ int getOpponentHasWonNines();
 void onNinesLevelFullyCompleted();
 int getNinesOpponentLevelIndex();
 int getNinesLevelIndex();
+void setOpponentLevelKey(int toValue);
 
 #endif

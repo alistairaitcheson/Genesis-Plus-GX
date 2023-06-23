@@ -2066,15 +2066,15 @@ void modConsole_updateFrame() {
                             char leadAlert[0x80];
                             if (opponentLead > 0) {
                                 if (opponentLead == 1) {
-                                    sprintf(leadAlert, "Opponent ahead by %i stage", opponentLead);
+                                    sprintf(leadAlert, "Opponent ahead by %i clear", opponentLead);
                                 } else {
-                                    sprintf(leadAlert, "Opponent ahead by %i stages", opponentLead);
+                                    sprintf(leadAlert, "Opponent ahead by %i clears", opponentLead);
                                 }
                             } else {
                                 if (opponentLead == -1) {
-                                    sprintf(leadAlert, "You are ahead by %i stage", -opponentLead);
+                                    sprintf(leadAlert, "You are ahead by %i clear", -opponentLead);
                                 } else {
-                                    sprintf(leadAlert, "You are ahead by %i stages", -opponentLead);
+                                    sprintf(leadAlert, "You are ahead by %i clears", -opponentLead);
                                 }
                             }
 
@@ -2097,6 +2097,7 @@ void modConsole_updateFrame() {
                     }
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 8, scoreAlert, 0x6);
 
+                    // TO DO - change this to show opponent's level name
                     char stageAlert[0x80];
                     sprintf(stageAlert, "     STAGE %02d - %02d         ", getNinesLevelIndex(), getNinesOpponentLevelIndex());
                     for (int xOff = -1; xOff <= 1; xOff++) {
