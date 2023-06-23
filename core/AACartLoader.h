@@ -188,7 +188,7 @@ void toggleStartNinesChallenge();
 int shouldUseNinesChallenge();
 void beginNinesChallenge();
 NinesChallengeStageListing getCurrentNinesChallengeStage();
-void bumpNinesChallengeLevel();
+void bumpNinesChallengeLevel(int wasLevelClear);
 NinesChallengeGameParameters getActiveNinesChallengeGameParameters();
 void cartLoader_loadNinesChallengeSaveStatesFromDisk();
 
@@ -217,5 +217,6 @@ int getNinesOpponentRingCount();
 void onOpponentHasCompletedNines();
 int getYouHaveWonNines();
 int getOpponentHasWonNines();
+void onNinesLevelFullyCompleted();
 
 #endif

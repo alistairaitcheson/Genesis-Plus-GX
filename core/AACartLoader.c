@@ -120,6 +120,8 @@ static int ninesRingCheckpoints[0x1000];
 static int ninesRingCheckpointCount = 0;
 
 static int ninesOpponentLevelIndex = 0;
+static int ninesLevelCompletionCount = 0;
+static int ninesOpponentLevelCompletionCount = 0;
 static int ninesOpponentRingCount = 0;
 
 static int opponentHasCompletedNines = 0;
@@ -3098,8 +3100,8 @@ void cartLoader_checkNetworkForActions() {
                         continue;
                     }
 
-                    if (actionBuffer[i] == NETWORK_RECEIVE_OPPONENT_LEVEL_INDEX) {
-                        setNinesChallengeOppponentStageIndex(runningNumber);
+                    if (actionBuffer[i] == NETWORK_RECEIVE_OPPONENT_LEVEL_COMPLETION_COUNT) {
+                        setOpponentLevelCompletionCount(runningNumber);
                         runningNumber = 0;
                         continue;
                     }
@@ -4484,11 +4486,11 @@ void loadNinesChallengeStage() {
     // show 999 to go! etc
     requestFlashRingsToGo();
 
-    if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
-        char message[0x100];
-        sprintf(message, "%ic", ninesChallengeStageIndex);
-        cartLoader_writeActionToNetwork(message);
-    }
+    // if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
+    //     char message[0x100];
+    //     sprintf(message, "%ic", ninesChallengeStageIndex);
+    //     cartLoader_writeActionToNetwork(message);
+    // }
 }
 
 void setNinesChallengeOppponentStageIndex(int toIndex) {
@@ -4528,6 +4530,8 @@ void beginNinesChallenge() {
     opponentHasCompletedNines = 0;
     youHaveWonNines = 0;
     opponentHasWonNines = 0;
+    ninesLevelCompletionCount = 0;
+    ninesOpponentLevelCompletionCount = 0;
 
     clearNinesRingCheckpoints();
     
@@ -4552,7 +4556,11 @@ NinesChallengeStageListing getCurrentNinesChallengeStage() {
                    (2) load level is called but we didn't call it
                    (3) a special stage enter is triggered
 */
-void bumpNinesChallengeLevel() {
+void bumpNinesChallengeLevel(int wasLevelClear) {
+    if (wasLevelClear) {
+        onNinesLevelFullyCompleted();
+    }
+
     storeNinesRingCheckpoint(bossRushRingCarryTotal);
 
     cartLoader_appendToLog("bumpNinesChallengeLevel");
@@ -4703,7 +4711,7 @@ BossRushChallengeListing getBossRushChallengeWithIndex(int index) {
 }
 
 int getOpponentNinesChallengeLead() {
-    return ninesOpponentLevelIndex - ninesChallengeStageIndex;
+    return ninesOpponentLevelCompletionCount - ninesLevelCompletionCount; //ninesOpponentLevelIndex - ninesChallengeStageIndex;
 }
 
 void setNinesOpponentRingCount(int amount) {
@@ -4727,4 +4735,34 @@ int getYouHaveWonNines() {
 
 int getOpponentHasWonNines() {
     return opponentHasWonNines;
+}
+
+void incrementLevelCompletionCount() {
+    ninesLevelCompletionCount++;
+}
+
+int getLevelCompletionCount() {
+    return ninesLevelCompletionCount;
+}
+
+void setOpponentLevelCompletionCount(int toValue) {
+    if (ninesOpponentLevelCompletionCount != toIndex) {
+        resetNinesOpponentLeadCountdown();
+    }
+
+    ninesOpponentLevelCompletionCount = toValue;
+}
+
+int getOpponentLevelCompletionCount() {
+    return ninesOpponentLevelCompletionCount;
+}
+
+void onNinesLevelFullyCompleted() {
+    incrementLevelCompletionCount();
+
+    if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
+        char message[0x100];
+        sprintf(message, "%ic", ninesChallengeStageIndex);
+        cartLoader_writeActionToNetwork(message);
+    }
 }

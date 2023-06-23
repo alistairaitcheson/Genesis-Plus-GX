@@ -1694,7 +1694,7 @@ void modConsole_updateFrame() {
                     // bump level in 3D blast if you die
                     if (countdownToApplyBossRushRings == 0 && ninesOptions.allowTacticalDeaths == 1 && ninesStage.gameId == 6) {
                         if (diedThisFrame) {
-                            bumpNinesChallengeLevel();
+                            bumpNinesChallengeLevel(0);
                         }
                     }
                         
@@ -1711,23 +1711,48 @@ void modConsole_updateFrame() {
                         || (ninesStage.gameId == 2 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x10)
                         || (ninesStage.gameId == 1 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x10)) {
                         
-                        bumpNinesChallengeLevel();
+                        int wasLevelCompletion = 0;
+                        // sonic 3 end credits
+                        if (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x20) {
+                            wasLevelCompletion = 1;
+                        }
+                        // level switch but not to bonus stage!
+                        if (ninesStage.gameId == 3 || ninesStage.gameId == 4) {
+                            // add an "IF NOT BONUS STAGE"
+                            if (aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80 && levelSwitchIndex > 0
+                                && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex)) {
+                                wasLevelCompletion = 1;
+                            }
+                        } else if (ninesStage.gameId == 6) {
+                            // add an "IF NOT TAILS/KNUCKLES"
+                            if (aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80 && levelSwitchIndex > 0
+                                && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex)) {
+                                wasLevelCompletion = 1;
+                            }
+                        } else {
+                            if (aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80 && levelSwitchIndex > 0
+                                && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex)) {
+                                wasLevelCompletion = 1;
+                            }
+                        }
+
+                        bumpNinesChallengeLevel(wasLevelCompletion);
                     } else {
                         // check for score totaliser spawned
                         if (levelEndValue >= 0x100) {
                             if (aa_genesis_getWorkRam(levelEndLocation) > 0) {
-                                bumpNinesChallengeLevel();
+                                bumpNinesChallengeLevel(1);
                             }
                         } else {
                             if (aa_genesis_getWorkRam(levelEndLocation) == levelEndValue) {
-                                bumpNinesChallengeLevel();
+                                bumpNinesChallengeLevel(1);
                             }
                         }
                     }
 
                     // for debug!
                     // if (buttonStateAtIndex(INPUT_INDEX_A)) {
-                    //     bumpNinesChallengeLevel();
+                    //     bumpNinesChallengeLevel(0);
                     // }
                 }
 
@@ -2023,13 +2048,19 @@ void modConsole_updateFrame() {
                         layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, ninesStatusMessage, 0x6);
                     } else {
                         int opponentLead = getOpponentNinesChallengeLead();
-                        if (opponentLead > 0) {
+                        if (opponentLead != 0) {
                             char leadAlert[0x80];
-                            if (ninesOpponentLeadCountDown < ninesOpponentLeadCoundDownDuration - 60) {
+                            if (opponentLead > 0) {
                                 if (opponentLead == 1) {
                                     sprintf(leadAlert, "Opponent ahead by %i stage", opponentLead);
                                 } else {
                                     sprintf(leadAlert, "Opponent ahead by %i stages", opponentLead);
+                                }
+                            } else {
+                                if (opponentLead == -1) {
+                                    sprintf(leadAlert, "You are ahead by %i stage", -opponentLead);
+                                } else {
+                                    sprintf(leadAlert, "You are ahead by %i stages", -opponentLead);
                                 }
                             }
 
@@ -3015,7 +3046,7 @@ void switchGame() {
     if (shouldUseBossRush()) {
         bumpToNextBossRush();
     } else if(shouldUseNinesChallenge()) {
-        bumpNinesChallengeLevel();
+        bumpNinesChallengeLevel(0);
     } else {
         cartLoader_loadRandomRom();
     }
