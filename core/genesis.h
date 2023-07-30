@@ -95,5 +95,7 @@ extern void aa_genesis_setVRamValue(int index, uint8 value);
 extern void aa_genesis_setZ80Ram(unsigned int location, uint8 value);
 extern uint8 aa_genesis_getZ80Ram(unsigned int location);
 
+void aa_genesis_setCartValue(unsigned int location, uint8 value);
+
 #endif /* _GEN_H_ */
 

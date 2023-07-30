@@ -989,6 +989,7 @@ void applyDefaultNinesChallengeValues() {
     ninesChallengeOptions.useOnlineRace = 0;
     ninesChallengeOptions.sentSeedToOpponent = 0;
     ninesChallengeOptions.receivedSeedFromOpponent = 0;
+    ninesChallengeOptions.targetTotalIndex = 0;
 }
 
 void applyDefaultRamDetectiveValues() {
@@ -2348,7 +2349,7 @@ void incrementNinesChallengeOption(int direction, int buttonIndex) {
     }
 
     if (ninesChallengeItemIndex == 7) {
-        ninesChallengeOptions.quitOnRingLoss += direction;
+        ninesChallengeOptions.targetTotalIndex += direction;
     }
 
     if (ninesChallengeItemIndex == 8) {
@@ -3075,9 +3076,9 @@ void showOptionsMenu() {
     }
 
     if (shouldUseNinesChallenge() || awaitingNinesChallengeStart()) {
-        sprintf(lines[8], "[ON] 999 Challenge (Beta)>");
+        sprintf(lines[8], "[ON] %s Challenge (Beta)>", getNinesChallengeTarget());
     } else {
-        sprintf(lines[8], "     999 Challenge (Beta)>");
+        sprintf(lines[8], "     %s Challenge (Beta)>", getNinesChallengeTarget());
     }
 
     sprintf(lines[9], "Start game");
@@ -5052,9 +5053,9 @@ void showNinesChallengeMenu() {
     }
 
     if (awaitingNinesChallengeStart() == 1) {
-        sprintf(lines[0], "999 Challenge:            ON");
+        sprintf(lines[0], "%i Challenge:            ON", getNinesChallengeTarget());
     } else {
-        sprintf(lines[0], "999 Challenge:           OFF");
+        sprintf(lines[0], "%i Challenge:           OFF", getNinesChallengeTarget());
         blockedLines[1] = 1;
         blockedLines[2] = 1;
         blockedLines[3] = 1;
@@ -5143,17 +5144,13 @@ void showNinesChallengeMenu() {
         sprintf(lines[6], "Use deaths as warp:      YES");
     }
 
-    if (ninesChallengeOptions.quitOnRingLoss < 0) {
-        ninesChallengeOptions.quitOnRingLoss = 1;
+    if (ninesChallengeOptions.targetTotalIndex < 0) {
+        ninesChallengeOptions.targetTotalIndex = 1;
     }
-    if (ninesChallengeOptions.quitOnRingLoss > 1) {
-        ninesChallengeOptions.quitOnRingLoss = 0;
+    if (ninesChallengeOptions.targetTotalIndex > 1) {
+        ninesChallengeOptions.targetTotalIndex = 0;
     }
-    if (ninesChallengeOptions.quitOnRingLoss == 0) {
-        sprintf(lines[7], "End run on zero rings:    NO");
-    } else {
-        sprintf(lines[7], "End run on zero rings:   YES");
-    }
+    sprintf(lines[7], "Target total:      %i rings", getNinesChallengeTarget());
 
     if (ninesChallengeOptions.shouldUseCheckpoints < 0) {
         ninesChallengeOptions.shouldUseCheckpoints = 2;
@@ -5342,4 +5339,11 @@ void applyNinesChallengeSeedFromOpponent(int rawSeed) {
     if (activeMenu == MENU_LISTING_NINES_CHALLENGE) {
         showNinesChallengeMenu();
     }
+}
+
+int getNinesChallengeTarget() {
+    if (ninesChallengeOptions.targetTotalIndex == 1) {
+        return 9999;
+    }
+    return 999;
 }

@@ -4185,6 +4185,9 @@ void populateNinesChallengeLevelSource() {
         for (int j = 0; j < 8; j++) {
             ninesChallengeGamesParameters[i].cheatFlags[j] = 0;
         }
+        for (int j = 0; j < 0x10; j++) {
+            ninesChallengeGamesParameters[i].cartLimitLocations[j] = 0;
+        }
     }
 
     // SONIC 1
@@ -4204,6 +4207,7 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[1].cheatFlags[4] = 0xFFEA;
     ninesChallengeGamesParameters[1].cheatFlags[5] = 0xFFEB;
     ninesChallengeGamesParameters[1].lifeUpFlaggedLocation = 0xFE1A;
+
 
     for (int i = 0; i <= 5; i++) {
         addNinesChallengeLevel(1,i,0);
@@ -4227,6 +4231,11 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[2].cheatFlags[3] = 0xFFFB;
     ninesChallengeGamesParameters[2].lifeUpFlaggedLocation = 0xFE1A;
 
+    ninesChallengeGamesParameters[2].cartLimitLocations[0] = 0x11FCA;
+    ninesChallengeGamesParameters[2].cartLimitLocations[1] = 0x11FCB;
+    ninesChallengeGamesParameters[2].cartLimitLocations[2] = 0x11FDA;
+    ninesChallengeGamesParameters[2].cartLimitLocations[3] = 0x11FDB;
+
     for (int i = 0; i <= 7; i++) {
         addNinesChallengeLevel(2,i,0);
         addNinesChallengeLevel(2,i,1);
@@ -4249,8 +4258,13 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[3].cheatFlags[1] = 0xFFD1;
     ninesChallengeGamesParameters[3].cheatFlags[2] = 0xFFD2;
     ninesChallengeGamesParameters[3].cheatFlags[3] = 0xFFD3;
-    ninesChallengeGamesParameters[2].lifeUpFlaggedLocation = 0xFE1A;
+    ninesChallengeGamesParameters[3].lifeUpFlaggedLocation = 0xFE1A;
 
+    ninesChallengeGamesParameters[3].cartLimitLocations[0] = 0x18D74;
+    ninesChallengeGamesParameters[3].cartLimitLocations[1] = 0x18D75;
+    ninesChallengeGamesParameters[3].cartLimitLocations[2] = 0x18D84;
+    ninesChallengeGamesParameters[3].cartLimitLocations[3] = 0x18D85;
+    
     for (int i = 0; i <= 5; i++) {
         addNinesChallengeLevel(3,i,0);
         addNinesChallengeLevel(3,i,1);
@@ -4271,6 +4285,11 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[4].cheatFlags[1] = 0xFFE1;
     ninesChallengeGamesParameters[4].cheatFlags[2] = 0xFFE2;
     ninesChallengeGamesParameters[4].cheatFlags[3] = 0xFFE3;
+    
+    ninesChallengeGamesParameters[4].cartLimitLocations[0] = 0x1A598;
+    ninesChallengeGamesParameters[4].cartLimitLocations[1] = 0x1A599;
+    ninesChallengeGamesParameters[4].cartLimitLocations[2] = 0x1A5A8;
+    ninesChallengeGamesParameters[4].cartLimitLocations[3] = 0x1A5A9;
 
     for (int i = 0; i <= 3; i++) {
         addNinesChallengeLevel(4,i,0);
@@ -4495,6 +4514,13 @@ void loadNinesChallengeStage() {
     for (int i = 0; i < 8; i++) {
         if (paramsThisGame.cheatFlags[i] > 0) {
             aa_genesis_setWorkRam(paramsThisGame.cheatFlags[i], 0);
+        }
+    }
+
+    // make it so the game doesn't limit the max rings to 999
+    for (int i = 0; i < 16; i++) {
+        if (paramsThisGame.cartLimitLocations[i] > 0) {
+            aa_genesis_setCartValue(paramsThisGame.cartLimitLocations[i], 0xFF);
         }
     }
 

@@ -1649,6 +1649,27 @@ void modConsole_updateFrame() {
                     aa_genesis_setWorkRam(ninesParams.lifeUpFlaggedLocation, 0xFF);
                 }
 
+                // in Sonic 3D blast, if the player has more than 9999 rings
+                // their count will wrap back to 0, so instead make sure it doesn't!
+                if (ninesStage.gameId == 6) {
+                    // was the player over 9990 last frame, and is not damaged?
+                    if (getBossRushRingCarryTotal() > 9990 && aa_genesis_getWorkRam(damageBoostIndex) > damageBoostMaximum) {
+                        // has the player wrapped back to 0 rings?
+                        if (gameTransferListing.ringBytesForTransfer[1] < 10 && 
+                            gameTransferListing.ringBytesForTransfer[0] < 10) {
+                            // if so, set them to 9999 rings now
+                            gameTransferListing.ringBytesForTransfer[0] = 0x99;
+                            gameTransferListing.ringBytesForTransfer[1] = 0x99;
+                        }
+                    }
+                }
+
+                // in Sonic 3D blast, visiting Knuckles or Tails will
+                // reduce your rings to 0. Don't let it do that!
+                if (ninesStage.gameId == 6) {
+                }
+
+
                 // debug - bonus rings!!
                 // if (buttonStateAtIndex(INPUT_INDEX_A) != 0) { 
                 //     aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], 0xFF);
@@ -1771,7 +1792,7 @@ void modConsole_updateFrame() {
                 }
 
                 // CHECK FOR END OF GAME!!
-                if (getBossRushRingCarryTotal() >= 999) {
+                if (getBossRushRingCarryTotal() >= getNinesChallengeTarget()) {
                     completeNinesChallenge();
                 }
 
@@ -1956,7 +1977,7 @@ void modConsole_updateFrame() {
         if (shouldUseNinesChallenge()) {
             // SHOW NINES CHALLENGE TIMER
             if ( getNinesChallengeComplete() == 1) {
-                if (getBestNinesChallengeRingCount() >= 999) {
+                if (getBestNinesChallengeRingCount() >= getNinesChallengeTarget() {
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "CHALLENGE COMPLETE!", 0xFF);
@@ -2039,7 +2060,7 @@ void modConsole_updateFrame() {
                         flashRingsToGoCountTime--;
                         if (flashRingsToGoCountTime % (flashRingsToGoPeriod * 2) < flashRingsToGoPeriod) {
                             char ringsText[0x80];
-                            sprintf(ringsText, "%03i to go!", 999 - getBossRushRingCarryTotal());
+                            sprintf(ringsText, "%i to go!", getNinesChallengeTarget() - getBossRushRingCarryTotal());
                             for (int xOff = -1; xOff <= 1; xOff++) {
                                 for (int yOff = -1; yOff <= 1; yOff++) {
                                     layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, vdp_getScreenHeight() / 2 + yOff, ringsText, 0xFF);

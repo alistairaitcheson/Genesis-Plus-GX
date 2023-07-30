@@ -159,6 +159,8 @@ typedef struct {
     int receivedSeedFromOpponent;
     int sentSeedToOpponent;
     int useOnlineRace;
+
+    int targetTotalIndex;
 } NinesChallengeOptions;
 
 extern void menuDisplay_showMenu(int menuNum);
@@ -278,5 +280,6 @@ void incrementBossRushTiggerSelectOption(int direction, int buttonIndex);
 void applyDefaultNinesChallengeValues();
 int getRequestedNinesChallengeStartRom();
 void shuffleNineChallengeOrderSeed();
+int getNinesChallengeTarget();
 
 #endif
