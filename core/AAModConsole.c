@@ -1665,8 +1665,19 @@ void modConsole_updateFrame() {
                 }
 
                 // in Sonic 3D blast, visiting Knuckles or Tails will
-                // reduce your rings to 0. Don't let it do that!
+                // read from a cached ring count in normal 8-bit number.
+                // Make sure we cache that number properly
                 if (ninesStage.gameId == 6) {
+                    int units = gameTransferListing.ringBytesForTransfer[0] % 0x10;
+                    int tens = gameTransferListing.ringBytesForTransfer[0] / 0x10;
+                    int hundreds = gameTransferListing.ringBytesForTransfer[1] % 0x10;
+                    int thousands = gameTransferListing.ringBytesForTransfer[1] / 0x10;
+                    int total = units + (tens * 10) + (hundreds * 100) + (thousands * 1000);
+
+                    int low8bit = total % 0x100;
+                    int high8bit = total / 0x100;
+                    aa_genesis_setWorkRam(0x0A5A, low8bit);
+                    aa_genesis_setWorkRam(0x0A5B, high8bit);
                 }
 
 

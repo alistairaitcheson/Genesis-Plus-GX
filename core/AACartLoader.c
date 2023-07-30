@@ -988,13 +988,25 @@ void applyBossRushCachedRings() {
             if (getActiveBossRushListing().gameIndex == 6) {
                 aa_genesis_setWorkRam(0x0A56, lowValue);
                 aa_genesis_setWorkRam(0x0A57, highValue);
-                aa_genesis_setWorkRam(0x0A5A, lowValue);
-                aa_genesis_setWorkRam(0x0A5B, highValue);
-
                 aa_genesis_setLastWorkRam(0x0A56, lowValue);
                 aa_genesis_setLastWorkRam(0x0A57, highValue);
-                aa_genesis_setLastWorkRam(0x0A5A, lowValue);
-                aa_genesis_setLastWorkRam(0x0A5B, highValue);
+
+                // the ring count used for calculations
+                // is stored as a normal 8-bit number (where 0x99 = 153 rings
+                // instead of 0x99 = 99 rings). This is used to tell "should Sonic
+                // die when he gets it?" and "how many rings should I give to Knuckles?"
+                int units = lowValue % 0x10;
+                int tens = lowValue / 0x10;
+                int hundreds = highValue % 0x10;
+                int thousands = highValue / 0x10;
+                int total = units + (tens * 10) + (hundreds * 100) + (thousands * 1000);
+
+                int low8bit = total % 0x100;
+                int high8bit = total / 0x100;
+                aa_genesis_setWorkRam(0x0A5A, low8bit);
+                aa_genesis_setWorkRam(0x0A5B, high8bit);
+                aa_genesis_setLastWorkRam(0x0A5A, low8bit);
+                aa_genesis_setLastWorkRam(0x0A5B, high8bit);
             }
 
             // char cacheMsg[0x100];
