@@ -3076,9 +3076,9 @@ void showOptionsMenu() {
     }
 
     if (shouldUseNinesChallenge() || awaitingNinesChallengeStart()) {
-        sprintf(lines[8], "[ON] %s Challenge (Beta)>", getNinesChallengeTarget());
+        sprintf(lines[8], "[ON] %i Challenge (Beta)>", getNinesChallengeTarget());
     } else {
-        sprintf(lines[8], "     %s Challenge (Beta)>", getNinesChallengeTarget());
+        sprintf(lines[8], "     %i Challenge (Beta)>", getNinesChallengeTarget());
     }
 
     sprintf(lines[9], "Start game");

@@ -318,7 +318,7 @@ void cartLoader_run() {
     gameTransferListings[1].gameStatesToBlockScramble[1] = 0x04; // TITLE SCREEN
     gameTransferListings[1].gameStatesToBlockScramble[2] = 0x10; // SPECIAL STAGE
     gameTransferListings[1].gameStatesToBlockScramble[3] = 0x14; // CONTINUE SCREEN
-    gameListings[1].valueWriteDuration = 0;//60;
+    gameListings[1].valueWriteDuration = 60;
     scoreMonitorListings[1].allowStackRingInputs = 1;
     standTriggerListings[1].standingByte = 0xD023;
     standTriggerListings[1].standingBit = 1;
