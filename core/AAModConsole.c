@@ -164,7 +164,7 @@ int getRingLossForCurrentOpponentLead() {
     if (opponentLead > 0) {
         int ringLoss = 25;
         if (opponentLead < 5) {
-            ringLoss = ninesLeadDepletionRate[opponentLead];
+            ringLoss = ninesLeadDepletionRate[opponentLead - 1];
         }
         return ringLoss;
     }
@@ -1778,6 +1778,10 @@ void modConsole_updateFrame() {
                             }
                         }
 
+                        if (diedThisFrame) {
+                            wasLevelCompletion = 0;
+                        }
+                        
                         bumpNinesChallengeLevel(wasLevelCompletion);
                     } else {
                         // check for score totaliser spawned
@@ -2102,10 +2106,10 @@ void modConsole_updateFrame() {
                         ninesStatusMessageTime--;
                         for (int xOff = -1; xOff <= 1; xOff++) {
                             for (int yOff = -1; yOff <= 1; yOff++) {
-                                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 24 + yOff, ninesStatusMessage, 0xFF);
+                                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 32 + yOff, ninesStatusMessage, 0xFF);
                             }
                         }
-                        layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, ninesStatusMessage, 0x6);
+                        layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 32, ninesStatusMessage, 0x6);
                     } else {
                         int opponentLead = getOpponentNinesChallengeLead();
                         if (opponentLead != 0) {
