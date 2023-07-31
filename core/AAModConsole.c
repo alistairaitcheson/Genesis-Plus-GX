@@ -2106,10 +2106,10 @@ void modConsole_updateFrame() {
                         ninesStatusMessageTime--;
                         for (int xOff = -1; xOff <= 1; xOff++) {
                             for (int yOff = -1; yOff <= 1; yOff++) {
-                                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 32 + yOff, ninesStatusMessage, 0xFF);
+                                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 24 + yOff, ninesStatusMessage, 0xFF);
                             }
                         }
-                        layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 32, ninesStatusMessage, 0x6);
+                        layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, ninesStatusMessage, 0x6);
                     } else {
                         int opponentLead = getOpponentNinesChallengeLead();
                         if (opponentLead != 0) {
@@ -2130,41 +2130,40 @@ void modConsole_updateFrame() {
 
                             for (int xOff = -1; xOff <= 1; xOff++) {
                                 for (int yOff = -1; yOff <= 1; yOff++) {
-                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 32 + yOff, leadAlert, 0xFF);
+                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 24 + yOff, leadAlert, 0xFF);
                                 }
                             }
-                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 32, leadAlert, 0x6);
+                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, leadAlert, 0x6);
                         }
                     }
 
 
-                    char scoreAlert[0x80];
-                    sprintf(scoreAlert, "      YOU %03d - %03d OPPONENT", getBossRushRingCarryTotal(), getNinesOpponentRingCount());
+                    char yourScore[0x80];
+                    sprintf(yourScore, "YOU     %03d", getBossRushRingCarryTotal());
+                    char opponentScore[0x80];
+                    sprintf(opponentScore, "%03d     OPPONENT", getNinesOpponentRingCount());
                     for (int xOff = -1; xOff <= 1; xOff++) {
                         for (int yOff = -1; yOff <= 1; yOff++) {
-                            layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 8 + yOff, scoreAlert, 0xFF);
+                            layerRenderer_writeWord256RightJustified(2, (vdp_getScreenWidth() / 2) + xOff - 12, 8 + yOff - 4, yourScore, 0xFF);
+                            layerRenderer_writeWord256(2, (vdp_getScreenWidth() / 2) + xOff + 12, 8 + yOff - 4, opponentScore, 0xFF);
                         }
                     }
-                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 8, scoreAlert, 0x6);
+                    layerRenderer_writeWord256RightJustified(2, (vdp_getScreenWidth() / 2) - 12, 8 - 4, yourScore, 0x6);
+                    layerRenderer_writeWord256(2, (vdp_getScreenWidth() / 2) + 12, 8 - 4, opponentScore, 0xA);
 
-                    // TO DO - change this to show opponent's level name
-                    char stageAlert[0x80];
-                    sprintf(stageAlert, "-");
                     char yourLevelName[0x80];
-                    sprintf(yourLevelName, "%s", getNinesChallengeLevelName());
+                    sprintf(yourLevelName, ""); //"%s", getNinesChallengeLevelName());
                     char opponentLevelName[0x80];
                     sprintf(opponentLevelName, "%s", getOpponentLevelName());
 
                     for (int xOff = -1; xOff <= 1; xOff++) {
                         for (int yOff = -1; yOff <= 1; yOff++) {
-                            layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 20 + yOff, stageAlert, 0xFF);
-                            layerRenderer_writeWord256RightJustified(2, (vdp_getScreenWidth() / 2) + xOff - 12, 20 + yOff - 4, yourLevelName, 0xFF);
-                            layerRenderer_writeWord256(2, (vdp_getScreenWidth() / 2) + xOff + 12, 20 + yOff - 4, opponentLevelName, 0xFF);
+                            layerRenderer_writeWord256RightJustified(2, (vdp_getScreenWidth() / 2) + xOff - 12, 16 + yOff - 4, yourLevelName, 0xFF);
+                            layerRenderer_writeWord256(2, (vdp_getScreenWidth() / 2) + xOff + 12, 16 + yOff - 4, opponentLevelName, 0xFF);
                         }
                     }
-                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 20, stageAlert, 0x6);
-                    layerRenderer_writeWord256RightJustified(2, vdp_getScreenWidth() / 2 - 12, 20-4, yourLevelName, 0x6);
-                    layerRenderer_writeWord256(2, vdp_getScreenWidth() / 2 + 12, 20-4, opponentLevelName, 0x6);
+                    layerRenderer_writeWord256RightJustified(2, vdp_getScreenWidth() / 2 - 12, 16-4, yourLevelName, 0x6);
+                    layerRenderer_writeWord256(2, vdp_getScreenWidth() / 2 + 12, 16-4, opponentLevelName, 0xA);
                 }
             }
     
