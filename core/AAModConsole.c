@@ -2043,6 +2043,7 @@ void modConsole_updateFrame() {
                     if (!ninesChallengeOptions.shouldRevealSeed) {
                         shuffleNineChallengeOrderSeed();
                     }
+                    resetNinesChallengeElapsedTimer();
                     beginNinesChallenge();
                 }
             } else {
