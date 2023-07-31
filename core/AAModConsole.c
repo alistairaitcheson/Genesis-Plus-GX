@@ -1619,6 +1619,9 @@ void modConsole_updateFrame() {
                         sprintf(action, "%iv", getBossRushRingCarryTotal());
                         cartLoader_writeActionToNetwork(action);
                     }
+                    if (frameCount % 300 == 0) {
+                        cartLoader_writeActionToNetwork("G");
+                    }
                 }
 
                 int ringsWentToZero = 0;
@@ -1761,26 +1764,22 @@ void modConsole_updateFrame() {
                         // level switch but not to bonus stage!
                         if (ninesStage.gameId == 3 || ninesStage.gameId == 4) {
                             // add an "IF NOT BONUS STAGE"
-                            if (aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80 && levelSwitchIndex > 0
-                                && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex)) {
+                            if (true) {
                                 wasLevelCompletion = 1;
                             }
-                        } else if (ninesStage.gameId == 6) {
+                        } 
+                        if (ninesStage.gameId == 6) {
                             // add an "IF NOT TAILS/KNUCKLES"
-                            if (aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80 && levelSwitchIndex > 0
-                                && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex)) {
-                                wasLevelCompletion = 1;
-                            }
-                        } else {
-                            if (aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80 && levelSwitchIndex > 0
-                                && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex)) {
+                            if (true) {
                                 wasLevelCompletion = 1;
                             }
                         }
-
-                        if (diedThisFrame) {
-                            wasLevelCompletion = 0;
-                        }
+                        if (ninesStage.gameId == 1 || ninesStage.gameId == 2 || ninesStage.gameId == 3 || ninesStage.gameId == 4) {
+                            // add an "IF LEVEL INDEX HAS CHANGED" for Wing Fortress --> Death Egg, Hidden Palace --> Sky Sanctuary, etc
+                            if (true) {
+                                wasLevelCompletion = 1;
+                            }
+                        } 
 
                         bumpNinesChallengeLevel(wasLevelCompletion);
                     } else {

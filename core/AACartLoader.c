@@ -3135,6 +3135,13 @@ void cartLoader_checkNetworkForActions() {
                         runningNumber = 0;
                         continue;
                     }
+                                        
+                    if (actionBuffer[i] == NETWORK_REQUEST_OPPONENT_LEVEL_IDENTIFIER) {
+                        char message[0x100];
+                        sprintf(message, "%if%ig", ninesChallengeStageIndex, ninesChallengeLevelIndexOrder[ninesChallengeStageIndex]);
+                        cartLoader_writeActionToNetwork(message);
+                        continue;
+                    }
 
                     if (actionBuffer[i] == NETWORK_MSG_APPLY_OPPONENT_SEED) {
                         applyNinesChallengeSeedFromOpponent(runningNumber);
