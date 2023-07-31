@@ -1663,11 +1663,11 @@ void modConsole_updateFrame() {
                 // in Sonic 3D blast, visiting Knuckles or Tails will
                 // read from a cached ring count in normal 8-bit number.
                 // Make sure we cache that number properly
-                if (ninesStage.gameId == 6) {
-                    int units = gameTransferListing.ringBytesForTransfer[0] % 0x10;
-                    int tens = gameTransferListing.ringBytesForTransfer[0] / 0x10;
-                    int hundreds = gameTransferListing.ringBytesForTransfer[1] % 0x10;
-                    int thousands = gameTransferListing.ringBytesForTransfer[1] / 0x10;
+                if (ninesStage.gameId == 6 && aa_genesis_getWorkRam(damageBoostIndex) > damageBoostMaximum) {
+                    int units = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) % 0x10;
+                    int tens = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) / 0x10;
+                    int hundreds = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) % 0x10;
+                    int thousands = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) / 0x10;
                     int total = units + (tens * 10) + (hundreds * 100) + (thousands * 1000);
 
                     int low8bit = total % 0x100;
