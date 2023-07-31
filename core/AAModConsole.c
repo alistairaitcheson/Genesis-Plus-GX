@@ -1781,7 +1781,7 @@ void modConsole_updateFrame() {
                         if (diedThisFrame) {
                             wasLevelCompletion = 0;
                         }
-                        
+
                         bumpNinesChallengeLevel(wasLevelCompletion);
                     } else {
                         // check for score totaliser spawned
@@ -2139,7 +2139,7 @@ void modConsole_updateFrame() {
 
 
                     char scoreAlert[0x80];
-                    sprintf(scoreAlert, "     YOU %03d - %03d OPPONENT", getBossRushRingCarryTotal(), getNinesOpponentRingCount());
+                    sprintf(scoreAlert, "      YOU %03d - %03d OPPONENT", getBossRushRingCarryTotal(), getNinesOpponentRingCount());
                     for (int xOff = -1; xOff <= 1; xOff++) {
                         for (int yOff = -1; yOff <= 1; yOff++) {
                             layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 8 + yOff, scoreAlert, 0xFF);
@@ -2149,13 +2149,22 @@ void modConsole_updateFrame() {
 
                     // TO DO - change this to show opponent's level name
                     char stageAlert[0x80];
-                    sprintf(stageAlert, "     STAGE %02d - %02d         ", getNinesLevelIndex(), getNinesOpponentLevelIndex());
+                    sprintf(stageAlert, "-");
+                    char yourLevelName[0x80];
+                    sprintf(yourLevelName, "%s", getNinesChallengeLevelName());
+                    char opponentLevelName[0x80];
+                    sprintf(opponentLevelName, "%s", getOpponentLevelName());
+
                     for (int xOff = -1; xOff <= 1; xOff++) {
                         for (int yOff = -1; yOff <= 1; yOff++) {
                             layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 20 + yOff, stageAlert, 0xFF);
+                            layerRenderer_writeWord256RightJustified(2, (vdp_getScreenWidth() / 2) + xOff - 12, 20 + yOff + 4, yourLevelName, 0xFF);
+                            layerRenderer_writeWord256(2, (vdp_getScreenWidth() / 2) + xOff + 12, 20 + yOff + 4, opponentLevelName, 0xFF);
                         }
                     }
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 20, stageAlert, 0x6);
+                    layerRenderer_writeWord256RightJustified(2, vdp_getScreenWidth() / 2 - 12, 20+4, yourLevelName, 0x6);
+                    layerRenderer_writeWord256(2, vdp_getScreenWidth() / 2 + 12, 20+4, opponentLevelName, 0x6);
                 }
             }
     

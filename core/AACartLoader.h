@@ -224,5 +224,9 @@ int getNinesOpponentLevelIndex();
 int getNinesLevelIndex();
 void setOpponentLevelKey(int toValue);
 void setOpponentLevelCompletionCount(int toValue);
+int getOpponentLevelKey();
+void addNinesChallengeLevel(int gameId, int zoneId, int actId, char name[]);
+char* getOpponentLevelName();
+char* getNinesChallengeLevelName();
 
 #endif

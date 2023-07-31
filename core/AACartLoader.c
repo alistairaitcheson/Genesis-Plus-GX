@@ -129,6 +129,7 @@ static int opponentHasCompletedNines = 0;
 static int youHaveWonNines = 0;
 static int opponentHasWonNines = 0;
 static int opponentLevelKey = 0;
+static char ninesChallengeLevelNames[0x1000][0x100];
 
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
@@ -4164,12 +4165,13 @@ int shouldUseNinesChallenge() {
     return ninesChallengeIsActive;
 }
 
-void addNinesChallengeLevel(int gameId, int zoneId, int actId) {
+void addNinesChallengeLevel(int gameId, int zoneId, int actId, char name[]) {
     for (int i = 0; i < 0x1000; i++) {
         if (ninesChallengeLevelsSource[i].gameId == -1) {
             ninesChallengeLevelsSource[i].gameId = gameId;
             ninesChallengeLevelsSource[i].actId = actId;
             ninesChallengeLevelsSource[i].zoneId = zoneId;
+            sprintf(ninesChallengeLevelNames[i], "%s", name);
             break;
         }
     }
@@ -4222,11 +4224,22 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[1].cheatFlags[5] = 0xFFEB;
     ninesChallengeGamesParameters[1].lifeUpFlaggedLocation = 0xFE1A;
 
+    char s1zones[6][0x100];
+    sprintf(s1zones[0], "Green Hill");
+    sprintf(s1zones[1], "Marble");
+    sprintf(s1zones[2], "Sprint Yard");
+    sprintf(s1zones[3], "Labyrinth");
+    sprintf(s1zones[4], "Star Light");
+    sprintf(s1zones[5], "Scrap Brain");
 
     for (int i = 0; i <= 5; i++) {
-        addNinesChallengeLevel(1,i,0);
-        addNinesChallengeLevel(1,i,1);
-        addNinesChallengeLevel(1,i,2);
+        char levelName[0x100];
+        sprintf(levelName, "%s 1", s1zones[i]);
+        addNinesChallengeLevel(1,i,0,levelName);
+        sprintf(levelName, "%s 2", s1zones[i]);
+        addNinesChallengeLevel(1,i,1,levelName);
+        sprintf(levelName, "%s 3", s1zones[i]);
+        addNinesChallengeLevel(1,i,2,levelName);
     }
 
     // SONIC 2
@@ -4250,13 +4263,26 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[2].cartLimitLocations[2] = 0x11FDA;
     ninesChallengeGamesParameters[2].cartLimitLocations[3] = 0x11FDB;
 
+    char s2zones[8][0x100];
+    sprintf(s2zones[0], "Emerald Hill");
+    sprintf(s2zones[1], "Chemical Plant");
+    sprintf(s2zones[2], "Aquatic Ruins");
+    sprintf(s2zones[3], "Casino Night");
+    sprintf(s2zones[4], "Hill Top");
+    sprintf(s2zones[5], "Mystic Cave");
+    sprintf(s2zones[6], "Oil Ocean");
+    sprintf(s2zones[7], "Metropolis");
+
     for (int i = 0; i <= 7; i++) {
-        addNinesChallengeLevel(2,i,0);
-        addNinesChallengeLevel(2,i,1);
+        char levelName[0x100];
+        sprintf(levelName, "%s 1", s2zones[i]);
+        addNinesChallengeLevel(2,i,0,levelName);
+        sprintf(levelName, "%s 2", s2zones[i]);
+        addNinesChallengeLevel(2,i,1,levelName);
     }
-    addNinesChallengeLevel(2,7,2);
-    addNinesChallengeLevel(2,8,0);
-    addNinesChallengeLevel(2,9,0);
+    addNinesChallengeLevel(2,7,2, "Metropolis 3");
+    addNinesChallengeLevel(2,8,0, "Sky Chase");
+    addNinesChallengeLevel(2,9,0, "Wing Fortress");
 
     // SONIC 3
     ninesChallengeGamesParameters[3].resetStageFlagLocation = 0xF601;
@@ -4279,9 +4305,20 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[3].cartLimitLocations[2] = 0x18D84;
     ninesChallengeGamesParameters[3].cartLimitLocations[3] = 0x18D85;
     
+    char s3zones[6][0x100];
+    sprintf(s3zones[0], "Angel Island");
+    sprintf(s3zones[1], "Hydrocity");
+    sprintf(s3zones[2], "Marble Garden");
+    sprintf(s3zones[3], "Carnival Night");
+    sprintf(s3zones[4], "Icecap");
+    sprintf(s3zones[5], "Launch Base");
+
     for (int i = 0; i <= 5; i++) {
-        addNinesChallengeLevel(3,i,0);
-        addNinesChallengeLevel(3,i,1);
+        char levelName[0x100];
+        sprintf(levelName, "%s 1", s3zones[i]);
+        addNinesChallengeLevel(3,i,0,levelName);
+        sprintf(levelName, "%s 2", s3zones[i]);
+        addNinesChallengeLevel(3,i,1,levelName);
     }
     
     // SONIC & KNUCKES
@@ -4305,14 +4342,24 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[4].cartLimitLocations[2] = 0x1A5A8;
     ninesChallengeGamesParameters[4].cartLimitLocations[3] = 0x1A5A9;
 
+    char sKzones[4][0x100];
+    sprintf(sKzones[0], "Mushroom Hill");
+    sprintf(sKzones[1], "Flying Battery");
+    sprintf(sKzones[2], "Sandopolis");
+    sprintf(sKzones[3], "Lava Reef");
+
+
     for (int i = 0; i <= 3; i++) {
-        addNinesChallengeLevel(4,i,0);
-        addNinesChallengeLevel(4,i,1);
+        char levelName[0x100];
+        sprintf(levelName, "%s 1", sKzones[i]);
+        addNinesChallengeLevel(4,i,0,levelName);
+        sprintf(levelName, "%s 2", sKzones[i]);
+        addNinesChallengeLevel(4,i,1,levelName);
     }
-    addNinesChallengeLevel(4,4,0);
-    addNinesChallengeLevel(4,5,0);
-    addNinesChallengeLevel(4,6,0);
-    addNinesChallengeLevel(4,6,1);
+    addNinesChallengeLevel(4,4,0,"Hidden Palace");
+    addNinesChallengeLevel(4,5,0,"Sky Sanctuary");
+    addNinesChallengeLevel(4,6,0,"Death Egg 1");
+    addNinesChallengeLevel(4,6,1,"Death Egg 2");
 
     // SONIC 3D Blast
     ninesChallengeGamesParameters[6].resetStageFlagLocation = 0;
@@ -4326,9 +4373,21 @@ void populateNinesChallengeLevelSource() {
 
     ninesChallengeGamesParameters[6].cheatFlags[0] = 0x040C;
 
+    char s3DBzones[7][0x100];
+    sprintf(s3DBzones[0], "Green Grove");
+    sprintf(s3DBzones[1], "Rusty Ruin");
+    sprintf(s3DBzones[2], "Spring Stadium");
+    sprintf(s3DBzones[3], "Diamond Dust");
+    sprintf(s3DBzones[4], "Volcano Valley");
+    sprintf(s3DBzones[5], "Gene Gadget");
+    sprintf(s3DBzones[6], "Panic Puppet");
+
     for (int i = 0; i <= 6; i++) {
-        addNinesChallengeLevel(6,i,0);
-        addNinesChallengeLevel(6,i,1);
+        char levelName[0x100];
+        sprintf(levelName, "%s 1", s3DBzones[i]);
+        addNinesChallengeLevel(6,i,0,levelName);
+        sprintf(levelName, "%s 2", s3DBzones[i]);
+        addNinesChallengeLevel(6,i,1,levelName);
     }
 }
 
@@ -4548,6 +4607,12 @@ void loadNinesChallengeStage() {
     //     sprintf(message, "%ic", ninesChallengeStageIndex);
     //     cartLoader_writeActionToNetwork(message);
     // }
+
+    if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
+        char message[0x100];
+        sprintf(message, "%ig", ninesChallengeLevelIndexOrder[ninesChallengeStageIndex]);
+        cartLoader_writeActionToNetwork(message);
+    }
 }
 
 void setNinesChallengeOppponentStageIndex(int toIndex) {
@@ -4594,6 +4659,8 @@ void beginNinesChallenge() {
 
     cartLoader_cacheSaveStateBeforeMenu();
     vdp_setShouldRandomiseColours(0);
+
+
 }
 
 int incrementNinesChallengeStageCompletionCount() {
@@ -4615,7 +4682,7 @@ void bumpNinesChallengeLevel(int wasLevelClear) {
     }
     if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
         char message[0x100];
-        sprintf(message, "%if%g", ninesChallengeStageIndex, ninesChallengeLevelIndexOrder[ninesChallengeStageIndex]);
+        sprintf(message, "%if%ig", ninesChallengeStageIndex, ninesChallengeLevelIndexOrder[ninesChallengeStageIndex]);
         cartLoader_writeActionToNetwork(message);
 
         alertYouClearedStage();
@@ -4848,4 +4915,16 @@ void onNinesLevelFullyCompleted() {
 
 void setOpponentLevelKey(int toValue) {
     opponentLevelKey = toValue;
+}
+
+int getOpponentLevelKey() {
+    return opponentLevelKey;
+}
+
+char* getOpponentLevelName() {
+    return ninesChallengeLevelNames[getOpponentLevelKey()];
+}
+
+char* getNinesChallengeLevelName() {
+    return ninesChallengeLevelNames[ninesChallengeLevelIndexOrder[ninesChallengeStageIndex]];
 }
