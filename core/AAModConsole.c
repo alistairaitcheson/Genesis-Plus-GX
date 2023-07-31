@@ -2158,13 +2158,13 @@ void modConsole_updateFrame() {
                     for (int xOff = -1; xOff <= 1; xOff++) {
                         for (int yOff = -1; yOff <= 1; yOff++) {
                             layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 20 + yOff, stageAlert, 0xFF);
-                            layerRenderer_writeWord256RightJustified(2, (vdp_getScreenWidth() / 2) + xOff - 12, 20 + yOff + 4, yourLevelName, 0xFF);
-                            layerRenderer_writeWord256(2, (vdp_getScreenWidth() / 2) + xOff + 12, 20 + yOff + 4, opponentLevelName, 0xFF);
+                            layerRenderer_writeWord256RightJustified(2, (vdp_getScreenWidth() / 2) + xOff - 12, 20 + yOff - 4, yourLevelName, 0xFF);
+                            layerRenderer_writeWord256(2, (vdp_getScreenWidth() / 2) + xOff + 12, 20 + yOff - 4, opponentLevelName, 0xFF);
                         }
                     }
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 20, stageAlert, 0x6);
-                    layerRenderer_writeWord256RightJustified(2, vdp_getScreenWidth() / 2 - 12, 20+4, yourLevelName, 0x6);
-                    layerRenderer_writeWord256(2, vdp_getScreenWidth() / 2 + 12, 20+4, opponentLevelName, 0x6);
+                    layerRenderer_writeWord256RightJustified(2, vdp_getScreenWidth() / 2 - 12, 20-4, yourLevelName, 0x6);
+                    layerRenderer_writeWord256(2, vdp_getScreenWidth() / 2 + 12, 20-4, opponentLevelName, 0x6);
                 }
             }
     
