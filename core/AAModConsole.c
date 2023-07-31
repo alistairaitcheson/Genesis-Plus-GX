@@ -176,7 +176,7 @@ int receiveRingsFromOpponent(int ringCount) {
     int amountAdded = 0;
 
     char deductLog1[0x100];
-    sprintf(deductLog1, "deductFromRingCount: %i", ringCount);
+    sprintf(deductLog1, "receiveRingsFromOpponent: %i", ringCount);
     cartLoader_appendToLog(deductLog1);
 
     for (int i = 0; i < ringCount; i++) {
@@ -1600,7 +1600,7 @@ void modConsole_updateFrame() {
                             if (amountLost > 0) {
                                 // send these rings to opponent!
                                 char action[0x80];
-                                sprintf(action, "%id");
+                                sprintf(action, "%id", ringLoss);
                                 cartLoader_writeActionToNetwork(action);
                                 ninesStatusMessageTime = 120;
                                 if (amountLost == 1) {
