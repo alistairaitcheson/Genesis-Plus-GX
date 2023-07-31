@@ -4731,6 +4731,14 @@ void clearNinesRingCheckpoints() {
     ninesRingCheckpointCount = 0;
 }
 
+int getNinesRingCheckpointIndex() {
+    return ninesRingCheckpointCount;
+}
+
+int getNinesRingCheckpointAtIndex(int index) {
+    return ninesRingCheckpoints[index];
+}
+
 int getCurrentNinesRingCheckpoint() {
     if (ninesRingCheckpointCount > 0) {
         return ninesRingCheckpoints[ninesRingCheckpointCount - 1];

@@ -1825,7 +1825,7 @@ void modConsole_updateFrame() {
                         cacheBossRushRingCount(1);
 
                         ringsWentToZero = 0;
-                        if (ninesOptions.shouldUseCheckpoints == 2) {
+                        if (ninesOptions.shouldUseCheckpoints == 1) {
                             stepBackNinesRingCheckpoint();
                         }
                     }
@@ -2052,7 +2052,11 @@ void modConsole_updateFrame() {
                     // do the below if I want to show your record highest ring count!
                     // or best time if they have a previous completion
 
-                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (11 * 8 / 2), vdp_getScreenHeight() - 20, 11 * 8, 8, 0x5);
+                    int barWidth = 9;
+                    if (getNinesChallengeTarget() > 1000) {
+                        barWidth = 11;
+                    }
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (barWidth * 8 / 2), vdp_getScreenHeight() - 20, barWidth * 8, 8, 0x5);
 
                     char canCache[0x80];
                     sprintf(canCache, " ");
@@ -2081,6 +2085,15 @@ void modConsole_updateFrame() {
                             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, vdp_getScreenHeight() / 2, ringsText, 0x6);
                         }
                     }
+
+                    // for (int i = 0; i < getNinesRingCheckpointIndex(); i++) {
+                    //     char checkpointText[0x80];
+                    //     sprintf(checkpointText, "%i", getNinesRingCheckpointAtIndex(i));
+                    //     layerRenderer_writeWord256(2, 0, i * 8, checkpointText, 0x6);
+                    // }
+                    // char checkpointIndexText[0x80];
+                    // sprintf(checkpointIndexText, "%i", getNinesRingCheckpointIndex());
+                    // layerRenderer_writeWord256(2, 5 * 8, 0, checkpointIndexText, 0x6);
                 }
 
                 // check for opponent being ahead!

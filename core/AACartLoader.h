@@ -203,6 +203,8 @@ int checkForNinesChallengeStart();
 
 void clearNinesRingCheckpoints();
 int getCurrentNinesRingCheckpoint();
+int getNinesRingCheckpointIndex();
+int getNinesRingCheckpointAtIndex(int index);
 void storeNinesRingCheckpoint(int ringCount);
 void stepBackNinesRingCheckpoint();
 int canStoreNinesRingCheckpoint(int ringCount);
