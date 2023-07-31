@@ -155,10 +155,6 @@ void alertOpponentClearedStage() {
     sprintf(ninesStatusMessage, "Opponent has cleared a stage");
 }
 
-void alertOpponentClearedStage() {
-
-}
-
 void requestFlashRingsToGo() {
     flashRingsToGoCountTime = flashRingsToGoDuration;
 }
@@ -180,10 +176,10 @@ int receiveRingsFromOpponent(int ringCount) {
     int amountAdded = 0;
 
     char deductLog1[0x100];
-    sprintf(deductLog1, "deductFromRingCount: %i", amount);
+    sprintf(deductLog1, "deductFromRingCount: %i", ringCount);
     cartLoader_appendToLog(deductLog1);
 
-    for (int i = 0; i < amount; i++) {
+    for (int i = 0; i < ringCount; i++) {
         int lowByte = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]);
         int highByte = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]);
 
@@ -1988,7 +1984,7 @@ void modConsole_updateFrame() {
         if (shouldUseNinesChallenge()) {
             // SHOW NINES CHALLENGE TIMER
             if ( getNinesChallengeComplete() == 1) {
-                if (getBestNinesChallengeRingCount() >= getNinesChallengeTarget() {
+                if (getBestNinesChallengeRingCount() >= getNinesChallengeTarget()) {
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "CHALLENGE COMPLETE!", 0xFF);

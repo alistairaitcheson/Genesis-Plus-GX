@@ -4812,7 +4812,7 @@ int getLevelCompletionCount() {
 }
 
 void setOpponentLevelCompletionCount(int toValue) {
-    if (ninesOpponentLevelCompletionCount != toIndex) {
+    if (ninesOpponentLevelCompletionCount != toValue) {
         resetNinesOpponentLeadCountdown();
         alertOpponentClearedStage();
     }

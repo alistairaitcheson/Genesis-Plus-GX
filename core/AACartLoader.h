@@ -221,5 +221,6 @@ void onNinesLevelFullyCompleted();
 int getNinesOpponentLevelIndex();
 int getNinesLevelIndex();
 void setOpponentLevelKey(int toValue);
+void setOpponentLevelCompletionCount(int toValue);
 
 #endif
