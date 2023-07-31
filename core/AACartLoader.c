@@ -318,7 +318,7 @@ void cartLoader_run() {
     gameTransferListings[1].gameStatesToBlockScramble[1] = 0x04; // TITLE SCREEN
     gameTransferListings[1].gameStatesToBlockScramble[2] = 0x10; // SPECIAL STAGE
     gameTransferListings[1].gameStatesToBlockScramble[3] = 0x14; // CONTINUE SCREEN
-    gameListings[1].valueWriteDuration = 60;
+    gameListings[1].valueWriteDuration = 60; // sonic 1 ring counter flickers if this is set to 0
     scoreMonitorListings[1].allowStackRingInputs = 1;
     standTriggerListings[1].standingByte = 0xD023;
     standTriggerListings[1].standingBit = 1;
@@ -362,6 +362,7 @@ void cartLoader_run() {
     musicOverrideListings[2].byteToWriteToForNoMusic = 0x1B88;
     musicOverrideListings[2].valueToWriteForNoMusic = 0;
     musicOverrideListings[2].applyChangeDuration = 5;
+    gameListings[2].valueWriteDuration = 0;
 
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
     terminalNamePerRom[3] = "Sonic the Hedgehog 3";
@@ -426,6 +427,7 @@ void cartLoader_run() {
     musicOverrideListings[3].secondValueToWriteForNoMusic = 0x00;
     // musicOverrideListings[3].byteStringLengthToWriteForNoMusic = 4;
     musicOverrideListings[3].applyChangeDuration = 180;
+    gameListings[3].valueWriteDuration = 0;
 
     writeStringToArray32("SONIC&KNUCKLES", gameListings[4].gameId);//gameListings[3].gameId = {'S','O','N','I','C','&','K','N','U','C','K','L','E','S','\0'};
     terminalNamePerRom[4] = "Sonic & Knuckles";

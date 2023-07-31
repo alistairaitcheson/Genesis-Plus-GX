@@ -2052,7 +2052,7 @@ void modConsole_updateFrame() {
                     // do the below if I want to show your record highest ring count!
                     // or best time if they have a previous completion
 
-                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 20, 9 * 8, 8, 0x5);
+                    layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (11 * 8 / 2), vdp_getScreenHeight() - 20, 11 * 8, 8, 0x5);
 
                     char canCache[0x80];
                     sprintf(canCache, " ");
@@ -2061,7 +2061,11 @@ void modConsole_updateFrame() {
                     }
 
                     char progressText[0x80];
-                    sprintf(progressText, "%03i (%03i)", getBossRushRingCarryTotal(), getCurrentNinesRingCheckpoint());
+                    if (getNinesChallengeTarget() < 1000) {
+                        sprintf(progressText, "%03i (%03i)", getBossRushRingCarryTotal(), getCurrentNinesRingCheckpoint());
+                    } else {
+                        sprintf(progressText, "%04i (%04i)", getBossRushRingCarryTotal(), getCurrentNinesRingCheckpoint());
+                    }
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
                 
                     if (flashRingsToGoCountTime > 0) {
