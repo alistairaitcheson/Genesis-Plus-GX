@@ -2314,6 +2314,14 @@ void modConsole_updateFrame() {
     //     showUnclippedButtonStateAtIndex(i);
     //    }
 
+        int xPressed = ((int)((padState) & 256));
+        int yPressed = ((int)((padState) & 512));
+        int zPressed = ((int)((padState) & 1028));
+
+        char bottomRow[0x80];
+        sprintf(bottomRow, "%i %i %i", xPressed, yPressed, zPressed);
+        layerRenderer_writeWord256(3, 200,  0, bottomRow, 0xFF);
+
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
         //     buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
         //     buttonStateAtIndex(INPUT_INDEX_A) != 0) {
@@ -2353,14 +2361,12 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
         {
             modConsole_activatePanic();
-        } else if (
-            // show the terminal!!
-            // buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 &&
-            // buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-            // buttonStateAtIndex(INPUT_INDEX_A) != 0)
-            buttonStateAtIndex(INPUT_INDEX_A) != 0) // Press the A button for terminal
+        } else if (xPressed != 0) // Press the X button for terminal
         {
             menuDisplay_showTerminalMenu();
+        }else if (yPressed != 0) // Press the A button for sonic death
+        {
+            modConsole_activatePanic();
         } else if (
             buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_LEFT) != 0
@@ -2374,11 +2380,12 @@ void modConsole_updateFrame() {
             dismissStartupHint(0);
         }
         
-        if (
+        if 
             // rewind!
-            (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 &&
+            ((buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_B) != 0) || shouldRewind == 1)
+            buttonStateAtIndex(INPUT_INDEX_B) != 0) || shouldRewind == 1
+            || zPressed)
         {
             showRewindSymbol();
             if (framesHeldDownRewindButtons % 30 == 0) {
