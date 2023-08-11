@@ -108,8 +108,9 @@ static int SHOW_SHUFFLE_ALERT_DURATION = 2 * 60;
 static int shouldCheckForIdleMode = 0;
 static int idleModeFrameCount = 0;
 static int idleModeActive = 0;
-//3 minutes
-static int MAX_FRAMES_FOR_IDLE_MODE = 60 * 60 * 3;
+
+//2 minutes
+static int MAX_FRAMES_FOR_IDLE_MODE = 60 * 60 * 2;
 
 int countdownToUnrandomiseColours = 0;
 
@@ -2309,6 +2310,10 @@ void modConsole_updateFrame() {
         }
         */
 
+    //    for (int i = 0; i < 16; i++) {
+    //     showUnclippedButtonStateAtIndex(i);
+    //    }
+
         // if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
         //     buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
         //     buttonStateAtIndex(INPUT_INDEX_A) != 0) {
@@ -2350,11 +2355,12 @@ void modConsole_updateFrame() {
             modConsole_activatePanic();
         } else if (
             // show the terminal!!
-            buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_A) != 0)
+            // buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 &&
+            // buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+            // buttonStateAtIndex(INPUT_INDEX_A) != 0)
+            buttonStateAtIndex(INPUT_INDEX_A) != 0) // Press the A button for terminal
         {
-            // menuDisplay_showTerminalMenu();
+            menuDisplay_showTerminalMenu();
         } else if (
             buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_LEFT) != 0
@@ -3800,6 +3806,22 @@ int lastButtonStateAtIndex(int index) {
     } else {
         return 1;
     }
+}
+
+int showUnclippedButtonStateAtIndex(int index) {
+    uint testNum = 1;
+    for (int i = 0; i < index; i++) {
+        testNum = testNum * 2;
+    }
+
+    int result = ((int)((padState) & testNum));
+
+    char topRow[0x80];
+    sprintf(topRow, "%i", index);
+    char bottomRow[0x80];
+    sprintf(bottomRow, "%i", result);
+    layerRenderer_writeWord256(3, 0,  index * 8, topRow, 0xFF);
+    layerRenderer_writeWord256(3, 24, index * 8, bottomRow, 0xFF);
 }
 
 int buttonStateAtIndex(int index) {

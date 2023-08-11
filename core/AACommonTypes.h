@@ -184,5 +184,8 @@ static int INPUT_INDEX_A = 6;
 static int INPUT_INDEX_B = 4;
 static int INPUT_INDEX_C = 5;
 static int INPUT_INDEX_START = 7;
+// static int INPUT_INDEX_Z = 8;
+// static int INPUT_INDEX_Y = 9;
+// static int INPUT_INDEX_X = 10;
 
 #endif

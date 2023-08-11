@@ -193,4 +193,6 @@ int receiveRingsFromOpponent(int ringCount);
 void alertYouClearedStage();
 void alertOpponentClearedStage();
 
+int showUnclippedButtonStateAtIndex(int index);
+
 #endif

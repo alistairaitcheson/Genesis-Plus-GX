@@ -2221,10 +2221,10 @@ void enterTerminalOption() {
     gameSuiteSelectIndex = 0;
 
     if (terminalLocationIndex == 2) {
-        terminalActiveRules = TERMINAL_RULSET_SHUFFLER; 
+        terminalActiveRules = TERMINAL_RULSET_SHUFFLER_WITH_VRAM; 
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_SHUFFLER);
     } else if (terminalLocationIndex == 3) {
-        terminalActiveRules = TERMINAL_RULSET_SHUFFLER_WITH_VRAM;
+        terminalActiveRules = TERMINAL_RULSET_SHUFFLER;
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_SHUFFLER);
     } else if (terminalLocationIndex == 4) {
         terminalActiveRules = TERMINAL_RULSET_RINGS_MAKE_FASTER;
@@ -4862,8 +4862,8 @@ void showTerminalMenu() {
     sprintf(lines[1], "you get a ring");
     linesWithBreakAfter[1] = 1;
 
-    sprintf(lines[2], "  Switch game");
-    sprintf(lines[3], "  Switch game and keep Video Ram");
+    sprintf(lines[2], "  Switch game and keep Video Ram");
+    sprintf(lines[3], "  Switch game");
     sprintf(lines[4], "  Sonic gets faster");
     sprintf(lines[5], "  Level is corrupted");
     sprintf(lines[6], "  Memory is corrupted");
@@ -4873,7 +4873,7 @@ void showTerminalMenu() {
     sprintf(lines[8], "Choose a new way to play");
     linesWithBreakAfter[8] = 1;
     sprintf(lines[9], "  Sonic Boss Rush");
-    sprintf(lines[10], "  4 players 1 controller");
+    sprintf(lines[10], "  Random controls");
     sprintf(lines[11], "  Sort colours");
     sprintf(lines[12], "  No background");
     sprintf(lines[13], "  No sprites");
