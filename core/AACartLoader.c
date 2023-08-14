@@ -4695,7 +4695,7 @@ void bumpNinesChallengeLevel(int wasLevelClear) {
         sprintf(message, "%if%ig", ninesChallengeStageIndex, ninesChallengeLevelIndexOrder[ninesChallengeStageIndex]);
         cartLoader_writeActionToNetwork(message);
 
-        alertYouClearedStage();
+        // alertYouClearedStage();
     }
 
     storeNinesRingCheckpoint(bossRushRingCarryTotal);
@@ -4956,12 +4956,17 @@ int getCurrentNinesStageMarkerFromRAM() {
     return (zoneIndex * 0x100) + actIndex;
 }
 
+int getCachedNinesStageFromRAM() {
+    return currentNinesStageFromRAM;
+}
+
+
 void cacheCurrentNinesStageFromRAM() {
     currentNinesStageFromRAM = getCurrentNinesStageMarkerFromRAM();
 }
 
 int stageInRAMHasChanged() {
-    if (currentNinesStageFromRAM == getCurrentNinesStageMarkerFromRAM()) {
+    if (currentNinesStageFromRAM != getCurrentNinesStageMarkerFromRAM()) {
         return 1;
     }
     return 0;

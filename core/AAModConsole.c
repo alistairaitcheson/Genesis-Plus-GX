@@ -1767,22 +1767,30 @@ void modConsole_updateFrame() {
                             if (// not blue spheres
                                 aa_genesis_getWorkRam(levelSwitchIndex) != 0x34
                                 // not bonus stage
-                                && aa_genesis_getWorkRam(0xFE11) != 0x13 && aa_genesis_getWorkRam(0xFE11) != 0x14 && aa_genesis_getWorkRam(0xFE11) != 0x15) {
+                                && aa_genesis_getWorkRam(0xFE11) != 0x13 && aa_genesis_getWorkRam(0xFE11) != 0x14 && aa_genesis_getWorkRam(0xFE11) != 0x15
+                                && stageInRAMHasChanged()) {
                                 wasLevelCompletion = 1;
                             }
                         } 
                         if (ninesStage.gameId == 6) {
                             // add an "IF NOT TAILS/KNUCKLES"
-                            if (// Knuckles does not have 50+ rings
-                                (aa_genesis_getWorkRam(0x06A0) + (aa_genesis_getWorkRam(0x06A1) * 0x100)) < 50
-                                // Tails does not have 50+ rings
-                                && aa_genesis_getWorkRam(0x069E) + (aa_genesis_getWorkRam(0x06AF) * 0x100) < 50) {
+                            // *** and add an if not death
+                            if (// is not transitioning to special stage
+                                aa_genesis_getWorkRam(0x0685) == 0 && aa_genesis_getWorkRam(0x0684) == 0
+                                // // Knuckles does not have 50+ rings
+                                // (aa_genesis_getWorkRam(0x06A0) + (aa_genesis_getWorkRam(0x06A1) * 0x100)) < 50
+                                // // Tails does not have 50+ rings
+                                // && aa_genesis_getWorkRam(0x069E) + (aa_genesis_getWorkRam(0x069F) * 0x100) < 50
+                                && diedThisFrame == 0) {
                                 wasLevelCompletion = 1;
                             }
+                            
                         }
                         if (ninesStage.gameId == 1 || ninesStage.gameId == 2) {
                             // add an "IF LEVEL INDEX HAS CHANGED" for Wing Fortress --> Death Egg, 
-                            if (stageInRAMHasChanged()) {
+                            // and add an "is not special stages"
+                            if (stageInRAMHasChanged()
+                                && aa_genesis_getWorkRam(levelSwitchIndex) != 0x10) {
                                 wasLevelCompletion = 1;
                             }
                         } 
@@ -1806,6 +1814,12 @@ void modConsole_updateFrame() {
                     //     bumpNinesChallengeLevel(0);
                     // }
                 }
+
+                // //DEBUG INFO
+                // char ninesDebugInfo[0x100];
+                // sprintf(ninesDebugInfo, "K: %02X %02X, T: %02X %02X", aa_genesis_getWorkRam(0x06A0), aa_genesis_getWorkRam(0x06A1), aa_genesis_getWorkRam(0x069E), aa_genesis_getWorkRam(0x069F));
+                // // sprintf(ninesDebugInfo, "%04X %04X", getCachedNinesStageFromRAM(), getCurrentNinesStageMarkerFromRAM());
+                // layerRenderer_writeWord256(3, 0, 32, ninesDebugInfo, 0xFF);
 
                 // CHECK FOR END OF GAME!!
                 if (getBossRushRingCarryTotal() >= getNinesChallengeTarget()) {

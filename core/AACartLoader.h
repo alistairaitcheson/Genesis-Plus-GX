@@ -232,5 +232,6 @@ char* getNinesChallengeLevelName();
 int getCurrentNinesStageMarkerFromRAM();
 void cacheCurrentNinesStageFromRAM();
 int stageInRAMHasChanged();
+int getCachedNinesStageFromRAM();
 
 #endif
