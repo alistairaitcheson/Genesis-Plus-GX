@@ -1652,7 +1652,7 @@ void modConsole_updateFrame() {
                 // their count will wrap back to 0, so instead make sure it doesn't!
                 if (ninesStage.gameId == 6) {
                     // was the player over 9990 last frame, and is not damaged?
-                    if (getBossRushRingCarryTotal() > 9990 && aa_genesis_getWorkRam(damageBoostIndex) > damageBoostMaximum) {
+                    if (getBossRushRingCarryTotal() > 9990 && aa_genesis_getWorkRam(damageBoostIndex) <= damageBoostMaximum) {
                         // has the player wrapped back to 0 rings?
                         if (gameTransferListing.ringBytesForTransfer[1] < 10 && 
                             gameTransferListing.ringBytesForTransfer[0] < 10) {
@@ -1666,7 +1666,7 @@ void modConsole_updateFrame() {
                 // in Sonic 3D blast, visiting Knuckles or Tails will
                 // read from a cached ring count in normal 8-bit number.
                 // Make sure we cache that number properly
-                if (ninesStage.gameId == 6 && aa_genesis_getWorkRam(damageBoostIndex) > damageBoostMaximum) {
+                if (ninesStage.gameId == 6 && aa_genesis_getWorkRam(damageBoostIndex) <= damageBoostMaximum) {
                     int units = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) % 0x10;
                     int tens = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) / 0x10;
                     int hundreds = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) % 0x10;
@@ -1772,20 +1772,7 @@ void modConsole_updateFrame() {
                                 wasLevelCompletion = 1;
                             }
                         } 
-                        if (ninesStage.gameId == 6) {
-                            // add an "IF NOT TAILS/KNUCKLES"
-                            // *** and add an if not death
-                            if (// is not transitioning to special stage
-                                aa_genesis_getWorkRam(0x0685) == 0 && aa_genesis_getWorkRam(0x0684) == 0
-                                // // Knuckles does not have 50+ rings
-                                // (aa_genesis_getWorkRam(0x06A0) + (aa_genesis_getWorkRam(0x06A1) * 0x100)) < 50
-                                // // Tails does not have 50+ rings
-                                // && aa_genesis_getWorkRam(0x069E) + (aa_genesis_getWorkRam(0x069F) * 0x100) < 50
-                                && diedThisFrame == 0) {
-                                wasLevelCompletion = 1;
-                            }
-                            
-                        }
+
                         if (ninesStage.gameId == 1 || ninesStage.gameId == 2) {
                             // add an "IF LEVEL INDEX HAS CHANGED" for Wing Fortress --> Death Egg, 
                             // and add an "is not special stages"
@@ -1797,14 +1784,32 @@ void modConsole_updateFrame() {
 
                         bumpNinesChallengeLevel(wasLevelCompletion);
                     } else {
+                        int wasLevelCompletion = 1;
+                        if (ninesStage.gameId == 6) {
+                            // add an "IF NOT TAILS/KNUCKLES"
+                            // *** and add an if not death
+                            if (// is not transitioning to special stage
+                                aa_genesis_getWorkRam(0x0685) == 0 && aa_genesis_getWorkRam(0x0684) == 0
+                                // Knuckles does not have 50+ rings
+                                && (aa_genesis_getWorkRam(0x06A0) + (aa_genesis_getWorkRam(0x06A1) * 0x100)) < 50
+                                // Tails does not have 50+ rings
+                                && aa_genesis_getWorkRam(0x069E) + (aa_genesis_getWorkRam(0x069F) * 0x100) < 50
+                                && diedThisFrame == 0) {
+                                wasLevelCompletion = 1;
+                            } else {
+                                wasLevelCompletion = 0;
+                            }
+                            
+                        }
+
                         // check for score totaliser spawned
                         if (levelEndValue >= 0x100) {
                             if (aa_genesis_getWorkRam(levelEndLocation) > 0) {
-                                bumpNinesChallengeLevel(1);
+                                bumpNinesChallengeLevel(wasLevelCompletion);
                             }
                         } else {
                             if (aa_genesis_getWorkRam(levelEndLocation) == levelEndValue) {
-                                bumpNinesChallengeLevel(1);
+                                bumpNinesChallengeLevel(wasLevelCompletion);
                             }
                         }
                     }
@@ -1816,10 +1821,10 @@ void modConsole_updateFrame() {
                 }
 
                 // //DEBUG INFO
-                // char ninesDebugInfo[0x100];
-                // sprintf(ninesDebugInfo, "K: %02X %02X, T: %02X %02X", aa_genesis_getWorkRam(0x06A0), aa_genesis_getWorkRam(0x06A1), aa_genesis_getWorkRam(0x069E), aa_genesis_getWorkRam(0x069F));
-                // // sprintf(ninesDebugInfo, "%04X %04X", getCachedNinesStageFromRAM(), getCurrentNinesStageMarkerFromRAM());
-                // layerRenderer_writeWord256(3, 0, 32, ninesDebugInfo, 0xFF);
+                char ninesDebugInfo[0x100];
+                sprintf(ninesDebugInfo, "K: %02X %02X, T: %02X %02X", aa_genesis_getWorkRam(0x06A0), aa_genesis_getWorkRam(0x06A1), aa_genesis_getWorkRam(0x069E), aa_genesis_getWorkRam(0x069F));
+                // sprintf(ninesDebugInfo, "%04X %04X", getCachedNinesStageFromRAM(), getCurrentNinesStageMarkerFromRAM());
+                layerRenderer_writeWord256(3, 0, 32, ninesDebugInfo, 0xFF);
 
                 // CHECK FOR END OF GAME!!
                 if (getBossRushRingCarryTotal() >= getNinesChallengeTarget()) {
