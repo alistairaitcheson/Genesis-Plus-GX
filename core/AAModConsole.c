@@ -1820,11 +1820,11 @@ void modConsole_updateFrame() {
                     // }
                 }
 
-                // //DEBUG INFO
-                char ninesDebugInfo[0x100];
-                sprintf(ninesDebugInfo, "K: %02X %02X, T: %02X %02X", aa_genesis_getWorkRam(0x06A0), aa_genesis_getWorkRam(0x06A1), aa_genesis_getWorkRam(0x069E), aa_genesis_getWorkRam(0x069F));
-                // sprintf(ninesDebugInfo, "%04X %04X", getCachedNinesStageFromRAM(), getCurrentNinesStageMarkerFromRAM());
-                layerRenderer_writeWord256(3, 0, 32, ninesDebugInfo, 0xFF);
+                // // //DEBUG INFO
+                // char ninesDebugInfo[0x100];
+                // sprintf(ninesDebugInfo, "K: %02X %02X, T: %02X %02X", aa_genesis_getWorkRam(0x06A0), aa_genesis_getWorkRam(0x06A1), aa_genesis_getWorkRam(0x069E), aa_genesis_getWorkRam(0x069F));
+                // // sprintf(ninesDebugInfo, "%04X %04X", getCachedNinesStageFromRAM(), getCurrentNinesStageMarkerFromRAM());
+                // layerRenderer_writeWord256(3, 0, 32, ninesDebugInfo, 0xFF);
 
                 // CHECK FOR END OF GAME!!
                 if (getBossRushRingCarryTotal() >= getNinesChallengeTarget()) {
@@ -2101,17 +2101,27 @@ void modConsole_updateFrame() {
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
                 
                     if (flashRingsToGoCountTime > 0) {
+                        int offsetX = 0;
+                        if (flashRingsToGoCountTime < 20) {
+                            offsetX = -(20 - flashRingsToGoCountTime) * (vdp_getScreenWidth() / 20);
+                        } else {
+                            int enterTime = flashRingsToGoCountTime - (flashRingsToGoDuration - 20);
+                            if (enterTime > 0 ) {
+                                offsetX = enterTime * (vdp_getScreenWidth() / 20);
+                            }
+                        }
+
                         flashRingsToGoCountTime--;
-                        if (flashRingsToGoCountTime % (flashRingsToGoPeriod * 2) < flashRingsToGoPeriod) {
+                        layerRenderer_fill(2, 0 - offsetX, vdp_getScreenHeight() / 2 - 6, vdp_getScreenWidth(), 12, 0xFF);
+                        layerRenderer_fill(2, 0 - offsetX, vdp_getScreenHeight() / 2 - 5, vdp_getScreenWidth(), 10, 0x05);
                             char ringsText[0x80];
                             sprintf(ringsText, "%i to go!", getNinesChallengeTarget() - getBossRushRingCarryTotal());
                             for (int xOff = -1; xOff <= 1; xOff++) {
                                 for (int yOff = -1; yOff <= 1; yOff++) {
-                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, vdp_getScreenHeight() / 2 + yOff, ringsText, 0xFF);
+                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff + offsetX, vdp_getScreenHeight() / 2 + yOff, ringsText, 0xFF);
                                 }
                             }
-                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, vdp_getScreenHeight() / 2, ringsText, 0x6);
-                        }
+                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2 + offsetX, vdp_getScreenHeight() / 2, ringsText, 0x6);
                     }
 
                     // for (int i = 0; i < getNinesRingCheckpointIndex(); i++) {
@@ -2162,10 +2172,13 @@ void modConsole_updateFrame() {
                     }
 
 
+                    layerRenderer_fill(2, 0, 2, vdp_getScreenWidth(), 12, 0xFF);
+                    layerRenderer_fill(2, 0, 3, vdp_getScreenWidth(), 10, 0x05);
+
                     char yourScore[0x80];
-                    sprintf(yourScore, "YOU     %03d", getBossRushRingCarryTotal());
+                    sprintf(yourScore, "YOU  %03d", getBossRushRingCarryTotal());
                     char opponentScore[0x80];
-                    sprintf(opponentScore, "%03d     OPPONENT", getNinesOpponentRingCount());
+                    sprintf(opponentScore, "%03d  OPPONENT", getNinesOpponentRingCount());
                     for (int xOff = -1; xOff <= 1; xOff++) {
                         for (int yOff = -1; yOff <= 1; yOff++) {
                             layerRenderer_writeWord256RightJustified(2, (vdp_getScreenWidth() / 2) + xOff - 12, 8 + yOff - 4, yourScore, 0xFF);
