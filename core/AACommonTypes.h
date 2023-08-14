@@ -174,9 +174,6 @@ typedef struct {
     int cheatFlags[8];
     int lifeUpFlaggedLocation;
     int cartLimitLocations[0x10];
-
-    int specialStageZoneIndexes[4];
-    int specialStageActIndexes[4];
 } NinesChallengeGameParameters;
 
 static int INPUT_INDEX_UP = 0;

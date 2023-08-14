@@ -4377,8 +4377,6 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[6].damageBoostMaximum = 0xE0;
     ninesChallengeGamesParameters[6].levelCompleteLocation = 0x0233;
     ninesChallengeGamesParameters[6].levelCompleteValue = 0x100;
-    ninesChallengeGamesParameters[6].specialStageZoneIndex = 0;
-    ninesChallengeGamesParameters[6].specialStageActIndex = 0;
 
     ninesChallengeGamesParameters[6].cheatFlags[0] = 0x040C;
 
