@@ -4377,6 +4377,8 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[6].damageBoostMaximum = 0xE0;
     ninesChallengeGamesParameters[6].levelCompleteLocation = 0x0233;
     ninesChallengeGamesParameters[6].levelCompleteValue = 0x100;
+    ninesChallengeGamesParameters[6].specialStageZoneIndex = 0;
+    ninesChallengeGamesParameters[6].specialStageActIndex = 0;
 
     ninesChallengeGamesParameters[6].cheatFlags[0] = 0x040C;
 
@@ -4620,6 +4622,9 @@ void loadNinesChallengeStage() {
         sprintf(message, "%ig", ninesChallengeLevelIndexOrder[ninesChallengeStageIndex]);
         cartLoader_writeActionToNetwork(message);
     }
+
+    // make sure we can tell "stage has changed"
+    cacheCurrentNinesStageFromRAM();
 }
 
 void setNinesChallengeOppponentStageIndex(int toIndex) {
@@ -4934,4 +4939,32 @@ char* getOpponentLevelName() {
 
 char* getNinesChallengeLevelName() {
     return ninesChallengeLevelNames[ninesChallengeLevelIndexOrder[ninesChallengeStageIndex]];
+}
+
+int currentNinesStageFromRAM = 0;
+
+int getCurrentNinesStageMarkerFromRAM() {
+    NinesChallengeGameParameters paramsThisGame = getActiveNinesChallengeGameParameters();
+    int actIndex = 0;
+    if (paramsThisGame.actFlagLocation != 0) {
+        actIndex = aa_genesis_getWorkRam(paramsThisGame.actFlagLocation);
+    }
+     
+    int zoneIndex = 0; 
+    if (paramsThisGame.actFlagLocation != 0) {
+        zoneIndex = aa_genesis_getWorkRam(paramsThisGame.zoneFlagLocation);
+    }
+
+    return (zoneIndex * 0x100) + actIndex;
+}
+
+void cacheCurrentNinesStageFromRAM() {
+    currentNinesStageFromRAM = getCurrentNinesStageMarkerFromRAM();
+}
+
+int stageInRAMHasChanged() {
+    if (currentNinesStageFromRAM == getCurrentNinesStageMarkerFromRAM()) {
+        return 1;
+    }
+    return 0;
 }

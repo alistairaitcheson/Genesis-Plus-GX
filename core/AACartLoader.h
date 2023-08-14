@@ -229,4 +229,8 @@ void addNinesChallengeLevel(int gameId, int zoneId, int actId, char name[]);
 char* getOpponentLevelName();
 char* getNinesChallengeLevelName();
 
+int getCurrentNinesStageMarkerFromRAM();
+void cacheCurrentNinesStageFromRAM();
+int stageInRAMHasChanged();
+
 #endif

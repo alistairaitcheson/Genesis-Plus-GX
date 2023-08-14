@@ -1763,20 +1763,26 @@ void modConsole_updateFrame() {
                         }
                         // level switch but not to bonus stage!
                         if (ninesStage.gameId == 3 || ninesStage.gameId == 4) {
-                            // add an "IF NOT BONUS STAGE"
-                            if (true) {
+                            // add an "IF NOT BONUS/SPECIAL STAGE"
+                            if (// not blue spheres
+                                aa_genesis_getWorkRam(levelSwitchIndex) != 0x34
+                                // not bonus stage
+                                && aa_genesis_getWorkRam(0xFE11) != 0x13 && aa_genesis_getWorkRam(0xFE11) != 0x14 && aa_genesis_getWorkRam(0xFE11) != 0x15) {
                                 wasLevelCompletion = 1;
                             }
                         } 
                         if (ninesStage.gameId == 6) {
                             // add an "IF NOT TAILS/KNUCKLES"
-                            if (true) {
+                            if (// Knuckles does not have 50+ rings
+                                (aa_genesis_getWorkRam(0x06A0) + (aa_genesis_getWorkRam(0x06A1) * 0x100)) < 50
+                                // Tails does not have 50+ rings
+                                && aa_genesis_getWorkRam(0x069E) + (aa_genesis_getWorkRam(0x06AF) * 0x100) < 50) {
                                 wasLevelCompletion = 1;
                             }
                         }
-                        if (ninesStage.gameId == 1 || ninesStage.gameId == 2 || ninesStage.gameId == 3 || ninesStage.gameId == 4) {
-                            // add an "IF LEVEL INDEX HAS CHANGED" for Wing Fortress --> Death Egg, Hidden Palace --> Sky Sanctuary, etc
-                            if (true) {
+                        if (ninesStage.gameId == 1 || ninesStage.gameId == 2) {
+                            // add an "IF LEVEL INDEX HAS CHANGED" for Wing Fortress --> Death Egg, 
+                            if (stageInRAMHasChanged()) {
                                 wasLevelCompletion = 1;
                             }
                         } 
