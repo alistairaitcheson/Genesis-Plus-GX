@@ -36,7 +36,7 @@ static int ninesChallengeItemIndex = 0;
 static int bossRushTriggerSelectItemIndex = 0;
 
 static int majorVersion = 0;
-static int minorVersion = 40;
+static int minorVersion = 42;
 
 static int DEFAULT_WIDTH = 320;
 static int DEFAULT_HEIGHT = 200;

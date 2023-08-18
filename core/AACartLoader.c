@@ -1124,6 +1124,60 @@ void saveBossRushProgress() {
         FILE *progressWriter = fopen(path, "w");
 
         if (progressWriter) {
+            // send the included-game list
+            char includedGamesText[0x100];
+            sprintf(includedGamesText, "??");
+            int flaggedIndexes[MAX_ROMS];
+            for (int i = 0; i < MAX_ROMS; i++) {
+                flaggedIndexes[i] = 0;
+            }
+            for (int i = 0; i < MAX_ROMS; i++) {
+                int whichGame = bossRushCallenges[i].gameIndex;
+                if (flaggedIndexes[whichGame] == 0) {
+                    if (bossRushCallenges[i].romAtIndex != -1 && hasBossRushSaveState[i] == 1) {
+                        sprintf(includedGamesText, "%s%i_", includedGamesText, whichGame);
+                        flaggedIndexes[whichGame] = 1;
+                    }
+                }
+            }
+            fprintf(progressWriter, includedGamesText);
+            fprintf(progressWriter, "\n");
+
+            // send the selected options key
+            char optionsText[0x100];
+            int switchTriggerValue = 0;
+            BossRushOptions bossRushOptions = menuDisplay_getBossRushOptions();
+            if (bossRushOptions.switchTriggers.ring == 1) {
+                switchTriggerValue += 0b1;
+            }
+            if (bossRushOptions.switchTriggers.land == 1) {
+                switchTriggerValue += 0b01;
+            }
+            if (bossRushOptions.switchTriggers.bossHit == 1) {
+                switchTriggerValue += 0b001;
+            }
+            if (bossRushOptions.switchTriggers.networkBossHit == 1) {
+                switchTriggerValue += 0b0001;
+            }
+
+            int bossOrderValue = bossRushOptions.bossOrder;
+            int bossCountValue = bossRushOptions.totalBossesIdx;
+
+            int optionsValue = 0;
+            if (bossRushOptions.ringsOff== 1) {
+                optionsValue += 0b1;
+            }
+            if (bossRushOptions.carryRingsAcrossGames == 1) {
+                optionsValue += 0b01;
+            }
+            if (bossRushOptions.preventCarryInDoomsday == 1) {
+                optionsValue += 0b001;
+            }
+            sprintf(optionsText, "$$%i_%i_%i_%i", switchTriggerValue, bossOrderValue, bossCountValue, optionsValue);
+            fprintf(progressWriter, optionsText);
+            fprintf(progressWriter, "\n");
+
+            // send the status of the current game
             for (int i = 0; i < MAX_ROMS; i++) {
                 if (bossRushProgress[i].gameId != 0) {
                     char text[0x100];
@@ -1140,6 +1194,7 @@ void saveBossRushProgress() {
                 }
             }
 
+            // send the stats for playing music
             BossRushOptions bossOptions = menuDisplay_getBossRushOptions();
             int useMusic = bossOptions.shouldUseExternalMusic;
             // and send the final line "state to be used by music tracker"
@@ -1153,6 +1208,7 @@ void saveBossRushProgress() {
             );
             fprintf(progressWriter, musicStateText);
             fprintf(progressWriter, "\n");
+            
             fclose(progressWriter);
         }
     }
@@ -4265,10 +4321,20 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[2].cheatFlags[3] = 0xFFFB;
     ninesChallengeGamesParameters[2].lifeUpFlaggedLocation = 0xFE1A;
 
+    // individual rings
     ninesChallengeGamesParameters[2].cartLimitLocations[0] = 0x11FCA;
     ninesChallengeGamesParameters[2].cartLimitLocations[1] = 0x11FCB;
     ninesChallengeGamesParameters[2].cartLimitLocations[2] = 0x11FDA;
     ninesChallengeGamesParameters[2].cartLimitLocations[3] = 0x11FDB;
+    // 10-ring boxes
+    ninesChallengeGamesParameters[2].cartLimitLocations[4] = 0x12998;
+    ninesChallengeGamesParameters[2].cartLimitLocations[5] = 0x12999;
+    ninesChallengeGamesParameters[2].cartLimitLocations[6] = 0x1299E;
+    ninesChallengeGamesParameters[2].cartLimitLocations[7] = 0x1299F;
+    ninesChallengeGamesParameters[2].cartLimitLocations[8] = 0x129A6;
+    ninesChallengeGamesParameters[2].cartLimitLocations[9] = 0x129A7;
+    ninesChallengeGamesParameters[2].cartLimitLocations[10] = 0x129AC;
+    ninesChallengeGamesParameters[2].cartLimitLocations[11] = 0x129AD;
 
     char s2zones[8][0x100];
     sprintf(s2zones[0], "Emerald Hill");
@@ -4311,7 +4377,16 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[3].cartLimitLocations[1] = 0x18D75;
     ninesChallengeGamesParameters[3].cartLimitLocations[2] = 0x18D84;
     ninesChallengeGamesParameters[3].cartLimitLocations[3] = 0x18D85;
-    
+    // 10-ring boxes
+    ninesChallengeGamesParameters[3].cartLimitLocations[4] = 0x1B6E2;
+    ninesChallengeGamesParameters[3].cartLimitLocations[5] = 0x1B6E3;
+    ninesChallengeGamesParameters[3].cartLimitLocations[6] = 0x1B6E8;
+    ninesChallengeGamesParameters[3].cartLimitLocations[7] = 0x1B6E9;
+    ninesChallengeGamesParameters[3].cartLimitLocations[8] = 0x1B6F0;
+    ninesChallengeGamesParameters[3].cartLimitLocations[9] = 0x1B6F1;
+    ninesChallengeGamesParameters[3].cartLimitLocations[10] = 0x1B6F6;
+    ninesChallengeGamesParameters[3].cartLimitLocations[11] = 0x1B6F7;
+
     char s3zones[6][0x100];
     sprintf(s3zones[0], "Angel Island");
     sprintf(s3zones[1], "Hydrocity");
@@ -4348,6 +4423,15 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[4].cartLimitLocations[1] = 0x1A599;
     ninesChallengeGamesParameters[4].cartLimitLocations[2] = 0x1A5A8;
     ninesChallengeGamesParameters[4].cartLimitLocations[3] = 0x1A5A9;
+    // 10-ring boxes
+    ninesChallengeGamesParameters[4].cartLimitLocations[4] = 0x1D8C4;
+    ninesChallengeGamesParameters[4].cartLimitLocations[5] = 0x1D8C5;
+    ninesChallengeGamesParameters[4].cartLimitLocations[6] = 0x1D8CA;
+    ninesChallengeGamesParameters[4].cartLimitLocations[7] = 0x1D8CB;
+    ninesChallengeGamesParameters[4].cartLimitLocations[8] = 0x1D8D2;
+    ninesChallengeGamesParameters[4].cartLimitLocations[9] = 0x1D8D3;
+    ninesChallengeGamesParameters[4].cartLimitLocations[10] = 0x1D8D8;
+    ninesChallengeGamesParameters[4].cartLimitLocations[11] = 0x1D8D9;
 
     char sKzones[4][0x100];
     sprintf(sKzones[0], "Mushroom Hill");
