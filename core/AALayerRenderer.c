@@ -561,7 +561,7 @@ void layerRenderer_clearLayer(unsigned int layer) {
     vdp_clearGraphicLayer(layer);
 }
 
-void layerRenderer_fill(unsigned int layer, unsigned int startX, unsigned int startY, unsigned int width, unsigned int height, unsigned int value) {
+void layerRenderer_fill(unsigned int layer, int startX, int startY, unsigned int width, unsigned int height, unsigned int value) {
     for (int x = startX; x < startX + width; x++) {
         for (int y = startY; y < startY + height; y++) {
             vdp_setGraphicLayerPixel(layer, x, y, value);

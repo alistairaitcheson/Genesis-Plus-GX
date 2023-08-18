@@ -1582,9 +1582,24 @@ void modConsole_updateFrame() {
                 NinesChallengeOptions ninesOptions = menuDisplay_getNinesChallengeOptions();
 
                 // check for Casino Night wheels
+                //  - the check is not perfect. It means that Robotnik will show up in the wheels
+                //    periodically. If 3 Robotniks show you are not punished, but if you gain rings
+                //    it will get partway through giving you rings and then spit spikes at you
+                //    as if you got 3 Robotniks.
                 if (ninesStage.gameId == 2 && ninesStage.zoneId == 3) {
-                    if (aa_genesis_getWorkRam(0xFF52) > 0x40) {
-                        aa_genesis_setWorkRam(0xFF52, 0x22);
+                    // layerRenderer_fill(3, 0, 0, 10, 10, 0x5);
+                    int firstTwoBarrels = aa_genesis_getWorkRam(0xFF53);
+                    int middleBarrel = firstTwoBarrels % 0x10;
+                    int firstBarrel = (firstTwoBarrels - middleBarrel) / 0x10;
+                    if (middleBarrel != 0 || firstBarrel != 0) {
+                        aa_genesis_setWorkRam(0xFF53, 0x22);
+                        // layerRenderer_fill(3, 12, 0, 10, 10, 0x6);
+                    }
+                    int rightBarrelRaw = aa_genesis_getWorkRam(0xFF52);
+                    int rightBarrel = rightBarrelRaw % 0x10;
+                    if (rightBarrel != 0) {
+                        aa_genesis_setWorkRam(0xFF53, rightBarrelRaw - rightBarrel + 0x02);
+                        // layerRenderer_fill(3, 24, 0, 10, 10, 0x6);
                     }
                 }
 

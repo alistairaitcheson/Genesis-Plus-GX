@@ -9,7 +9,7 @@
 
 extern void layerRenderer_clearLayer(unsigned int layer);
 extern void layerRenderer_writeLetter(unsigned int layer, unsigned int startX, unsigned int startY, char letter, unsigned int value);
-extern void layerRenderer_fill(unsigned int layer, unsigned int startX, unsigned int startY, unsigned int width, unsigned int height, unsigned int value);
+extern void layerRenderer_fill(unsigned int layer, int startX, int startY, unsigned int width, unsigned int height, unsigned int value);
 extern void layerRenderer_writeWord256(unsigned int layer, unsigned int startX, unsigned int startY, char word256[], unsigned int value);
 extern void layerRenderer_populateLetters();
 extern void layerRenderer_writeWord256Centred(unsigned int layer, unsigned int startX, unsigned int startY, char word256[], unsigned int value);
