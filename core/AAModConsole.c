@@ -1667,13 +1667,28 @@ void modConsole_updateFrame() {
                 // their count will wrap back to 0, so instead make sure it doesn't!
                 if (ninesStage.gameId == 6) {
                     // was the player over 9990 last frame, and is not damaged?
-                    if (getBossRushRingCarryTotal() > 9990 && aa_genesis_getWorkRam(damageBoostIndex) <= damageBoostMaximum) {
-                        // has the player wrapped back to 0 rings?
-                        if (gameTransferListing.ringBytesForTransfer[1] < 10 && 
-                            gameTransferListing.ringBytesForTransfer[0] < 10) {
-                            // if so, set them to 9999 rings now
-                            gameTransferListing.ringBytesForTransfer[0] = 0x99;
-                            gameTransferListing.ringBytesForTransfer[1] = 0x99;
+                    if (getBossRushRingCarryTotal() >= 9990) {
+                        // layerRenderer_fill(3, 0, 0, 10, 10, 0x5);
+                        if (aa_genesis_getWorkRam(damageBoostIndex) <= damageBoostMaximum) {
+                            // layerRenderer_fill(3, 12, 0, 10, 10, 0x6);
+                            // is this NOT knuckles/tails?
+                            if ((aa_genesis_getWorkRam(0x06A0) + (aa_genesis_getWorkRam(0x06A1) * 0x100)) < 50
+                                && aa_genesis_getWorkRam(0x069E) + (aa_genesis_getWorkRam(0x069F) * 0x100) < 50) {
+
+                                // char s3DringDebug[0x80];
+                                // sprintf(s3DringDebug, "%02X %02X", aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]), aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]));
+                                // layerRenderer_writeWord256(3, 0, 12, s3DringDebug, 0x7);
+                                // layerRenderer_fill(3, 24, 0, 10, 10, 0x7);
+                                // has the player wrapped back to 0 rings?
+                                if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) < 10 && 
+                                    aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) < 10) {
+                                    // layerRenderer_fill(3, 36, 0, 10, 10, 0x8);
+                                    // if so, set them to 9999 rings now
+                                    aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], 0x99);
+                                    aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1], 0x99);
+                                }
+
+                            }
                         }
                     }
                 }
@@ -2415,6 +2430,11 @@ void modConsole_updateFrame() {
             // FOR ALISTAIR
             // saveSaveStateForCurrentGame();
             // cartLoader_saveAllSaveStatesToDisk();
+        } else if (
+            buttonStateAtIndex(INPUT_INDEX_A) != 0
+        ) {
+            // FOR ALISTAIR
+            // storeNinesRingCheckpoint(9989);
         }
 
         if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 && buttonStateAtIndex(INPUT_INDEX_B) != 0 && hasDismissedStartupHint == 0) {
