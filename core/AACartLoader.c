@@ -4671,10 +4671,19 @@ void populateNinesChallengeLevelOrder() {
     cartLoader_appendToLog("^^^ INITIALISED 999 CHALLENGE ^^^");
 }
 
-void loadNinesChallengeStage() {
+void loadNinesChallengeStage(int iterationCount) {
     cartLoader_appendToLog("loadNinesChallengeStage");
 
     NinesChallengeStageListing stageListing = getCurrentNinesChallengeStage();
+
+    // if the rom has been removed from the randomiser skip it (unless no valid)
+    // games are allowed
+    if (romsRemovedFromRandomiser[stageListing.romIndex] == 1 && iterationCount < 100) {
+        ninesChallengeStageIndex++;
+        loadNinesChallengeStage(iterationCount + 1);
+        return;
+    }
+    
 
     char tempLog[256];
     sprintf(tempLog,"  -----> stage params ROM %i, GAME %i, ZONE %i, ACT %i, STATE %i", 
@@ -4780,7 +4789,7 @@ void beginNinesChallenge() {
     
     // load the rom for the appropriate game
     // send it to the correct stage loading screen
-    loadNinesChallengeStage();
+    loadNinesChallengeStage(0);
 
     cartLoader_cacheSaveStateBeforeMenu();
     vdp_setShouldRandomiseColours(0);
@@ -4819,7 +4828,7 @@ void bumpNinesChallengeLevel(int wasLevelClear) {
     incrementNinesChallengeStageCompletionCount();
 
     ninesChallengeStageIndex++;
-    loadNinesChallengeStage();
+    loadNinesChallengeStage(0);
 }
 
 void enforceBumpToSameNinesStageAgain() {

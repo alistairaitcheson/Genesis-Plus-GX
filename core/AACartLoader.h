@@ -234,4 +234,6 @@ void cacheCurrentNinesStageFromRAM();
 int stageInRAMHasChanged();
 int getCachedNinesStageFromRAM();
 
+void loadNinesChallengeStage(int iterationCount);
+
 #endif
