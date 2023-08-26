@@ -2434,7 +2434,7 @@ void modConsole_updateFrame() {
             buttonStateAtIndex(INPUT_INDEX_A) != 0
         ) {
             // FOR ALISTAIR
-            // storeNinesRingCheckpoint(9989);
+            // storeNinesRingCheckpoint(rand() % 9999);
         }
 
         if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 && buttonStateAtIndex(INPUT_INDEX_B) != 0 && hasDismissedStartupHint == 0) {
