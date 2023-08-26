@@ -4267,6 +4267,10 @@ void populateNinesChallengeLevelSource() {
         for (int j = 0; j < 0x10; j++) {
             ninesChallengeGamesParameters[i].cartLimitLocations[j] = 0;
         }
+        ninesChallengeGamesParameters[i].cartLimitLocationBounds[0] = 0;
+        ninesChallengeGamesParameters[i].cartLimitLocationBounds[1] = 0;
+        ninesChallengeGamesParameters[i].cartLimitValuesToOverride[0] = 0;
+        ninesChallengeGamesParameters[i].cartLimitValuesToOverride[1] = 0;
     }
 
     // SONIC 1
@@ -4322,19 +4326,24 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[2].lifeUpFlaggedLocation = 0xFE1A;
 
     // individual rings
-    ninesChallengeGamesParameters[2].cartLimitLocations[0] = 0x11FCA;
-    ninesChallengeGamesParameters[2].cartLimitLocations[1] = 0x11FCB;
-    ninesChallengeGamesParameters[2].cartLimitLocations[2] = 0x11FDA;
-    ninesChallengeGamesParameters[2].cartLimitLocations[3] = 0x11FDB;
-    // 10-ring boxes
-    ninesChallengeGamesParameters[2].cartLimitLocations[4] = 0x12998;
-    ninesChallengeGamesParameters[2].cartLimitLocations[5] = 0x12999;
-    ninesChallengeGamesParameters[2].cartLimitLocations[6] = 0x1299E;
-    ninesChallengeGamesParameters[2].cartLimitLocations[7] = 0x1299F;
-    ninesChallengeGamesParameters[2].cartLimitLocations[8] = 0x129A6;
-    ninesChallengeGamesParameters[2].cartLimitLocations[9] = 0x129A7;
-    ninesChallengeGamesParameters[2].cartLimitLocations[10] = 0x129AC;
-    ninesChallengeGamesParameters[2].cartLimitLocations[11] = 0x129AD;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[0] = 0x11FCA;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[1] = 0x11FCB;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[2] = 0x11FDA;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[3] = 0x11FDB;
+    // // 10-ring boxes
+    // ninesChallengeGamesParameters[2].cartLimitLocations[4] = 0x12998;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[5] = 0x12999;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[6] = 0x1299E;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[7] = 0x1299F;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[8] = 0x129A6;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[9] = 0x129A7;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[10] = 0x129AC;
+    // ninesChallengeGamesParameters[2].cartLimitLocations[11] = 0x129AD;
+        
+    ninesChallengeGamesParameters[2].cartLimitLocationBounds[0] = 0x11000;
+    ninesChallengeGamesParameters[2].cartLimitLocationBounds[1] = 0x13000;
+    ninesChallengeGamesParameters[2].cartLimitValuesToOverride[0] = 0xE7;
+    ninesChallengeGamesParameters[2].cartLimitValuesToOverride[1] = 0x03;
 
     char s2zones[8][0x100];
     sprintf(s2zones[0], "Emerald Hill");
@@ -4373,19 +4382,24 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[3].cheatFlags[3] = 0xFFD3;
     ninesChallengeGamesParameters[3].lifeUpFlaggedLocation = 0xFE1A;
 
-    ninesChallengeGamesParameters[3].cartLimitLocations[0] = 0x18D74;
-    ninesChallengeGamesParameters[3].cartLimitLocations[1] = 0x18D75;
-    ninesChallengeGamesParameters[3].cartLimitLocations[2] = 0x18D84;
-    ninesChallengeGamesParameters[3].cartLimitLocations[3] = 0x18D85;
-    // 10-ring boxes
-    ninesChallengeGamesParameters[3].cartLimitLocations[4] = 0x1B6E2;
-    ninesChallengeGamesParameters[3].cartLimitLocations[5] = 0x1B6E3;
-    ninesChallengeGamesParameters[3].cartLimitLocations[6] = 0x1B6E8;
-    ninesChallengeGamesParameters[3].cartLimitLocations[7] = 0x1B6E9;
-    ninesChallengeGamesParameters[3].cartLimitLocations[8] = 0x1B6F0;
-    ninesChallengeGamesParameters[3].cartLimitLocations[9] = 0x1B6F1;
-    ninesChallengeGamesParameters[3].cartLimitLocations[10] = 0x1B6F6;
-    ninesChallengeGamesParameters[3].cartLimitLocations[11] = 0x1B6F7;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[0] = 0x18D74;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[1] = 0x18D75;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[2] = 0x18D84;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[3] = 0x18D85;
+    // // 10-ring boxes
+    // ninesChallengeGamesParameters[3].cartLimitLocations[4] = 0x1B6E2;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[5] = 0x1B6E3;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[6] = 0x1B6E8;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[7] = 0x1B6E9;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[8] = 0x1B6F0;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[9] = 0x1B6F1;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[10] = 0x1B6F6;
+    // ninesChallengeGamesParameters[3].cartLimitLocations[11] = 0x1B6F7;
+    
+    ninesChallengeGamesParameters[3].cartLimitLocationBounds[0] = 0x18000;
+    ninesChallengeGamesParameters[3].cartLimitLocationBounds[1] = 0x1C000;
+    ninesChallengeGamesParameters[3].cartLimitValuesToOverride[0] = 0xE7;
+    ninesChallengeGamesParameters[3].cartLimitValuesToOverride[1] = 0x03;
 
     char s3zones[6][0x100];
     sprintf(s3zones[0], "Angel Island");
@@ -4419,19 +4433,24 @@ void populateNinesChallengeLevelSource() {
     ninesChallengeGamesParameters[4].cheatFlags[2] = 0xFFE2;
     ninesChallengeGamesParameters[4].cheatFlags[3] = 0xFFE3;
     
-    ninesChallengeGamesParameters[4].cartLimitLocations[0] = 0x1A598;
-    ninesChallengeGamesParameters[4].cartLimitLocations[1] = 0x1A599;
-    ninesChallengeGamesParameters[4].cartLimitLocations[2] = 0x1A5A8;
-    ninesChallengeGamesParameters[4].cartLimitLocations[3] = 0x1A5A9;
-    // 10-ring boxes
-    ninesChallengeGamesParameters[4].cartLimitLocations[4] = 0x1D8C4;
-    ninesChallengeGamesParameters[4].cartLimitLocations[5] = 0x1D8C5;
-    ninesChallengeGamesParameters[4].cartLimitLocations[6] = 0x1D8CA;
-    ninesChallengeGamesParameters[4].cartLimitLocations[7] = 0x1D8CB;
-    ninesChallengeGamesParameters[4].cartLimitLocations[8] = 0x1D8D2;
-    ninesChallengeGamesParameters[4].cartLimitLocations[9] = 0x1D8D3;
-    ninesChallengeGamesParameters[4].cartLimitLocations[10] = 0x1D8D8;
-    ninesChallengeGamesParameters[4].cartLimitLocations[11] = 0x1D8D9;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[0] = 0x1A598;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[1] = 0x1A599;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[2] = 0x1A5A8;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[3] = 0x1A5A9;
+    // // 10-ring boxes
+    // ninesChallengeGamesParameters[4].cartLimitLocations[4] = 0x1D8C4;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[5] = 0x1D8C5;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[6] = 0x1D8CA;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[7] = 0x1D8CB;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[8] = 0x1D8D2;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[9] = 0x1D8D3;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[10] = 0x1D8D8;
+    // ninesChallengeGamesParameters[4].cartLimitLocations[11] = 0x1D8D9;
+
+    ninesChallengeGamesParameters[4].cartLimitLocationBounds[0] = 0x1A000;
+    ninesChallengeGamesParameters[4].cartLimitLocationBounds[1] = 0x1E000;
+    ninesChallengeGamesParameters[4].cartLimitValuesToOverride[0] = 0xE7;
+    ninesChallengeGamesParameters[4].cartLimitValuesToOverride[1] = 0x03;
 
     char sKzones[4][0x100];
     sprintf(sKzones[0], "Mushroom Hill");
@@ -4685,6 +4704,15 @@ void loadNinesChallengeStage() {
     for (int i = 0; i < 16; i++) {
         if (paramsThisGame.cartLimitLocations[i] > 0) {
             aa_genesis_setCartValue(paramsThisGame.cartLimitLocations[i], 0xFF);
+        }
+    }
+
+    // scan games for instances of 999 (0x3E7) and replace them with 0xFFFF
+    for (int i = paramsThisGame.cartLimitLocationBounds[0]; i < paramsThisGame.cartLimitLocationBounds[1]; i+=2) {
+        if (aa_genesis_getCartValue(i) == paramsThisGame.cartLimitValuesToOverride[0]
+            && aa_genesis_getCartValue(i + 1) == paramsThisGame.cartLimitValuesToOverride[1]) {
+            aa_genesis_setCartValue(i, 0xFF);
+            aa_genesis_setCartValue(i + 1, 0xFF);
         }
     }
 

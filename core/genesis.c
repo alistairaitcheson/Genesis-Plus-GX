@@ -597,6 +597,14 @@ uint8 aa_genesis_getWorkRam(unsigned int location) {
   }
 }
 
+int aa_genesis_getCartValue(unsigned int location) {
+  if (location < cart.romsize) {
+    return cart.rom[location];
+  }
+  return 0;
+}
+
+
 void aa_genesis_setCartValue(unsigned int location, uint8 value) {
   if (location < cart.romsize) {
     cart.rom[location] = value;
