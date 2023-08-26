@@ -4713,6 +4713,9 @@ void loadNinesChallengeStage() {
             && aa_genesis_getCartValue(i + 1) == paramsThisGame.cartLimitValuesToOverride[1]) {
             aa_genesis_setCartValue(i, 0xFF);
             aa_genesis_setCartValue(i + 1, 0xFF);
+            char debugMessage[0x80];
+            sprintf(debugMessage, "Replaced 999 value at %i", i);
+            cartLoader_appendToLog(debugMessage);
         }
     }
 
