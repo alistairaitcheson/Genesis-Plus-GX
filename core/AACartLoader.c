@@ -1135,8 +1135,10 @@ void saveBossRushProgress() {
                 int whichGame = bossRushCallenges[i].gameIndex;
                 if (flaggedIndexes[whichGame] == 0) {
                     if (bossRushCallenges[i].romAtIndex != -1 && hasBossRushSaveState[i] == 1) {
-                        sprintf(includedGamesText, "%s%i_", includedGamesText, whichGame);
-                        flaggedIndexes[whichGame] = 1;
+                        if (romsRemovedFromRandomiser[bossRushCallenges[i].romAtIndex] == 0) {
+                            sprintf(includedGamesText, "%s%i_", includedGamesText, whichGame);
+                            flaggedIndexes[whichGame] = 1;
+                        }
                     }
                 }
             }
@@ -1568,6 +1570,15 @@ void resetAllBossRushSlots() {
 void queueBossRushSlots() {
     MAX_SIMULTANEOUS_BOSSES = getMaxSimultaneousBosses();
 
+    // reset any active boss rushes if their game has been toggled off
+    for (int i = 0; i < MAX_ROMS; i++) {
+        if (activeBossRushes[i] >= 0) {
+            if (romsRemovedFromRandomiser[bossRushCallenges[activeBossRushes[i]].romAtIndex]) {
+                activeBossRushes[i] = -1;
+            }
+        }
+    }
+
     // // account for changes in rush count by zeroing anything that's in a slot too high
     for (int i = MAX_SIMULTANEOUS_BOSSES; i < MAX_ROMS; i++) {
         activeBossRushes[i] = -1;
@@ -1671,8 +1682,13 @@ int challengeCanBeQueued(int i) {
         }
     }
 
-    if (bossRushCallenges[i].isActivated == 0 && bossRushCallenges[i].isCompleted == 0 && bossRushCallenges[i].romAtIndex != -1 && hasBossRushSaveState[i] == 1) {
-        return 1;
+    if (bossRushCallenges[i].isActivated == 0 && 
+        bossRushCallenges[i].isCompleted == 0 && 
+        bossRushCallenges[i].romAtIndex != -1 && 
+        hasBossRushSaveState[i] == 1) {
+        if (romsRemovedFromRandomiser[bossRushCallenges[i].romAtIndex] == 0) {
+            return 1;
+        }
     }
     return 0;
 }
