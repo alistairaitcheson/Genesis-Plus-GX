@@ -169,7 +169,7 @@ void beginCountdownToBreakCasinoWheels() {
 
 void breakCasinoNightWheels() {
     int wheelLocation = -1;
-    for (int i = casinoWheelSearchBounds[0]; i < casinoWheelSearchBounds; i++) {
+    for (int i = casinoWheelSearchBounds[0]; i < casinoWheelSearchBounds[1]; i++) {
         int hasFailedToFindMatch = 0;
         for (int j = 0; j < 12; j++) {
             if (aa_genesis_getCartValue(i + j) != casinoWheelValues[j]) {
@@ -1647,12 +1647,14 @@ void modConsole_updateFrame() {
                     //  - flash up on screens: "slot machines out of order"
                     //  - flag "slotMachinesBroken"
                     //  - next time you enter CNZ show "slot machines are working!"
-                    if (aa_genesis_getWorkRam(0xFF52) > 0x90) {
+                    if (aa_genesis_getWorkRam(0xFF52) > 0x90 && aa_genesis_getWorkRam(0xFF52) < 0x9F) {
                         beginCountdownToBreakCasinoWheels();
                     }
 
                     if (countdownToBreakCasinoWheels > 0) {
-                        countdownToBreakCasinoWheels--;
+                        if (aa_genesis_getWorkRam(0xFF52) == 0) {
+                            countdownToBreakCasinoWheels--;
+                        }
                         if (countdownToBreakCasinoWheels == 0) {
                             breakCasinoNightWheels();
                         }
