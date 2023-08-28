@@ -4773,6 +4773,8 @@ void loadNinesChallengeStage(int iterationCount) {
 
     // make sure we can tell "stage has changed"
     cacheCurrentNinesStageFromRAM();
+
+    checkToRepairCasinoNightWheels();
 }
 
 void setNinesChallengeOppponentStageIndex(int toIndex) {

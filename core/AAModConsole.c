@@ -145,6 +145,14 @@ static int ninesLeadDepletionRate[5] = {1, 2, 5, 10, 25};
 static int ninesStatusMessageTime = 0;
 static char ninesStatusMessage[0x100];
 
+static int countdownToBreakCasinoWheels = 0;
+static int casinoWheelsHaveBeenBroken = 0;
+static int casinoStatusMessageTime = 0;
+static int casinoStatusMessageDuration = 300;
+static char casinoStatusMessage[0x80];
+static int casinoWheelValues[12] = {0x1E, 0x00, 0x19, 0x00, 0xFF, 0xFF, 0x96, 0x00, 0x0A, 0x00, 0x14, 0x00};
+static int casinoWheelSearchBounds[2] = {0x28000, 0x30000};
+
 void alertYouClearedStage() {
     ninesStatusMessageTime = 120;
     sprintf(ninesStatusMessage, "You cleared a stage!");
@@ -153,6 +161,54 @@ void alertYouClearedStage() {
 void alertOpponentClearedStage() {
     ninesStatusMessageTime = 120;
     sprintf(ninesStatusMessage, "Opponent has cleared a stage");
+}
+
+void beginCountdownToBreakCasinoWheels() {
+    countdownToBreakCasinoWheels = 120;
+}
+
+void breakCasinoNightWheels() {
+    int wheelLocation = -1;
+    for (int i = casinoWheelSearchBounds[0]; i < casinoWheelSearchBounds; i++) {
+        int hasFailedToFindMatch = 0;
+        for (int j = 0; j < 12; j++) {
+            if (aa_genesis_getCartValue(i + j) != casinoWheelValues[j]) {
+                hasFailedToFindMatch = 1;
+                break;
+            }
+        }
+
+        if (hasFailedToFindMatch == 0) {
+            char breakDebugMessage[0x80];
+            sprintf(breakDebugMessage, "Broke casino wheels at %06X", i);
+            cartLoader_appendToLog(breakDebugMessage);
+            for (int j = 0; j < 12; j++) {
+                aa_genesis_setCartValue(i + j, 0);
+            }
+            wheelLocation = i;
+            break;
+        }
+    }
+    
+    casinoWheelsHaveBeenBroken = 1;
+    casinoStatusMessageTime = casinoStatusMessageDuration;
+    sprintf(casinoStatusMessage, "Slot machines out of order");
+
+    if (wheelLocation == -1) {
+        cartLoader_appendToLog("Could not break casino wheels");
+        sprintf(casinoStatusMessage, "machine error?");
+    }
+}
+
+void checkToRepairCasinoNightWheels() {
+    if (casinoWheelsHaveBeenBroken) {
+        NinesChallengeStageListing ninesStage = getCurrentNinesChallengeStage();
+        if (ninesStage.gameId == 2 && ninesStage.zoneId == 3) {
+            casinoStatusMessageTime = casinoStatusMessageDuration;
+            sprintf(casinoStatusMessage, "Slot machines repaired!");
+            casinoWheelsHaveBeenBroken = 0;
+        }
+    }
 }
 
 void requestFlashRingsToGo() {
@@ -1581,25 +1637,25 @@ void modConsole_updateFrame() {
                 NinesChallengeStageListing ninesStage = getCurrentNinesChallengeStage();
                 NinesChallengeOptions ninesOptions = menuDisplay_getNinesChallengeOptions();
 
-                // check for Casino Night wheels
-                //  - the check is not perfect. It means that Robotnik will show up in the wheels
-                //    periodically. If 3 Robotniks show you are not punished, but if you gain rings
-                //    it will get partway through giving you rings and then spit spikes at you
-                //    as if you got 3 Robotniks.
+                // check for Casino Night wheels (gambling, slot machine)
                 if (ninesStage.gameId == 2 && ninesStage.zoneId == 3) {
-                    // layerRenderer_fill(3, 0, 0, 10, 10, 0x5);
-                    int firstTwoBarrels = aa_genesis_getWorkRam(0xFF53);
-                    int middleBarrel = firstTwoBarrels % 0x10;
-                    int firstBarrel = (firstTwoBarrels - middleBarrel) / 0x10;
-                    if (middleBarrel != 0 || firstBarrel != 0) {
-                        aa_genesis_setWorkRam(0xFF53, 0x22);
-                        // layerRenderer_fill(3, 12, 0, 10, 10, 0x6);
+                    // if 0xFF52 goes to 0x96 (150 rings) a jackpot has been 
+                    // earned, so queue up the OUT OF ORDER mech.
+                    // Wait for 0xFF52 to go to 0 and then do:
+                    //  - write 0000 into all the locations where this sequence exists:
+                    //    001E 0019 FFFF 0096 000A 0014 (0x2C3CC in REV00)
+                    //  - flash up on screens: "slot machines out of order"
+                    //  - flag "slotMachinesBroken"
+                    //  - next time you enter CNZ show "slot machines are working!"
+                    if (aa_genesis_getWorkRam(0xFF52) > 0x90) {
+                        beginCountdownToBreakCasinoWheels();
                     }
-                    int rightBarrelRaw = aa_genesis_getWorkRam(0xFF52);
-                    int rightBarrel = rightBarrelRaw % 0x10;
-                    if (rightBarrel != 0) {
-                        aa_genesis_setWorkRam(0xFF53, rightBarrelRaw - rightBarrel + 0x02);
-                        // layerRenderer_fill(3, 24, 0, 10, 10, 0x6);
+
+                    if (countdownToBreakCasinoWheels > 0) {
+                        countdownToBreakCasinoWheels--;
+                        if (countdownToBreakCasinoWheels == 0) {
+                            breakCasinoNightWheels();
+                        }
                     }
                 }
 
@@ -2163,6 +2219,28 @@ void modConsole_updateFrame() {
                     // sprintf(checkpointIndexText, "%i", getNinesRingCheckpointIndex());
                     // layerRenderer_writeWord256(2, 5 * 8, 0, checkpointIndexText, 0x6);
                 }
+
+                    if (casinoStatusMessageTime > 0) {
+                        int offsetX = 0;
+                        if (casinoStatusMessageTime < 20) {
+                            offsetX = -(20 - casinoStatusMessageTime) * (vdp_getScreenWidth() / 20);
+                        } else {
+                            int enterTime = casinoStatusMessageTime - (casinoStatusMessageDuration - 20);
+                            if (enterTime > 0 ) {
+                                offsetX = enterTime * (vdp_getScreenWidth() / 20);
+                            }
+                        }
+
+                        casinoStatusMessageTime--;
+                        layerRenderer_fill(2, 0 - offsetX, vdp_getScreenHeight() / 3 - 6, vdp_getScreenWidth(), 12, 0xFF);
+                        layerRenderer_fill(2, 0 - offsetX, vdp_getScreenHeight() / 3 - 5, vdp_getScreenWidth(), 10, 0x08);
+                            for (int xOff = -1; xOff <= 1; xOff++) {
+                                for (int yOff = -1; yOff <= 1; yOff++) {
+                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff + offsetX, vdp_getScreenHeight() / 3 + yOff, casinoStatusMessage, 0xFF);
+                                }
+                            }
+                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2 + offsetX, vdp_getScreenHeight() / 3, casinoStatusMessage, 0x6);
+                    }
 
                 // check for opponent being ahead!
                 if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {

@@ -193,4 +193,8 @@ int receiveRingsFromOpponent(int ringCount);
 void alertYouClearedStage();
 void alertOpponentClearedStage();
 
+void beginCountdownToBreakCasinoWheels();
+void breakCasinoNightWheels();
+void checkToRepairCasinoNightWheels();
+
 #endif
