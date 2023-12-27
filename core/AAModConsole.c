@@ -2364,12 +2364,12 @@ void modConsole_updateFrame() {
             char heartRateText[0x80];
             sprintf(heartRateText, "%03d BPM - SPEED %02X %02X - ACCEL %02X %02X", 
                 heartRate,
-                aa_genesis_getWorkRam(0xF760),
                 aa_genesis_getWorkRam(0xF761),
-                aa_genesis_getWorkRam(0xF762),
-                aa_genesis_getWorkRam(0xF763)
+                aa_genesis_getWorkRam(0xF760),
+                aa_genesis_getWorkRam(0xF763),
+                aa_genesis_getWorkRam(0xF762)
             );
-            layerRenderer_fill(2, 0, 0, 45 * 8 + 4, 12, 0x05);
+            layerRenderer_fill(2, 0, 0, 35 * 8 + 4, 12, 0xFF);
             layerRenderer_writeWord256(2, 2, 2, heartRateText, 0x05);
         }
 

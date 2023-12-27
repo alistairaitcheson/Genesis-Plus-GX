@@ -3335,6 +3335,15 @@ void cartLoader_checkNetworkForActions() {
                         modConsole_showHeartRate(runningNumber);
                         runningNumber = 0;
                     }
+                    if (actionBuffer[i] == NETWORK_MSG_SET_SONIC_ACCEL) {
+                        modConsole_applySonicAccel(runningNumber);
+                        runningNumber = 0;
+                    }
+                    if (actionBuffer[i] == NETWORK_MSG_SET_SONIC_SPEED) {
+                        modConsole_applySonicAccel(runningNumber);
+                        runningNumber = 0;
+                    }
+
 
                     // only interpret actions when the menu is NOT showing!!
                     if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {
