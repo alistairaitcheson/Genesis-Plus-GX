@@ -60,6 +60,8 @@
 #define NETWORK_MSG_HEART_RATE 'H'
 #define NETWORK_MSG_SET_SONIC_SPEED 'J'
 #define NETWORK_MSG_SET_SONIC_ACCEL 'j'
+#define NETWORK_MSG_SET_SHOW_HEART_RATE 'K'
+#define NETWORK_MSG_SET_SHOW_HEART_VALUES 'k'
 
 
 #define NETWORK_INTERPRET_TYPE_ACTION 0
@@ -204,5 +206,7 @@ void checkToRepairCasinoNightWheels();
 void modConsole_showHeartRate(int heartRate);
 void modConsole_applySonicSpeed(int newSonicSpeed);
 void modConsole_applySonicAccel(int newSonicAccel);
+void modConsole_setShouldShowHeartRate(int should);
+void modConsole_setShouldShowHeartValues(int should);
 
 #endif

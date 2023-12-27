@@ -3343,7 +3343,14 @@ void cartLoader_checkNetworkForActions() {
                         modConsole_applySonicAccel(runningNumber);
                         runningNumber = 0;
                     }
-
+                    if (actionBuffer[i] == NETWORK_MSG_SET_SHOW_HEART_RATE) {
+                        modConsole_setShouldShowHeartRate(runningNumber);
+                        runningNumber = 0;
+                    }
+                    if (actionBuffer[i] == NETWORK_MSG_SET_SHOW_HEART_VALUES) {
+                        modConsole_setShouldShowHeartValues(runningNumber);
+                        runningNumber = 0;
+                    }
 
                     // only interpret actions when the menu is NOT showing!!
                     if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {

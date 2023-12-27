@@ -153,7 +153,9 @@ static char casinoStatusMessage[0x80];
 static int casinoWheelValues[12] = {0x1E, 0x00, 0x19, 0x00, 0xFF, 0xFF, 0x96, 0x00, 0x0A, 0x00, 0x14, 0x00};
 static int casinoWheelSearchBounds[2] = {0x28000, 0x30000};
 
-static int heartRate = -1;
+static int heartRate = 0;
+static int shouldShowHeartRate = 0;
+static int shouldShowHeartValues = 0;
 
 void alertYouClearedStage() {
     ninesStatusMessageTime = 120;
@@ -2360,17 +2362,25 @@ void modConsole_updateFrame() {
         }
 
         // for heart rate
-        if (heartRate > -100) {
+        if (shouldShowHeartRate) {
             char heartRateText[0x80];
-            sprintf(heartRateText, "%03d BPM - SPEED %02X %02X - ACCEL %02X %02X", 
-                heartRate,
+            sprintf(heartRateText, "%03d BPM", 
+                heartRate
+            );
+            layerRenderer_fill(2, 0, 0, 7 * 8 + 4, 12, 0xFF);
+            layerRenderer_writeWord256(2, 2, 2, heartRateText, 0x05);
+        }
+
+        if (shouldShowHeartValues) {
+            char heartRateText[0x80];
+            sprintf(heartRateText, "SPEED %02X %02X - ACCEL %02X %02X", 
                 aa_genesis_getWorkRam(0xF761),
                 aa_genesis_getWorkRam(0xF760),
                 aa_genesis_getWorkRam(0xF763),
                 aa_genesis_getWorkRam(0xF762)
             );
-            layerRenderer_fill(2, 0, 0, 35 * 8 + 4, 12, 0xFF);
-            layerRenderer_writeWord256(2, 2, 2, heartRateText, 0x05);
+            layerRenderer_fill(2, vdp_getScreenWidth() - (25 * 8 + 4), 0, 25 * 8 + 4, 12, 0xFF);
+            layerRenderer_writeWord256(2, vdp_getScreenWidth() - (25 * 8 + 2), 2, heartRateText, 0x05);
         }
 
         // for terminal
@@ -4020,4 +4030,12 @@ void modConsole_applySonicAccel(int newSonicAccel) {
 
     aa_genesis_setWorkRam(0xF763, highByte);
     aa_genesis_setWorkRam(0xF762, lowByte);
+}
+
+void modConsole_setShouldShowHeartRate(int should) {
+    shouldShowHeartRate = should;
+}
+
+void modConsole_setShouldShowHeartValues(int should) {
+    shouldShowHeartValues = should;
 }
