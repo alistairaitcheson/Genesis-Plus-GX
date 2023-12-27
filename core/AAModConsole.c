@@ -2367,7 +2367,7 @@ void modConsole_updateFrame() {
                 aa_genesis_getWorkRam(0xF760),
                 aa_genesis_getWorkRam(0xF761),
                 aa_genesis_getWorkRam(0xF762),
-                aa_genesis_getWorkRam(0xF763),
+                aa_genesis_getWorkRam(0xF763)
             );
             layerRenderer_fill(2, 0, 0, 45 * 8 + 4, 12, 0x05);
             layerRenderer_writeWord256(2, 2, 2, heartRateText, 0x05);
