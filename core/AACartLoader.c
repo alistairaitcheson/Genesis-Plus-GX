@@ -3340,7 +3340,7 @@ void cartLoader_checkNetworkForActions() {
                         runningNumber = 0;
                     }
                     if (actionBuffer[i] == NETWORK_MSG_SET_SONIC_SPEED) {
-                        modConsole_applySonicAccel(runningNumber);
+                        modConsole_applySonicSpeed(runningNumber);
                         runningNumber = 0;
                     }
                     if (actionBuffer[i] == NETWORK_MSG_SET_SHOW_HEART_RATE) {
