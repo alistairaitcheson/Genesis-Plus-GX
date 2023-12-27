@@ -4007,7 +4007,17 @@ void modConsole_showHeartRate(int newHeartRate) {
 }
 
 void modConsole_applySonicSpeed(int newSonicSpeed) {
+    int highByte = newSonicSpeed / 0x100;
+    int lowByte = newSonicSpeed % 0x100;
+
+    aa_genesis_setWorkRam(0xF761, highByte);
+    aa_genesis_setWorkRam(0xF760, lowByte);
 }
 
 void modConsole_applySonicAccel(int newSonicAccel) {
+    int highByte = newSonicAccel / 0x100;
+    int lowByte = newSonicAccel % 0x100;
+
+    aa_genesis_setWorkRam(0xF763, highByte);
+    aa_genesis_setWorkRam(0xF762, lowByte);
 }
