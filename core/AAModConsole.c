@@ -153,6 +153,8 @@ static char casinoStatusMessage[0x80];
 static int casinoWheelValues[12] = {0x1E, 0x00, 0x19, 0x00, 0xFF, 0xFF, 0x96, 0x00, 0x0A, 0x00, 0x14, 0x00};
 static int casinoWheelSearchBounds[2] = {0x28000, 0x30000};
 
+static int heartRate = -1;
+
 void alertYouClearedStage() {
     ninesStatusMessageTime = 120;
     sprintf(ninesStatusMessage, "You cleared a stage!");
@@ -2357,6 +2359,20 @@ void modConsole_updateFrame() {
             layerRenderer_fill(2, 4, 4, barSize, 8, 0x08);
         }
 
+        // for heart rate
+        if (heartRate > -100) {
+            char heartRateText[0x80];
+            sprintf(heartRateText, "%03d BPM - SPEED %02X %02X - ACCEL %02X %02X", 
+                heartRate,
+                aa_genesis_getWorkRam(0xF760),
+                aa_genesis_getWorkRam(0xF761),
+                aa_genesis_getWorkRam(0xF762),
+                aa_genesis_getWorkRam(0xF763),
+            );
+            layerRenderer_fill(2, 0, 0, 45 * 8 + 4, 12, 0x05);
+            layerRenderer_writeWord256(2, 2, 2, heartRateText, 0x05);
+        }
+
         // for terminal
         int tipsYpos = vdp_getScreenHeight() - 16;
         layerRenderer_writeWord256(2, -headingTextScrollPixels, 2 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
@@ -3984,4 +4000,14 @@ int lengthOfString256(char string256[]) {
         }
     }
     return 0x100;
+}
+
+void modConsole_showHeartRate(int newHeartRate) {
+    heartRate = newHeartRate;
+}
+
+void modConsole_applySonicSpeed(int newSonicSpeed) {
+}
+
+void modConsole_applySonicAccel(int newSonicAccel) {
 }

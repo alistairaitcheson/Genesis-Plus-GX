@@ -3330,6 +3330,12 @@ void cartLoader_checkNetworkForActions() {
                         }
                     }
 
+                    // heart monitor
+                    if (actionBuffer[i] == NETWORK_MSG_HEART_RATE) {
+                        modConsole_showHeartRate(runningNumber);
+                        runningNumber = 0;
+                    }
+
                     // only interpret actions when the menu is NOT showing!!
                     if (interpretType == NETWORK_INTERPRET_TYPE_ACTION && menuDisplay_isShowing() == 0) {
                         int eventCount = 1;

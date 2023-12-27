@@ -57,6 +57,10 @@
 #define NETWORK_RECEIVE_OPPONENT_LEVEL_IDENTIFIER 'g'
 #define NETWORK_REQUEST_OPPONENT_LEVEL_IDENTIFIER 'G'
 
+#define NETWORK_MSG_HEART_RATE 'H'
+#define NETWORK_MSG_SET_SONIC_SPEED 'J'
+#define NETWORK_MSG_SET_SONIC_ACCEL 'j'
+
 
 #define NETWORK_INTERPRET_TYPE_ACTION 0
 #define NETWORK_INTERPRET_TYPE_ASSIGN_RULES 1
@@ -196,5 +200,9 @@ void alertOpponentClearedStage();
 void beginCountdownToBreakCasinoWheels();
 void breakCasinoNightWheels();
 void checkToRepairCasinoNightWheels();
+
+void modConsole_showHeartRate(int heartRate);
+void modConsole_applySonicSpeed(int newSonicSpeed);
+void modConsole_applySonicAccel(int newSonicAccel);
 
 #endif
