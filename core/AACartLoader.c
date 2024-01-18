@@ -3332,15 +3332,21 @@ void cartLoader_checkNetworkForActions() {
 
                     // heart monitor
                     if (actionBuffer[i] == NETWORK_MSG_HEART_RATE) {
-                        modConsole_showHeartRate(runningNumber);
+                        if (runningNumber > 0) {
+                            modConsole_showHeartRate(runningNumber);
+                        }
                         runningNumber = 0;
                     }
                     if (actionBuffer[i] == NETWORK_MSG_SET_SONIC_ACCEL) {
-                        modConsole_applySonicAccel(runningNumber);
+                        if (runningNumber > 0) {
+                            modConsole_applySonicAccel(runningNumber);
+                        }
                         runningNumber = 0;
                     }
                     if (actionBuffer[i] == NETWORK_MSG_SET_SONIC_SPEED) {
-                        modConsole_applySonicSpeed(runningNumber);
+                        if (runningNumber > 0) {
+                            modConsole_applySonicSpeed(runningNumber);
+                        }
                         runningNumber = 0;
                     }
                     if (actionBuffer[i] == NETWORK_MSG_SET_SHOW_HEART_RATE) {
