@@ -209,4 +209,6 @@ void modConsole_applySonicAccel(int newSonicAccel);
 void modConsole_setShouldShowHeartRate(int should);
 void modConsole_setShouldShowHeartValues(int should);
 
+void updateTerminalMenuButtonCooldown();
+
 #endif

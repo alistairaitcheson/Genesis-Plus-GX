@@ -131,6 +131,14 @@ static int opponentHasWonNines = 0;
 static int opponentLevelKey = 0;
 static char ninesChallengeLevelNames[0x1000][0x100];
 
+static int terminalMenuButtonCooldown = 0;
+
+void updateTerminalMenuButtonCooldown() {
+    if (terminalMenuButtonCooldown > 0) {
+        terminalMenuButtonCooldown--;
+    }
+}
+
 char* getNameOfTriggerForGame(int cartIndex) {
     return nameOfTrigger[cartIndex];
 }
@@ -3323,10 +3331,16 @@ void cartLoader_checkNetworkForActions() {
                     }
 
                     if (actionBuffer[i] == NETWORK_MSG_SHOW_TERMINAL_MENU) {
-                        if (menuDisplay_isShowing() == 0) {
-                            menuDisplay_showTerminalMenu();
-                        } else {
-                            menuDisplay_onButtonPress(INPUT_INDEX_START);
+                        if (terminalMenuButtonCooldown > 0) {
+                            if (menuDisplay_isShowing() == 0) {
+                                menuDisplay_showTerminalMenu();
+                                terminalMenuButtonCooldown = 10;
+                                break;
+                            } else {
+                                terminalMenuButtonCooldown = 10;
+                                menuDisplay_onButtonPress(INPUT_INDEX_START);
+                                break;
+                            }
                         }
                     }
 

@@ -1396,6 +1396,8 @@ void modConsole_updateFrame() {
         cartLoader_checkNetworkForActions();
     }
 
+    updateTerminalMenuButtonCooldown();
+
     if (menuDisplay_isShowing() != 0) {
         resetRotorValues();
 
