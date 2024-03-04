@@ -4049,6 +4049,11 @@ void checkForRandomObjectSpawn() {
     }
 }
 
+// big --> small
+int objectXPosOffsets[2] = {0x09, 0x08}
+int objectYPosOffsets[2] = {0x0D, 0x0C}
+int offsetDistance = 0x40;
+
 void spawnRandomObjectNearSonic() {
     int index = 0xB400 + (((getBigRandomNumber(0xD600 - 0xB400) / 0x40) * 0x40));
     for (int i = 0xB400; i < 0xD5FF; i += 0x40) {
@@ -4059,19 +4064,47 @@ void spawnRandomObjectNearSonic() {
     }
 
     for (int i = 0; i < 0x40; i++) {
-        aa_genesis_setWorkRam(index + i, 0);
+        aa_genesis_setWorkRam(index + i, rand() % 0xFF);
     }
 
-    aa_genesis_setWorkRam(index + 0x01, rand() % 0xDC); // 0x25); 
+    aa_genesis_setWorkRam(index + 0x01, rand() % 0xFF); // 0x25);  <-- object 0x25 is a ring
 
     // set the position to be near Sonic
 
-    aa_genesis_setWorkRam(index + 0x08, (aa_genesis_getWorkRam(0xB008) + rand()) % 0x100); // x pixel
-    aa_genesis_setWorkRam(index + 0x09, (aa_genesis_getWorkRam(0xB009) + ((rand() % 3) - 1)) % 0x100); // x cell
-    
-    // y pixels
-    for (int i = 0x0A; i <= 0x0F; i++) {
-        aa_genesis_setWorkRam(index + i, aa_genesis_getWorkRam(0xB000 + i));
-        aa_genesis_setWorkRam(index + i, aa_genesis_getWorkRam(0xB000 + i));
+    int objectX[2] = {aa_genesis_getWorkRam(0xB000 + objectXPosOffsets[0]), aa_genesis_getWorkRam(0xB000 + objectXPosOffsets[1])};
+    int objectY[2] = {aa_genesis_getWorkRam(0xB000 + objectYPosOffsets[0]), aa_genesis_getWorkRam(0xB000 + objectYPosOffsets[1])};
+
+    int offsetX = (rand() % (offsetDistance * 2)) - offsetDistance;
+    int offsetY = (rand() % (offsetDistance * 2)) - offsetDistance;
+
+    objectX[1] += offsetX;
+    if (objectX[1] > 0xFF) {
+        objectX[1] -= 0x100;
+        objectX[0]++;
     }
+    if (objectX[1] < 0) {
+        objectX[1] += 0x100;
+        objectX[0]--;
+        if (objectX[0] < 0) {
+            objectX[0] = 0;
+        }
+    }
+    objectY[1] += offsetY;
+    if (objectY[1] > 0xFF) {
+        objectY[1] -= 0x100;
+        objectY[0]++;
+    }
+    if (objectY[1] < 0) {
+        objectY[1] += 0x100;
+        objectY[0]--;
+        if (objectY[0] < 0) {
+            objectY[0] = 0;
+        }
+    }
+
+    aa_genesis_setWorkRam(index + objectXPosOffsets[0], objectX[0]); 
+    aa_genesis_setWorkRam(index + objectXPosOffsets[1], objectX[1]); 
+    
+    aa_genesis_setWorkRam(index + objectYPosOffsets[0], objectY[0]); 
+    aa_genesis_setWorkRam(index + objectYPosOffsets[1], objectY[1]); 
 }
