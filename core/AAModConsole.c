@@ -2000,6 +2000,7 @@ void modConsole_updateFrame() {
 
         sendNetworkMessageOnGetRing();
 
+        // checkForRandomObjectSpawn();
 
         // if (switchCooldownPeriod > 0) {
         //     showCooldownVisualiser();
@@ -2694,7 +2695,7 @@ void modConsole_updateFrame() {
         if (hackOpts.switchGameType > 1 && hackOpts.switchGameType < 5) {
             switchAfterTimeCounter++;
             if (switchAfterTimeCounter >= switchAfterTimePeriod) {
-                switchAfterTimeCounter = 0;
+                switchAfterTimeCounter = rand() % switchAfterTimePeriod;
                 promptSwitchGame();
             }
         }
@@ -4040,4 +4041,37 @@ void modConsole_setShouldShowHeartRate(int should) {
 
 void modConsole_setShouldShowHeartValues(int should) {
     shouldShowHeartValues = should;
+}
+
+void checkForRandomObjectSpawn() {
+    if (ringCountHasChanged(0) != 0) {
+        spawnRandomObjectNearSonic();
+    }
+}
+
+void spawnRandomObjectNearSonic() {
+    int index = 0xB400 + (((getBigRandomNumber(0xD600 - 0xB400) / 0x40) * 0x40));
+    for (int i = 0xB400; i < 0xD5FF; i += 0x40) {
+        if (aa_genesis_getWorkRam(i + 1) == 0) {
+            index = i;
+            break;
+        }
+    }
+
+    for (int i = 0; i < 0x40; i++) {
+        aa_genesis_setWorkRam(index + i, 0);
+    }
+
+    aa_genesis_setWorkRam(index + 0x01, rand() % 0xDC); // 0x25); 
+
+    // set the position to be near Sonic
+
+    aa_genesis_setWorkRam(index + 0x08, (aa_genesis_getWorkRam(0xB008) + rand()) % 0x100); // x pixel
+    aa_genesis_setWorkRam(index + 0x09, (aa_genesis_getWorkRam(0xB009) + ((rand() % 3) - 1)) % 0x100); // x cell
+    
+    // y pixels
+    for (int i = 0x0A; i <= 0x0F; i++) {
+        aa_genesis_setWorkRam(index + i, aa_genesis_getWorkRam(0xB000 + i));
+        aa_genesis_setWorkRam(index + i, aa_genesis_getWorkRam(0xB000 + i));
+    }
 }

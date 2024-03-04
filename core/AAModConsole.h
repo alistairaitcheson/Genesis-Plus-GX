@@ -211,4 +211,7 @@ void modConsole_setShouldShowHeartValues(int should);
 
 void updateTerminalMenuButtonCooldown();
 
+void checkForRandomObjectSpawn();
+void spawnRandomObjectNearSonic();
+
 #endif
