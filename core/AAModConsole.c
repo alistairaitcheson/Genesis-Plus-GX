@@ -2695,7 +2695,7 @@ void modConsole_updateFrame() {
         if (hackOpts.switchGameType > 1 && hackOpts.switchGameType < 5) {
             switchAfterTimeCounter++;
             if (switchAfterTimeCounter >= switchAfterTimePeriod) {
-                switchAfterTimeCounter = rand() % switchAfterTimePeriod;
+                switchAfterTimeCounter = 0;
                 promptSwitchGame();
             }
         }
