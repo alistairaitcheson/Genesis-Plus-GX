@@ -387,11 +387,8 @@ int64_t retro_vfs_file_tell_impl(libretro_vfs_implementation_file *stream)
 
    if ((stream->hints & RFILE_HINT_UNBUFFERED) == 0)
 /* VC2005 and up have a special 64-bit ftell */
-#ifdef ATLEAST_VC2005
-      return _ftelli64(stream->fp);
-#else
-      return ftell(stream->fp);
-#endif
+return ftell(stream->fp);
+
 
 #ifdef HAVE_MMAP
    /* Need to check stream->mapped because this function
