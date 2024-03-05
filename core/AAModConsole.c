@@ -2000,7 +2000,7 @@ void modConsole_updateFrame() {
 
         sendNetworkMessageOnGetRing();
 
-        // checkForRandomObjectSpawn();
+        checkForRandomObjectSpawn();
 
         // if (switchCooldownPeriod > 0) {
         //     showCooldownVisualiser();
@@ -4043,9 +4043,27 @@ void modConsole_setShouldShowHeartValues(int should) {
     shouldShowHeartValues = should;
 }
 
+int lastFrameValue = -1;
+int frozenFrameCount = 0;
+
 void checkForRandomObjectSpawn() {
     if (ringCountHasChanged(0) != 0) {
         spawnRandomObjectNearSonic();
+    }
+
+    // check for freezes
+    if (aa_genesis_getWorkRam(0xF601) == 0x0C) {
+        int currentFrameValue = aa_genesis_getWorkRam(0xFE04) * 0x100 + aa_genesis_getWorkRam(0xFE05);
+        if (currentFrameValue == lastFrameValue) {
+            frozenFrameCount++;
+        } else {
+            frozenFrameCount = 0;
+        }
+
+        if (frozenFrameCount > 10) {
+            frozenFrameCount = 0;
+            stepBackRewindRAM();
+        }
     }
 }
 
