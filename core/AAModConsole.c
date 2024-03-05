@@ -4059,8 +4059,10 @@ void checkForRandomObjectSpawn() {
         spawnRandomObjectNearSonic();
     }
 
-    // check for freezes
-    if (aa_genesis_getWorkRam(0xF601) == 0x0C) {
+    // check for freezes if in a loaded level and not paused
+    if (aa_genesis_getWorkRam(0xF601) == 0x0C
+        && aa_genesis_getWorkRam(0xF63A) == 0
+        && aa_genesis_getWorkRam(0xF63B) == 0) {
         int currentFrameValue = aa_genesis_getWorkRam(0xFE04) * 0x100 + aa_genesis_getWorkRam(0xFE05);
         if (currentFrameValue == lastFrameValue) {
             frozenFrameCount++;
@@ -4070,7 +4072,7 @@ void checkForRandomObjectSpawn() {
 
         if (frozenFrameCount > 10) {
             frozenFrameCount = 0;
-            stepBackRewindRAM();
+            stepBackRewindRAM(); // make a version of this that rewinds - cache a 
         }
 
         char detailsBuf3[0x100];
@@ -4094,7 +4096,7 @@ void spawnRandomObjectNearSonic() {
     }
 
     for (int i = 0; i < 0x40; i++) {
-        aa_genesis_setWorkRam(index + i, rand() % 0xFF);
+        aa_genesis_setWorkRam(index + i, 0);// rand() % 0xFF);
     }
 
     aa_genesis_setWorkRam(index + 0x01, rand() % 0xFF); // 0x25);  <-- object 0x25 is a ring
