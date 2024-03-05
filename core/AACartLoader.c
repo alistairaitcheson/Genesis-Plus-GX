@@ -5183,7 +5183,7 @@ void cacheEmergencyRewindState() {
 
 void beginEmergencyRewind() {
     shouldDoEmergencyRewind = 1;
-    targetEmergencyRewindIndex = emergencyRewindStateIndex - 30;
+    targetEmergencyRewindIndex = emergencyRewindStateIndex - 15;
     if (targetEmergencyRewindIndex < 0) {
         targetEmergencyRewindIndex += 60;
     }
