@@ -6,6 +6,9 @@ cd C:\Users\agait\Documents\Development\GenesisPlusGX\Genesis-Plus-GX
 cls
 "C:\Program Files (x86)\GnuWin32\bin\make.exe" -f Makefile.libretro
 
+//on the dev laptop it's
+& "C:\Program Files (x86)\GnuWin32\bin\make.exe" -f Makefile.libretro
+
 */
 
 #include "shared.h" // <--- this needs to be included at the top of every file, for compiler reasons I don't understand
@@ -156,6 +159,11 @@ static int casinoWheelSearchBounds[2] = {0x28000, 0x30000};
 static int heartRate = 0;
 static int shouldShowHeartRate = 0;
 static int shouldShowHeartValues = 0;
+
+// for object spawning mechanic
+static int objectXPosOffsets[2] = {0x09, 0x08};
+static int objectYPosOffsets[2] = {0x0D, 0x0C};
+static int offsetDistance = 0x40;
 
 void alertYouClearedStage() {
     ninesStatusMessageTime = 120;
@@ -4067,10 +4075,7 @@ void checkForRandomObjectSpawn() {
     }
 }
 
-// big --> small
-int objectXPosOffsets[2] = {0x09, 0x08}
-int objectYPosOffsets[2] = {0x0D, 0x0C}
-int offsetDistance = 0x40;
+
 
 void spawnRandomObjectNearSonic() {
     int index = 0xB400 + (((getBigRandomNumber(0xD600 - 0xB400) / 0x40) * 0x40));
