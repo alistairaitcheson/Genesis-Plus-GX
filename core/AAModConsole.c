@@ -4072,6 +4072,13 @@ void checkForRandomObjectSpawn() {
             frozenFrameCount = 0;
             stepBackRewindRAM();
         }
+
+        char detailsBuf3[0x100];
+        sprintf(detailsBuf3, "%04X %04X %04X", currentFrameValue, lastFrameValue, frozenFrameCount);
+        layerRenderer_writeWord256(3, 0, 24, detailsBuf3, 0x5);
+
+
+        lastFrameValue = currentFrameValue;
     }
 }
 
