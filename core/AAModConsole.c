@@ -165,6 +165,9 @@ static int objectXPosOffsets[2] = {0x09, 0x08};
 static int objectYPosOffsets[2] = {0x0D, 0x0C};
 static int offsetDistance = 0x40;
 
+// rewinding on freeze
+
+
 void alertYouClearedStage() {
     ninesStatusMessageTime = 120;
     sprintf(ninesStatusMessage, "You cleared a stage!");
@@ -4055,6 +4058,11 @@ int lastFrameValue = -1;
 int frozenFrameCount = 0;
 
 void checkForRandomObjectSpawn() {
+    if (frameCount % 5 == 0) {
+        cacheEmergencyRewindState();
+    }
+    checkForEmergencyRewind();
+
     if (ringCountHasChanged(0) != 0) {
         spawnRandomObjectNearSonic();
     }
@@ -4072,7 +4080,7 @@ void checkForRandomObjectSpawn() {
 
         if (frozenFrameCount > 10) {
             frozenFrameCount = 0;
-            stepBackRewindRAM(); // make a version of this that rewinds - cache a 
+            beginEmergencyRewind(); // make a version of this that rewinds - cache a 
         }
 
         char detailsBuf3[0x100];

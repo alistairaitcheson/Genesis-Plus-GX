@@ -81,6 +81,11 @@ static int maxRewindStatesPerGame = 0x20;
 static int rewindStateMinimumPerGame[MAX_ROMS];
 static int rewindStateCounterPerGame[MAX_ROMS];
 
+static uint8 emergencyRewindStates[60][STATE_SIZE];
+static int emergencyRewindStateIndex = 0;
+static int targetEmergencyRewindIndex = 0;
+static int shouldDoEmergencyRewind = 0;
+
 static int activeBossRushes[MAX_ROMS];
 static int currentBossRushIndex = 0;
 static uint8 bossRushSaveStates[MAX_ROMS][STATE_SIZE];
@@ -5164,4 +5169,36 @@ int stageInRAMHasChanged() {
         return 1;
     }
     return 0;
+}
+
+void cacheEmergencyRewindState() {
+    if (shouldDoEmergencyRewind == 0) {
+        state_save(emergencyRewindStates[emergencyRewindStateIndex]);
+        emergencyRewindStateIndex++;
+        if (emergencyRewindStateIndex >= 60) {
+            emergencyRewindStateIndex = 0;
+        }
+    }
+}
+
+void beginEmergencyRewind() {
+    shouldDoEmergencyRewind = 1;
+    targetEmergencyRewindIndex = emergencyRewindStateIndex - 30;
+    if (targetEmergencyRewindIndex < 0) {
+        targetEmergencyRewindIndex += 60;
+    }
+}
+
+void checkForEmergencyRewind() {
+    if (shouldDoEmergencyRewind != 0) {
+        emergencyRewindStateIndex--;
+        if (emergencyRewindStateIndex < 0) {
+            emergencyRewindStateIndex += 60;
+        }
+        state_load(emergencyRewindStates[emergencyRewindStateIndex]);
+
+        if (emergencyRewindStateIndex == targetEmergencyRewindIndex) {
+            shouldDoEmergencyRewind = 0;
+        }
+    }
 }

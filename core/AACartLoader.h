@@ -236,4 +236,8 @@ int getCachedNinesStageFromRAM();
 
 void loadNinesChallengeStage(int iterationCount);
 
+void cacheEmergencyRewindState();
+void beginEmergencyRewind();
+void checkForEmergencyRewind();
+
 #endif
