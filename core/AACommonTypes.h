@@ -36,14 +36,6 @@ typedef struct
     int postRingEffectCooldown;
 } AAGameListing;
 
-typedef struct {
-    int crashAllowedLocations[8];
-    int crashAllowedValues[8];
-    int crashCheckLocations[8];
-    int crashCheckValues[8];
-    
-} AAExtraGameInfo
-
 typedef struct
 {
     int shouldEditZ80;

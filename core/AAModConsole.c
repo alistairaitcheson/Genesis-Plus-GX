@@ -7,6 +7,7 @@ cls
 "C:\Program Files (x86)\GnuWin32\bin\make.exe" -f Makefile.libretro
 
 //on the dev laptop it's
+cd C:\Users\agait\Documents\Development\Genesis-Plus-GX
 & "C:\Program Files (x86)\GnuWin32\bin\make.exe" -f Makefile.libretro
 
 */
