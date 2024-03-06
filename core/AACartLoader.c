@@ -377,6 +377,8 @@ void cartLoader_run() {
     musicOverrideListings[2].valueToWriteForNoMusic = 0;
     musicOverrideListings[2].applyChangeDuration = 5;
     gameListings[2].valueWriteDuration = 0;
+    gameListings[1].panicBytes[3] = 0xF601;
+    gameListings[1].panicByteDestinations[3] = 0x8C;
 
     writeStringToArray32("SONICTHEHEDGEHOG3", gameListings[3].gameId);//gameListings[2].gameId = {'S','O','N','I','C','T','H','E','H','E','D','G','E','H','O','G','3','\0'};
     terminalNamePerRom[3] = "Sonic the Hedgehog 3";
@@ -5183,7 +5185,7 @@ void cacheEmergencyRewindState() {
 
 void beginEmergencyRewind() {
     shouldDoEmergencyRewind = 1;
-    targetEmergencyRewindIndex = emergencyRewindStateIndex - 15;
+    targetEmergencyRewindIndex = emergencyRewindStateIndex - 10;
     if (targetEmergencyRewindIndex < 0) {
         targetEmergencyRewindIndex += 60;
     }

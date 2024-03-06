@@ -2011,7 +2011,16 @@ void modConsole_updateFrame() {
 
         sendNetworkMessageOnGetRing();
 
-        checkForRandomObjectSpawn();
+        if (menuDisplay_getSecondaryHackOptions().enableEmergencyRewind) {
+            if (frameCount % 5 == 0) {
+                cacheEmergencyRewindState();
+            }
+            checkForEmergencyRewind();
+            checkForGameCrashes();
+        }
+        if (menuDisplay_getSecondaryHackOptions().spawnObjectOnRing) {
+            checkForRandomObjectSpawn();
+        }
 
         // if (switchCooldownPeriod > 0) {
         //     showCooldownVisualiser();
@@ -4058,37 +4067,52 @@ int lastFrameValue = -1;
 int frozenFrameCount = 0;
 
 void checkForRandomObjectSpawn() {
-    if (frameCount % 5 == 0) {
-        cacheEmergencyRewindState();
-    }
-    checkForEmergencyRewind();
-
-    if (ringCountHasChanged(0) != 0) {
+    // only do this for Sonic 2
+    if (ringCountHasChanged(0) != 0 && cartLoader_getActiveCartIndex() == 2) {
         spawnRandomObjectNearSonic();
     }
+}
 
-    // check for freezes if in a loaded level and not paused
-    if (aa_genesis_getWorkRam(0xF601) == 0x0C
-        && aa_genesis_getWorkRam(0xF63A) == 0
-        && aa_genesis_getWorkRam(0xF63B) == 0) {
-        int currentFrameValue = aa_genesis_getWorkRam(0xFE04) * 0x100 + aa_genesis_getWorkRam(0xFE05);
-        if (currentFrameValue == lastFrameValue) {
-            frozenFrameCount++;
-        } else {
-            frozenFrameCount = 0;
+void checkForGameCrashes() {
+    // so far only do this for Sonic 1, 2 and 3
+    if (cartLoader_getActiveCartIndex() == 1 && cartLoader_getActiveCartIndex() == 2 && cartLoader_getActiveCartIndex() == 3) {
+        // check for freezes if in a loaded level and not paused
+        if (aa_genesis_getWorkRam(0xF601) == 0x0C
+            && aa_genesis_getWorkRam(0xF63A) == 0
+            && aa_genesis_getWorkRam(0xF63B) == 0) {
+            int currentFrameValue = aa_genesis_getWorkRam(0xFE04) * 0x100 + aa_genesis_getWorkRam(0xFE05);
+            if (currentFrameValue == lastFrameValue) {
+                frozenFrameCount++;
+            } else {
+                frozenFrameCount = 0;
+            }
+
+            if (frozenFrameCount > 10) {
+                frozenFrameCount = 0;
+                beginEmergencyRewind(); // make a version of this that rewinds - cache a 
+            }
+
+            // char detailsBuf3[0x100];
+            // sprintf(detailsBuf3, "%04X %04X %04X", currentFrameValue, lastFrameValue, frozenFrameCount);
+            // layerRenderer_writeWord256(3, 0, 24, detailsBuf3, 0x5);
+
+
+            lastFrameValue = currentFrameValue;
         }
+    }
 
-        if (frozenFrameCount > 10) {
-            frozenFrameCount = 0;
-            beginEmergencyRewind(); // make a version of this that rewinds - cache a 
+    // Sonic & Knuckles - rewind if we generate title screen
+    if (cartLoader_getActiveCartIndex() == 4) {
+        if (aa_genesis_getLastWorkRam(0xF601) == 0x0C && aa_genesis_getWorkRam(0xF601) == 0x00) {
+            beginEmergencyRewind();
         }
+    }
 
-        char detailsBuf3[0x100];
-        sprintf(detailsBuf3, "%04X %04X %04X", currentFrameValue, lastFrameValue, frozenFrameCount);
-        layerRenderer_writeWord256(3, 0, 24, detailsBuf3, 0x5);
-
-
-        lastFrameValue = currentFrameValue;
+    // 3D Blast - detect the secret level select screen
+    if (cartLoader_getActiveCartIndex() == 7) {
+        if (aa_genesis_getLastWorkRam(0x067F) != 0x00 && aa_genesis_getWorkRam(0x067F) == 0x00) {
+            beginEmergencyRewind();
+        }
     }
 }
 

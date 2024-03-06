@@ -337,6 +337,8 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
     secondaryHackOptions.screenSnapOnGetRing = 1;
     secondaryHackOptions.shouldSaveRewindStates = 1;
     hackOptions.switchGameType = 0;
+    secondaryHackOptions.enableEmergencyRewind = 1;
+    secondaryHackOptions.spawnObjectOnRing = 0;
 
     networkOptions.sendRandomiseVelocity = 0;
     networkOptions.sendRemoveColour = 0;
@@ -570,7 +572,10 @@ int menuDisplay_shouldRamEditingOptionsShowAsOn() {
 }
 
 int menuDisplay_shouldQualityOfLifeOptionsShowAsOn() {
-    if (hackOptions.infiniteLives != 0 || hackOptions.infiniteTime != 0 || hackOptions.shouldWriteToLog != 0 || secondaryHackOptions.shouldSaveRewindStates != 0) {
+    if (hackOptions.infiniteLives != 0 || hackOptions.infiniteTime != 0 
+        || hackOptions.shouldWriteToLog != 0 || secondaryHackOptions.shouldSaveRewindStates != 0
+        || secondaryHackOptions.enableEmergencyRewind != 0
+        ) {
         return 1;
     }
     return 0;
@@ -593,7 +598,10 @@ int menuDisplay_shouldSonicSpecificOptionsShowAsOn() {
     if (menuDisplay_areSoloEffectsAllowed() == 0) {
         return 0;
     }
-    if (hackOptions.speedUpOnRing != 0 || hackOptions.randomiseVelocityOnRing != 0 || hackOptions.overwriteLevelType != 0) {
+    if (hackOptions.speedUpOnRing != 0 || 
+        hackOptions.randomiseVelocityOnRing != 0 || 
+        hackOptions.overwriteLevelType != 0 ||
+        secondaryHackOptions.spawnObjectOnRing != 0) {
         return 1;
     }
     if (menuDisplay_shouldPersistValueOptionsShowAsOn()) {
@@ -1047,6 +1055,8 @@ void applySecondaryHacksDefaultValues() {
     secondaryHackOptions.shouldSaveRewindStates = 0;
     secondaryHackOptions.vramWritesPerRing = 0;
     secondaryHackOptions.eventCountForSwitch = 0;
+    secondaryHackOptions.enableEmergencyRewind = 0;
+    secondaryHackOptions.spawnObjectOnRing = 0;
 }
 
 void applySecondaryHacksFromArray256(int array256[]) {
@@ -1067,6 +1077,9 @@ void applySecondaryHacksFromArray256(int array256[]) {
     secondaryHackOptions.shouldSaveRewindStates = array256[11];
     secondaryHackOptions.vramWritesPerRing = array256[12];
     secondaryHackOptions.eventCountForSwitch = array256[13];
+
+    secondaryHackOptions.enableEmergencyRewind = array256[14];
+    secondaryHackOptions.spawnObjectOnRing = array256[15];
 }
 
 void applySettingsFromArray256(int array256[]) {
@@ -1187,6 +1200,8 @@ void saveHackOptions() {
     secondaryPrefs[11] = secondaryHackOptions.shouldSaveRewindStates;
 
     secondaryPrefs[13] = secondaryHackOptions.eventCountForSwitch;
+    secondaryPrefs[14] = secondaryHackOptions.enableEmergencyRewind;
+    secondaryPrefs[15] = secondaryHackOptions.spawnObjectOnRing;
 
     remove("_magicbox/__secondaryPrefs.data");
     FILE *secondaryPrefsWriter = fopen("_magicbox/__secondaryPrefs.data", "wb");
@@ -2528,8 +2543,12 @@ void incrementQualityOfLifeOption(int direction) {
         secondaryHackOptions.shouldSaveRewindStates += direction;
     }
 
-
     if (qualityOfLifeOptionIndex == 4) {
+        secondaryHackOptions.enableEmergencyRewind += direction;
+    }
+
+
+    if (qualityOfLifeOptionIndex == 5) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -2541,8 +2560,11 @@ void incrementSaveStateOption(int direction) {
     if (saveStateOptionIndex == 1) {
         hackOptions.automaticallySaveStatesFreq += direction;
     }
-
     if (saveStateOptionIndex == 2) {
+        secondaryHackOptions.enableEmergencyRewind += direction;
+    }
+
+    if (saveStateOptionIndex == 3) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }    
 }
@@ -2563,8 +2585,11 @@ void incrementSonicSpecificOption(int direction) {
     if (sonicSpecificOptionIndex == 5) {
         hackOptions.randomiseVelocityOnRing += direction;
     }
-
     if (sonicSpecificOptionIndex == 6) {
+        secondaryHackOptions.spawnObjectOnRing += direction;
+    }
+
+    if (sonicSpecificOptionIndex == 7) {
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
 }
@@ -3754,7 +3779,7 @@ void showQualityOfLifeOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Quality of life", 5);
 
-    int lineCount = 5;
+    int lineCount = 6;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -3815,8 +3840,20 @@ void showQualityOfLifeOptionsMenu() {
     } else {
         sprintf(lines[3], "Allow game rewind:        ON"); 
     }
+    
+    if (secondaryHackOptions.enableEmergencyRewind > 1) {
+        secondaryHackOptions.enableEmergencyRewind = 0;
+    }
+    if (secondaryHackOptions.enableEmergencyRewind < 0) {
+        secondaryHackOptions.enableEmergencyRewind = 1;
+    }
+    if (secondaryHackOptions.enableEmergencyRewind == 0) {
+        sprintf(lines[4], "Rewind on crash:         OFF");
+    } else {
+        sprintf(lines[4], "Rewind on crash:          ON");
+    }
 
-    sprintf(lines[4], "back >");
+    sprintf(lines[5], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -3847,7 +3884,7 @@ void showSaveStateOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Save states", 5);
 
-    int lineCount = 3;
+    int lineCount = 4;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -3892,8 +3929,20 @@ void showSaveStateOptionsMenu() {
     } else if (hackOptions.automaticallySaveStatesFreq == 5) {
         sprintf(lines[1], "Auto-save state: EVERY 5 secs");
     }
+        
+    if (secondaryHackOptions.enableEmergencyRewind > 1) {
+        secondaryHackOptions.enableEmergencyRewind = 0;
+    }
+    if (secondaryHackOptions.enableEmergencyRewind < 0) {
+        secondaryHackOptions.enableEmergencyRewind = 1;
+    }
+    if (secondaryHackOptions.enableEmergencyRewind == 0) {
+        sprintf(lines[2], "Rewind game on crash:    OFF");
+    } else {
+        sprintf(lines[2], "Rewind game on crash:     ON");
+    }
 
-    sprintf(lines[2], "back >");
+    sprintf(lines[3], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {
@@ -3924,7 +3973,7 @@ void showSonicSpecificOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Sonic-specific options", 5);
 
-    int lineCount = 7;
+    int lineCount = 8;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     int linesWithBreakAfter[lineCount];
@@ -4005,7 +4054,24 @@ void showSonicSpecificOptionsMenu() {
     }
     linesWithBreakAfter[5] = 1;
 
-    sprintf(lines[6], "back >");
+    if (secondaryHackOptions.spawnObjectOnRing > 3) {
+        secondaryHackOptions.spawnObjectOnRing = 0;
+    }
+    if (secondaryHackOptions.spawnObjectOnRing < 0) {
+        secondaryHackOptions.spawnObjectOnRing = 3;
+    }
+    if (secondaryHackOptions.spawnObjectOnRing == 0) {
+        sprintf(lines[6], "Spawn objects on ring:     OFF");
+    } else if (secondaryHackOptions.spawnObjectOnRing == 1) {
+        sprintf(lines[6], "Spawn objects on ring:  RANDOM");
+    } else if (secondaryHackOptions.spawnObjectOnRing == 2) {
+        sprintf(lines[6], "Spawn objects on ring: HAZARDS");
+    }  else if (secondaryHackOptions.spawnObjectOnRing == 3) {
+        sprintf(lines[6], "Spawn objects on ring:   TAILS");
+    }
+    linesWithBreakAfter[6] = 1;
+
+    sprintf(lines[7], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

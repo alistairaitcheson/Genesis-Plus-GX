@@ -213,5 +213,6 @@ void updateTerminalMenuButtonCooldown();
 
 void checkForRandomObjectSpawn();
 void spawnRandomObjectNearSonic();
+void checkForGameCrashes();
 
 #endif
