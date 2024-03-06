@@ -2012,14 +2012,14 @@ void modConsole_updateFrame() {
 
         sendNetworkMessageOnGetRing();
 
-        if (menuDisplay_getSecondaryHackOptions().enableEmergencyRewind) {
+        if (menuDisplay_getSecondaryHackOptions().enableEmergencyRewind != 0) {
             if (frameCount % 5 == 0) {
                 cacheEmergencyRewindState();
             }
             checkForEmergencyRewind();
             checkForGameCrashes();
         }
-        if (menuDisplay_getSecondaryHackOptions().spawnObjectOnRing) {
+        if (menuDisplay_getSecondaryHackOptions().spawnObjectOnRing != 0) {
             checkForRandomObjectSpawn();
         }
 
@@ -4075,8 +4075,12 @@ void checkForRandomObjectSpawn() {
 }
 
 void checkForGameCrashes() {
+    // layerRenderer_writeWord256(3, 0, 60, "Check for crashes", 0x5);
+
     // so far only do this for Sonic 1, 2 and 3
-    if (cartLoader_getActiveCartIndex() == 1 && cartLoader_getActiveCartIndex() == 2 && cartLoader_getActiveCartIndex() == 3) {
+    if (cartLoader_getActiveCartIndex() == 1 || cartLoader_getActiveCartIndex() == 2 || cartLoader_getActiveCartIndex() == 3) {
+        // layerRenderer_writeWord256(3, 0, 68, "Sonic 1/2/3", 0x5);
+
         // check for freezes if in a loaded level and not paused
         if (aa_genesis_getWorkRam(0xF601) == 0x0C
             && aa_genesis_getWorkRam(0xF63A) == 0
@@ -4088,7 +4092,7 @@ void checkForGameCrashes() {
                 frozenFrameCount = 0;
             }
 
-            if (frozenFrameCount > 10) {
+            if (frozenFrameCount > 15) {
                 frozenFrameCount = 0;
                 beginEmergencyRewind(); // make a version of this that rewinds - cache a 
             }
@@ -4103,7 +4107,10 @@ void checkForGameCrashes() {
     }
 
     // Sonic & Knuckles - rewind if we generate title screen
-    if (cartLoader_getActiveCartIndex() == 4) {
+    if (cartLoader_getActiveCartIndex() == 1 ||
+        cartLoader_getActiveCartIndex() == 2 ||
+        cartLoader_getActiveCartIndex() == 3 ||
+        cartLoader_getActiveCartIndex() == 4) {
         if (aa_genesis_getLastWorkRam(0xF601) == 0x0C && aa_genesis_getWorkRam(0xF601) == 0x00) {
             beginEmergencyRewind();
         }
