@@ -161,13 +161,6 @@ static int heartRate = 0;
 static int shouldShowHeartRate = 0;
 static int shouldShowHeartValues = 0;
 
-// for object spawning mechanic
-static int objectXPosOffsets[2] = {0x09, 0x08};
-static int objectYPosOffsets[2] = {0x0D, 0x0C};
-static int offsetDistance = 0x40;
-
-// rewinding on freeze
-
 
 void alertYouClearedStage() {
     ninesStatusMessageTime = 120;
@@ -4069,7 +4062,11 @@ int frozenFrameCount = 0;
 
 void checkForRandomObjectSpawn() {
     // only do this for Sonic 2
-    if (ringCountHasChanged(0) != 0 && cartLoader_getActiveCartIndex() == 2) {
+    if (ringCountHasChanged(0) != 0 && (
+        cartLoader_getActiveCartIndex() == 1 ||
+        cartLoader_getActiveCartIndex() == 2 ||
+        cartLoader_getActiveCartIndex() == 3 ||
+        cartLoader_getActiveCartIndex() == 4 )) {
         spawnRandomObjectNearSonic();
     }
 }
@@ -4127,27 +4124,116 @@ void checkForGameCrashes() {
 
 
 void spawnRandomObjectNearSonic() {
-    int index = 0xB400 + (((getBigRandomNumber(0xD600 - 0xB400) / 0x40) * 0x40));
-    for (int i = 0xB400; i < 0xD5FF; i += 0x40) {
-        if (aa_genesis_getWorkRam(i + 1) == 0) {
-            index = i;
-            break;
+    int spacing = 0x40;
+    int start = 0xB400;
+    int end = 0xD600;
+
+    int minValue = 2;
+    int maxValue = 0x8C;
+
+    int sonicLoc = 0xB000;
+    int objectXPosOffsets[2] = {0x09, 0x08};
+    int objectYPosOffsets[2] = {0x0D, 0x0C};
+    int offsetDistance = 0x40;
+
+
+    if (cartLoader_getActiveCartIndex() == 1) {
+        start = 0xD800;
+        end = 0xF000;
+        minValue = 0;
+        maxValue = 0x8C;
+        sonicLoc = 0xD000;
+    }
+
+    if (cartLoader_getActiveCartIndex() == 2) {
+        start = 0xB400;
+        end = 0xD600;
+        minValue = 0;
+        maxValue = 0xDC;
+        sonicLoc = 0xB000;
+    }
+    
+    if (cartLoader_getActiveCartIndex() == 3) {
+        start = 0xB0DE;
+        end = 0xCAE2;
+        minValue = 0;
+        maxValue = 0xD3;
+        sonicLoc = 0xB000;
+        objectXPosOffsets[0] = 0x10;
+        objectXPosOffsets[0] = 0x11;
+        objectYPosOffsets[0] = 0x14;
+        objectYPosOffsets[0] = 0x15;
+        spacing = 0x4A;
+    }
+
+    if (cartLoader_getActiveCartIndex() == 4) {
+        start = 0xB0DE;
+        end = 0xCAE2;
+        minValue = 0;
+        maxValue = 0xD3;
+        sonicLoc = 0xB000;
+        objectXPosOffsets[0] = 0x10;
+        objectXPosOffsets[0] = 0x11;
+        objectYPosOffsets[0] = 0x14;
+        objectYPosOffsets[0] = 0x15;
+        spacing = 0x4A;
+    }
+
+
+    int index = start + (((getBigRandomNumber(end - start) / spacing) * spacing));
+    for (int i = start; i < end; i += spacing) {
+        if (cartLoader_getActiveCartIndex() == 4  || cartLoader_getActiveCartIndex() == 3) {
+            int zeroCount  = 0;
+            for (int j = 0; j < 4; j++) {
+                if (aa_genesis_getWorkRam(i + j) == 0) {
+                    zeroCount++;
+                }
+            }
+            if (zeroCount == 4) {
+                index = i;
+                break;
+            }
+        } else {
+            if (aa_genesis_getWorkRam(i + 1) == 0) {
+                index = i;
+                break;
+            }
         }
     }
 
-    for (int i = 0; i < 0x40; i++) {
+    for (int i = 0; i < spacing; i++) {
         aa_genesis_setWorkRam(index + i, 0);// rand() % 0xFF);
     }
 
-    aa_genesis_setWorkRam(index + 0x01, rand() % 0xFF); // 0x25);  <-- object 0x25 is a ring
+    if (cartLoader_getActiveCartIndex() == 4  || cartLoader_getActiveCartIndex() == 3) {
+        aa_genesis_setWorkRam(index, 0x01);
+        aa_genesis_setWorkRam(index + 1, 0x00);
+        aa_genesis_setWorkRam(index + 2, 0x1A);
+        aa_genesis_setWorkRam(index + 3, 0xA5);
+
+        char detailsBuf3[0x100];
+        sprintf(detailsBuf3, "Wrote to %04X", index);
+        layerRenderer_writeWord256(3, 0, 32, detailsBuf3, 0x5);
+    } else {
+        aa_genesis_setWorkRam(index + 0x01, minValue + getBigRandomNumber(maxValue - minValue));
+    }
 
     // set the position to be near Sonic
 
-    int objectX[2] = {aa_genesis_getWorkRam(0xB000 + objectXPosOffsets[0]), aa_genesis_getWorkRam(0xB000 + objectXPosOffsets[1])};
-    int objectY[2] = {aa_genesis_getWorkRam(0xB000 + objectYPosOffsets[0]), aa_genesis_getWorkRam(0xB000 + objectYPosOffsets[1])};
+    int objectX[2] = {aa_genesis_getWorkRam(sonicLoc + objectXPosOffsets[0]), aa_genesis_getWorkRam(sonicLoc + objectXPosOffsets[1])};
+    int objectY[2] = {aa_genesis_getWorkRam(sonicLoc + objectYPosOffsets[0]), aa_genesis_getWorkRam(sonicLoc + objectYPosOffsets[1])};
 
-    int offsetX = (rand() % (offsetDistance * 2)) - offsetDistance;
-    int offsetY = (rand() % (offsetDistance * 2)) - offsetDistance;
+    int radiusX = (offsetDistance / 2) + getBigRandomNumber(offsetDistance);
+    if (rand() % 2 == 0) {
+        radiusX *= -1;
+    }
+    int radiusY = (offsetDistance / 2) + getBigRandomNumber(offsetDistance);
+    if (rand() % 2 == 0) {
+        radiusY *= -1;
+    }
+
+    int offsetX = radiusX;
+    int offsetY = radiusY;
 
     objectX[1] += offsetX;
     if (objectX[1] > 0xFF) {
