@@ -4085,6 +4085,7 @@ void checkForGameCrashes() {
         if (aa_genesis_getWorkRam(0xF601) == 0x0C
             && aa_genesis_getWorkRam(0xF63A) == 0
             && aa_genesis_getWorkRam(0xF63B) == 0) {
+
             int currentFrameValue = aa_genesis_getWorkRam(0xFE04) * 0x100 + aa_genesis_getWorkRam(0xFE05);
             if (currentFrameValue == lastFrameValue) {
                 frozenFrameCount++;
@@ -4096,6 +4097,8 @@ void checkForGameCrashes() {
                 frozenFrameCount = 0;
                 beginEmergencyRewind(); // make a version of this that rewinds - cache a 
             }
+
+            
 
             // char detailsBuf3[0x100];
             // sprintf(detailsBuf3, "%04X %04X %04X", currentFrameValue, lastFrameValue, frozenFrameCount);
@@ -4119,12 +4122,20 @@ void checkForGameCrashes() {
         }
     }
 
+    if (cartLoader_getActiveCartIndex() == 1) {
+        if (aa_genesis_getWorkRam(0xF601) == 0x1C || aa_genesis_getWorkRam(0xF601) == 0x88 || aa_genesis_getWorkRam(0xF601) == 0x08) {
+            beginEmergencyRewind();
+        }
+    }
+
     // 3D Blast - detect the secret level select screen
     if (cartLoader_getActiveCartIndex() == 7) {
         if (aa_genesis_getLastWorkRam(0x067F) != 0x00 && aa_genesis_getWorkRam(0x067F) == 0x00) {
             beginEmergencyRewind();
         }
     }
+
+
 }
 
 
@@ -4140,7 +4151,7 @@ void spawnRandomObjectNearSonic() {
     int sonicLoc = 0xB000;
     int objectXPosOffsets[2] = {0x09, 0x08};
     int objectYPosOffsets[2] = {0x0D, 0x0C};
-    int offsetDistance = 0x40;
+    int offsetDistance = 0x30;
 
 
     if (cartLoader_getActiveCartIndex() == 1) {
@@ -4210,6 +4221,7 @@ void spawnRandomObjectNearSonic() {
     for (int i = 0; i < spacing; i++) {
         aa_genesis_setWorkRam(index + i, 0);// rand() % 0xFF);
     }
+    aa_genesis_setWorkRam(index + 0x29, rand() % 0xFF);
 
     if (cartLoader_getActiveCartIndex() == 4  || cartLoader_getActiveCartIndex() == 3) {
         aa_genesis_setWorkRam(index, 0x01);
@@ -4229,12 +4241,14 @@ void spawnRandomObjectNearSonic() {
     int objectX[2] = {aa_genesis_getWorkRam(sonicLoc + objectXPosOffsets[0]), aa_genesis_getWorkRam(sonicLoc + objectXPosOffsets[1])};
     int objectY[2] = {aa_genesis_getWorkRam(sonicLoc + objectYPosOffsets[0]), aa_genesis_getWorkRam(sonicLoc + objectYPosOffsets[1])};
 
-    int radiusX = (offsetDistance / 2) + getBigRandomNumber(offsetDistance);
-    if (rand() % 2 == 0) {
+    int radiusX = getBigRandomNumber(offsetDistance);
+    if (rand() % 4 == 0) {
         radiusX *= -1;
+    } else {
+        radiusX *= 2;
     }
-    int radiusY = (offsetDistance / 2) + getBigRandomNumber(offsetDistance);
-    if (rand() % 2 == 0) {
+    int radiusY = offsetDistance / 2 + getBigRandomNumber(offsetDistance / 2);
+    if (rand() % 4 > 0) {
         radiusY *= -1;
     }
 
