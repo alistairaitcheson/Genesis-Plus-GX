@@ -12,7 +12,6 @@
 #define CART_TYPE_GAMEGEAR 2
 #define CART_TYPE_SEGACD 3
 
-
 typedef struct {
     int lives[2];
     int rings[2];
@@ -239,5 +238,9 @@ void loadNinesChallengeStage(int iterationCount);
 void cacheEmergencyRewindState();
 void beginEmergencyRewind();
 void checkForEmergencyRewind();
+int getEmergencyRewindExtension();
+int getTargetEmergencyRewindIndex();
+int getEmergencyRewindStateIndex();
+void decrementEmergencyRewindExtension();
 
 #endif

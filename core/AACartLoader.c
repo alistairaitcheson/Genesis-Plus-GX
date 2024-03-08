@@ -81,10 +81,15 @@ static int maxRewindStatesPerGame = 0x20;
 static int rewindStateMinimumPerGame[MAX_ROMS];
 static int rewindStateCounterPerGame[MAX_ROMS];
 
-static uint8 emergencyRewindStates[60][STATE_SIZE];
+static int EMERGENCY_REWIND_LENGTH = 0x100;
+static uint8 emergencyRewindStates[0x100][STATE_SIZE];
 static int emergencyRewindStateIndex = 0;
 static int targetEmergencyRewindIndex = 0;
 static int shouldDoEmergencyRewind = 0;
+static int emergencyRewindExtension = 0;
+static int emergencyRewindDefaultLength = 10;
+static int totalEmergencyRewindFrames = 0;
+
 
 static int activeBossRushes[MAX_ROMS];
 static int currentBossRushIndex = 0;
@@ -5177,30 +5182,54 @@ void cacheEmergencyRewindState() {
     if (shouldDoEmergencyRewind == 0) {
         state_save(emergencyRewindStates[emergencyRewindStateIndex]);
         emergencyRewindStateIndex++;
-        if (emergencyRewindStateIndex >= 60) {
+        if (emergencyRewindStateIndex >= EMERGENCY_REWIND_LENGTH) {
             emergencyRewindStateIndex = 0;
         }
+        totalEmergencyRewindFrames++;
     }
 }
 
 void beginEmergencyRewind() {
     shouldDoEmergencyRewind = 1;
-    targetEmergencyRewindIndex = emergencyRewindStateIndex - 15;
+    targetEmergencyRewindIndex = emergencyRewindStateIndex - (emergencyRewindDefaultLength + emergencyRewindExtension);
     if (targetEmergencyRewindIndex < 0) {
-        targetEmergencyRewindIndex += 60;
+        targetEmergencyRewindIndex += EMERGENCY_REWIND_LENGTH;
+    }
+    emergencyRewindExtension += 20;
+    if (emergencyRewindExtension > 0xE0) {
+        emergencyRewindExtension = 0xE0;
     }
 }
 
 void checkForEmergencyRewind() {
     if (shouldDoEmergencyRewind != 0) {
         emergencyRewindStateIndex--;
+        totalEmergencyRewindFrames--;
         if (emergencyRewindStateIndex < 0) {
-            emergencyRewindStateIndex += 60;
+            emergencyRewindStateIndex += EMERGENCY_REWIND_LENGTH;
         }
         state_load(emergencyRewindStates[emergencyRewindStateIndex]);
 
-        if (emergencyRewindStateIndex == targetEmergencyRewindIndex) {
+        if (emergencyRewindStateIndex == targetEmergencyRewindIndex || totalEmergencyRewindFrames < 3) {
             shouldDoEmergencyRewind = 0;
         }
+    }
+}
+
+int getEmergencyRewindExtension() {
+    return emergencyRewindExtension;
+}
+
+int getTargetEmergencyRewindIndex() {
+    return targetEmergencyRewindIndex;
+}
+
+int getEmergencyRewindStateIndex() {
+    return emergencyRewindStateIndex;
+}
+
+void decrementEmergencyRewindExtension() {
+    if (emergencyRewindExtension > 0) {
+        emergencyRewindExtension--;
     }
 }

@@ -2009,6 +2009,9 @@ void modConsole_updateFrame() {
             if (frameCount % 5 == 0) {
                 cacheEmergencyRewindState();
             }
+            if (frameCount % 20 == 0) {
+                decrementEmergencyRewindExtension();
+            }
             checkForEmergencyRewind();
             checkForGameCrashes();
         }
@@ -4098,6 +4101,9 @@ void checkForGameCrashes() {
             // sprintf(detailsBuf3, "%04X %04X %04X", currentFrameValue, lastFrameValue, frozenFrameCount);
             // layerRenderer_writeWord256(3, 0, 24, detailsBuf3, 0x5);
 
+            // char detailsBuf3[0x100];
+            // sprintf(detailsBuf3, "%i %i %i", getEmergencyRewindStateIndex(), getEmergencyRewindStateIndex(), getEmergencyRewindExtension());
+            // layerRenderer_writeWord256(3, 0, 16, detailsBuf3, 0x5);
 
             lastFrameValue = currentFrameValue;
         }
@@ -4160,9 +4166,9 @@ void spawnRandomObjectNearSonic() {
         maxValue = 0xD3;
         sonicLoc = 0xB000;
         objectXPosOffsets[0] = 0x10;
-        objectXPosOffsets[0] = 0x11;
+        objectXPosOffsets[1] = 0x11;
         objectYPosOffsets[0] = 0x14;
-        objectYPosOffsets[0] = 0x15;
+        objectYPosOffsets[1] = 0x15;
         spacing = 0x4A;
     }
 
@@ -4173,9 +4179,9 @@ void spawnRandomObjectNearSonic() {
         maxValue = 0xD3;
         sonicLoc = 0xB000;
         objectXPosOffsets[0] = 0x10;
-        objectXPosOffsets[0] = 0x11;
+        objectXPosOffsets[1] = 0x11;
         objectYPosOffsets[0] = 0x14;
-        objectYPosOffsets[0] = 0x15;
+        objectYPosOffsets[1] = 0x15;
         spacing = 0x4A;
     }
 
