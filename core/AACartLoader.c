@@ -5195,7 +5195,7 @@ void beginEmergencyRewind() {
     if (targetEmergencyRewindIndex < 0) {
         targetEmergencyRewindIndex += EMERGENCY_REWIND_LENGTH;
     }
-    emergencyRewindExtension += 20;
+    emergencyRewindExtension += 12;
     if (emergencyRewindExtension > 0xE0) {
         emergencyRewindExtension = 0xE0;
     }

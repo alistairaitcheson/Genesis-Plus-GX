@@ -4221,7 +4221,7 @@ void spawnRandomObjectNearSonic() {
     for (int i = 0; i < spacing; i++) {
         aa_genesis_setWorkRam(index + i, 0);// rand() % 0xFF);
     }
-    aa_genesis_setWorkRam(index + 0x29, rand() % 0xFF);
+    // aa_genesis_setWorkRam(index + 0x29, rand() % 0xFF);
 
     if (cartLoader_getActiveCartIndex() == 4  || cartLoader_getActiveCartIndex() == 3) {
         aa_genesis_setWorkRam(index, 0x01);
