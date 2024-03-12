@@ -2006,10 +2006,10 @@ void modConsole_updateFrame() {
         sendNetworkMessageOnGetRing();
 
         if (menuDisplay_getSecondaryHackOptions().enableEmergencyRewind != 0) {
-            if (frameCount % 5 == 0) {
+            if (frameCount % 10 == 0) {
                 cacheEmergencyRewindState();
             }
-            if (frameCount % 20 == 0) {
+            if (frameCount % 40 == 0) {
                 decrementEmergencyRewindExtension();
             }
             checkForEmergencyRewind();

@@ -81,8 +81,8 @@ static int maxRewindStatesPerGame = 0x20;
 static int rewindStateMinimumPerGame[MAX_ROMS];
 static int rewindStateCounterPerGame[MAX_ROMS];
 
-static int EMERGENCY_REWIND_LENGTH = 0x100;
-static uint8 emergencyRewindStates[0x100][STATE_SIZE];
+static int EMERGENCY_REWIND_LENGTH = 0x80;
+static uint8 emergencyRewindStates[0x80][STATE_SIZE];
 static int emergencyRewindStateIndex = 0;
 static int targetEmergencyRewindIndex = 0;
 static int shouldDoEmergencyRewind = 0;
@@ -5196,8 +5196,8 @@ void beginEmergencyRewind() {
         targetEmergencyRewindIndex += EMERGENCY_REWIND_LENGTH;
     }
     emergencyRewindExtension += 12;
-    if (emergencyRewindExtension > 0xE0) {
-        emergencyRewindExtension = 0xE0;
+    if (emergencyRewindExtension > 0x80) {
+        emergencyRewindExtension = 0x80;
     }
 }
 
