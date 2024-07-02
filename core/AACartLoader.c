@@ -934,6 +934,7 @@ void cartLoader_run() {
     writeStringToArray32("DYNAMITEHEADDY", gameListings[41].gameId);
     gameListings[41].ringByte = 0xE8F0; // points
     gameListings[41].livesBytes[0] = 0xE8EC; // lives
+    gameListings[41].livesByteDestinations[0] = 0x5; 
     // sprintf(nameOfTrigger[41], "you hit an enemy");
 
     // 08240 = Sonic 1 GG
