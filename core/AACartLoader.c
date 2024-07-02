@@ -931,6 +931,11 @@ void cartLoader_run() {
     terminalNamePerRom[40] = "Blue Spheres";
     gameListings[40].ringByte = 0xE438;
 
+    writeStringToArray32("DYNAMITEHEADDY", gameListings[41].gameId);
+    gameListings[41].ringByte = 0xE8F0; // points
+    gameListings[41].livesBytes[0] = 0xE8EC; // lives
+    // sprintf(nameOfTrigger[41], "you hit an enemy");
+
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
     // 15250 = Sonic Chaos GG
@@ -940,7 +945,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 41;
+    gameListingCount = 42;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 

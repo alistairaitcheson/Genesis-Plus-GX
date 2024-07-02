@@ -215,4 +215,6 @@ void checkForRandomObjectSpawn();
 void spawnRandomObjectNearSonic();
 void checkForGameCrashes();
 
+int checkForDynamiteHeaddyHits();
+
 #endif

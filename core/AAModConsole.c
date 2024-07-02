@@ -161,6 +161,7 @@ static int heartRate = 0;
 static int shouldShowHeartRate = 0;
 static int shouldShowHeartValues = 0;
 
+static int cooldownSinceLastHeaddyHit = 0;
 
 void alertYouClearedStage() {
     ninesStatusMessageTime = 120;
@@ -953,6 +954,20 @@ void checkForAllBossHitsInCurrentGame() {
     }
 }
 
+int checkForDynamiteHeaddyHits() {
+    int currentGameId = cartLoader_getActiveCartIndex();
+    if (currentGameId == 41) {
+        for (int i = 0xD232; i < 0xD300; i += 0x04) {
+            if (aa_genesis_getWorkRam(i) < aa_genesis_getLastWorkRam(i)
+                && aa_genesis_getWorkRam(i) > 0) {
+                // something has just lost health
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 void checkForBossHits(int asNetwork, int challengeIndex) {
     BossRushChallengeListing listing = getActiveBossRushListing();
     if (challengeIndex >= 0) {
@@ -1463,6 +1478,10 @@ void modConsole_updateFrame() {
         layerRenderer_clearLayer(3);
         checkDeathCounter();
         applyHeldValues();
+
+        if (cooldownSinceLastHeaddyHit > 0) {
+            cooldownSinceLastHeaddyHit--;
+        }
 
         // DEBUG - activate sonic 3 level select
         // if (aa_genesis_getWorkRam(0xF601) == 0x0C) {
@@ -2403,6 +2422,13 @@ void modConsole_updateFrame() {
             layerRenderer_writeWord256(2, vdp_getScreenWidth() - (25 * 8 + 2), 2, heartRateText, 0x05);
         }
 
+        // if (cartLoader_getActiveCartIndex() == 41) {
+        //     char headdyText[0x80];
+        //     sprintf(headdyText, "HEADDY %i", cooldownSinceLastHeaddyHit);
+        //     layerRenderer_fill(2, 0, 0, 25 * 8 + 4, 12, 0xFF);
+        //     layerRenderer_writeWord256(2, 0, 2, headdyText, 0x05);  
+        // }
+
         // for terminal
         int tipsYpos = vdp_getScreenHeight() - 16;
         layerRenderer_writeWord256(2, -headingTextScrollPixels, 2 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
@@ -2753,6 +2779,10 @@ void modConsole_updateFrame() {
             if (ninesChallengeStartCountDown == 0) {
                 beginNinesChallenge();
             }
+        }
+
+        if (checkForDynamiteHeaddyHits() == 1) {
+            cooldownSinceLastHeaddyHit = 4;
         }
 
         vdp_resetCachedM5();
@@ -3648,6 +3678,12 @@ int standingHasChanged(int shouldIgnoreCooldown) {
 }
 
 int ringCountHasChanged(int shouldIgnoreCooldown) {
+    if (checkForDynamiteHeaddyHits() == 1) {
+        if (cooldownSinceLastHeaddyHit <= 0) {
+            return 1;
+        }
+    }
+
     if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0 && shouldIgnoreCooldown == 0) {
         return 0;
     }
