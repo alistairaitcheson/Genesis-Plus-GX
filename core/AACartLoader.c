@@ -935,7 +935,23 @@ void cartLoader_run() {
     gameListings[41].ringByte = 0xE8F0; // points
     gameListings[41].livesBytes[0] = 0xE8EC; // lives
     gameListings[41].livesByteDestinations[0] = 0x5; 
+    gameListings[41].postRingEffectCooldown = 5;
     // sprintf(nameOfTrigger[41], "you hit an enemy");
+
+    writeStringToArray32("-RISTAR-", gameListings[42].gameId);
+    scoreMonitorListings[42].scoreBytes[0] = 0xE578; // points - probably in wrong order but I don't care
+    scoreMonitorListings[42].scoreBytes[1] = 0xE575; // points
+    scoreMonitorListings[42].scoreBytes[2] = 0xE576; // points
+    scoreMonitorListings[42].scoreJumpForTrigger = 2;
+    scoreMonitorListings[42].allowNegativeChange = 1;
+    gameListings[42].livesBytes[0] = 0xE577; // lives
+    gameListings[42].livesByteDestinations[0] = 0x5; 
+    gameListings[42].postRingEffectCooldown = 5;
+
+    writeStringToArray32("MICKEYMANIA", gameListings[43].gameId);
+    gameListings[43].ringByte = 0x0470; // marbles
+    gameListings[43].livesBytes[0] = 0x0466; // lives
+    gameListings[43].livesByteDestinations[0] = 0x5; 
 
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
@@ -946,7 +962,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 42;
+    gameListingCount = 44;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 

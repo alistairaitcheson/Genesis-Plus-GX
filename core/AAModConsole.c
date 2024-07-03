@@ -968,6 +968,21 @@ int checkForDynamiteHeaddyHits() {
     return 0;
 }
 
+int checkForRistarHits() {
+    int currentGameId = cartLoader_getActiveCartIndex();
+    if (currentGameId == 42) {
+        // get the last sound effect played and fire if something went "boing!" (e.g. boss hit)
+        int address = 0xEA11;
+        if (aa_genesis_getWorkRam(address) != aa_genesis_getLastWorkRam(address)) {
+            int soundId = aa_genesis_getWorkRam(address);
+            if (soundId == 0x2A) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 void checkForBossHits(int asNetwork, int challengeIndex) {
     BossRushChallengeListing listing = getActiveBossRushListing();
     if (challengeIndex >= 0) {
@@ -3682,6 +3697,10 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
         if (cooldownSinceLastHeaddyHit <= 0) {
             return 1;
         }
+    }
+
+    if (checkForRistarHits() == 1) {
+        return 1;
     }
 
     if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0 && shouldIgnoreCooldown == 0) {
