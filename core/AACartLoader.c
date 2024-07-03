@@ -936,7 +936,7 @@ void cartLoader_run() {
     gameListings[41].livesBytes[0] = 0xE8EC; // lives
     gameListings[41].livesByteDestinations[0] = 0x5; 
     gameListings[41].postRingEffectCooldown = 10;
-    gameListings[41].ringSwitchCooldown = 10;
+    // gameListings[41].ringSwitchCooldown = 10;
     // sprintf(nameOfTrigger[41], "you hit an enemy");
 
     writeStringToArray32("-RISTAR-", gameListings[42].gameId);

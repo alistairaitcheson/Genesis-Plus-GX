@@ -1494,8 +1494,11 @@ void modConsole_updateFrame() {
         checkDeathCounter();
         applyHeldValues();
 
+        // only count down during dynamite headdy!
         if (cooldownSinceLastHeaddyHit > 0) {
-            cooldownSinceLastHeaddyHit--;
+            if (cartLoader_getActiveCartIndex() == 41) {
+                cooldownSinceLastHeaddyHit--;
+            }
         }
 
         // DEBUG - activate sonic 3 level select
@@ -3366,6 +3369,9 @@ void promptSwitchGame() {
 void switchGame() {
     shouldSwitchAfterCooldown = 0;
     switchCooldownCounter = switchCooldownPeriod;
+
+    cooldownSinceLastHeaddyHit = 10;
+
     clearCooldownVisualiser();
 
     if (shouldUseBossRush()) {
