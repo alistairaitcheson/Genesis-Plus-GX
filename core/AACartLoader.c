@@ -935,7 +935,8 @@ void cartLoader_run() {
     gameListings[41].ringByte = 0xE8F0; // points
     gameListings[41].livesBytes[0] = 0xE8EC; // lives
     gameListings[41].livesByteDestinations[0] = 0x5; 
-    gameListings[41].postRingEffectCooldown = 5;
+    gameListings[41].postRingEffectCooldown = 10;
+    gameListings[41].ringSwitchCooldown = 10;
     // sprintf(nameOfTrigger[41], "you hit an enemy");
 
     writeStringToArray32("-RISTAR-", gameListings[42].gameId);
@@ -944,8 +945,11 @@ void cartLoader_run() {
     scoreMonitorListings[42].scoreBytes[2] = 0xE576; // points
     scoreMonitorListings[42].scoreJumpForTrigger = 2;
     scoreMonitorListings[42].allowNegativeChange = 1;
-    gameListings[42].livesBytes[0] = 0xE577; // lives
+    gameListings[42].livesBytes[0] = 0xE579; // lives
+    gameListings[42].livesBytes[1] = 0xFE05; // level select
+    // gameListings[42].livesBytes[2] = 0xFE04; // level select
     gameListings[42].livesByteDestinations[0] = 0x5; 
+    gameListings[42].livesByteDestinations[1] = 0x4; 
     gameListings[42].postRingEffectCooldown = 5;
 
     writeStringToArray32("MICKEYMANIA", gameListings[43].gameId);
@@ -957,7 +961,9 @@ void cartLoader_run() {
     scoreMonitorListings[44].scoreBytes[0] = 0xE84E; // something that seems to change when you kill an enemy
     scoreMonitorListings[44].scoreBytes[1] = 0xE84F; // (sometimes just once, sometimes it's a countdown)
     gameListings[44].livesBytes[0] = 0xF545; // lives
+    gameListings[44].livesBytes[1] = 0xF544; // lives
     gameListings[44].livesByteDestinations[0] = 0xB0;  
+    gameListings[44].livesByteDestinations[1] = 0xB0;  
     gameListings[44].postRingEffectCooldown = 5;
 
     // 08240 = Sonic 1 GG
