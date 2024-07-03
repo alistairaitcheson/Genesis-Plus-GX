@@ -951,7 +951,14 @@ void cartLoader_run() {
     writeStringToArray32("MICKEYMANIA", gameListings[43].gameId);
     gameListings[43].ringByte = 0x0470; // marbles
     gameListings[43].livesBytes[0] = 0x0466; // lives
-    gameListings[43].livesByteDestinations[0] = 0x5; 
+    gameListings[43].livesByteDestinations[0] = 0x5;
+    
+    writeStringToArray32("MRNUTZ", gameListings[44].gameId);
+    scoreMonitorListings[44].scoreBytes[0] = 0xE84E; // something that seems to change when you kill an enemy
+    scoreMonitorListings[44].scoreBytes[1] = 0xE84F; // (sometimes just once, sometimes it's a countdown)
+    gameListings[44].livesBytes[0] = 0xF545; // lives
+    gameListings[44].livesByteDestinations[0] = 0xB0;  
+    gameListings[44].postRingEffectCooldown = 5;
 
     // 08240 = Sonic 1 GG
     // 07250 = Sonic 2 GG
@@ -962,7 +969,7 @@ void cartLoader_run() {
     // writeStringToArray32("CHAOTIX", gameListings[11].gameId); // Knuckles Chaotix 32x
     // writeStringToArray32("SONICCD", gameListings[11].gameId); // Sonic CD
 
-    gameListingCount = 44;
+    gameListingCount = 45;
     cartLoader_appendToLog("finished cartLoader_run");
 }
 
