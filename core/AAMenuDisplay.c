@@ -1893,16 +1893,16 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_TERMINAL) {
         if (buttonIndex == INPUT_INDEX_UP) {
             terminalLocationIndex--;
-            if (terminalLocationIndex == 8) {
-                terminalLocationIndex--;
+            if (terminalLocationIndex == 8 || terminalLocationIndex == 9) {
+                terminalLocationIndex = 7;
             }
             refreshMenu();
             return 1;
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             terminalLocationIndex++;
-            if (terminalLocationIndex == 8) {
-                terminalLocationIndex++;
+            if (terminalLocationIndex == 8 || terminalLocationIndex == 9) {
+                terminalLocationIndex = 10;
             }
             refreshMenu();
             return 1;
@@ -2259,20 +2259,20 @@ void enterTerminalOption() {
         applyAllowedGamesForCurrentTerminalSelection();
         menuDisplay_showMenu(MENU_LISTING_TERMINAL_GAME_LIST);
     } else if (terminalLocationIndex == 9) {
-        terminalActiveRules = TERMINAL_RULSET_BOSS_RUSH;
-        setShouldResetBossRush(1);
+        // terminalActiveRules = TERMINAL_RULSET_BOSS_RUSH;
+        // setShouldResetBossRush(1);
 
-        menuDisplay_applyPresetRules(15);
-        cartLoader_applyHackOptions(gameHasStarted);
+        // menuDisplay_applyPresetRules(15);
+        // cartLoader_applyHackOptions(gameHasStarted);
         
-        modConsole_applyHackOptions();
-        modConsole_applyNetworkOptions();
+        // modConsole_applyHackOptions();
+        // modConsole_applyNetworkOptions();
 
-        beginGame();
-        beginBossRush();
+        // beginGame();
+        // beginBossRush();
 
-        vdp_setShouldRandomiseColours(0);
-        menuDisplay_hideMenu();
+        // vdp_setShouldRandomiseColours(0);
+        // menuDisplay_hideMenu();
     } else if (terminalLocationIndex == 10) {
         terminalActiveRules = TERMINAL_RULSET_CONTROLLER;
         applyAllowedGamesForCurrentTerminalSelection();
@@ -4937,8 +4937,8 @@ void showTerminalMenu() {
     linesWithBreakAfter[7] = 1;
 
     sprintf(lines[8], "Choose a new way to play");
-    linesWithBreakAfter[8] = 1;
-    sprintf(lines[9], "  Sonic Boss Rush");
+    // linesWithBreakAfter[8] = 1;
+    sprintf(lines[9], "  : ");
     sprintf(lines[10], "  Random controls");
     sprintf(lines[11], "  Sort colours");
     sprintf(lines[12], "  No background");
