@@ -26,6 +26,7 @@ cd C:\Users\agait\Documents\Development\Genesis-Plus-GX
 static AAModType activeModType = AAMODTYPE_SWITCH_GAME;
 
 static unsigned int frameCount = 0;
+static int startupTime = 0;
 
 static AAGameListing activeGameListing;
 
@@ -1420,6 +1421,25 @@ int deductFromRingCount(int amount) {
 void modConsole_updateFrame() {
     lastPadState = padState;
     padState = input.pad[0]; //reverseOutcomeOfControlShuffling(input.pad[0]);
+
+    // for exhibitions!!!
+    if (startupTime < 100) {
+
+        startupTime++;
+
+        if (startupTime == 30) {
+            if (cartLoader_isExhibitionMode() == 1) {
+                menuDisplay_hideMenu();
+                beginGame();
+            }
+        }
+
+        if (startupTime == 60) {
+            if (cartLoader_isExhibitionMode() == 1) {
+                menuDisplay_showTerminalMenu();
+            }
+        }
+    }
 
     if (snapEffectTime > 0) {
         snapEffectTime--;

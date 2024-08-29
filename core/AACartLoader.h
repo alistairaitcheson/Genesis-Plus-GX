@@ -243,4 +243,6 @@ int getTargetEmergencyRewindIndex();
 int getEmergencyRewindStateIndex();
 void decrementEmergencyRewindExtension();
 
+int cartLoader_isExhibitionMode();
+
 #endif

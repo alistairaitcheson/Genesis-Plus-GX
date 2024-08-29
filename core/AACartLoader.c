@@ -3180,6 +3180,20 @@ void clearRewindDirectory() {
     }
 }
 
+int cartLoader_isExhibitionMode() {
+    char exhibitionDocPath[0x100];
+    sprintf(receivePath, "%s/exhibition.txt", exhibitionDocPath);
+
+    FILE *f = fopen(exhibitionDocPath,"r");
+    if (f)
+    {
+        fclose(f);
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 void cartLoader_checkNetworkForActions() {
     char receivePath[0x100];
     sprintf(receivePath, "%s/recv/", folderPath);
