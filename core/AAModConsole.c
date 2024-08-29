@@ -1032,7 +1032,7 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
 
     int foundCount = 0;
 
-    int SHOW_DEBUG = 1;
+    int SHOW_DEBUG = 0;
     int FORCE_QUICK_KILLS = 0;
     
     if (SHOW_DEBUG == 1) {
