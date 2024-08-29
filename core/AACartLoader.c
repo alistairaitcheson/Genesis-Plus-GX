@@ -3182,7 +3182,7 @@ void clearRewindDirectory() {
 
 int cartLoader_isExhibitionMode() {
     char exhibitionDocPath[0x100];
-    sprintf(receivePath, "%s/exhibition.txt", exhibitionDocPath);
+    sprintf(exhibitionDocPath, "%s/exhibition.txt", folderPath);
 
     FILE *f = fopen(exhibitionDocPath,"r");
     if (f)
