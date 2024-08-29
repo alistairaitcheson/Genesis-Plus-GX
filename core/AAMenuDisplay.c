@@ -123,7 +123,7 @@ void menuDisplay_generateRulesNameForCurrentGame() {
     }
     
     if (terminalActiveRules == TERMINAL_RULSET_CONTROLLER) {
-        sprintf(currentRulesName, "Controls change every 30 seconds       For 4 players with the big buttons!");
+        sprintf(currentRulesName, "Controls change every 30 seconds");
     }
 }
 
@@ -4939,7 +4939,7 @@ void showTerminalMenu() {
     sprintf(lines[8], "Choose a new way to play");
     linesWithBreakAfter[8] = 1;
     sprintf(lines[9], "  Sonic Boss Rush");
-    sprintf(lines[10], "  4 players 1 controller");
+    sprintf(lines[10], "  Random controls");
     sprintf(lines[11], "  Sort colours");
     sprintf(lines[12], "  No background");
     sprintf(lines[13], "  No sprites");

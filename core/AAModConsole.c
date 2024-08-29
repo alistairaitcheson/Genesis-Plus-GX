@@ -164,6 +164,11 @@ static int shouldShowHeartValues = 0;
 
 static int cooldownSinceLastHeaddyHit = 0;
 
+static int bossRushSearchOffset = 0;
+static int maxBossRushSearchesPerFrame = 20;
+static int bossRushSearchLocations[0x20];
+static int isExhibitionMode = 0;
+
 void alertYouClearedStage() {
     ninesStatusMessageTime = 120;
     sprintf(ninesStatusMessage, "You cleared a stage!");
@@ -984,6 +989,32 @@ int checkForRistarHits() {
     return 0;
 }
 
+void resetBossRushCheckLocations() {
+    for (int i = 0; i < 0x20; i++) {
+        bossRushSearchLocations[i] = 0;
+    }
+}
+
+void flagBossRushCheckLocation(int location) {
+    for (int i = 0; i < 0x20; i++) {
+        if (bossRushSearchLocations[i] == location) {
+            break;
+        }
+        if (bossRushSearchLocations[i] == 0) {
+            bossRushSearchLocations[i] = location;
+        }
+    }
+}
+
+void unflagBossRushCheckLocation(int location) {
+    for (int i = 0; i < 0x20; i++) {
+        if (bossRushSearchLocations[i] == location) {
+            bossRushSearchLocations[i] = 0;
+        }
+    }
+}
+
+
 void checkForBossHits(int asNetwork, int challengeIndex) {
     BossRushChallengeListing listing = getActiveBossRushListing();
     if (challengeIndex >= 0) {
@@ -1056,7 +1087,13 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
     //     listing.objectLocationStart, listing.objectLocationEnd, listing.objectLocationSize,
     //     listing.objectIdNumbers[0], listing.objectIdNumbers[1], listing.objectIdNumbers[2], listing.objectIdNumbers[3]);
 
-    for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
+
+    int countedNumber = 0;
+    if (listing.objectLocationStart + bossRushSearchOffset >= listing.objectLocationEnd) {
+        bossRushSearchOffset = 0;
+    }
+
+    for (int i = listing.objectLocationStart + bossRushSearchOffset; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
         int indexToCheck = i;
 
         for (int objectIdx = 0; objectIdx < 0x20; objectIdx += objStep) {
@@ -1113,47 +1150,64 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
                     }
                 }
 
+                int locationToCheck = indexToCheck + listing.healthByteOffsets[objectIdx];
                 if (objectFoundHere == 1) {
                     // this is a key value! check if it has changed!
-                    int locationToCheck = indexToCheck + listing.healthByteOffsets[objectIdx];
-                    if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
-                        && aa_genesis_getWorkRam(locationToCheck) != 0
-                        && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
-                        fireEventOnBossHit(asNetwork);
-                        fireScreenSnapOnEvent();
-                    }
-
-                    // for testing - quick kills!
-                    if (aa_genesis_getWorkRam(locationToCheck) > 2 && FORCE_QUICK_KILLS == 1){
-                         aa_genesis_setWorkRam(locationToCheck, 2);
-                    }
-
-                    if (SHOW_DEBUG == 1) {
-                        char rushText[0x40];
-                        sprintf(rushText, "%04X %02X", locationToCheck, aa_genesis_getWorkRam(locationToCheck));
-                        layerRenderer_fill(2, 8 * 8 * foundCount, 0, 8 * 7, 8, 0xFF);
-                        layerRenderer_writeWord256(2, 8 * 8 * foundCount, 0, rushText, 0x5);
-                        foundCount++;
-
-                        for (int loc = 0; loc < 0x40; loc++) {
-                            char rushText2[0x40];
-                            sprintf(rushText2, "%02X", aa_genesis_getWorkRam(i + loc));
-                            layerRenderer_fill(2, 8 * indexX * 3, 8 * (indexY + 1), 8 * 2, 8, 0xFF);
-                            layerRenderer_writeWord256(2, 8 * indexX * 3, 8 * (indexY + 1), rushText2, 0x5);
-
-                            indexY++;
-                            if (indexY >= 0x10) {
-                                indexY = 0;
-                                indexX++;
-                            }
-                        }
-
-                        indexX++;
-                    }
+                    flagBossRushCheckLocation(locationToCheck);
+                } else {
+                    unflagBossRushCheckLocation(locationToCheck)
                 }
             }
         }
+
+        for (int checkIndex = 0; checkIndex < 0x20; checkIndex++) {
+            locationToCheck = bossRushSearchLocations[checkIndex];
+
+            if (locationToCheck > 0) {
+            if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
+                    && aa_genesis_getWorkRam(locationToCheck) != 0
+                    && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
+                    fireEventOnBossHit(asNetwork);
+                    fireScreenSnapOnEvent();
+                }
+
+                // for testing - quick kills!
+                if (aa_genesis_getWorkRam(locationToCheck) > 2 && FORCE_QUICK_KILLS == 1){
+                        aa_genesis_setWorkRam(locationToCheck, 2);
+                }
+
+                if (SHOW_DEBUG == 1) {
+                    char rushText[0x40];
+                    sprintf(rushText, "%04X %02X", locationToCheck, aa_genesis_getWorkRam(locationToCheck));
+                    layerRenderer_fill(2, 8 * 8 * foundCount, 0, 8 * 7, 8, 0xFF);
+                    layerRenderer_writeWord256(2, 8 * 8 * foundCount, 0, rushText, 0x5);
+                    foundCount++;
+
+                    for (int loc = 0; loc < 0x40; loc++) {
+                        char rushText2[0x40];
+                        sprintf(rushText2, "%02X", aa_genesis_getWorkRam(i + loc));
+                        layerRenderer_fill(2, 8 * indexX * 3, 8 * (indexY + 1), 8 * 2, 8, 0xFF);
+                        layerRenderer_writeWord256(2, 8 * indexX * 3, 8 * (indexY + 1), rushText2, 0x5);
+
+                        indexY++;
+                        if (indexY >= 0x10) {
+                            indexY = 0;
+                            indexX++;
+                        }
+                    }
+
+                    indexX++;
+                }
+            }
+        }
+
+        countedNumber++;
+        bossRushSearchOffset++;
+        if (countedNumber >= maxBossRushSearchesPerFrame) {
+            break;
+        }
     }
+
 
     // cartLoader_appendToLog(listingDebug);
 }
@@ -1431,12 +1485,14 @@ void modConsole_updateFrame() {
             if (cartLoader_isExhibitionMode() == 1) {
                 menuDisplay_hideMenu();
                 beginGame();
+                isExhibitionMode = 1;
             }
         }
 
         if (startupTime == 60) {
             if (cartLoader_isExhibitionMode() == 1) {
                 menuDisplay_showTerminalMenu();
+                isExhibitionMode = 1;
             }
         }
     }
@@ -2497,6 +2553,13 @@ void modConsole_updateFrame() {
 
 
         if (shouldUseBossRush()) {
+            if (isExhibitionMode == 1) {
+                if (getActiveBossRushListing().gameIndex != cartLoader_getActiveCartIndex()) {
+                    enterTerminalOption();
+                }
+            }
+
+
             if (getBossRushComplete() == 0) {
                 // if (buttonStateAtIndex(INPUT_INDEX_A) != 0) {
                 //     onBossDefeated();
@@ -3391,6 +3454,7 @@ void switchGame() {
     switchCooldownCounter = switchCooldownPeriod;
 
     cooldownSinceLastHeaddyHit = 10;
+    resetBossRushCheckLocations();
 
     clearCooldownVisualiser();
 
