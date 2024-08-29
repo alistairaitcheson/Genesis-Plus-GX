@@ -1294,6 +1294,8 @@ void beginBossRush() {
     clearBossRushProgress();
     shuffleBossSwitchRandomNumbers();
 
+    resetBossRushCheckLocations();
+
     MAX_SIMULTANEOUS_BOSSES = getMaxSimultaneousBosses();
     
     if (hasInitialisedBossRush == 0 || shouldResetBossRush != 0) {

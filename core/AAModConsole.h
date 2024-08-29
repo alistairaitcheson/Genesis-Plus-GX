@@ -216,5 +216,6 @@ void spawnRandomObjectNearSonic();
 void checkForGameCrashes();
 
 int checkForDynamiteHeaddyHits();
+void resetBossRushCheckLocations();
 
 #endif

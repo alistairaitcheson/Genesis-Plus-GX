@@ -165,8 +165,8 @@ static int shouldShowHeartValues = 0;
 static int cooldownSinceLastHeaddyHit = 0;
 
 static int bossRushSearchOffset = 0;
-static int maxBossRushSearchesPerFrame = 20;
-static int bossRushSearchLocations[0x20];
+static int maxBossRushSearchesPerFrame = 50;
+static int bossRushSearchLocations[0x100][0x20];
 static int isExhibitionMode = 0;
 
 void alertYouClearedStage() {
@@ -990,26 +990,29 @@ int checkForRistarHits() {
 }
 
 void resetBossRushCheckLocations() {
-    for (int i = 0; i < 0x20; i++) {
-        bossRushSearchLocations[i] = 0;
+    for (int k = 0; k < 0x100; k++) {
+        for (int i = 0; i < 0x20; i++) {
+            bossRushSearchLocations[k][i] = 0;
+        }
     }
 }
 
-void flagBossRushCheckLocation(int location) {
+void flagBossRushCheckLocation(int location, int rushIndex) {
     for (int i = 0; i < 0x20; i++) {
-        if (bossRushSearchLocations[i] == location) {
+        if (bossRushSearchLocations[rushIndex][i] == location) {
             break;
         }
-        if (bossRushSearchLocations[i] == 0) {
-            bossRushSearchLocations[i] = location;
+        if (bossRushSearchLocations[rushIndex][i] == 0) {
+            bossRushSearchLocations[rushIndex][i] = location;
+            break;
         }
     }
 }
 
-void unflagBossRushCheckLocation(int location) {
+void unflagBossRushCheckLocation(int location, int rushIndex) {
     for (int i = 0; i < 0x20; i++) {
-        if (bossRushSearchLocations[i] == location) {
-            bossRushSearchLocations[i] = 0;
+        if (bossRushSearchLocations[rushIndex][i] == location) {
+            bossRushSearchLocations[rushIndex][i] = 0;
         }
     }
 }
@@ -1153,15 +1156,15 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
                 int locationToCheck = indexToCheck + listing.healthByteOffsets[objectIdx];
                 if (objectFoundHere == 1) {
                     // this is a key value! check if it has changed!
-                    flagBossRushCheckLocation(locationToCheck);
+                    flagBossRushCheckLocation(locationToCheck, getActiveBossRushIndex());
                 } else {
-                    unflagBossRushCheckLocation(locationToCheck);
+                    unflagBossRushCheckLocation(locationToCheck, getActiveBossRushIndex());
                 }
             }
         }
 
         for (int checkIndex = 0; checkIndex < 0x20; checkIndex++) {
-            int locationToCheck = bossRushSearchLocations[checkIndex];
+            int locationToCheck = bossRushSearchLocations[getActiveBossRushIndex()][checkIndex];
 
             if (locationToCheck > 0) {
             if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
@@ -3454,7 +3457,6 @@ void switchGame() {
     switchCooldownCounter = switchCooldownPeriod;
 
     cooldownSinceLastHeaddyHit = 10;
-    resetBossRushCheckLocations();
 
     clearCooldownVisualiser();
 
