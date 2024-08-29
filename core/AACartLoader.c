@@ -2000,7 +2000,11 @@ void populateBossRushes() {
     applyEndValuesToMostRecentBossRush(0xFE11, 0x0E); // <-- detect Death Egg loading
 
     // DEZ - eggrobo and silver sonic
+    // MULTI STAGE BOSSES DON'T WORK WITH EXHIBITION LOGIC!!!
+    /*
     addBossRushListing(2, 10, 0, 0xB001, 0xD5FF, 0x40, 0x1F, 0xF7D2, 0x100); 
+    */
+
     // duplicateBossRushListing(sonic2index, 10, 0);
     populateMostRecentBossRush4(0xC7, 0xAF, 0, 0); // C7 is eggrobo, AF is silver sonic
     applyZoneLocationValuesToMostRecentBossRush(0x0E, 0, 0);
@@ -2061,6 +2065,8 @@ void populateBossRushes() {
     duplicateBossRushListing(sonic3index, 5, 0);
     populateMostRecentBossRush4(0x04, 0x00, 0x74, 0xF4);
 
+    // MULTI STAGE BOSSES DON'T WORK WITH EXHIBITION LOGIC!!!
+    /*
     // LBZ 2 - 0005 0418(pt1), 0004 F9AC I THINK!!(pt2), 0005 0CAA (big arm), ENDING (F600 (maybe F601) == 0x20?)
     duplicateBossRushListing(sonic3index, 5, 1);
     populateMostRecentBossRush8(0x05, 0x00, 0x18, 0x04, 0x04, 0x00, 0xAC, 0xF9);
@@ -2070,6 +2076,7 @@ void populateBossRushes() {
     bossRushCallenges[bossRushChallengeCount - 1].objectIdNumbers[11] = 0x0C;
     applyGenerationToMostRecentBossRush(1); // <-- make it the final challenge in the run
     applyEndValuesToMostRecentBossRush(0xF601, 0x20); // <-- detect the end credits spawning
+    */
 
     int sonicKindex = bossRushChallengeCount;
     addBossRushListing(4, 0, 0, 0xB001, 0xCFCB, 0x1, 0x28, 0xF7D2, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"
@@ -2102,9 +2109,14 @@ void populateBossRushes() {
     duplicateBossRushListing(sonicKindex, 2, 1);
     populateMostRecentBossRush4(0x07, 0x00, 0x4E, 0x76);
 
+
+    // MULTI STAGE BOSSES DON'T WORK WITH EXHIBITION LOGIC!!!
+    /*
     // LRZ1 - worm arms (0007 897A), big hand (0007 8538)
     duplicateBossRushListing(sonicKindex, 3, 0);
     populateMostRecentBossRush8(0x07, 0x00, 0x7A, 0x89, 0x07, 0x00, 0x38, 0x85);
+    */
+
     // LRZ2 - 0007 97FA
     duplicateBossRushListing(sonicKindex, 3, 1);
     populateMostRecentBossRush4(0x07, 0x00, 0xFA, 0x97);
@@ -2118,6 +2130,8 @@ void populateBossRushes() {
     duplicateBossRushListing(sonicKindex, 5, 0);
     populateMostRecentBossRush4(0x07, 0x00, 0x88, 0xB2);
 
+    // MULTI STAGE BOSSES DON'T WORK WITH EXHIBITION LOGIC!!!
+    /*
     // DEZ 1 - 0007 DE6E (central tower), 0007 E0A6 (laser dropper)
     duplicateBossRushListing(sonicKindex, 6, 0);
     populateMostRecentBossRush8(0x07, 0x00, 0x6E, 0xDE, 0x07, 0x00, 0xA6, 0xE0);
@@ -2142,6 +2156,7 @@ void populateBossRushes() {
     applyGenerationToMostRecentBossRush(2); // <-- make it the final challenge in the run
     applyEndValuesToMostRecentBossRush(0xFE11, 0x0D); // <-- detect ending
     bossRushCallenges[bossRushChallengeCount - 1].blockRingZeroing = 1;
+    */
 
     // Sonic 3D Blast
     addBossRushListing(6, 0, 2, 0x0BA8, 0x0BA8, 0x00, 0x00, 0x0233, 0x100); // <-- this is the "show time countdown" flag - value 0x100 means "look for anything that is non-zero!"

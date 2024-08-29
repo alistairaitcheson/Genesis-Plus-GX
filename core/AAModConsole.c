@@ -1004,6 +1004,7 @@ void flagBossRushCheckLocation(int location, int rushIndex) {
         }
         if (bossRushSearchLocations[rushIndex][i] == 0) {
             bossRushSearchLocations[rushIndex][i] = location;
+            fireSnapEffect(0);
             break;
         }
     }
@@ -1013,6 +1014,7 @@ void unflagBossRushCheckLocation(int location, int rushIndex) {
     for (int i = 0; i < 0x20; i++) {
         if (bossRushSearchLocations[rushIndex][i] == location) {
             bossRushSearchLocations[rushIndex][i] = 0;
+            fireSnapEffect(0);
         }
     }
 }
@@ -1030,7 +1032,7 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
 
     int foundCount = 0;
 
-    int SHOW_DEBUG = 0;
+    int SHOW_DEBUG = 1;
     int FORCE_QUICK_KILLS = 0;
     
     if (SHOW_DEBUG == 1) {
@@ -1091,6 +1093,7 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
     //     listing.objectIdNumbers[0], listing.objectIdNumbers[1], listing.objectIdNumbers[2], listing.objectIdNumbers[3]);
 
 
+    int activeBossRushIndex = getActiveBossRushIndex();
     int countedNumber = 0;
     if (listing.objectLocationStart + bossRushSearchOffset >= listing.objectLocationEnd) {
         bossRushSearchOffset = 0;
@@ -1156,18 +1159,18 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
                 int locationToCheck = indexToCheck + listing.healthByteOffsets[objectIdx];
                 if (objectFoundHere == 1) {
                     // this is a key value! check if it has changed!
-                    flagBossRushCheckLocation(locationToCheck, getActiveBossRushIndex());
+                    flagBossRushCheckLocation(locationToCheck, activeBossRushIndex);
                 } else {
-                    unflagBossRushCheckLocation(locationToCheck, getActiveBossRushIndex());
+                    unflagBossRushCheckLocation(locationToCheck, activeBossRushIndex);
                 }
             }
         }
 
         for (int checkIndex = 0; checkIndex < 0x20; checkIndex++) {
-            int locationToCheck = bossRushSearchLocations[getActiveBossRushIndex()][checkIndex];
+            int locationToCheck = bossRushSearchLocations[activeBossRushIndex][checkIndex];
 
             if (locationToCheck > 0) {
-            if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
+                if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
                     && aa_genesis_getWorkRam(locationToCheck) != 0
                     && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
                     fireEventOnBossHit(asNetwork);
