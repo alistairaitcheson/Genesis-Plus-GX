@@ -1155,13 +1155,13 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
                     // this is a key value! check if it has changed!
                     flagBossRushCheckLocation(locationToCheck);
                 } else {
-                    unflagBossRushCheckLocation(locationToCheck)
+                    unflagBossRushCheckLocation(locationToCheck);
                 }
             }
         }
 
         for (int checkIndex = 0; checkIndex < 0x20; checkIndex++) {
-            locationToCheck = bossRushSearchLocations[checkIndex];
+            int locationToCheck = bossRushSearchLocations[checkIndex];
 
             if (locationToCheck > 0) {
             if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
