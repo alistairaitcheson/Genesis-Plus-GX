@@ -5,6 +5,8 @@
         "ostream": "cpp",
         "xlocmon": "cpp",
         "vdp_render.h": "c",
-        "aamodconsole.h": "c"
+        "aamodconsole.h": "c",
+        "shared.h": "c",
+        "aacartloader.h": "c"
     }
 }
