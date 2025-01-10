@@ -4266,7 +4266,7 @@ void showNetworkingOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Networking and Twitch", 5);
 
-    int lineCount = 4;
+    int lineCount = 5;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -4287,9 +4287,9 @@ void showNetworkingOptionsMenu() {
         networkOptions.networkingIsActive = 1;
     }
     if (networkOptions.networkingIsActive == 0) {
-        sprintf(lines[0], "Network/Twitch play:           OFF");
+        sprintf(lines[0], "Network/Twitch play:       OFF");
     } else {
-        sprintf(lines[0], "Network/Twitch play:           ON");
+        sprintf(lines[0], "Network/Twitch play:       ON");
     }
 
     sprintf(lines[1], "Enable single-player effects");
@@ -4300,9 +4300,9 @@ void showNetworkingOptionsMenu() {
         networkOptions.allowSoloEffectswhenNetworked = 1;
     }
     if (networkOptions.allowSoloEffectswhenNetworked == 0) {
-        sprintf(lines[2], "    during networked play:  NO");
+        sprintf(lines[2], "  during networked play:    NO");
     } else {
-        sprintf(lines[2], "    during networked play: YES");
+        sprintf(lines[2], "  during networked play:   YES");
     }
 
     if (networkOptions.showPlayerEvents > 1) {
