@@ -1866,11 +1866,17 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_NETWORKING) {
         if (buttonIndex == INPUT_INDEX_UP) {
             networkingOptionsIndex--;
+            while (networkingOptionsIndex == 2) {
+                networkingOptionsIndex --;
+            }
             refreshMenu();
             return 1;
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             networkingOptionsIndex++;
+            while (networkingOptionsIndex == 2) {
+                networkingOptionsIndex ++;
+            }
             refreshMenu();
             return 1;
         }
@@ -2465,11 +2471,11 @@ void incrementNetworkOption(int direction) {
     if (networkingOptionsIndex == 1) {
         networkOptions.allowSoloEffectswhenNetworked += direction;
     }
-    if (networkingOptionsIndex == 2) {
+    if (networkingOptionsIndex == 3) {
         networkOptions.showPlayerEvents += direction;
     }
 
-    if (networkingOptionsIndex == 3) {
+    if (networkingOptionsIndex == 4) {
         networkOptions.awaitingOpponentSettingsState = 0;
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
