@@ -1866,17 +1866,11 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_NETWORKING) {
         if (buttonIndex == INPUT_INDEX_UP) {
             networkingOptionsIndex--;
-            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 5 || networkingOptionsIndex == 11 || networkingOptionsIndex == 13) {
-                networkingOptionsIndex --;
-            }
             refreshMenu();
             return 1;
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             networkingOptionsIndex++;
-            while (networkingOptionsIndex == 2 || networkingOptionsIndex == 3 || networkingOptionsIndex == 4 || networkingOptionsIndex == 5 || networkingOptionsIndex == 11 || networkingOptionsIndex == 13) {
-                networkingOptionsIndex ++;
-            }
             refreshMenu();
             return 1;
         }
@@ -4287,9 +4281,9 @@ void showNetworkingOptionsMenu() {
         networkOptions.networkingIsActive = 1;
     }
     if (networkOptions.networkingIsActive == 0) {
-        sprintf(lines[0], "Network/Twitch play:       OFF");
+        sprintf(lines[0], "Network/Twitch play:        NO");
     } else {
-        sprintf(lines[0], "Network/Twitch play:       ON");
+        sprintf(lines[0], "Network/Twitch play:       YES");
     }
 
     sprintf(lines[1], "Enable single-player effects");
