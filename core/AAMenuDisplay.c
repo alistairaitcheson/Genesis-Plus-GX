@@ -1866,7 +1866,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
     if (activeMenu == MENU_LISTING_NETWORKING) {
         if (buttonIndex == INPUT_INDEX_UP) {
             networkingOptionsIndex--;
-            while (networkingOptionsIndex == 2) {
+            if (networkingOptionsIndex == 2) {
                 networkingOptionsIndex --;
             }
             refreshMenu();
@@ -1874,7 +1874,7 @@ int menuDisplay_onButtonPress(int buttonIndex) {
         }
         if (buttonIndex == INPUT_INDEX_DOWN) {
             networkingOptionsIndex++;
-            while (networkingOptionsIndex == 2) {
+            if (networkingOptionsIndex == 2) {
                 networkingOptionsIndex ++;
             }
             refreshMenu();
@@ -3031,7 +3031,7 @@ void showOptionsMenu() {
     }
 
     if (menuDisplay_shouldGameSwapOptionsShowAsOn() != 0) {
-        if (networkOptions.allowSoloEffectswhenNetworked != 0) {
+        if (networkOptions.allowSoloEffectswhenNetworked == 0) {
             sprintf(lines[0], "[BLOCKED] Game swapping >");
         } else {
             sprintf(lines[0], "[ON] Game swapping >");
