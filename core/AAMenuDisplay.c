@@ -2472,7 +2472,7 @@ void incrementNetworkOption(int direction) {
         networkOptions.allowSoloEffectswhenNetworked += direction;
     }
     if (networkingOptionsIndex == 2) {
-        networkOptions.showPlayerEvents += direction
+        networkOptions.showPlayerEvents += direction;
     }
 
     if (networkingOptionsIndex == 3) {
