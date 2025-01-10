@@ -342,6 +342,7 @@ void menuDisplay_applyPresetRules(int rulesIndex) {
 
     networkOptions.sendRandomiseVelocity = 0;
     networkOptions.sendRemoveColour = 0;
+    networkOptions.showPlayerEvents = 0;
     networkOptions.sendSpeedUp = 0;
     networkOptions.sendSwitchGame = 0;
     networkOptions.sendWriteIntoLevelDifficulty = 0;
@@ -942,6 +943,7 @@ void applyNetworkOptionsFromArray256(int array256[]) {
     networkOptions.sendWriteIntoLevelDifficulty = array256[3];
     networkOptions.sendRandomiseVelocity = array256[4];
     networkOptions.allowSoloEffectswhenNetworked = array256[5];
+    networkOptions.showPlayerEvents = array256[6];
 }
 
 void applyDefaultPersistValues() {
@@ -1038,6 +1040,7 @@ void applyNetworkOptionsDefaultValues() {
     networkOptions.sendWriteIntoLevelDifficulty = 0;
     networkOptions.sendRandomiseVelocity = 0;
     networkOptions.allowSoloEffectswhenNetworked = 0;
+    networkOptions.showPlayerEvents = 1;
 }
 
 void applySecondaryHacksDefaultValues() {
@@ -1242,6 +1245,7 @@ void saveHackOptions() {
     networkValues[3] = networkOptions.sendWriteIntoLevelDifficulty;
     networkValues[4] = networkOptions.sendRandomiseVelocity;
     networkValues[5] = networkOptions.allowSoloEffectswhenNetworked;
+    networkValues[6] = networkOptions.showPlayerEvents;
 
     remove("_magicbox/__networkOptions.data");
     FILE *networkOptionsWriter = fopen("_magicbox/__networkOptions.data", "wb");
@@ -2467,33 +2471,11 @@ void incrementNetworkOption(int direction) {
     if (networkingOptionsIndex == 1) {
         networkOptions.allowSoloEffectswhenNetworked += direction;
     }
-    if (networkingOptionsIndex == 6) {
-        networkOptions.sendSwitchGame += direction;
-    }
-    if (networkingOptionsIndex == 7) {
-        networkOptions.sendSpeedUp += direction;
-    }
-    if (networkingOptionsIndex == 8) {
-        networkOptions.sendRandomiseVelocity += direction;
-    }
-    if (networkingOptionsIndex == 9) {
-        networkOptions.sendWriteIntoLevelDifficulty += direction;
-    }
-    if (networkingOptionsIndex == 10) {
-        networkOptions.sendRemoveColour += direction;
+    if (networkingOptionsIndex == 2) {
+        networkOptions.showPlayerEvents += direction
     }
 
-    if (networkingOptionsIndex == 12) {
-        char action[0x100];
-        sprintf(action, "");
-        action[0] = NETWORK_MSG_REQUEST_RULES;
-        cartLoader_writeActionToNetwork(action);
-
-        networkOptions.awaitingOpponentSettingsState = 1;
-    }
-
-
-    if (networkingOptionsIndex == 14) {
+    if (networkingOptionsIndex == 3) {
         networkOptions.awaitingOpponentSettingsState = 0;
         menuDisplay_showMenu(MENU_LISTING_SETTINGS);
     }
@@ -4284,7 +4266,7 @@ void showNetworkingOptionsMenu() {
     layerRenderer_fill(0, 8, 8, DEFAULT_WIDTH - 16, DEFAULT_HEIGHT - 16, 0xFF);
     layerRenderer_writeWord256Centred(0, DEFAULT_WIDTH / 2, 16, "Networking and Twitch", 5);
 
-    int lineCount = 15;
+    int lineCount = 4;
     char lines[lineCount][0x80];
     int blockedLines[lineCount];
     for (int i = 0; i < lineCount; i++) {
@@ -4323,96 +4305,19 @@ void showNetworkingOptionsMenu() {
         sprintf(lines[2], "    during networked play: YES");
     }
 
-
-    if (networkOptions.networkingIsActive == 0) {
-        blockedLines[6] = 1;
-        blockedLines[7] = 1;
-        blockedLines[8] = 1;
-        blockedLines[9] = 1;
-        blockedLines[10] = 1;
+    if (networkOptions.showPlayerEvents > 1) {
+        networkOptions.showPlayerEvents = 0;
     }
-
-    sprintf(lines[3], "");
-    sprintf(lines[4], "When you get a ring");
-    sprintf(lines[5], "it will...");
-
-    if (networkOptions.sendSwitchGame > 1) {
-        networkOptions.sendSwitchGame = 0;
+    if (networkOptions.showPlayerEvents < 0) {
+        networkOptions.showPlayerEvents = 1;
     }
-    if (networkOptions.sendSwitchGame < 0) {
-        networkOptions.sendSwitchGame = 1;
-    }
-    if (networkOptions.sendSwitchGame == 0) {
-        sprintf(lines[6], "  Switch opponent's game:  OFF");
+    if (networkOptions.showPlayerEvents == 0) {
+        sprintf(lines[3], "Show opponent events:       NO");
     } else {
-        sprintf(lines[6], "  Switch opponent's game:   ON");
+        sprintf(lines[3], "Show opponent events:      YES");
     }
 
-    if (networkOptions.sendSpeedUp > 1) {
-        networkOptions.sendSpeedUp = 0;
-    }
-    if (networkOptions.sendSpeedUp < 0) {
-        networkOptions.sendSpeedUp = 1;
-    }
-    if (networkOptions.sendSpeedUp == 0) {
-        sprintf(lines[7], "  Speed up opponent:       OFF");
-    } else {
-        sprintf(lines[7], "  Speed up opponent:        ON");
-    }
-
-    if (networkOptions.sendRandomiseVelocity > 1) {
-        networkOptions.sendRandomiseVelocity = 0;
-    }
-    if (networkOptions.sendRandomiseVelocity < 0) {
-        networkOptions.sendRandomiseVelocity = 1;
-    }
-    if (networkOptions.sendRandomiseVelocity == 0) {
-        sprintf(lines[8], "  Randomise oppt velocity: OFF");
-    } else {
-        sprintf(lines[8], "  Randomise oppt velocity:  ON");
-    }
-
-    if (networkOptions.sendWriteIntoLevelDifficulty > 3) {
-        networkOptions.sendWriteIntoLevelDifficulty = 0;
-    }
-    if (networkOptions.sendWriteIntoLevelDifficulty < 0) {
-        networkOptions.sendWriteIntoLevelDifficulty = 3;
-    }
-    if (networkOptions.sendWriteIntoLevelDifficulty == 0) {
-        sprintf(lines[9], "  Scramble oppt level:     OFF");
-    } else if (networkOptions.sendWriteIntoLevelDifficulty == 1) {
-        sprintf(lines[9], "  Scramble oppt level:   A BIT");
-    } else if (networkOptions.sendWriteIntoLevelDifficulty == 2) {
-        sprintf(lines[9], "  Scramble oppt level:   A LOT");
-    } else if (networkOptions.sendWriteIntoLevelDifficulty == 3) {
-        sprintf(lines[9], "  Scramble oppt level:   LOADS");
-    }
-
-    if (networkOptions.sendRemoveColour > 2) {
-        networkOptions.sendRemoveColour = 0;
-    }
-    if (networkOptions.sendRemoveColour < 0) {
-        networkOptions.sendRemoveColour = 2;
-    }
-    if (networkOptions.sendRemoveColour == 0) {
-        sprintf(lines[10], "  Remove oppt colour:      OFF");
-    } else if (networkOptions.sendRemoveColour == 1) {
-        sprintf(lines[10], "  Remove oppt colour:    A BIT");
-    } else if (networkOptions.sendRemoveColour == 2) {
-        sprintf(lines[10], "  Remove oppt colour:    A LOT");
-    }
-
-    sprintf(lines[11], "");
-    if (networkOptions.awaitingOpponentSettingsState == 0) {
-        sprintf(lines[12], "Get opponent's settings");
-    } else if (networkOptions.awaitingOpponentSettingsState == 1) {
-        sprintf(lines[12], "Get opponent's settings (getting)");
-    } else if (networkOptions.awaitingOpponentSettingsState == 2) {
-        sprintf(lines[12], "Get opponent's settings (done!)");
-    } 
-
-    sprintf(lines[13], "");
-    sprintf(lines[14], "back >");
+    sprintf(lines[4], "back >");
 
     int yPos = 32;
     for (int i = 0; i < lineCount; i++) {

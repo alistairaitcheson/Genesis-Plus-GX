@@ -117,7 +117,8 @@ typedef struct {
     int sendRandomiseVelocity;
     int allowSoloEffectswhenNetworked;
     int awaitingOpponentSettingsState;
-    int sendRemoveColour;
+    int showPlayerEvents;
+    int showPlayerEvents;
 } NetworkOptions;
 
 typedef struct {
