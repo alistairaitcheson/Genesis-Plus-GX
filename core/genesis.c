@@ -684,6 +684,32 @@ void aa_genesis_incrementWorkRamCompoundValueByInt(int index, int length, int am
     }
 }
 
+void aa_genesis_decrementWorkRamCompoundValueByInt(int index, int length, int amount) {
+    int currentTotal = 0;
+    for (int i = 0; i < length; i++) {
+        int multiplicand = 1;
+        for (int j = 0; j < i; j++) {
+            multiplicand *= 0x100;
+        }
+        currentTotal += (int)work_ram[index + i] * multiplicand;
+    }
+    
+    currentTotal -= amount;
+    if (currentTotal < 0) {
+      currentTotal = 0;
+    }
+    
+    for (int i = length - 1; i >= 0; i--) {
+        int multiplicand = 1;
+        for (int j = 0; j < i; j++) {
+            multiplicand *= 0x100;
+        }
+        int valueThisIndex = (currentTotal / multiplicand) % 0x100;
+        work_ram[index + i] = (uint8)valueThisIndex;
+    }
+}
+
+
 extern uint8 aa_genesis_getVRamValue(int index) {
     return vram[index];
 }

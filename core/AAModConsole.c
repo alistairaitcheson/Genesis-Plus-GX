@@ -3125,6 +3125,17 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
         }
     }
 
+    if (eventId == NETWORK_MSG_SLOW_DOWN) {
+        fireSnapEffect(isFromTwitch);
+        if (cartLoader_getActiveGameListing().accelerationType == 1) {
+            cartLoader_appendToLog("Decreasing Sonic 2D speed from network");
+            for (int i = 0; i < eventCount; i++) {
+                aa_genesis_decrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
+                aa_genesis_decrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
+            }
+        }
+    }
+
     if (eventId == NETWORK_MSG_RANDOMISE_VELOCITY) {
         fireSnapEffect(isFromTwitch);
         cartLoader_appendToLog("Randomising velocity from network");
