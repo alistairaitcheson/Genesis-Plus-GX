@@ -3031,7 +3031,7 @@ void showOptionsMenu() {
     }
 
     if (menuDisplay_shouldGameSwapOptionsShowAsOn() != 0) {
-        if (networkOptions.allowSoloEffectswhenNetworked == 0) {
+        if (networkOptions.allowSoloEffectswhenNetworked == 0 && networkOptions.networkingIsActive != 0) {
             sprintf(lines[0], "[BLOCKED] Game swapping >");
         } else {
             sprintf(lines[0], "[ON] Game swapping >");
