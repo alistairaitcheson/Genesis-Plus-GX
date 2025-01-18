@@ -3168,8 +3168,19 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
         if (cartLoader_getActiveGameListing().accelerationType == 1) {
             cartLoader_appendToLog("Decreasing Sonic 2D speed from network");
             for (int i = 0; i < eventCount; i++) {
-                aa_genesis_decrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
-                aa_genesis_decrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
+                // can't slow down at all if you're nearly motionless
+                if (aa_genesis_getWorkRam(0xF761) > 0) {
+                    aa_genesis_decrementWorkRamCompoundValueByInt(0xF760, 2, 0x10);
+                }
+                // if you're faster than normal, slowdown is the opposite of speeding up one ring
+                if (aa_genesis_getWorkRam(0xF761) >= 6) {
+                    aa_genesis_decrementWorkRamCompoundValueByInt(0xF760, 2, 0x30);
+                }
+                aa_genesis_decrementWorkRamCompoundValueByInt(0xF762, 2, 0x01);
+                // don't slow acceleration so much that Sonic can barely run
+                if (aa_genesis_getWorkRam(0xF762) <= 4 && aa_genesis_getWorkRam(0xF763) == 0) {
+                    aa_genesis_setWorkRam(0xF762, 1);
+                }
             }
         }
     }
