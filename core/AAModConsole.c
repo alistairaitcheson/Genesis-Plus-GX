@@ -2707,7 +2707,7 @@ void modConsole_updateFrame() {
 
             for (int xOff = -1; xOff <= 1; xOff++) {
                 for (int yOff = -1; yOff <= 1; yOff++) {
-                    layerRenderer_writeWord256(2, textAlertX + xOff, textAlertY + yOff, textToShow, 0x0);
+                    layerRenderer_writeWord256(2, textAlertX + xOff, textAlertY + yOff, textToShow, 0xFF);
                 }
             }
             layerRenderer_writeWord256(2, textAlertX, textAlertY, textToShow, 0x5);
