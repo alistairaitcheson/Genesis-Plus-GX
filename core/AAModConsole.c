@@ -163,6 +163,11 @@ static int shouldShowHeartValues = 0;
 
 static int cooldownSinceLastHeaddyHit = 0;
 
+static char textAlert[60];
+int textAlertShowing = 0;
+int textAlertLiveTime = 0;
+int textAlertMaxTime = 120;
+
 void alertYouClearedStage() {
     ninesStatusMessageTime = 120;
     sprintf(ninesStatusMessage, "You cleared a stage!");
@@ -2682,6 +2687,32 @@ void modConsole_updateFrame() {
         // layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
         // layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
 
+        if (textAlertShowing != 0 && networkOptions.showPlayerEvents != 0) {
+            char textToShow[60];
+            int textAlertX = 2
+            int textAlertY = max(0, textAlertMaxTime - textAlertLiveTime) + 2;
+            for (int i = 0; i < 60; i++) {
+                if (i < textAlertLiveTime) {
+                    textToShow[i] = textAlert[i];
+                } else {
+                    textAlert[i] = '\0';
+                }
+            }
+            textToShow[59] = '\0';
+
+            for (int xOff = -1; xOff <= 1; xOff++) {
+                for (int yOff = -1; yOff <= 1; yOff++) {
+                    layerRenderer_writeWord256(2, textAlertX + xOff, textAlertY + yOff, textToShow, 0x0);
+                }
+            }
+            layerRenderer_writeWord256(2, textAlertX + xOff, textAlertY + yOff, textToShow, 0x5);
+
+            textAlertLiveTime++;
+            if (textAlertLiveTime > textAlertMaxTime + 60) {
+                textAlertShowing = 0;
+            }
+        }
+
         headingTextScrollSubpixels++;
         if (headingTextScrollSubpixels > HEADING_TEXT_SUBPIXEL_PER_PIXEL) {
             headingTextScrollPixels++;
@@ -2803,7 +2834,9 @@ void modConsole_updateFrame() {
             cooldownSinceLastHeaddyHit = 4;
         }
 
+
         vdp_resetCachedM5();
+
     }
 
     frameCount++;
@@ -4208,6 +4241,12 @@ void checkForGameCrashes() {
     }
 
 
+}
+
+void showTextAlert(char alert[]) {
+    sprintf(textAlert, "%s", alert);
+    textAlertShowing = 1;
+    textAlertLiveTime = 0;
 }
 
 

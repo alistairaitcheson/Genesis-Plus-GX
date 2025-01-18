@@ -3215,6 +3215,13 @@ void cartLoader_checkNetworkForActions() {
             int usedNumber = 0;
             int holdDuration = 0;
 
+            int isTextMode = 0;
+            char textBuffer[60];
+            for (int i = 0; i < 60; i++) {
+                textBuffer[i] = '\0';
+            }
+            int textCharaIndex = 0;
+
             for (int i = 0; i < 0x100; i++) {
                 char testLog[2];
                 testLog[0] = actionBuffer[i];
@@ -3225,6 +3232,21 @@ void cartLoader_checkNetworkForActions() {
                     cartLoader_appendToLog("---END OF EVENTS");
                     break;
                 } else {
+                    if (actionBuffer[i] == NETWORK_MSG_TEXT_START) {
+                        isTextMode = 1;
+                        continue;
+                    }
+                    if (actionBuffer[i] == NETWORK_MSG_TEXT_END) {
+                        isTextMode = 0;
+                        continue;
+                    }
+
+                    if (isTextMode) {
+                        textBuffer[textCharaIndex] = actionBuffer[i];
+                        textCharaIndex++;
+                        continue;
+                    }
+
                     if (actionBuffer[i] == NETWORK_MSG_INTERPRET_AS_ACTIONS) {
                         interpretType = NETWORK_INTERPRET_TYPE_ACTION;
                     }
