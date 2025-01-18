@@ -167,6 +167,8 @@ static char textAlert[60];
 int textAlertShowing = 0;
 int textAlertLiveTime = 0;
 int textAlertMaxTime = 120;
+int textAlertId = 0;
+int textAlertColour = 0x05;
 
 void alertYouClearedStage() {
     ninesStatusMessageTime = 120;
@@ -2696,25 +2698,19 @@ void modConsole_updateFrame() {
             }
             textAlertY += 2;
 
-            for (int i = 0; i < 60; i++) {
-                if (i < textAlertLiveTime) {
-                    textToShow[i] = textAlert[i];
-                } else {
-                    textAlert[i] = '\0';
-                }
-            }
-            textToShow[59] = '\0';
+            sprintf(textToShow, "%s", textAlert);
 
             for (int xOff = -1; xOff <= 1; xOff++) {
                 for (int yOff = -1; yOff <= 1; yOff++) {
                     layerRenderer_writeWord256(2, textAlertX + xOff, textAlertY + yOff, textToShow, 0xFF);
                 }
             }
-            layerRenderer_writeWord256(2, textAlertX, textAlertY, textToShow, 0x5);
+            layerRenderer_writeWord256(2, textAlertX, textAlertY, textToShow, textAlertColour);
 
             textAlertLiveTime++;
             if (textAlertLiveTime > textAlertMaxTime + 60) {
                 textAlertShowing = 0;
+                textAlertLiveTime = 0;
             }
         }
 
@@ -4260,9 +4256,12 @@ void checkForGameCrashes() {
 }
 
 void modConsole_showTextAlert(char alert[]) {
+    textAlertId = rand() % 1000;
+
     sprintf(textAlert, "%s", alert);
     textAlertShowing = 1;
     textAlertLiveTime = 0;
+    textAlertColour = 0x05; // (0x04) + (rand() % 0x10);
 }
 
 
