@@ -2689,8 +2689,13 @@ void modConsole_updateFrame() {
 
         if (textAlertShowing != 0 && networkOptions.showPlayerEvents != 0) {
             char textToShow[60];
-            int textAlertX = 2
-            int textAlertY = max(0, textAlertMaxTime - textAlertLiveTime) + 2;
+            int textAlertX = 2;
+            int textAlertY = textAlertMaxTime - textAlertLiveTime;
+            if (textAlertY > 0) {
+                textAlertY = 0;
+            }
+            textAlertY += 2;
+
             for (int i = 0; i < 60; i++) {
                 if (i < textAlertLiveTime) {
                     textToShow[i] = textAlert[i];
@@ -2705,7 +2710,7 @@ void modConsole_updateFrame() {
                     layerRenderer_writeWord256(2, textAlertX + xOff, textAlertY + yOff, textToShow, 0x0);
                 }
             }
-            layerRenderer_writeWord256(2, textAlertX + xOff, textAlertY + yOff, textToShow, 0x5);
+            layerRenderer_writeWord256(2, textAlertX, textAlertY, textToShow, 0x5);
 
             textAlertLiveTime++;
             if (textAlertLiveTime > textAlertMaxTime + 60) {
@@ -4243,7 +4248,7 @@ void checkForGameCrashes() {
 
 }
 
-void showTextAlert(char alert[]) {
+void modConsole_showTextAlert(char alert[]) {
     sprintf(textAlert, "%s", alert);
     textAlertShowing = 1;
     textAlertLiveTime = 0;

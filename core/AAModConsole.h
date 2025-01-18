@@ -22,7 +22,7 @@
 #define NETWORK_MSG_IS_SET_VRAM_STATE 'a'
 
 #define NETWORK_MSG_TEXT_START '{'
-#define NETWORK_MSG_TEXT_END '}
+#define NETWORK_MSG_TEXT_END '}'
 
 #define NETWORK_MSG_WRITE_TO_RAM 'q'
 #define NETWORK_MSG_TOGGLE_LAYER 'w'
@@ -220,5 +220,7 @@ void spawnRandomObjectNearSonic();
 void checkForGameCrashes();
 
 int checkForDynamiteHeaddyHits();
+
+void modConsole_showTextAlert(char alert[]);
 
 #endif

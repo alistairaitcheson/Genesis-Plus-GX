@@ -3236,6 +3236,7 @@ void cartLoader_checkNetworkForActions() {
                         isTextMode = 1;
                         continue;
                     }
+                    
                     if (actionBuffer[i] == NETWORK_MSG_TEXT_END) {
                         isTextMode = 0;
                         continue;
@@ -3493,6 +3494,10 @@ void cartLoader_checkNetworkForActions() {
 
             sprintf(filesToRemove[oldFiles], "%s", pathThisFile);
             oldFiles++;
+
+            if (textCharaIndex > 0) {
+                modConsole_showTextAlert(textBuffer);
+            }
         }
     }
     closedir(dir);
