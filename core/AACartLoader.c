@@ -3221,6 +3221,7 @@ void cartLoader_checkNetworkForActions() {
                 textBuffer[i] = '\0';
             }
             int textCharaIndex = 0;
+            int textIsImportant = 0;
 
             for (int i = 0; i < 0x100; i++) {
                 char testLog[2];
@@ -3243,8 +3244,12 @@ void cartLoader_checkNetworkForActions() {
                     }
 
                     if (isTextMode) {
-                        textBuffer[textCharaIndex] = actionBuffer[i];
-                        textCharaIndex++;
+                        if (actionBuffer[i] == '@') {
+                            textIsImportant = 1;
+                        } else {
+                            textBuffer[textCharaIndex] = actionBuffer[i];
+                            textCharaIndex++;
+                        }
                         continue;
                     }
 
@@ -3496,7 +3501,9 @@ void cartLoader_checkNetworkForActions() {
             oldFiles++;
 
             if (textCharaIndex > 0) {
-                modConsole_showTextAlert(textBuffer);
+                if (textIsImportant || menuDisplay_getNetworkOptions().showPlayerEvents) {
+                    modConsole_showTextAlert(textBuffer);
+                }
             }
         }
     }

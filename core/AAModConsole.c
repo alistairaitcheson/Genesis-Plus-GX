@@ -2689,7 +2689,7 @@ void modConsole_updateFrame() {
         // layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
         // layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
 
-        if (textAlertShowing != 0 && networkOptions.showPlayerEvents != 0) {
+        if (textAlertShowing != 0) {
             char textToShow[60];
             int textAlertX = 2;
             int textAlertY = textAlertMaxTime - textAlertLiveTime;
@@ -3140,6 +3140,10 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
                 }
             }
         }
+
+        // //TODO: REMOVE THIS!! THIS ONE'S JUST FOR VIDEO
+        // switchingIsAllowed = 1;
+
         if (switchingIsAllowed > 0) {
             cartLoader_appendToLog("Switching game from network");
             promptSwitchGame();
