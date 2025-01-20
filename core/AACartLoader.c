@@ -3244,7 +3244,7 @@ void cartLoader_checkNetworkForActions() {
                     }
 
                     if (isTextMode) {
-                        if (actionBuffer[i] == '@') {
+                        if (actionBuffer[i] == '*') {
                             textIsImportant = 1;
                         } else {
                             textBuffer[textCharaIndex] = actionBuffer[i];
