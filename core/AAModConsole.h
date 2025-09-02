@@ -32,29 +32,29 @@
 #define NETWORK_MSG_USE_ACTIVE_NUM_AS_DISTANCE 'y'
 #define NETWORK_MSG_USE_ACTIVE_NUM_AS_HOLD_DURATION 'u'
 
-#define NETWORK_MSG_INTERPRET_AS_ACTIONS 'A' // prefix with this to convey "I am actioning"
-#define NETWORK_MSG_INTERPRET_AS_RULES 'S' // prefix with this to convey "I am switching rules on and off"
+#define NETWORK_MSG_INTERPRET_AS_ACTIONS 'A'  // prefix with this to convey "I am actioning"
+#define NETWORK_MSG_INTERPRET_AS_RULES 'S'    // prefix with this to convey "I am switching rules on and off"
 #define NETWORK_MSG_INTERPRET_AS_POSITIVE 'D' // prefix with this to convey "Set the next setting you see to ON"
 #define NETWORK_MSG_INTERPRET_AS_NEGATIVE 'F' // prefix with this to convey "Set the next setting you see to OFF"
 
-#define NETWORK_MSG_REQUEST_RULES 'Z' // when called, this emu will reply with the current rules setup so the opponent can sync 
-#define NETWORK_MSG_REQUEST_OPPONENT_SEED 'z' // when called, this emu will reply with the seed for 999 challenge
-#define NETWORK_MSG_APPLY_OPPONENT_SEED 'x' // when called, this emu will reply with the seed for 999 challenge
+#define NETWORK_MSG_REQUEST_RULES 'Z'             // when called, this emu will reply with the current rules setup so the opponent can sync
+#define NETWORK_MSG_REQUEST_OPPONENT_SEED 'z'     // when called, this emu will reply with the seed for 999 challenge
+#define NETWORK_MSG_APPLY_OPPONENT_SEED 'x'       // when called, this emu will reply with the seed for 999 challenge
 #define NETWORK_MSG_APPLY_OPPONENT_RING_COUNT 'v' // when called, this emu will reply with the seed for 999 challenge
 #define NETWORK_MSG_APPLY_OPPONENT_HAS_COMPLETED_CHALLENGE 's'
 #define NETWORK_MSG_RECEIVE_RINGS_FROM_OPPONENT 'd'
 #define NETWORK_MSG_ENFORCE_SONIC_SPEED 'X'
 // to do: implement this!!
-#define NETWORK_MSG_SHOW_TERMINAL_MENU 'C' // when using a USB terminal, send this to say "show the hack select menu please"
-#define NETWORK_MSG_ACTIVATE_RULE_PRESET 'V' // precede this with a number, e.g. 0V = no rules, 1V = "make it switch game on get ring"
-#define NETWORK_MSG_FIRE_TERMINAL_ACTION 'B' // precede this with a number: 1 = kill Sonic, 2 = reset game, 3 = rewind 1 step
-#define NETWORK_MSG_START_SPECIFIC_GAME 'N' // precede this with a number - swap to the game with that index (0N = switch to 0th game)
+#define NETWORK_MSG_SHOW_TERMINAL_MENU 'C'    // when using a USB terminal, send this to say "show the hack select menu please"
+#define NETWORK_MSG_ACTIVATE_RULE_PRESET 'V'  // precede this with a number, e.g. 0V = no rules, 1V = "make it switch game on get ring"
+#define NETWORK_MSG_FIRE_TERMINAL_ACTION 'B'  // precede this with a number: 1 = kill Sonic, 2 = reset game, 3 = rewind 1 step
+#define NETWORK_MSG_START_SPECIFIC_GAME 'N'   // precede this with a number - swap to the game with that index (0N = switch to 0th game)
 #define NETWORK_MSG_ISOLATE_SPECIFIC_GAME 'M' // precede this with a number - swap to the game with that index (0N = switch to 0th game) and make it the only active game
 
-#define NETWORK_MSG_ADD_TO_ROTOR_POSITION 'm' // precede it with a number to add to that rotor
+#define NETWORK_MSG_ADD_TO_ROTOR_POSITION 'm'      // precede it with a number to add to that rotor
 #define NETWORK_MSG_REMOVE_FROM_ROTOR_POSITION 'n' // precede it with a number to remove from that rotor
-#define NETWORK_MSG_REPORT_TERMINAL_EVENT '?' // follow it with a number: ?0 = get ring, ?1 = swap game
-#define NETWORK_MSG_HAS_LED_DISPLAY 'b' // will be sent when an LED display is detected
+#define NETWORK_MSG_REPORT_TERMINAL_EVENT '?'      // follow it with a number: ?0 = get ring, ?1 = swap game
+#define NETWORK_MSG_HAS_LED_DISPLAY 'b'            // will be sent when an LED display is detected
 
 #define NETWORK_RECEIVE_OPPONENT_LEVEL_COMPLETION_COUNT 'c'
 #define NETWORK_RECEIVE_OPPONENT_LEVEL_INDEX 'f'
@@ -67,10 +67,10 @@
 #define NETWORK_MSG_SET_SHOW_HEART_RATE 'K'
 #define NETWORK_MSG_SET_SHOW_HEART_VALUES 'k'
 
+#define NETWORK_MSG_SEED_RANDOM_NUMBER_GEN 'h'
 
 #define NETWORK_INTERPRET_TYPE_ACTION 0
 #define NETWORK_INTERPRET_TYPE_ASSIGN_RULES 1
-
 
 #include "AACommonTypes.h"
 
@@ -119,7 +119,7 @@ void updateSpeedUpOnRing();
 int ringCountHasChanged(int shouldIgnoreCooldown);
 int standingHasChanged(int shouldIgnoreCooldown);
 void updateLives();
-void updateTime() ;
+void updateTime();
 void updateSwitchGameOnRing();
 void updateSwitchGameOnLand();
 void showRomList();
@@ -179,7 +179,7 @@ void incrementTerminalRotorValue(int whichRotor, int amount);
 void resetRotorRam();
 void resetRotorChanges();
 void setHasLEDDisplay(int toValue);
-void reportToLED(char actionId[]) ;
+void reportToLED(char actionId[]);
 void endIdleMode();
 int getIsIdleModeActive();
 
