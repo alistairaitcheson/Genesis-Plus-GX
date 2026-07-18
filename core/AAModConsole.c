@@ -82,8 +82,8 @@ static int rewindSymbolColour = 0x10;
 
 static int playerDeathCount = 0;
 
-static uint8 holdValues[0x10000]; 
-static int holdDurations[0x10000]; 
+static uint8 holdValues[0x10000];
+static int holdDurations[0x10000];
 
 static int holdEffectFramesLeft = 0;
 static int holdEffectDuration = 300;
@@ -105,14 +105,14 @@ static int countdownToApplyBossRushRings = 0;
 
 static int shouldShuffleController = 0;
 static int shuffleControllerCountdown = 0;
-static int SHUFFLE_CONTROLLER_DURATION = 30 * 60; //30 * 60;
+static int SHUFFLE_CONTROLLER_DURATION = 30 * 60; // 30 * 60;
 static int showShuffleAlertCountdown = 0;
 static int SHOW_SHUFFLE_ALERT_DURATION = 2 * 60;
 
 static int shouldCheckForIdleMode = 0;
 static int idleModeFrameCount = 0;
 static int idleModeActive = 0;
-//3 minutes
+// 3 minutes
 static int MAX_FRAMES_FOR_IDLE_MODE = 60 * 60 * 3;
 
 int countdownToUnrandomiseColours = 0;
@@ -170,57 +170,70 @@ int textAlertMaxTime = 120;
 int textAlertId = 0;
 int textAlertColour = 0x05;
 
-void alertYouClearedStage() {
+void alertYouClearedStage()
+{
     ninesStatusMessageTime = 120;
     sprintf(ninesStatusMessage, "You cleared a stage!");
 }
 
-void alertOpponentClearedStage() {
+void alertOpponentClearedStage()
+{
     ninesStatusMessageTime = 120;
     sprintf(ninesStatusMessage, "Opponent has cleared a stage");
 }
 
-void beginCountdownToBreakCasinoWheels() {
+void beginCountdownToBreakCasinoWheels()
+{
     countdownToBreakCasinoWheels = 120;
 }
 
-void breakCasinoNightWheels() {
+void breakCasinoNightWheels()
+{
     int wheelLocation = -1;
-    for (int i = casinoWheelSearchBounds[0]; i < casinoWheelSearchBounds[1]; i++) {
+    for (int i = casinoWheelSearchBounds[0]; i < casinoWheelSearchBounds[1]; i++)
+    {
         int hasFailedToFindMatch = 0;
-        for (int j = 0; j < 12; j++) {
-            if (aa_genesis_getCartValue(i + j) != casinoWheelValues[j]) {
+        for (int j = 0; j < 12; j++)
+        {
+            if (aa_genesis_getCartValue(i + j) != casinoWheelValues[j])
+            {
                 hasFailedToFindMatch = 1;
                 break;
             }
         }
 
-        if (hasFailedToFindMatch == 0) {
+        if (hasFailedToFindMatch == 0)
+        {
             char breakDebugMessage[0x80];
             sprintf(breakDebugMessage, "Broke casino wheels at %06X", i);
             cartLoader_appendToLog(breakDebugMessage);
-            for (int j = 0; j < 12; j++) {
+            for (int j = 0; j < 12; j++)
+            {
                 aa_genesis_setCartValue(i + j, 0);
             }
             wheelLocation = i;
             break;
         }
     }
-    
+
     casinoWheelsHaveBeenBroken = 1;
     casinoStatusMessageTime = casinoStatusMessageDuration;
     sprintf(casinoStatusMessage, "Slot machines out of order");
 
-    if (wheelLocation == -1) {
+    if (wheelLocation == -1)
+    {
         cartLoader_appendToLog("Could not break casino wheels");
         sprintf(casinoStatusMessage, "machine error?");
     }
 }
 
-void checkToRepairCasinoNightWheels() {
-    if (casinoWheelsHaveBeenBroken) {
+void checkToRepairCasinoNightWheels()
+{
+    if (casinoWheelsHaveBeenBroken)
+    {
         NinesChallengeStageListing ninesStage = getCurrentNinesChallengeStage();
-        if (ninesStage.gameId == 2 && ninesStage.zoneId == 3) {
+        if (ninesStage.gameId == 2 && ninesStage.zoneId == 3)
+        {
             casinoStatusMessageTime = casinoStatusMessageDuration;
             sprintf(casinoStatusMessage, "Slot machines repaired!");
             casinoWheelsHaveBeenBroken = 0;
@@ -228,15 +241,19 @@ void checkToRepairCasinoNightWheels() {
     }
 }
 
-void requestFlashRingsToGo() {
+void requestFlashRingsToGo()
+{
     flashRingsToGoCountTime = flashRingsToGoDuration;
 }
 
-int getRingLossForCurrentOpponentLead() {
+int getRingLossForCurrentOpponentLead()
+{
     int opponentLead = getOpponentNinesChallengeLead();
-    if (opponentLead > 0) {
+    if (opponentLead > 0)
+    {
         int ringLoss = 25;
-        if (opponentLead < 5) {
+        if (opponentLead < 5)
+        {
             ringLoss = ninesLeadDepletionRate[opponentLead - 1];
         }
         return ringLoss;
@@ -244,7 +261,8 @@ int getRingLossForCurrentOpponentLead() {
     return 0;
 }
 
-int receiveRingsFromOpponent(int ringCount) {
+int receiveRingsFromOpponent(int ringCount)
+{
     AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
     int amountAdded = 0;
 
@@ -252,12 +270,14 @@ int receiveRingsFromOpponent(int ringCount) {
     sprintf(deductLog1, "receiveRingsFromOpponent: %i", ringCount);
     cartLoader_appendToLog(deductLog1);
 
-    for (int i = 0; i < ringCount; i++) {
+    for (int i = 0; i < ringCount; i++)
+    {
         int lowByte = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]);
         int highByte = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]);
 
         int total = (highByte * 0x100) + lowByte;
-        if (gameTransferListing.ringCalculatationType == 1) {
+        if (gameTransferListing.ringCalculatationType == 1)
+        {
             int convertedHigh = ((highByte / 0x10) * 10) + (highByte % 10);
             int convertedLow = ((lowByte / 0x10) * 10) + (lowByte % 10);
             total = (convertedHigh * 100) + convertedLow;
@@ -267,15 +287,16 @@ int receiveRingsFromOpponent(int ringCount) {
         sprintf(deductLog2, "   lowByte: %02X, highByte: %02X, total: %02X", lowByte, highByte, total);
         cartLoader_appendToLog(deductLog2);
 
-
-        if (total < 0xFFFF) {
+        if (total < 0xFFFF)
+        {
             total++;
         }
 
         int newHighByte = total / 0x100;
         int newLowByte = total % 0x100;
 
-        if (gameTransferListing.ringCalculatationType == 1) {
+        if (gameTransferListing.ringCalculatationType == 1)
+        {
             int thousands = (total / 1000) % 10;
             int hundreds = (total / 100) % 10;
             int tens = (total / 10) % 10;
@@ -289,7 +310,6 @@ int receiveRingsFromOpponent(int ringCount) {
         sprintf(deductLog3, "    -> lowByte: %02X, highByte: %02X, total: %02X", newLowByte, newHighByte, total);
         cartLoader_appendToLog(deductLog3);
 
-        
         aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], newLowByte);
         aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1], newHighByte);
 
@@ -297,30 +317,40 @@ int receiveRingsFromOpponent(int ringCount) {
     }
     cacheRingCountInBossRush(1);
 
-    if (amountAdded == 1) {
+    if (amountAdded == 1)
+    {
         sprintf(ninesStatusMessage, "Stole 1 ring from opponent");
-    } else {
+    }
+    else
+    {
         sprintf(ninesStatusMessage, "Stole %i rings from opponent", amountAdded);
     }
     ninesStatusMessageTime = 120;
 }
 
-void resetNinesOpponentLeadCountdown() {
+void resetNinesOpponentLeadCountdown()
+{
     ninesOpponentLeadCountDown = ninesOpponentLeadCoundDownDuration - 60;
 }
 
-void checkToHaltMusic() {
-    if (shouldUseBossRush() && menuDisplay_getBossRushOptions().shouldUseExternalMusic /*&& aa_genesis_getWorkRam(0xF601) < 0x80*/) {
+void checkToHaltMusic()
+{
+    if (shouldUseBossRush() && menuDisplay_getBossRushOptions().shouldUseExternalMusic /*&& aa_genesis_getWorkRam(0xF601) < 0x80*/)
+    {
         // vdp_clearGraphicLayer(3);
         // layerRenderer_writeWord256(3, 0, 0, "Boss rush music silencer on", 0x5);
 
         int shouldOverrideNow = 0;
         AAMusicOverrideListing musicListing = cartLoader_getActiveMusicOverrideListing();
-        if (musicListing.byteToCheckForTrackChange != 0) {
+        if (musicListing.byteToCheckForTrackChange != 0)
+        {
             int currentValue = 0;
-            if (musicListing.shouldEditZ80 == 0) {
+            if (musicListing.shouldEditZ80 == 0)
+            {
                 currentValue = aa_genesis_getWorkRam(musicListing.byteToCheckForTrackChange);
-            } else {
+            }
+            else
+            {
                 // check z80 ram
                 currentValue = aa_genesis_getZ80Ram(musicListing.byteToCheckForTrackChange);
                 // if (musicListing.byteStringCheckForTrackChange > 0) {
@@ -332,14 +362,18 @@ void checkToHaltMusic() {
             }
 
             // check work ram
-            if (musicListing.lastTrackChangeValue != currentValue && frameCount % 5 == 0) {
+            if (musicListing.lastTrackChangeValue != currentValue && frameCount % 5 == 0)
+            {
                 musicListing.lastTrackChangeValue = currentValue;
                 cartLoader_beginCurrentHaltCountdown();
                 shouldOverrideNow = 1;
 
-                if (musicListing.shouldEditZ80 == 0) {
+                if (musicListing.shouldEditZ80 == 0)
+                {
                     aa_genesis_setWorkRam(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
-                } else {
+                }
+                else
+                {
                     // check z80 ram
                     aa_genesis_setZ80Ram(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
                     // if (musicListing.byteStringCheckForTrackChange > 0) {
@@ -348,7 +382,6 @@ void checkToHaltMusic() {
                     //     }
                     // }
                 }
-
             }
 
             // char detailsBuf[0x100];
@@ -356,46 +389,52 @@ void checkToHaltMusic() {
             // layerRenderer_writeWord256(3, 0, 8, detailsBuf, 0x5);
 
             // char detailsBuf2[0x100];
-            // sprintf(detailsBuf2, "(%04X = %02X / %02X) (%04X = %02X / %02X)", 
-            //     musicListing.byteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.byteToWriteToForNoMusic), musicListing.valueToWriteForNoMusic, 
+            // sprintf(detailsBuf2, "(%04X = %02X / %02X) (%04X = %02X / %02X)",
+            //     musicListing.byteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.byteToWriteToForNoMusic), musicListing.valueToWriteForNoMusic,
             //     musicListing.secondByteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.secondByteToWriteToForNoMusic), musicListing.secondValueToWriteForNoMusic);
             // layerRenderer_writeWord256(3, 0, 16, detailsBuf2, 0x5);
 
-            if (musicListing.haltMusicCountdown > 0 || shouldOverrideNow != 0) {
+            if (musicListing.haltMusicCountdown > 0 || shouldOverrideNow != 0)
+            {
                 // if (frameCount % 5 == 0) {
                 enforceHaltMusic();
                 // }
-                
+
                 cartLoader_reduceCurrentHaltCountdown();
 
                 // char detailsBuf3[0x100];
-                // sprintf(detailsBuf3, "(%04X = %02X / %02X) (%04X = %02X / %02X)", 
-                //     musicListing.byteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.byteToWriteToForNoMusic), musicListing.valueToWriteForNoMusic, 
+                // sprintf(detailsBuf3, "(%04X = %02X / %02X) (%04X = %02X / %02X)",
+                //     musicListing.byteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.byteToWriteToForNoMusic), musicListing.valueToWriteForNoMusic,
                 //     musicListing.secondByteToWriteToForNoMusic, aa_genesis_getZ80Ram(musicListing.secondByteToWriteToForNoMusic), musicListing.secondValueToWriteForNoMusic);
                 // layerRenderer_writeWord256(3, 0, 24, detailsBuf3, 0x5);
             }
         }
-        
+
         // // nuclear option in case of Sonic 3
-        if (cartLoader_getActiveCartIndex() == 3) {
+        if (cartLoader_getActiveCartIndex() == 3)
+        {
             // for (int i = 0x1078; i < 0x114A; i++) {
-            for (int i = 0x10E0; i < 0x1100; i++) {//7AB3231B
+            for (int i = 0x10E0; i < 0x1100; i++)
+            { // 7AB3231B
                 aa_genesis_setZ80Ram(i, 0);
             }
         }
 
         // // nuclear option in case of Sonic & knuckles
-        if (cartLoader_getActiveCartIndex() == 4) {
+        if (cartLoader_getActiveCartIndex() == 4)
+        {
             // char skBufTop[0x100];
             // sprintf(skBufTop, "");
             // char skBufBottom[0x100];
             // sprintf(skBufBottom, "");
 
-            for (int i = 0x1FE0; i < 0x1FF0; i++) {
+            for (int i = 0x1FE0; i < 0x1FF0; i++)
+            {
                 // sprintf(skBufTop, "%s %02X", skBufTop, aa_genesis_getZ80Ram(i));
                 aa_genesis_setZ80Ram(i, 0);
             }
-            for (int i = 0x1FF0; i < 0x2000; i++) {
+            for (int i = 0x1FF0; i < 0x2000; i++)
+            {
                 // sprintf(skBufBottom, "%s %02X", skBufBottom, aa_genesis_getZ80Ram(i));
                 aa_genesis_setZ80Ram(i, 0);
             }
@@ -404,29 +443,35 @@ void checkToHaltMusic() {
         }
 
         // // nuclear option in case of Sonic 3D Blast
-        if (cartLoader_getActiveCartIndex() == 6) {
+        if (cartLoader_getActiveCartIndex() == 6)
+        {
             aa_genesis_setZ80Ram(0x1FF8, 0);
             aa_genesis_setZ80Ram(0x1FF9, 0);
         }
     }
 }
 
-void enforceHaltMusic() {
+void enforceHaltMusic()
+{
     AAMusicOverrideListing musicListing = cartLoader_getActiveMusicOverrideListing();
 
-
-    if (musicListing.shouldEditZ80 == 0) {
+    if (musicListing.shouldEditZ80 == 0)
+    {
         // set the "stop all sounds" flag
         aa_genesis_setWorkRam(musicListing.byteToWriteToForNoMusic, musicListing.valueToWriteForNoMusic);
         // set the tempo to 0
-        if (musicListing.haltMusicCountdown < 3) {
+        if (musicListing.haltMusicCountdown < 3)
+        {
             aa_genesis_setWorkRam(musicListing.byteToCheckForTrackChange, musicListing.valueToWriteIntoTrackChangedSlot);
         }
 
-        if (musicListing.secondByteToWriteToForNoMusic != 0) {
+        if (musicListing.secondByteToWriteToForNoMusic != 0)
+        {
             aa_genesis_setWorkRam(musicListing.secondByteToWriteToForNoMusic, musicListing.secondValueToWriteForNoMusic);
         }
-    } else {
+    }
+    else
+    {
         // set the "stop all sounds" flag
         aa_genesis_setZ80Ram(musicListing.byteToWriteToForNoMusic, musicListing.valueToWriteForNoMusic);
         // if (musicListing.secondByteToWriteToForNoMusic != 0) {
@@ -462,22 +507,25 @@ void enforceHaltMusic() {
     // and fire this flag
 }
 
-
-void setHasLEDDisplay(int toValue) {
+void setHasLEDDisplay(int toValue)
+{
     hasLEDdisplay = toValue;
 }
 
-void reportToLED(char actionId[]) {
+void reportToLED(char actionId[])
+{
     // char tempMessage[10];
-    // sprintf(tempMessage, "?%s", actionId); 
+    // sprintf(tempMessage, "?%s", actionId);
     // cartLoader_writeActionToNetwork(tempMessage);
 }
 
-void incrementTerminalRotorValue(int whichRotor, int amount) {
+void incrementTerminalRotorValue(int whichRotor, int amount)
+{
     terminalRotorValues[whichRotor % 8] += amount;
 }
 
-void setShouldCheckForIdleMode(int toValue) {
+void setShouldCheckForIdleMode(int toValue)
+{
     shouldCheckForIdleMode = toValue;
     idleModeFrameCount = 0;
 
@@ -485,10 +533,10 @@ void setShouldCheckForIdleMode(int toValue) {
     headingColour = (rand() % 10) + 0x5;
 }
 
-void beginIdleMode() {
+void beginIdleMode()
+{
     setShouldCheckForIdleMode(0);
     idleModeFrameCount = 0;
-    
 
     cartLoader_setAllGamesAsBlocked();
     cartLoader_setRandomSelectionOfGamesAsUnblocked(4);
@@ -509,124 +557,155 @@ void beginIdleMode() {
     setShouldShuffleController(0);
 }
 
-void endIdleMode() {
+void endIdleMode()
+{
     idleModeActive = 0;
     setShouldShuffleController(0);
 }
 
-int getIsIdleModeActive() {
+int getIsIdleModeActive()
+{
     return idleModeActive;
 }
 
-void setShouldShuffleController(int toValue) {
+void setShouldShuffleController(int toValue)
+{
     shouldShuffleController = toValue;
     shuffleControllerCountdown = SHUFFLE_CONTROLLER_DURATION;
 }
 
-void beginCountdownToApplyBossRushRings() {
+void beginCountdownToApplyBossRushRings()
+{
     countdownToApplyBossRushRings = 3;
 
     // Sonic 3D blast
-    if (getActiveBossRushListing().gameIndex == 6) {
+    if (getActiveBossRushListing().gameIndex == 6)
+    {
         countdownToApplyBossRushRings = 60;
     }
 }
 
-void zeroDeathCount() {
+void zeroDeathCount()
+{
     playerDeathCount = 0;
 }
 
-int getDeathCount() {
+int getDeathCount()
+{
     return playerDeathCount;
 }
 
-int getNinesChallengeElapsedFrames() {
+int getNinesChallengeElapsedFrames()
+{
     return ninesChallengeElapsedFrames;
 }
 
-void resetNinesChallengeElapsedTimer() {
+void resetNinesChallengeElapsedTimer()
+{
     ninesChallengeElapsedFrames = 0;
 }
 
-
-int getNinesChallengeElapsedSecs() {
+int getNinesChallengeElapsedSecs()
+{
     return (ninesChallengeElapsedFrames / 60) % 60;
 }
 
-int getNinesChallengeElapsedMins() {
+int getNinesChallengeElapsedMins()
+{
     return (ninesChallengeElapsedFrames / 3600) % 60;
 }
 
-int getNinesChallengeElapsedHours() {
+int getNinesChallengeElapsedHours()
+{
     return ninesChallengeElapsedFrames / (3600 * 60);
 }
 
-
-int getBossRushElapsedFrames() {
+int getBossRushElapsedFrames()
+{
     return bossRushElapsedFrames;
 }
 
-void resetBossRushElapsedTimer() {
+void resetBossRushElapsedTimer()
+{
     bossRushElapsedFrames = 0;
 }
 
-int getBossRushElapsedSecs() {
+int getBossRushElapsedSecs()
+{
     return (bossRushElapsedFrames / 60) % 60;
 }
 
-int getBossRushElapsedMins() {
+int getBossRushElapsedMins()
+{
     return (bossRushElapsedFrames / 3600) % 60;
 }
 
-int getBossRushElapsedHours() {
+int getBossRushElapsedHours()
+{
     return bossRushElapsedFrames / (3600 * 60);
 }
 
-void initialiseRewindRAM() {
+void initialiseRewindRAM()
+{
     cartloader_initialiseRewindDirectory();
 }
 
-void cacheRewindRAM() {
-    if (menuDisplay_getSecondaryHackOptions().shouldSaveRewindStates != 0) {
+void cacheRewindRAM()
+{
+    if (menuDisplay_getSecondaryHackOptions().shouldSaveRewindStates != 0)
+    {
         cartLoader_saveRewindStateForCurrentGame();
     }
 }
 
-int stepBackRewindRAM() {
-    if (menuDisplay_getSecondaryHackOptions().shouldSaveRewindStates != 0) {
+int stepBackRewindRAM()
+{
+    if (menuDisplay_getSecondaryHackOptions().shouldSaveRewindStates != 0)
+    {
         return cartLoader_loadRewindStateForCurrentGame();
-    } else {
+    }
+    else
+    {
         return 0;
     }
 }
 
-void fireSnapEffect(int isFromTwitch) {
+void fireSnapEffect(int isFromTwitch)
+{
     snapEffectTime = snapEffectMaxTime;
     shuffleSnapValues(isFromTwitch);
 }
 
-void modConsole_flagToLogRamState() {
+void modConsole_flagToLogRamState()
+{
     countdownUntilLogRamState = 1;
 }
 
-void modConsole_flagToApplyCache() {
+void modConsole_flagToApplyCache()
+{
     shouldApplyCacheNextFrame = 1;
 }
 
-void modConsole_flagToSummonMenu() {
+void modConsole_flagToSummonMenu()
+{
     countdownToSummonMenu = 60;
 }
 
-void modConsole_setCountdownUntilRingSwitch(int toValue) {
+void modConsole_setCountdownUntilRingSwitch(int toValue)
+{
     countdownUntilRingSwitch = toValue;
 }
 
-void modConsole_initialise() {
-    if (hasInitialised == 0) {
-        for (int i = 0; i < MAX_ROMS; i++) {
+void modConsole_initialise()
+{
+    if (hasInitialised == 0)
+    {
+        for (int i = 0; i < MAX_ROMS; i++)
+        {
             postRingEffectCooldownTimePerGame[i] = 0;
         }
-        for (int i = 0; i < 0x10000; i++) {
+        for (int i = 0; i < 0x10000; i++)
+        {
             holdDurations[i] = 0;
         }
         initialiseRewindRAM();
@@ -645,7 +724,8 @@ void modConsole_initialise() {
     }
 }
 
-void showRomList() {
+void showRomList()
+{
     layerRenderer_fill(0, 0, 0, 256, 256, 1);
 
     layerRenderer_writeWord256(0, 0, 0, "Alistair's Magic Box V0.02", 5);
@@ -653,19 +733,19 @@ void showRomList() {
     layerRenderer_writeWord256(0, 0, 16, "HOLD (START + UP + A + B)", 5);
     layerRenderer_writeWord256(0, 0, 24, "to reset active game", 5);
 
-
     layerRenderer_writeWord256(0, 0, 48, "YOUR ROMS:", 5);
     for (int i = 0; i < cartLoader_getRomCount(); i++)
     {
         char fileNameBuf[0x100];
         cartLoader_getRomFileName(i, fileNameBuf);
         layerRenderer_writeWord256(0, 0, 48 + ((i + 1) * 8), fileNameBuf, 5);
-    }   
+    }
 
     framesUntilClearLayer = 10 * 60;
 }
 
-void modConsole_updateActiveCart() {
+void modConsole_updateActiveCart()
+{
     char romHeader[0x20];
     modConsole_getRomHeader(romHeader);
     cartLoader_appendToLog("modConsole_updateActiveCart - active ROM is:");
@@ -680,16 +760,19 @@ void modConsole_updateActiveCart() {
 static int bossRushStartCountDown = 0;
 static int ninesChallengeStartCountDown = 0;
 
-void dismissStartupHint(int andSave) {
+void dismissStartupHint(int andSave)
+{
     hasDismissedStartupHint = 1;
 
-    if (andSave != 0) {
+    if (andSave != 0)
+    {
         FILE *networkOptionsWriter = fopen("_magicbox/__startupHint.data", "wb");
         fclose(networkOptionsWriter);
     }
 }
 
-void modConsole_applyHackOptions() {
+void modConsole_applyHackOptions()
+{
     switchAfterTimeCounter = 0;
     switchAfterTimePeriod = 0;
 
@@ -700,95 +783,125 @@ void modConsole_applyHackOptions() {
 
     consecutiveEventCount = 0;
 
-    if (shouldUseBossRush() == 0 && menuDisplay_getHackOptions().switchGameType == 6) {
+    if (shouldUseBossRush() == 0 && menuDisplay_getHackOptions().switchGameType == 6)
+    {
         populateBossRushes();
     }
 
-    if (checkForBossRushStart() == 1) {
+    if (checkForBossRushStart() == 1)
+    {
         bossRushStartCountDown = 2;
         hasDismissedStartupHint = 1;
     }
 
-    if (checkForNinesChallengeStart() == 1) {
+    if (checkForNinesChallengeStart() == 1)
+    {
         ninesChallengeStartCountDown = 2;
         hasDismissedStartupHint = 1;
     }
 
-    if (menuDisplay_getHackOptions().switchGameType == 2) {
+    if (menuDisplay_getHackOptions().switchGameType == 2)
+    {
         switchAfterTimePeriod = 60 * 5;
     }
-    if (menuDisplay_getHackOptions().switchGameType == 3) {
+    if (menuDisplay_getHackOptions().switchGameType == 3)
+    {
         switchAfterTimePeriod = 60 * 10;
     }
-    if (menuDisplay_getHackOptions().switchGameType == 4) {
+    if (menuDisplay_getHackOptions().switchGameType == 4)
+    {
         switchAfterTimePeriod = 60 * 30;
     }
-    
-    if (menuDisplay_getHackOptions().cooldownOnSwitch == 1) {
+
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 1)
+    {
         switchCooldownPeriod = 15 * 1;
     }
-    if (menuDisplay_getHackOptions().cooldownOnSwitch == 2) {
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 2)
+    {
         switchCooldownPeriod = 30 * 1;
     }
-    if (menuDisplay_getHackOptions().cooldownOnSwitch == 3) {
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 3)
+    {
         switchCooldownPeriod = 60 * 1;
     }
-    if (menuDisplay_getHackOptions().cooldownOnSwitch == 4) {
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 4)
+    {
         switchCooldownPeriod = 150;
     }
-    if (menuDisplay_getHackOptions().cooldownOnSwitch == 5) {
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 5)
+    {
         switchCooldownPeriod = 60 * 5;
     }
-    if (menuDisplay_getHackOptions().cooldownOnSwitch == 6) {
+    if (menuDisplay_getHackOptions().cooldownOnSwitch == 6)
+    {
         switchCooldownPeriod = 60 * 15;
     }
 
-
-    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 1) {
+    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 1)
+    {
         // 1 minute
         saveAllStatesTimePeriod = 60 * 60 * 1;
     }
-    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 2) {
+    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 2)
+    {
         // 5 minutes
         saveAllStatesTimePeriod = 60 * 60 * 1;
     }
-    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 3) {
+    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 3)
+    {
         // 10 minutes
         saveAllStatesTimePeriod = 60 * 60 * 1;
     }
-    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 4) {
+    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 4)
+    {
         // 30 minutes
         saveAllStatesTimePeriod = 60 * 60 * 1;
     }
-    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 5) {
+    if (menuDisplay_getHackOptions().automaticallySaveStatesFreq == 5)
+    {
         // 5 seconds
         saveAllStatesTimePeriod = 60 * 5;
     }
 
-    if (menuDisplay_getHackOptions().shouldSortColours != 0) {
+    if (menuDisplay_getHackOptions().shouldSortColours != 0)
+    {
         vdp_setShouldSortPixels(1);
-    } else {
+    }
+    else
+    {
         vdp_setShouldSortPixels(0);
     }
 
     applyLayerHidingOptions();
 
-    if (menuDisplay_getHackOptions().limitedColourType == 0) {
+    if (menuDisplay_getHackOptions().limitedColourType == 0)
+    {
         vdp_setShouldLimitColourPalettes(0);
         // countdownToUnrandomiseColours = 60;
-    } else if (menuDisplay_getHackOptions().limitedColourType == 1) {
+    }
+    else if (menuDisplay_getHackOptions().limitedColourType == 1)
+    {
         vdp_setShouldLimitColourPalettes(1);
         vdp_generateAlistairSortedColours(2);
-    } else if (menuDisplay_getHackOptions().limitedColourType == 2) {
+    }
+    else if (menuDisplay_getHackOptions().limitedColourType == 2)
+    {
         vdp_setShouldLimitColourPalettes(1);
         vdp_generateAlistairSortedColours(3);
-    } else if (menuDisplay_getHackOptions().limitedColourType == 3) {
+    }
+    else if (menuDisplay_getHackOptions().limitedColourType == 3)
+    {
         vdp_setShouldLimitColourPalettes(1);
         vdp_generateAlistairSortedColours(4);
-    } else if (menuDisplay_getHackOptions().limitedColourType == 4) {
+    }
+    else if (menuDisplay_getHackOptions().limitedColourType == 4)
+    {
         vdp_setShouldLimitColourPalettes(1);
         vdp_generateAlistairSortedColours(5);
-    } else if (menuDisplay_getHackOptions().limitedColourType == 5) {
+    }
+    else if (menuDisplay_getHackOptions().limitedColourType == 5)
+    {
         vdp_setShouldLimitColourPalettes(1);
         vdp_generateAlistairSortedColours(10);
     }
@@ -798,50 +911,64 @@ void modConsole_applyHackOptions() {
     aa_ym2413_setAllowCrunch(menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio);
 }
 
-void applyLayerHidingOptions() {
-    if (menuDisplay_getHackOptions().shouldHideLayers == 0) {
+void applyLayerHidingOptions()
+{
+    if (menuDisplay_getHackOptions().shouldHideLayers == 0)
+    {
         vdp_setShouldHideSprites(0);
         vdp_setShouldHideBackgrounds(0);
-    } else if (menuDisplay_getHackOptions().shouldHideLayers == 1) {
+    }
+    else if (menuDisplay_getHackOptions().shouldHideLayers == 1)
+    {
         vdp_setShouldHideSprites(1);
         vdp_setShouldHideBackgrounds(0);
-    } else if (menuDisplay_getHackOptions().shouldHideLayers == 2) {
+    }
+    else if (menuDisplay_getHackOptions().shouldHideLayers == 2)
+    {
         vdp_setShouldHideSprites(0);
         vdp_setShouldHideBackgrounds(1);
     }
 }
 
-void modConsole_applyNetworkOptions() {
+void modConsole_applyNetworkOptions()
+{
     NetworkOptions networkOptions = menuDisplay_getNetworkOptions();
 
-    if (networkOptions.networkingIsActive) {
+    if (networkOptions.networkingIsActive)
+    {
         cartloader_initialiseNetworkDirectories();
     }
 }
 
-int modConsole_getSnapOffsetForRowIndex(int rowIndex) {
-    if (snapEffectTime <= 0) {
+int modConsole_getSnapOffsetForRowIndex(int rowIndex)
+{
+    if (snapEffectTime <= 0)
+    {
         return 0;
     }
 
     int totalValue = 0;
-    double relativeTime = ((double) snapEffectTime) / snapEffectMaxTime;
+    double relativeTime = ((double)snapEffectTime) / snapEffectMaxTime;
 
-    for (int i = 0; i < 0x10; i++) {
+    for (int i = 0; i < 0x10; i++)
+    {
         double relativeIndex = (((double)(rowIndex + snapEffectOffset[i])) / snapEffectHeight[i]);
         double floatOff = sin(relativeIndex * M_PI * 2);
         double roundedValue = round(floatOff * snapEffectWidth[i] * relativeTime);
-        totalValue += (int) roundedValue;
+        totalValue += (int)roundedValue;
     }
 
     return totalValue;
 }
 
-void shuffleSnapValues(int isFromTwitch) {
-    for (int i = 0; i < 0x10; i++) {
+void shuffleSnapValues(int isFromTwitch)
+{
+    for (int i = 0; i < 0x10; i++)
+    {
         snapEffectHeight[i] = (rand() % 100) + 10;
         snapEffectWidth[i] = (rand() % 3) + 1;
-        if (isFromTwitch != 0) {
+        if (isFromTwitch != 0)
+        {
             snapEffectHeight[i] *= 4;
             snapEffectWidth[i] *= 4;
         }
@@ -849,20 +976,26 @@ void shuffleSnapValues(int isFromTwitch) {
     }
 }
 
-int pendingRingTriggerShouldFire() {
-    if (pendingRingTriggers > 0 && pendingRingTriggerTimer == 1) {
+int pendingRingTriggerShouldFire()
+{
+    if (pendingRingTriggers > 0 && pendingRingTriggerTimer == 1)
+    {
         return 1;
     }
     return 0;
 }
 
-void updatePendingRingTrigger() {
-    if (pendingRingTriggers > 0) {
+void updatePendingRingTrigger()
+{
+    if (pendingRingTriggers > 0)
+    {
         pendingRingTriggerTimer--;
-        if (pendingRingTriggerTimer <= 0) {
+        if (pendingRingTriggerTimer <= 0)
+        {
             pendingRingTriggers--;
             pendingRingTriggerTimer = intervalBetweenPendingTriggers;
-            if (pendingRingTriggerTimer < switchCooldownPeriod) {
+            if (pendingRingTriggerTimer < switchCooldownPeriod)
+            {
                 pendingRingTriggerTimer = switchAfterTimePeriod + 2;
             }
         }
@@ -870,18 +1003,22 @@ void updatePendingRingTrigger() {
     hasFlaggedPendingRingsThisFrame = 0;
 }
 
-void increasePendingRingTriggers(int count) {
-    if (hasFlaggedPendingRingsThisFrame == 0) {
+void increasePendingRingTriggers(int count)
+{
+    if (hasFlaggedPendingRingsThisFrame == 0)
+    {
         pendingRingTriggers += count;
         hasFlaggedPendingRingsThisFrame = 1;
         pendingRingTriggerTimer = intervalBetweenPendingTriggers;
-        if (pendingRingTriggerTimer < switchCooldownPeriod) {
+        if (pendingRingTriggerTimer < switchCooldownPeriod)
+        {
             pendingRingTriggerTimer = switchAfterTimePeriod + 2;
         }
     }
 }
 
-int checkForBossDefeats() {
+int checkForBossDefeats()
+{
     BossRushChallengeListing listing = getActiveBossRushListing();
 
     int defeatLoc = listing.defeatedByte;
@@ -891,67 +1028,81 @@ int checkForBossDefeats() {
     // layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 16, rushTextEnd, 0x5);
 
     int wasGameOver = 0;
-    if (aa_genesis_getWorkRam(defeatLoc) == listing.defeatedValue
-       || (listing.defeatedValue >= 0x100 && aa_genesis_getWorkRam(defeatLoc) > 0)) {
+    if (aa_genesis_getWorkRam(defeatLoc) == listing.defeatedValue || (listing.defeatedValue >= 0x100 && aa_genesis_getWorkRam(defeatLoc) > 0))
+    {
         wasGameOver = 1;
     }
 
-    if (wasGameOver == 1) {
+    if (wasGameOver == 1)
+    {
         onBossDefeated();
         return 1;
     }
     return 0;
 }
 
-void cacheBossRushRingCount() {
+void cacheBossRushRingCount()
+{
     BossRushChallengeListing listing = getActiveBossRushListing();
 
     // Sonic 3D Blast nullifies ring count at odd points so I account for it here
-    if (listing.gameIndex == 6 && countdownToApplyBossRushRings == 0) {
+    if (listing.gameIndex == 6 && countdownToApplyBossRushRings == 0)
+    {
         AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
         // cache ring count every frame, unless:
         //  (1) ring count is reset to 0, and Sonic is NOT damaged
-        if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 || aa_genesis_getWorkRam(0xC224) > 0xE0) {
+        if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 || aa_genesis_getWorkRam(0xC224) > 0xE0)
+        {
             // char debugText[0x40];
-            // sprintf(debugText, "will cache rings %02X %02X", 
-            //     aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]), 
+            // sprintf(debugText, "will cache rings %02X %02X",
+            //     aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]),
             //     aa_genesis_getWorkRam(0xC224));
             // cartLoader_appendToLog(debugText);
             cacheRingCountInBossRush(1);
         }
     }
 
-    if (listing.gameIndex != 6 && countdownToApplyBossRushRings == 0) {
+    if (listing.gameIndex != 6 && countdownToApplyBossRushRings == 0)
+    {
         cacheRingCountInBossRush(1);
     }
 }
 
-void fireEventOnBossHit(int asNetwork) {
-    if (asNetwork == 1) {
+void fireEventOnBossHit(int asNetwork)
+{
+    if (asNetwork == 1)
+    {
         sendNetworkMessageOnHitBoss();
-    } else {
+    }
+    else
+    {
         promptSwitchGame();
     }
 }
 
-void checkForAllBossHitsInCurrentGame() {
+void checkForAllBossHitsInCurrentGame()
+{
     // cartLoader_appendToLog("-- checkForAllBossHitsInCurrentGame --");
     int currentGameId = cartLoader_getActiveCartIndex();
-    for (int i = 0; i < MAX_ROMS; i++) {
+    for (int i = 0; i < MAX_ROMS; i++)
+    {
         dangerouslySetActiveBossRushSlotId(i);
         BossRushChallengeListing listing = getBossRushChallengeWithIndex(i);
 
-        if (listing.gameIndex != 0) {
+        if (listing.gameIndex != 0)
+        {
             // char debugLog[0x100];
             // sprintf(debugLog, "  boss %i (game %i zone % i act %i)", i, listing.gameIndex, listing.zoneIndex, listing.actIndex);
 
-            if (listing.gameIndex == currentGameId) {
+            if (listing.gameIndex == currentGameId)
+            {
                 // sprintf(debugLog, "%s CHECKING", debugLog);
 
                 checkForBossHits(0, i);
 
                 // // stop if we've switched game!
-                if (cartLoader_getActiveCartIndex() != currentGameId) {
+                if (cartLoader_getActiveCartIndex() != currentGameId)
+                {
                     // break;
                     // sprintf(debugLog, "%s CHECKING - SWITCHED!", debugLog);
                 }
@@ -961,12 +1112,15 @@ void checkForAllBossHitsInCurrentGame() {
     }
 }
 
-int checkForDynamiteHeaddyHits() {
+int checkForDynamiteHeaddyHits()
+{
     int currentGameId = cartLoader_getActiveCartIndex();
-    if (currentGameId == 41) {
-        for (int i = 0xD232; i < 0xD300; i += 0x04) {
-            if (aa_genesis_getWorkRam(i) < aa_genesis_getLastWorkRam(i)
-                && aa_genesis_getWorkRam(i) > 0) {
+    if (currentGameId == 41)
+    {
+        for (int i = 0xD232; i < 0xD300; i += 0x04)
+        {
+            if (aa_genesis_getWorkRam(i) < aa_genesis_getLastWorkRam(i) && aa_genesis_getWorkRam(i) > 0)
+            {
                 // something has just lost health
                 return 1;
             }
@@ -975,14 +1129,18 @@ int checkForDynamiteHeaddyHits() {
     return 0;
 }
 
-int checkForRistarHits() {
+int checkForRistarHits()
+{
     int currentGameId = cartLoader_getActiveCartIndex();
-    if (currentGameId == 42) {
+    if (currentGameId == 42)
+    {
         // get the last sound effect played and fire if something went "boing!" (e.g. boss hit)
         int address = 0xEA11;
-        if (aa_genesis_getWorkRam(address) != aa_genesis_getLastWorkRam(address)) {
+        if (aa_genesis_getWorkRam(address) != aa_genesis_getLastWorkRam(address))
+        {
             int soundId = aa_genesis_getWorkRam(address);
-            if (soundId == 0x2A) {
+            if (soundId == 0x2A)
+            {
                 return 1;
             }
         }
@@ -990,12 +1148,13 @@ int checkForRistarHits() {
     return 0;
 }
 
-void checkForBossHits(int asNetwork, int challengeIndex) {
+void checkForBossHits(int asNetwork, int challengeIndex)
+{
     BossRushChallengeListing listing = getActiveBossRushListing();
-    if (challengeIndex >= 0) {
+    if (challengeIndex >= 0)
+    {
         listing = getBossRushChallengeWithIndex(challengeIndex);
     }
-    
 
     int indexX = 0;
     int indexY = 0;
@@ -1004,8 +1163,9 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
 
     int SHOW_DEBUG = 0;
     int FORCE_QUICK_KILLS = 0;
-    
-    if (SHOW_DEBUG == 1) {
+
+    if (SHOW_DEBUG == 1)
+    {
         char activeText[0x40];
         sprintf(activeText, "%i %i .. %i %i %i %i", getActiveBossRushIndex(), getActiveBossRushSlotId(), getBossRushIndexInSlot(0), getBossRushIndexInSlot(1), getBossRushIndexInSlot(2), getBossRushIndexInSlot(3));
         layerRenderer_fill(2, 0, vdp_getScreenHeight() - 24, 8 * 24, 8, 0xFF);
@@ -1018,36 +1178,38 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
     }
 
     int objStep = 1;
-    if (listing.objectIdsArePointers != 0) {
+    if (listing.objectIdsArePointers != 0)
+    {
         objStep = 4;
     }
 
     // right now this is just used in Sonic 3D Blast
-    if (listing.objectLocationStart == listing.objectLocationEnd) {
+    if (listing.objectLocationStart == listing.objectLocationEnd)
+    {
         int locationToCheck = listing.objectLocationStart;
-        if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
-            && aa_genesis_getWorkRam(locationToCheck) != 0
-            && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
+        if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck) && aa_genesis_getWorkRam(locationToCheck) != 0 && aa_genesis_getLastWorkRam(locationToCheck) != 0)
+        {
             // account for the fact that the ring count is zeroed before the switch in Sonic 3D
             // cacheRingCountInBossRush(1);
 
             fireEventOnBossHit(asNetwork);
             fireScreenSnapOnEvent();
-        }        
+        }
 
         // right now this is just used in Panic Puppet
-        for (int i = 0; i < 0x20; i++) {
+        for (int i = 0; i < 0x20; i++)
+        {
             int index = listing.additionalHealthByteLocations[i];
-            if (index > 0) {
-                if (aa_genesis_getWorkRam(index) != aa_genesis_getLastWorkRam(index)
-                    && aa_genesis_getWorkRam(index) != 0
-                    && aa_genesis_getLastWorkRam(index) != 0) {
+            if (index > 0)
+            {
+                if (aa_genesis_getWorkRam(index) != aa_genesis_getLastWorkRam(index) && aa_genesis_getWorkRam(index) != 0 && aa_genesis_getLastWorkRam(index) != 0)
+                {
                     // account for the fact that the ring count is zeroed before the switch in Sonic 3D
                     // cacheRingCountInBossRush(1);
 
                     fireEventOnBossHit(asNetwork);
                     fireScreenSnapOnEvent();
-                }     
+                }
             }
         }
 
@@ -1062,39 +1224,54 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
     //     listing.objectLocationStart, listing.objectLocationEnd, listing.objectLocationSize,
     //     listing.objectIdNumbers[0], listing.objectIdNumbers[1], listing.objectIdNumbers[2], listing.objectIdNumbers[3]);
 
-    for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize) {
+    for (int i = listing.objectLocationStart; i < listing.objectLocationEnd; i += listing.objectLocationSize)
+    {
         int indexToCheck = i;
 
-        for (int objectIdx = 0; objectIdx < 0x20; objectIdx += objStep) {
+        for (int objectIdx = 0; objectIdx < 0x20; objectIdx += objStep)
+        {
             int isPopulated = 0;
-            if (listing.objectIdsArePointers == 0) {
-                if (listing.objectIdNumbers[objectIdx] > 0) {
+            if (listing.objectIdsArePointers == 0)
+            {
+                if (listing.objectIdNumbers[objectIdx] > 0)
+                {
                     isPopulated = 1;
                 }
-            } else {
-                for (int j = 0; j < 4; j++) {
-                    if (listing.objectIdNumbers[objectIdx + j] > 0) {
+            }
+            else
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    if (listing.objectIdNumbers[objectIdx + j] > 0)
+                    {
                         isPopulated = 1;
                     }
                 }
             }
 
-            if (isPopulated == 1) {
+            if (isPopulated == 1)
+            {
                 int objectFoundHere = 0;
 
-                if (listing.objectIdsArePointers == 0) {
+                if (listing.objectIdsArePointers == 0)
+                {
                     // layerRenderer_fill(2, 20, 10, 8 * 2, 8, 0xFF);
 
                     // sonic 1 and 2: 1-byte object IDs
 
-                    if (aa_genesis_getWorkRam(indexToCheck) == listing.objectIdNumbers[objectIdx]) {
+                    if (aa_genesis_getWorkRam(indexToCheck) == listing.objectIdNumbers[objectIdx])
+                    {
                         objectFoundHere = 1;
 
                         // sprintf(listingDebug, "%s found at %04X", listingDebug, indexToCheck);
-                    } else {
+                    }
+                    else
+                    {
                         objectFoundHere = 0;
                     }
-                } else {
+                }
+                else
+                {
                     // layerRenderer_fill(2, 10, 20, 8, 8 * 5, 0xFF);
 
                     // sonic 3 and K: 4-byte object pointers
@@ -1108,47 +1285,51 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
                     // sprintf(tempLog2,"Checking for value at %04X ... %08X", i, valueHere);
                     // cartLoader_appendToLog(tempLog2);
 
-                    if (aa_genesis_getWorkRam(indexToCheck + 0) ==  listing.objectIdNumbers[objectIdx + 0]
-                        && aa_genesis_getWorkRam(indexToCheck + 1) ==  listing.objectIdNumbers[objectIdx + 1]
-                        && aa_genesis_getWorkRam(indexToCheck + 2) ==  listing.objectIdNumbers[objectIdx + 2]
-                        && aa_genesis_getWorkRam(indexToCheck + 3) ==  listing.objectIdNumbers[objectIdx + 3]) {
+                    if (aa_genesis_getWorkRam(indexToCheck + 0) == listing.objectIdNumbers[objectIdx + 0] && aa_genesis_getWorkRam(indexToCheck + 1) == listing.objectIdNumbers[objectIdx + 1] && aa_genesis_getWorkRam(indexToCheck + 2) == listing.objectIdNumbers[objectIdx + 2] && aa_genesis_getWorkRam(indexToCheck + 3) == listing.objectIdNumbers[objectIdx + 3])
+                    {
                         objectFoundHere = 1;
                         // sprintf(listingDebug, "%s found at %04X", listingDebug, indexToCheck);
-                    } else {
+                    }
+                    else
+                    {
                         objectFoundHere = 0;
                     }
                 }
 
-                if (objectFoundHere == 1) {
+                if (objectFoundHere == 1)
+                {
                     // this is a key value! check if it has changed!
                     int locationToCheck = indexToCheck + listing.healthByteOffsets[objectIdx];
-                    if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck)
-                        && aa_genesis_getWorkRam(locationToCheck) != 0
-                        && aa_genesis_getLastWorkRam(locationToCheck) != 0) {
+                    if (aa_genesis_getWorkRam(locationToCheck) != aa_genesis_getLastWorkRam(locationToCheck) && aa_genesis_getWorkRam(locationToCheck) != 0 && aa_genesis_getLastWorkRam(locationToCheck) != 0)
+                    {
                         fireEventOnBossHit(asNetwork);
                         fireScreenSnapOnEvent();
                     }
 
                     // for testing - quick kills!
-                    if (aa_genesis_getWorkRam(locationToCheck) > 2 && FORCE_QUICK_KILLS == 1){
-                         aa_genesis_setWorkRam(locationToCheck, 2);
+                    if (aa_genesis_getWorkRam(locationToCheck) > 2 && FORCE_QUICK_KILLS == 1)
+                    {
+                        aa_genesis_setWorkRam(locationToCheck, 2);
                     }
 
-                    if (SHOW_DEBUG == 1) {
+                    if (SHOW_DEBUG == 1)
+                    {
                         char rushText[0x40];
                         sprintf(rushText, "%04X %02X", locationToCheck, aa_genesis_getWorkRam(locationToCheck));
                         layerRenderer_fill(2, 8 * 8 * foundCount, 0, 8 * 7, 8, 0xFF);
                         layerRenderer_writeWord256(2, 8 * 8 * foundCount, 0, rushText, 0x5);
                         foundCount++;
 
-                        for (int loc = 0; loc < 0x40; loc++) {
+                        for (int loc = 0; loc < 0x40; loc++)
+                        {
                             char rushText2[0x40];
                             sprintf(rushText2, "%02X", aa_genesis_getWorkRam(i + loc));
                             layerRenderer_fill(2, 8 * indexX * 3, 8 * (indexY + 1), 8 * 2, 8, 0xFF);
                             layerRenderer_writeWord256(2, 8 * indexX * 3, 8 * (indexY + 1), rushText2, 0x5);
 
                             indexY++;
-                            if (indexY >= 0x10) {
+                            if (indexY >= 0x10)
+                            {
                                 indexY = 0;
                                 indexX++;
                             }
@@ -1164,8 +1345,10 @@ void checkForBossHits(int asNetwork, int challengeIndex) {
     // cartLoader_appendToLog(listingDebug);
 }
 
-void resetRotorValues() {
-    for (int i = 0; i < 8; i++) {
+void resetRotorValues()
+{
+    for (int i = 0; i < 8; i++)
+    {
         terminalRotorValues[i] = 0;
     }
 }
@@ -1183,14 +1366,16 @@ int rotorVramChangeDirection = 0;
 int RAM_CHANGE_COUNT_PER_TURN = 20;
 int VRAM_CHANGE_COUNT_PER_TURN = 500;
 
-void resetRotorRam() {
+void resetRotorRam()
+{
     rotorRamChangeLength = 0;
     rotorRamChangeDirection = 0;
     rotorVramChangeLength = 0;
     rotorVramChangeDirection = 0;
 }
 
-void resetRotorChanges() {
+void resetRotorChanges()
+{
     resetRotorRam();
     vdp_healAllColours();
     vdp_resetColourCycle();
@@ -1202,46 +1387,58 @@ static int rotorEditCooldown = 0;
 static int lastChangeRamLoc;
 static int lastChangeRamVal;
 
-void checkRotorValues() {
-    if (rotorGameSwitchCooldown > 0) {
+void checkRotorValues()
+{
+    if (rotorGameSwitchCooldown > 0)
+    {
         rotorGameSwitchCooldown--;
     }
 
     // for debounce
-    if (rotorEditCooldown > 0) {
-        rotorEditCooldown --;
+    if (rotorEditCooldown > 0)
+    {
+        rotorEditCooldown--;
     }
 
-    for (int i = 0; i < 8; i++) {
-        if (terminalRotorValues[i] != 0) {
-            if (rotorEditCooldown <= 0) {
+    for (int i = 0; i < 8; i++)
+    {
+        if (terminalRotorValues[i] != 0)
+        {
+            if (rotorEditCooldown <= 0)
+            {
                 sprintf(lastTerminalEffect, "Unknown effect");
                 reportToLED("2");
             }
 
-
             // do something specific to this rotator
-            if (i == 1 && rotorEditCooldown <= 0) {
+            if (i == 1 && rotorEditCooldown <= 0)
+            {
                 rotorEditCooldown = 3;
-                for (int repeat = 0; repeat < RAM_CHANGE_COUNT_PER_TURN; repeat++) {
+                for (int repeat = 0; repeat < RAM_CHANGE_COUNT_PER_TURN; repeat++)
+                {
                     // corrupt/uncorrupt RAM
-                    if (rotorRamChangeDirection == 0) {
+                    if (rotorRamChangeDirection == 0)
+                    {
                         rotorRamChangeDirection = 1;
-                        if (terminalRotorValues[i] < 0) {
+                        if (terminalRotorValues[i] < 0)
+                        {
                             rotorRamChangeDirection = -1;
                         }
                     }
 
                     int direction = 1;
-                    if (terminalRotorValues[i] < 0) {
+                    if (terminalRotorValues[i] < 0)
+                    {
                         direction = -1;
                     }
                     int shouldIncrement = 0;
-                    if (direction == rotorRamChangeDirection || rotorRamChangeLength <= 0) {
+                    if (direction == rotorRamChangeDirection || rotorRamChangeLength <= 0)
+                    {
                         shouldIncrement = 1;
                     }
 
-                    if (shouldIncrement) {
+                    if (shouldIncrement)
+                    {
                         // sprintf(lastTerminalEffect, "Edit RAM (%i - %i - %i) %i (%04X %02X)", terminalRotorValues[i], direction, rotorRamChangeDirection, rotorRamChangeLength, lastChangeRamLoc, lastChangeRamVal);
                         sprintf(lastTerminalEffect, "Edit RAM");
 
@@ -1257,41 +1454,49 @@ void checkRotorValues() {
 
                         lastChangeRamLoc = loc;
                         lastChangeRamVal = val;
-                    } else {
+                    }
+                    else
+                    {
                         // sprintf(lastTerminalEffect, "Reverse RAM edits (%i - %i) %i", direction, rotorRamChangeDirection, rotorRamChangeLength);
                         sprintf(lastTerminalEffect, "Reverse RAM edits");
 
                         // reverse a change
-                        if (rotorRamChangeLength > 0) {
+                        if (rotorRamChangeLength > 0)
+                        {
                             rotorRamChangeLength--;
                             aa_genesis_setWorkRam(
                                 ramLocationsChangedByRotor[rotorRamChangeLength % 0x10000],
-                                ramOriginalValuesChangedByRotor[rotorRamChangeLength % 0x10000]
-                            );
+                                ramOriginalValuesChangedByRotor[rotorRamChangeLength % 0x10000]);
                         }
                     }
                 }
             }
-            
-            if (i == 2 && rotorEditCooldown <= 0) {
+
+            if (i == 2 && rotorEditCooldown <= 0)
+            {
                 rotorEditCooldown = 3;
-                for (int repeat = 0; repeat < VRAM_CHANGE_COUNT_PER_TURN; repeat++) {
+                for (int repeat = 0; repeat < VRAM_CHANGE_COUNT_PER_TURN; repeat++)
+                {
 
                     // corrupt/uncorrupt VRAM
-                    if (rotorVramChangeDirection == 0) {
+                    if (rotorVramChangeDirection == 0)
+                    {
                         rotorVramChangeDirection = 1;
-                        if (terminalRotorValues[i] < 0) {
+                        if (terminalRotorValues[i] < 0)
+                        {
                             rotorVramChangeDirection = -1;
                         }
                     }
 
                     int direction = abs(terminalRotorValues[i]) / terminalRotorValues[i];
                     int shouldIncrement = 0;
-                    if (direction == rotorVramChangeDirection || rotorVramChangeLength <= 0) {
+                    if (direction == rotorVramChangeDirection || rotorVramChangeLength <= 0)
+                    {
                         shouldIncrement = 1;
                     }
 
-                    if (shouldIncrement) {
+                    if (shouldIncrement)
+                    {
                         sprintf(lastTerminalEffect, "Edit video RAM");
 
                         // make a change
@@ -1303,38 +1508,49 @@ void checkRotorValues() {
 
                         rotorVramChangeLength++;
                         rotorVramChangeDirection = direction;
-                    } else {
+                    }
+                    else
+                    {
                         sprintf(lastTerminalEffect, "Reverse video RAM edits");
 
                         // reverse a change
-                        if (rotorVramChangeLength > 0) {
+                        if (rotorVramChangeLength > 0)
+                        {
                             rotorVramChangeLength--;
                             aa_genesis_setVRamValue(
                                 vramLocationsChangedByRotor[rotorRamChangeLength % 0x10000],
-                                vramOriginalValuesChangedByRotor[rotorRamChangeLength % 0x10000]
-                            );
+                                vramOriginalValuesChangedByRotor[rotorRamChangeLength % 0x10000]);
                         }
                     }
                 }
             }
 
-            if (i == 3 && rotorEditCooldown <= 0) {
+            if (i == 3 && rotorEditCooldown <= 0)
+            {
                 rotorEditCooldown = 3;
                 vdp_incrementColourCycleAmount(terminalRotorValues[i]);
                 sprintf(lastTerminalEffect, "Cycle colours");
             }
-            
-            if (i == 4) {
-                if (shouldUseBossRush()) {
+
+            if (i == 4)
+            {
+                if (shouldUseBossRush())
+                {
                     sprintf(lastTerminalEffect, "Switch boss");
-                } else {
+                }
+                else
+                {
                     sprintf(lastTerminalEffect, "Switch game");
                 }
 
-                if (rotorGameSwitchCooldown <= 0) {
-                    if (shouldUseBossRush()) {
+                if (rotorGameSwitchCooldown <= 0)
+                {
+                    if (shouldUseBossRush())
+                    {
                         bumpToNextBossRush();
-                    } else {
+                    }
+                    else
+                    {
                         switchToRandomAllowedGame();
                         cartLoader_loadCurrentStartupStateFromDisk();
                     }
@@ -1342,17 +1558,23 @@ void checkRotorValues() {
                 }
             }
 
-            if (i == 5 && rotorEditCooldown <= 0) {
+            if (i == 5 && rotorEditCooldown <= 0)
+            {
                 rotorEditCooldown = 3;
                 // add/remove colours!
-                if (terminalRotorValues[i] < 0) {
+                if (terminalRotorValues[i] < 0)
+                {
                     sprintf(lastTerminalEffect, "Remove colours");
-                    for (int i = 0; i < 3; i++) {
+                    for (int i = 0; i < 3; i++)
+                    {
                         vdp_reduceColours();
                     }
-                } else {
+                }
+                else
+                {
                     sprintf(lastTerminalEffect, "Put colours back");
-                    for (int i = 0; i < 3; i++) {
+                    for (int i = 0; i < 3; i++)
+                    {
                         vdp_healReducedColour();
                     }
                 }
@@ -1368,7 +1590,8 @@ void checkRotorValues() {
     resetRotorValues();
 }
 
-int deductFromRingCount(int amount) {
+int deductFromRingCount(int amount)
+{
     AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
     int amountDeducted = 0;
 
@@ -1376,12 +1599,14 @@ int deductFromRingCount(int amount) {
     sprintf(deductLog1, "deductFromRingCount: %i", amount);
     cartLoader_appendToLog(deductLog1);
 
-    for (int i = 0; i < amount; i++) {
+    for (int i = 0; i < amount; i++)
+    {
         int lowByte = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]);
         int highByte = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]);
 
         int total = (highByte * 0x100) + lowByte;
-        if (gameTransferListing.ringCalculatationType == 1) {
+        if (gameTransferListing.ringCalculatationType == 1)
+        {
             int convertedHigh = ((highByte / 0x10) * 10) + (highByte % 10);
             int convertedLow = ((lowByte / 0x10) * 10) + (lowByte % 10);
             total = (convertedHigh * 100) + convertedLow;
@@ -1391,15 +1616,16 @@ int deductFromRingCount(int amount) {
         sprintf(deductLog2, "   lowByte: %02X, highByte: %02X, total: %02X", lowByte, highByte, total);
         cartLoader_appendToLog(deductLog2);
 
-
-        if (total > 0) {
+        if (total > 0)
+        {
             total--;
         }
 
         int newHighByte = total / 0x100;
         int newLowByte = total % 0x100;
 
-        if (gameTransferListing.ringCalculatationType == 1) {
+        if (gameTransferListing.ringCalculatationType == 1)
+        {
             int thousands = (total / 1000) % 10;
             int hundreds = (total / 100) % 10;
             int tens = (total / 10) % 10;
@@ -1413,7 +1639,6 @@ int deductFromRingCount(int amount) {
         sprintf(deductLog3, "    -> lowByte: %02X, highByte: %02X, total: %02X", newLowByte, newHighByte, total);
         cartLoader_appendToLog(deductLog3);
 
-        
         aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], newLowByte);
         aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1], newHighByte);
 
@@ -1424,26 +1649,31 @@ int deductFromRingCount(int amount) {
     return amountDeducted;
 }
 
-void modConsole_updateFrame() {
+void modConsole_updateFrame()
+{
     lastPadState = padState;
-    padState = input.pad[0]; //reverseOutcomeOfControlShuffling(input.pad[0]);
+    padState = input.pad[0]; // reverseOutcomeOfControlShuffling(input.pad[0]);
 
-    if (snapEffectTime > 0) {
+    if (snapEffectTime > 0)
+    {
         snapEffectTime--;
     }
 
     NetworkOptions networkOptions = menuDisplay_getNetworkOptions();
-    if (networkOptions.networkingIsActive != 0) {
+    if (networkOptions.networkingIsActive != 0)
+    {
         sendQueuedNetworkMessage();
         cartLoader_checkNetworkForActions();
     }
 
     updateTerminalMenuButtonCooldown();
 
-    if (menuDisplay_isShowing() != 0) {
+    if (menuDisplay_isShowing() != 0)
+    {
         resetRotorValues();
 
-        if (pendingRingTriggers > 0) {
+        if (pendingRingTriggers > 0)
+        {
             pendingRingTriggerTimer--;
         }
 
@@ -1457,7 +1687,8 @@ void modConsole_updateFrame() {
         // }
 
         int translatedButtons[8];
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 8; i++)
+        {
             translatedButtons[i] = i;
         }
         // if (vdp_isMasterSystem() != 0) {
@@ -1465,11 +1696,14 @@ void modConsole_updateFrame() {
         //     translatedButtons[INPUT_INDEX_B] = INPUT_INDEX_START;
         // }
 
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 8; i++)
+        {
             int buttonId = translatedButtons[i];
-            if (buttonWasPressedAtIndex(buttonId) != 0) {
+            if (buttonWasPressedAtIndex(buttonId) != 0)
+            {
                 int success = menuDisplay_onButtonPress(buttonId);
-                if (success != 0) {
+                if (success != 0)
+                {
                     break;
                 }
             }
@@ -1496,14 +1730,18 @@ void modConsole_updateFrame() {
         menuDisplay_onUpdate();
 
         rewindFrameCounter = 0;
-    } else {
+    }
+    else
+    {
         layerRenderer_clearLayer(3);
         checkDeathCounter();
         applyHeldValues();
 
         // only count down during dynamite headdy!
-        if (cooldownSinceLastHeaddyHit > 0) {
-            if (cartLoader_getActiveCartIndex() == 41) {
+        if (cooldownSinceLastHeaddyHit > 0)
+        {
+            if (cartLoader_getActiveCartIndex() == 41)
+            {
                 cooldownSinceLastHeaddyHit--;
             }
         }
@@ -1515,7 +1753,6 @@ void modConsole_updateFrame() {
         //     aa_genesis_setWorkRam(0xFFD2, 1);
         //     aa_genesis_setWorkRam(0xFFD3, 1);
         // }
-
 
         // // // Below: how to halt music in Sonic 2
         // if (debug_haltMusicCountdown > 0) {
@@ -1538,17 +1775,21 @@ void modConsole_updateFrame() {
         // writeWRAMintoSpriteBuffer();
 
         int cartIndex = cartLoader_getActiveCartIndex();
-        if (postRingEffectCooldownTimePerGame[cartIndex] > 0) {
+        if (postRingEffectCooldownTimePerGame[cartIndex] > 0)
+        {
             postRingEffectCooldownTimePerGame[cartIndex]--;
         }
         int ringCountChangedThisFrame = ringCountHasChanged(1);
-        if (ringCountChangedThisFrame) {
+        if (ringCountChangedThisFrame)
+        {
             reportToLED("1");
         }
 
-        if (shouldShuffleController != 0) {
+        if (shouldShuffleController != 0)
+        {
             shuffleControllerCountdown--;
-            if (shuffleControllerCountdown <= 0) {
+            if (shuffleControllerCountdown <= 0)
+            {
                 gamepad_shuffleControls();
                 shuffleControllerCountdown = SHUFFLE_CONTROLLER_DURATION;
                 fireSnapEffect(1);
@@ -1556,7 +1797,8 @@ void modConsole_updateFrame() {
                 reportToLED("3");
             }
         }
-        if (showShuffleAlertCountdown > 0) {
+        if (showShuffleAlertCountdown > 0)
+        {
             showShuffleAlertCountdown--;
         }
 
@@ -1573,25 +1815,30 @@ void modConsole_updateFrame() {
         */
 
         rewindFrameCounter++;
-        if (rewindFrameCounter >= framesBetweenRewindCache) {
+        if (rewindFrameCounter >= framesBetweenRewindCache)
+        {
             rewindFrameCounter = 0;
             cacheRewindRAM();
         }
 
         networkMessageLength = 0;
-        for (int i = 0; i < 0x100; i++) {
+        for (int i = 0; i < 0x100; i++)
+        {
             queuedNetworkMessage[i] = 0;
         }
 
-        if (shouldApplyCacheNextFrame > 0) {
+        if (shouldApplyCacheNextFrame > 0)
+        {
             shouldApplyCacheNextFrame--;
             cartLoader_restoreCarriedOverData();
             aa_genesis_updateLastRam();
         }
 
-        if (framesUntilClearLayer > 0) {
+        if (framesUntilClearLayer > 0)
+        {
             framesUntilClearLayer--;
-            if (framesUntilClearLayer == 0) {
+            if (framesUntilClearLayer == 0)
+            {
                 vdp_clearGraphicLayer(0);
             }
         }
@@ -1600,15 +1847,18 @@ void modConsole_updateFrame() {
         menuDisplay_renderRamDetective();
         menuDisplay_renderPixelDetective();
 
-        if (countdownUntilLogRamState > 0) {
-            countdownUntilLogRamState --;
-            if (countdownUntilLogRamState == 0) {
+        if (countdownUntilLogRamState > 0)
+        {
+            countdownUntilLogRamState--;
+            if (countdownUntilLogRamState == 0)
+            {
                 menuDisplay_logRamStateToTrackedValues();
             }
         }
 
-        if (panicCountdown > 0) {
-            panicCountdown --;
+        if (panicCountdown > 0)
+        {
+            panicCountdown--;
             // char tempLog[0x100];
             // sprintf(tempLog, "Panic countdown %d", panicCountdown);
             // cartLoader_appendToLog(tempLog);
@@ -1617,9 +1867,11 @@ void modConsole_updateFrame() {
 
         HackOptions hackOpts = menuDisplay_getHackOptions();
 
-        if (hackOpts.automaticallySaveStatesFreq > 0) {
-            saveAllStatesTimeCounter ++;
-            if (saveAllStatesTimeCounter > saveAllStatesTimePeriod) {
+        if (hackOpts.automaticallySaveStatesFreq > 0)
+        {
+            saveAllStatesTimeCounter++;
+            if (saveAllStatesTimeCounter > saveAllStatesTimePeriod)
+            {
                 saveAllStatesTimeCounter = 0;
                 saveSaveStateForCurrentGame();
                 cartLoader_saveAllSaveStatesToDisk();
@@ -1627,41 +1879,61 @@ void modConsole_updateFrame() {
         }
 
         // colour effects should also come before switching so they don't get lost
-        if (hackOpts.colourDeleteTrigger == 1) {
+        if (hackOpts.colourDeleteTrigger == 1)
+        {
             removeColourOnRing(1);
-        } else if (hackOpts.colourDeleteTrigger == 2) {
+        }
+        else if (hackOpts.colourDeleteTrigger == 2)
+        {
             removeColourOnRing(10);
-        } else if (hackOpts.colourDeleteTrigger == 3) {
+        }
+        else if (hackOpts.colourDeleteTrigger == 3)
+        {
             removeColourTimer++;
-            if (removeColourTimer >= 6) {
+            if (removeColourTimer >= 6)
+            {
                 vdp_reduceColours();
                 removeColourTimer = 0;
             }
-        } else if (hackOpts.colourDeleteTrigger == 4) {
+        }
+        else if (hackOpts.colourDeleteTrigger == 4)
+        {
             removeColourTimer++;
-            if (removeColourTimer >= 60) {
+            if (removeColourTimer >= 60)
+            {
                 vdp_reduceColours();
                 removeColourTimer = 0;
             }
-        } else if (hackOpts.colourDeleteTrigger == 5) {
+        }
+        else if (hackOpts.colourDeleteTrigger == 5)
+        {
             removeColourTimer++;
-            if (removeColourTimer >= 60 * 10) {
+            if (removeColourTimer >= 60 * 10)
+            {
                 vdp_reduceColours();
                 removeColourTimer = 0;
             }
         }
 
-        if (hackOpts.colourDeleteHealRate == 3) {
+        if (hackOpts.colourDeleteHealRate == 3)
+        {
             healColoursOnRing(1);
-        } else if (hackOpts.colourDeleteHealRate == 4) {
+        }
+        else if (hackOpts.colourDeleteHealRate == 4)
+        {
             healColoursOnRing(5);
-        } else if (hackOpts.colourDeleteHealRate == 5) {
+        }
+        else if (hackOpts.colourDeleteHealRate == 5)
+        {
             healColoursOnRing(10);
-        } else if (hackOpts.colourDeleteHealRate <= 2) {
+        }
+        else if (hackOpts.colourDeleteHealRate <= 2)
+        {
             healColoursByTime();
         }
 
-        if (menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio == 1) {
+        if (menuDisplay_getSecondaryHackOptions().colourDeleteAffectsAudio == 1)
+        {
             aa_psg_setCrunchProbability(vdp_getTotalRemovedColours());
             aa_ym2612_setCrunchProbability(vdp_getTotalRemovedColours());
             aa_ym2413_setCrunchProbability(vdp_getTotalRemovedColours());
@@ -1683,18 +1955,21 @@ void modConsole_updateFrame() {
 
         checkToHaltMusic();
 
-         if (shouldUseNinesChallenge()) {
+        if (shouldUseNinesChallenge())
+        {
 
             // ADD READ/WRITE RING COUNT HERE
-            if (getNinesChallengeComplete() == 0) {
+            if (getNinesChallengeComplete() == 0)
+            {
                 AAGameTransferListing gameTransferListing = cartLoader_getActiveGameTransferListing();
                 NinesChallengeGameParameters ninesParams = getActiveNinesChallengeGameParameters();
                 NinesChallengeStageListing ninesStage = getCurrentNinesChallengeStage();
                 NinesChallengeOptions ninesOptions = menuDisplay_getNinesChallengeOptions();
 
                 // check for Casino Night wheels (gambling, slot machine)
-                if (ninesStage.gameId == 2 && ninesStage.zoneId == 3) {
-                    // if 0xFF52 goes to 0x96 (150 rings) a jackpot has been 
+                if (ninesStage.gameId == 2 && ninesStage.zoneId == 3)
+                {
+                    // if 0xFF52 goes to 0x96 (150 rings) a jackpot has been
                     // earned, so queue up the OUT OF ORDER mech.
                     // Wait for 0xFF52 to go to 0 and then do:
                     //  - write 0000 into all the locations where this sequence exists:
@@ -1702,59 +1977,76 @@ void modConsole_updateFrame() {
                     //  - flash up on screens: "slot machines out of order"
                     //  - flag "slotMachinesBroken"
                     //  - next time you enter CNZ show "slot machines are working!"
-                    if (aa_genesis_getWorkRam(0xFF52) > 0x90 && aa_genesis_getWorkRam(0xFF52) < 0x9F) {
+                    if (aa_genesis_getWorkRam(0xFF52) > 0x90 && aa_genesis_getWorkRam(0xFF52) < 0x9F)
+                    {
                         beginCountdownToBreakCasinoWheels();
                     }
 
-                    if (countdownToBreakCasinoWheels > 0) {
-                        if (aa_genesis_getWorkRam(0xFF52) == 0) {
+                    if (countdownToBreakCasinoWheels > 0)
+                    {
+                        if (aa_genesis_getWorkRam(0xFF52) == 0)
+                        {
                             countdownToBreakCasinoWheels--;
                         }
-                        if (countdownToBreakCasinoWheels == 0) {
+                        if (countdownToBreakCasinoWheels == 0)
+                        {
                             breakCasinoNightWheels();
                         }
                     }
                 }
 
                 // check for opponent being ahead!
-                if (ninesOptions.useOnlineRace) {
+                if (ninesOptions.useOnlineRace)
+                {
                     int opponentLead = getOpponentNinesChallengeLead();
-                    if (opponentLead > 0) {
+                    if (opponentLead > 0)
+                    {
                         int ringLoss = getRingLossForCurrentOpponentLead();
                         ninesOpponentLeadCountDown--;
-                        if (ninesOpponentLeadCountDown <= 0) {
+                        if (ninesOpponentLeadCountDown <= 0)
+                        {
                             int amountLost = deductFromRingCount(ringLoss);
                             ninesOpponentLeadCountDown = ninesOpponentLeadCoundDownDuration;
-                            if (amountLost > 0) {
+                            if (amountLost > 0)
+                            {
                                 // send these rings to opponent!
                                 char action[0x80];
                                 sprintf(action, "%id", ringLoss);
                                 cartLoader_writeActionToNetwork(action);
                                 ninesStatusMessageTime = 120;
-                                if (amountLost == 1) {
+                                if (amountLost == 1)
+                                {
                                     sprintf(ninesStatusMessage, "Opponent stole 1 ring");
-                                } else {
+                                }
+                                else
+                                {
                                     sprintf(ninesStatusMessage, "Opponent stole %i rings", amountLost);
                                 }
                             }
                         }
-                    } else {
+                    }
+                    else
+                    {
                         ninesOpponentLeadCountDown = ninesOpponentLeadCoundDownDuration;
                     }
 
-                    if (frameCount % 60 == 0) {
+                    if (frameCount % 60 == 0)
+                    {
                         char action[0x80];
                         sprintf(action, "%iv", getBossRushRingCarryTotal());
                         cartLoader_writeActionToNetwork(action);
                     }
-                    if (frameCount % 300 == 0) {
+                    if (frameCount % 300 == 0)
+                    {
                         cartLoader_writeActionToNetwork("G");
                     }
                 }
 
                 int ringsWentToZero = 0;
-                if (diedThisFrame) {
-                    if (ninesOptions.allowTacticalDeaths == 0) {
+                if (diedThisFrame)
+                {
+                    if (ninesOptions.allowTacticalDeaths == 0)
+                    {
                         enforceBumpToSameNinesStageAgain();
 
                         aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], 0);
@@ -1764,43 +2056,46 @@ void modConsole_updateFrame() {
                         ringsWentToZero = 1;
                     }
                 }
-                
+
                 ninesChallengeElapsedFrames++;
 
                 int damageBoostIndex = ninesParams.damageBoostLocation;
                 int damageBoostMaximum = ninesParams.damageBoostMaximum;
-                
 
                 // update the "do I play life jingle" flags
-                if (ninesParams.lifeUpFlaggedLocation > 0) {
+                if (ninesParams.lifeUpFlaggedLocation > 0)
+                {
                     aa_genesis_setWorkRam(ninesParams.lifeUpFlaggedLocation, 0xFF);
                 }
 
                 // in Sonic 3D blast, if the player has more than 9999 rings
                 // their count will wrap back to 0, so instead make sure it doesn't!
-                if (ninesStage.gameId == 6) {
+                if (ninesStage.gameId == 6)
+                {
                     // was the player over 9990 last frame, and is not damaged?
-                    if (getBossRushRingCarryTotal() >= 9990) {
+                    if (getBossRushRingCarryTotal() >= 9990)
+                    {
                         // layerRenderer_fill(3, 0, 0, 10, 10, 0x5);
-                        if (aa_genesis_getWorkRam(damageBoostIndex) <= damageBoostMaximum) {
+                        if (aa_genesis_getWorkRam(damageBoostIndex) <= damageBoostMaximum)
+                        {
                             // layerRenderer_fill(3, 12, 0, 10, 10, 0x6);
                             // is this NOT knuckles/tails?
-                            if ((aa_genesis_getWorkRam(0x06A0) + (aa_genesis_getWorkRam(0x06A1) * 0x100)) < 50
-                                && aa_genesis_getWorkRam(0x069E) + (aa_genesis_getWorkRam(0x069F) * 0x100) < 50) {
+                            if ((aa_genesis_getWorkRam(0x06A0) + (aa_genesis_getWorkRam(0x06A1) * 0x100)) < 50 && aa_genesis_getWorkRam(0x069E) + (aa_genesis_getWorkRam(0x069F) * 0x100) < 50)
+                            {
 
                                 // char s3DringDebug[0x80];
                                 // sprintf(s3DringDebug, "%02X %02X", aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]), aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]));
                                 // layerRenderer_writeWord256(3, 0, 12, s3DringDebug, 0x7);
                                 // layerRenderer_fill(3, 24, 0, 10, 10, 0x7);
                                 // has the player wrapped back to 0 rings?
-                                if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) < 10 && 
-                                    aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) < 10) {
+                                if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) < 10 &&
+                                    aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) < 10)
+                                {
                                     // layerRenderer_fill(3, 36, 0, 10, 10, 0x8);
                                     // if so, set them to 9999 rings now
                                     aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], 0x99);
                                     aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[1], 0x99);
                                 }
-
                             }
                         }
                     }
@@ -1809,7 +2104,8 @@ void modConsole_updateFrame() {
                 // in Sonic 3D blast, visiting Knuckles or Tails will
                 // read from a cached ring count in normal 8-bit number.
                 // Make sure we cache that number properly
-                if (ninesStage.gameId == 6 && aa_genesis_getWorkRam(damageBoostIndex) <= damageBoostMaximum) {
+                if (ninesStage.gameId == 6 && aa_genesis_getWorkRam(damageBoostIndex) <= damageBoostMaximum)
+                {
                     int units = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) % 0x10;
                     int tens = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) / 0x10;
                     int hundreds = aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) % 0x10;
@@ -1822,38 +2118,39 @@ void modConsole_updateFrame() {
                     aa_genesis_setWorkRam(0x0A5B, high8bit);
                 }
 
-
                 // debug - bonus rings!!
-                // if (buttonStateAtIndex(INPUT_INDEX_A) != 0) { 
+                // if (buttonStateAtIndex(INPUT_INDEX_A) != 0) {
                 //     aa_genesis_setWorkRam(gameTransferListing.ringBytesForTransfer[0], 0xFF);
                 // }
 
-                if (countdownToApplyBossRushRings > 0) {
+                if (countdownToApplyBossRushRings > 0)
+                {
                     // only count down once level is loaded! (except sonic 3D blast which has a 1-sec lead time)
                     applyBossRushCachedRings();
-                    if (aa_genesis_getWorkRam(0xF601) == 0x0C || ninesStage.gameId == 6) {
+                    if (aa_genesis_getWorkRam(0xF601) == 0x0C || ninesStage.gameId == 6)
+                    {
                         countdownToApplyBossRushRings--;
                         // layerRenderer_fill(3, 100, 18, 100, 2, 0xFF);
                     }
-                } else if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 
-                    || aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) > 0
-                    || aa_genesis_getWorkRam(damageBoostIndex) > damageBoostMaximum) {
+                }
+                else if (aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]) > 0 || aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]) > 0 || aa_genesis_getWorkRam(damageBoostIndex) > damageBoostMaximum)
+                {
                     cacheRingCountInBossRush(1);
                     // layerRenderer_fill(3, 0, 18, 300, 2, 0xFF);
 
-                    if (getBossRushRingCarryTotal() == 0) {
+                    if (getBossRushRingCarryTotal() == 0)
+                    {
                         char tempLog[256];
-                        sprintf(tempLog,"Rings went to zero %04X = %02X, %04X = %02X, %04X = %02X > %02X", 
-                            gameTransferListing.ringBytesForTransfer[0], aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]),
-                            gameTransferListing.ringBytesForTransfer[1], aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]),
-                            damageBoostIndex, aa_genesis_getWorkRam(damageBoostIndex), damageBoostMaximum);
+                        sprintf(tempLog, "Rings went to zero %04X = %02X, %04X = %02X, %04X = %02X > %02X",
+                                gameTransferListing.ringBytesForTransfer[0], aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]),
+                                gameTransferListing.ringBytesForTransfer[1], aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]),
+                                damageBoostIndex, aa_genesis_getWorkRam(damageBoostIndex), damageBoostMaximum);
                         cartLoader_appendToLog(tempLog);
-
 
                         ringsWentToZero = 1;
                     }
                 }
-    
+
                 // ADD CHECK FOR END OF LEVEL HERE
 
                 // this check will need to be different in Sonic 3D blast
@@ -1862,96 +2159,108 @@ void modConsole_updateFrame() {
                 unsigned int levelEndValue = ninesParams.levelCompleteValue;
 
                 // char tempLog[256];
-                // sprintf(tempLog,"--> (%04X - %02X) (%04X - %02X / %02X) - ", 
+                // sprintf(tempLog,"--> (%04X - %02X) (%04X - %02X / %02X) - ",
                 //     levelSwitchIndex, aa_genesis_getWorkRam(levelSwitchIndex),
                 //     levelEndLocation, aa_genesis_getWorkRam(levelEndLocation), levelEndValue);
                 // cartLoader_appendToLog(tempLog);
 
                 // char tempLog2[256];
-                // sprintf(tempLog2,"     %04X %04X / %02X %02X / %02X %02X - %i", 
+                // sprintf(tempLog2,"     %04X %04X / %02X %02X / %02X %02X - %i",
                 //     gameTransferListing.ringBytesForTransfer[0], gameTransferListing.ringBytesForTransfer[1],
                 //     aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[0]), aa_genesis_getWorkRam(gameTransferListing.ringBytesForTransfer[1]),
                 //     getBossRushRingCarryValues(0), getBossRushRingCarryValues(1), getBossRushRingCarryValues(2));
                 // cartLoader_appendToLog(tempLog2);
 
-                if (countdownToApplyBossRushRings == 0) {
+                if (countdownToApplyBossRushRings == 0)
+                {
                     // layerRenderer_fill(3, 0, 0, 300, 16, 0xFF);
                     // layerRenderer_writeWord256(3, 0, 0, tempLog, 0x5);
                     // layerRenderer_writeWord256(3, 0, 8, tempLog2, 0x5);
 
                     // bump level in 3D blast if you die
-                    if (countdownToApplyBossRushRings == 0 && ninesOptions.allowTacticalDeaths == 1 && ninesStage.gameId == 6) {
-                        if (diedThisFrame) {
+                    if (countdownToApplyBossRushRings == 0 && ninesOptions.allowTacticalDeaths == 1 && ninesStage.gameId == 6)
+                    {
+                        if (diedThisFrame)
+                        {
                             bumpNinesChallengeLevel(0);
                         }
                     }
-                        
 
                     // check for load trigger changed
-                    if ((aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80 && levelSwitchIndex > 0
-                        && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex))
+                    if ((aa_genesis_getWorkRam(levelSwitchIndex) >= 0x80 && levelSwitchIndex > 0 && aa_genesis_getWorkRam(levelSwitchIndex) != aa_genesis_getLastWorkRam(levelSwitchIndex))
                         // or if we go to the end credits in Sonic 3
                         || (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x20)
                         // or if we go to sonic 3/K speical stage
-                        || (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x34)
-                        || (ninesStage.gameId == 4 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x34)
+                        || (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x34) || (ninesStage.gameId == 4 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x34)
                         /*s2 and s1 special stage*/
-                        || (ninesStage.gameId == 2 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x10)
-                        || (ninesStage.gameId == 1 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x10)) {
-                        
+                        || (ninesStage.gameId == 2 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x10) || (ninesStage.gameId == 1 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x10))
+                    {
+
                         int wasLevelCompletion = 0;
                         // sonic 3 end credits
-                        if (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x20) {
+                        if (ninesStage.gameId == 3 && aa_genesis_getWorkRam(levelSwitchIndex) == 0x20)
+                        {
                             wasLevelCompletion = 1;
                         }
                         // level switch but not to bonus stage!
-                        if (ninesStage.gameId == 3 || ninesStage.gameId == 4) {
+                        if (ninesStage.gameId == 3 || ninesStage.gameId == 4)
+                        {
                             // add an "IF NOT BONUS/SPECIAL STAGE"
-                            if (// not blue spheres
+                            if ( // not blue spheres
                                 aa_genesis_getWorkRam(levelSwitchIndex) != 0x34
                                 // not bonus stage
-                                && aa_genesis_getWorkRam(0xFE11) != 0x13 && aa_genesis_getWorkRam(0xFE11) != 0x14 && aa_genesis_getWorkRam(0xFE11) != 0x15
-                                && stageInRAMHasChanged()) {
+                                && aa_genesis_getWorkRam(0xFE11) != 0x13 && aa_genesis_getWorkRam(0xFE11) != 0x14 && aa_genesis_getWorkRam(0xFE11) != 0x15 && stageInRAMHasChanged())
+                            {
                                 wasLevelCompletion = 1;
                             }
-                        } 
+                        }
 
-                        if (ninesStage.gameId == 1 || ninesStage.gameId == 2) {
-                            // add an "IF LEVEL INDEX HAS CHANGED" for Wing Fortress --> Death Egg, 
+                        if (ninesStage.gameId == 1 || ninesStage.gameId == 2)
+                        {
+                            // add an "IF LEVEL INDEX HAS CHANGED" for Wing Fortress --> Death Egg,
                             // and add an "is not special stages"
-                            if (stageInRAMHasChanged()
-                                && aa_genesis_getWorkRam(levelSwitchIndex) != 0x10) {
+                            if (stageInRAMHasChanged() && aa_genesis_getWorkRam(levelSwitchIndex) != 0x10)
+                            {
                                 wasLevelCompletion = 1;
                             }
-                        } 
+                        }
 
                         bumpNinesChallengeLevel(wasLevelCompletion);
-                    } else {
+                    }
+                    else
+                    {
                         int wasLevelCompletion = 1;
-                        if (ninesStage.gameId == 6) {
+                        if (ninesStage.gameId == 6)
+                        {
                             // add an "IF NOT TAILS/KNUCKLES"
                             // *** and add an if not death
-                            if (// is not transitioning to special stage
+                            if ( // is not transitioning to special stage
                                 aa_genesis_getWorkRam(0x0685) == 0 && aa_genesis_getWorkRam(0x0684) == 0
                                 // Knuckles does not have 50+ rings
                                 && (aa_genesis_getWorkRam(0x06A0) + (aa_genesis_getWorkRam(0x06A1) * 0x100)) < 50
                                 // Tails does not have 50+ rings
-                                && aa_genesis_getWorkRam(0x069E) + (aa_genesis_getWorkRam(0x069F) * 0x100) < 50
-                                && diedThisFrame == 0) {
+                                && aa_genesis_getWorkRam(0x069E) + (aa_genesis_getWorkRam(0x069F) * 0x100) < 50 && diedThisFrame == 0)
+                            {
                                 wasLevelCompletion = 1;
-                            } else {
+                            }
+                            else
+                            {
                                 wasLevelCompletion = 0;
                             }
-                            
                         }
 
                         // check for score totaliser spawned
-                        if (levelEndValue >= 0x100) {
-                            if (aa_genesis_getWorkRam(levelEndLocation) > 0) {
+                        if (levelEndValue >= 0x100)
+                        {
+                            if (aa_genesis_getWorkRam(levelEndLocation) > 0)
+                            {
                                 bumpNinesChallengeLevel(wasLevelCompletion);
                             }
-                        } else {
-                            if (aa_genesis_getWorkRam(levelEndLocation) == levelEndValue) {
+                        }
+                        else
+                        {
+                            if (aa_genesis_getWorkRam(levelEndLocation) == levelEndValue)
+                            {
                                 bumpNinesChallengeLevel(wasLevelCompletion);
                             }
                         }
@@ -1970,19 +2279,25 @@ void modConsole_updateFrame() {
                 // layerRenderer_writeWord256(3, 0, 32, ninesDebugInfo, 0xFF);
 
                 // CHECK FOR END OF GAME!!
-                if (getBossRushRingCarryTotal() >= getNinesChallengeTarget()) {
+                if (getBossRushRingCarryTotal() >= getNinesChallengeTarget())
+                {
                     completeNinesChallenge();
                 }
 
-                if (ringsWentToZero && ninesOptions.shouldUseCheckpoints > 0) {
+                if (ringsWentToZero && ninesOptions.shouldUseCheckpoints > 0)
+                {
                     int checkpoint = getCurrentNinesRingCheckpoint();
-                    if (checkpoint > 0) {
+                    if (checkpoint > 0)
+                    {
                         int checkpointHighByte = 0;
                         int checkpointLowByte = 0;
-                        if (gameTransferListing.ringCalculatationType == 0) {
+                        if (gameTransferListing.ringCalculatationType == 0)
+                        {
                             checkpointHighByte = checkpoint / 0x100;
                             checkpointLowByte = checkpoint % 0x100;
-                        } else {
+                        }
+                        else
+                        {
                             int checkpointHighNum = checkpoint / 100;
                             int checkpointLowNum = checkpoint % 100;
 
@@ -1996,70 +2311,86 @@ void modConsole_updateFrame() {
                         cacheBossRushRingCount(1);
 
                         ringsWentToZero = 0;
-                        if (ninesOptions.shouldUseCheckpoints == 1) {
+                        if (ninesOptions.shouldUseCheckpoints == 1)
+                        {
                             stepBackNinesRingCheckpoint();
                         }
                     }
                 }
 
-                if (ringsWentToZero && ninesOptions.quitOnRingLoss) {
+                if (ringsWentToZero && ninesOptions.quitOnRingLoss)
+                {
                     completeNinesChallenge();
                 }
             }
-
         }
 
-        if (menuDisplay_areSoloEffectsAllowed() != 0) {
-            if (hackOpts.speedUpOnRing != 0) {
+        if (menuDisplay_areSoloEffectsAllowed() != 0)
+        {
+            if (hackOpts.speedUpOnRing != 0)
+            {
                 updateSpeedUpOnRing();
             }
             // boss rush deals with these behaviours if toggled on
             // in the rush settings, so ignore them here if
             // we're in boss rush, lest we confuse players
-            if (shouldUseBossRush() == 0 && shouldUseNinesChallenge() == 0) {
-                if (hackOpts.switchGameType == 1) {
+            if (shouldUseBossRush() == 0 && shouldUseNinesChallenge() == 0)
+            {
+                if (hackOpts.switchGameType == 1)
+                {
                     updateSwitchGameOnRing();
                 }
-                if (hackOpts.switchGameType == 5) {
+                if (hackOpts.switchGameType == 5)
+                {
                     updateSwitchGameOnLand();
                 }
-                if (hackOpts.switchGameType == 6) {
+                if (hackOpts.switchGameType == 6)
+                {
                     updateSwitchGameOnRing();
-                    if (switchCooldownCounter == 0) {
+                    if (switchCooldownCounter == 0)
+                    {
                         checkForAllBossHitsInCurrentGame();
                     }
                 }
             }
 
-            if (hackOpts.randomiseVelocityOnRing != 0) {
+            if (hackOpts.randomiseVelocityOnRing != 0)
+            {
                 updateRandomiseVelocityOnRing();
             }
 
-            if (hackOpts.overwriteLevelType > 0) {
+            if (hackOpts.overwriteLevelType > 0)
+            {
                 overwriteLevelOnRing();
             }
 
-            if (menuDisplay_getSecondaryHackOptions().ramWritesPerRing > 0) {
+            if (menuDisplay_getSecondaryHackOptions().ramWritesPerRing > 0)
+            {
                 applyRamEditOnRing();
             }
-            if (menuDisplay_getSecondaryHackOptions().vramWritesPerRing > 0) {
+            if (menuDisplay_getSecondaryHackOptions().vramWritesPerRing > 0)
+            {
                 applyVramEditOnRing();
             }
         }
 
         sendNetworkMessageOnGetRing();
 
-        if (menuDisplay_getSecondaryHackOptions().enableEmergencyRewind != 0) {
-            if (frameCount % 10 == 0) {
+        if (menuDisplay_getSecondaryHackOptions().enableEmergencyRewind != 0)
+        {
+            if (frameCount % 10 == 0)
+            {
                 cacheEmergencyRewindState();
             }
-            if (frameCount % 40 == 0) {
+            if (frameCount % 40 == 0)
+            {
                 decrementEmergencyRewindExtension();
             }
             checkForEmergencyRewind();
             checkForGameCrashes();
         }
-        if (menuDisplay_getSecondaryHackOptions().spawnObjectOnRing != 0) {
+        if (menuDisplay_getSecondaryHackOptions().spawnObjectOnRing != 0)
+        {
             checkForRandomObjectSpawn();
         }
 
@@ -2070,15 +2401,18 @@ void modConsole_updateFrame() {
         //     switchCooldownCounter++;
         //     if (switchCooldownCounter >= switchCooldownPeriod) {
         //         switchGame();
-        //     }       
+        //     }
         // }
 
         valueWriteTimeCounter++;
-        if (valueWriteTimeCounter > activeGameListing.valueWriteDuration) {
-            if (hackOpts.infiniteLives != 0) {
+        if (valueWriteTimeCounter > activeGameListing.valueWriteDuration)
+        {
+            if (hackOpts.infiniteLives != 0)
+            {
                 updateLives();
             }
-            if (hackOpts.infiniteTime != 0) {
+            if (hackOpts.infiniteTime != 0)
+            {
                 updateTime();
             }
             valueWriteTimeCounter = 0;
@@ -2089,7 +2423,8 @@ void modConsole_updateFrame() {
         int yOffset = 0;
         int hasShownCount = 0;
         vdp_clearGraphicLayer(2);
-        if (hackOpts.shouldShowSwapCount != 0) {
+        if (hackOpts.shouldShowSwapCount != 0)
+        {
             char counterText[0x40];
             sprintf(counterText, "  SWAPS: %06d", cartLoader_getSwapCount());
             int lengthOfText = lengthOfString256(counterText);
@@ -2099,8 +2434,9 @@ void modConsole_updateFrame() {
 
             hasShownCount = 1;
             yOffset += 8;
-        } 
-        if (hackOpts.shouldShowDeathCount != 0) {
+        }
+        if (hackOpts.shouldShowDeathCount != 0)
+        {
             char counterText[0x40];
             sprintf(counterText, " DEATHS: %06d", playerDeathCount);
             int lengthOfText = lengthOfString256(counterText);
@@ -2110,8 +2446,9 @@ void modConsole_updateFrame() {
 
             hasShownCount = 1;
             yOffset += 8;
-        } 
-        if (hasDismissedStartupHint == 0) {
+        }
+        if (hasDismissedStartupHint == 0)
+        {
 
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
@@ -2124,8 +2461,10 @@ void modConsole_updateFrame() {
             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 28, "** PRESS DOWN + B **", 0xFF);
             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 36, "TO ACKNOWLEDGE", 0xFF);
         }
-        if (shouldUseBossRush() == 1) {
-            if ( getBossRushComplete() == 1) {
+        if (shouldUseBossRush() == 1)
+        {
+            if (getBossRushComplete() == 1)
+            {
                 layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
                 layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
                 layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "BOSS RUSH COMPLETE!", 0xFF);
@@ -2138,21 +2477,27 @@ void modConsole_updateFrame() {
                 BossRushOptions bossRushOptions = menuDisplay_getBossRushOptions();
                 char seedText[0x80];
                 sprintf(seedText, "YOUR SEED: %X%X%X%X", bossRushOptions.orderSeed[0], bossRushOptions.orderSeed[1], bossRushOptions.orderSeed[2], bossRushOptions.orderSeed[3]);
-                if (bossRushOptions.shouldRevealSeed) {
+                if (bossRushOptions.shouldRevealSeed)
+                {
                     sprintf(seedText, "%s (revealed)", seedText);
                 }
-                if (bossRushOptions.didEditSeed) {
+                if (bossRushOptions.didEditSeed)
+                {
                     sprintf(seedText, "%s (edited)", seedText);
                 }
-                for (int xOff = -1; xOff <= 1; xOff++) {
-                    for (int yOff = -1; yOff <= 1; yOff++) {
+                for (int xOff = -1; xOff <= 1; xOff++)
+                {
+                    for (int yOff = -1; yOff <= 1; yOff++)
+                    {
                         layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, (vdp_getScreenHeight() / 2) + 54 + yOff, seedText, 0xFF);
                     }
                 }
                 layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2), (vdp_getScreenHeight() / 2) + 54, seedText, 0x6);
-
-            } else {
-                if (menuDisplay_getBossRushOptions().showProgress) {
+            }
+            else
+            {
+                if (menuDisplay_getBossRushOptions().showProgress)
+                {
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 12, 9 * 8, 8, 0x5);
                     char elapsedText[0x80];
                     sprintf(elapsedText, "%02i:%02i:%02i", getBossRushElapsedHours(), getBossRushElapsedMins(), getBossRushElapsedSecs());
@@ -2165,10 +2510,13 @@ void modConsole_updateFrame() {
                 }
             }
         }
-        if (shouldUseNinesChallenge()) {
+        if (shouldUseNinesChallenge())
+        {
             // SHOW NINES CHALLENGE TIMER
-            if ( getNinesChallengeComplete() == 1) {
-                if (getBestNinesChallengeRingCount() >= getNinesChallengeTarget()) {
+            if (getNinesChallengeComplete() == 1)
+            {
+                if (getBestNinesChallengeRingCount() >= getNinesChallengeTarget())
+                {
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "CHALLENGE COMPLETE!", 0xFF);
@@ -2181,25 +2529,33 @@ void modConsole_updateFrame() {
                     NinesChallengeOptions ninesChallengeOptions = menuDisplay_getNinesChallengeOptions();
                     char seedText[0x80];
                     sprintf(seedText, "YOUR SEED: %X%X%X%X", ninesChallengeOptions.orderSeed[0], ninesChallengeOptions.orderSeed[1], ninesChallengeOptions.orderSeed[2], ninesChallengeOptions.orderSeed[3]);
-                    if (ninesChallengeOptions.shouldRevealSeed) {
+                    if (ninesChallengeOptions.shouldRevealSeed)
+                    {
                         sprintf(seedText, "%s (revealed)", seedText);
                     }
-                    if (ninesChallengeOptions.didEditSeed) {
+                    if (ninesChallengeOptions.didEditSeed)
+                    {
                         sprintf(seedText, "%s (edited)", seedText);
                     }
-                    if (ninesChallengeOptions.receivedSeedFromOpponent) {
+                    if (ninesChallengeOptions.receivedSeedFromOpponent)
+                    {
                         sprintf(seedText, "%s (received)", seedText);
                     }
-                    if (ninesChallengeOptions.sentSeedToOpponent) {
+                    if (ninesChallengeOptions.sentSeedToOpponent)
+                    {
                         sprintf(seedText, "%s (sent)", seedText);
                     }
-                    for (int xOff = -1; xOff <= 1; xOff++) {
-                        for (int yOff = -1; yOff <= 1; yOff++) {
+                    for (int xOff = -1; xOff <= 1; xOff++)
+                    {
+                        for (int yOff = -1; yOff <= 1; yOff++)
+                        {
                             layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, (vdp_getScreenHeight() / 2) + 54 + yOff, seedText, 0xFF);
                         }
                     }
                     layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2), (vdp_getScreenHeight() / 2) + 54, seedText, 0x6);
-                } else {
+                }
+                else
+                {
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2) - 4, (vdp_getScreenHeight() / 2) - 48, 8 * 23, 96, 0xFF);
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 22 / 2), (vdp_getScreenHeight() / 2) - 44, 8 * 22, 88, 0x5);
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) - 8, "GAME OVER", 0xFF);
@@ -2208,26 +2564,32 @@ void modConsole_updateFrame() {
                     char elapsedText[0x80];
                     sprintf(elapsedText, "%i", getBestNinesChallengeRingCount());
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 2) + 16, elapsedText, 0xFF);
-
                 }
 
-                for (int xOff = -1; xOff <= 1; xOff++) {
-                    for (int yOff = -1; yOff <= 1; yOff++) {
+                for (int xOff = -1; xOff <= 1; xOff++)
+                {
+                    for (int yOff = -1; yOff <= 1; yOff++)
+                    {
                         layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, (vdp_getScreenHeight() / 2) + 80 + yOff, "(Press Start to Play Again)", 0xFF);
                     }
                 }
                 layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2), (vdp_getScreenHeight() / 2) + 80, "(Press Start to Play Again)", 0x6);
 
-                if (buttonStateAtIndex(INPUT_INDEX_START)) {
+                if (buttonStateAtIndex(INPUT_INDEX_START))
+                {
                     NinesChallengeOptions ninesChallengeOptions = menuDisplay_getNinesChallengeOptions();
-                    if (!ninesChallengeOptions.shouldRevealSeed) {
+                    if (!ninesChallengeOptions.shouldRevealSeed)
+                    {
                         shuffleNineChallengeOrderSeed();
                     }
                     resetNinesChallengeElapsedTimer();
                     beginNinesChallenge();
                 }
-            } else {
-                if (menuDisplay_getNinesChallengeOptions().showProgress) {
+            }
+            else
+            {
+                if (menuDisplay_getNinesChallengeOptions().showProgress)
+                {
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (9 * 8 / 2), vdp_getScreenHeight() - 12, 9 * 8, 8, 0x5);
                     char elapsedText[0x80];
                     sprintf(elapsedText, "%02i:%02i:%02i", getNinesChallengeElapsedHours(), getNinesChallengeElapsedMins(), getNinesChallengeElapsedSecs());
@@ -2237,32 +2599,42 @@ void modConsole_updateFrame() {
                     // or best time if they have a previous completion
 
                     int barWidth = 9;
-                    if (getNinesChallengeTarget() > 1000) {
+                    if (getNinesChallengeTarget() > 1000)
+                    {
                         barWidth = 11;
                     }
                     layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (barWidth * 8 / 2), vdp_getScreenHeight() - 20, barWidth * 8, 8, 0x5);
 
                     char canCache[0x80];
                     sprintf(canCache, " ");
-                    if (canStoreNinesRingCheckpoint(getBossRushRingCarryTotal())) {
-                        sprintf(canCache,"*");
+                    if (canStoreNinesRingCheckpoint(getBossRushRingCarryTotal()))
+                    {
+                        sprintf(canCache, "*");
                     }
 
                     char progressText[0x80];
-                    if (getNinesChallengeTarget() < 1000) {
+                    if (getNinesChallengeTarget() < 1000)
+                    {
                         sprintf(progressText, "%03i (%03i)", getBossRushRingCarryTotal(), getCurrentNinesRingCheckpoint());
-                    } else {
+                    }
+                    else
+                    {
                         sprintf(progressText, "%04i (%04i)", getBossRushRingCarryTotal(), getCurrentNinesRingCheckpoint());
                     }
                     layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight()) - 16, progressText, 0xFF);
-                
-                    if (flashRingsToGoCountTime > 0) {
+
+                    if (flashRingsToGoCountTime > 0)
+                    {
                         int offsetX = 0;
-                        if (flashRingsToGoCountTime < 20) {
+                        if (flashRingsToGoCountTime < 20)
+                        {
                             offsetX = -(20 - flashRingsToGoCountTime) * (vdp_getScreenWidth() / 20);
-                        } else {
+                        }
+                        else
+                        {
                             int enterTime = flashRingsToGoCountTime - (flashRingsToGoDuration - 20);
-                            if (enterTime > 0 ) {
+                            if (enterTime > 0)
+                            {
                                 offsetX = enterTime * (vdp_getScreenWidth() / 20);
                             }
                         }
@@ -2270,14 +2642,16 @@ void modConsole_updateFrame() {
                         flashRingsToGoCountTime--;
                         layerRenderer_fill(2, 0 - offsetX, vdp_getScreenHeight() / 2 - 6, vdp_getScreenWidth(), 12, 0xFF);
                         layerRenderer_fill(2, 0 - offsetX, vdp_getScreenHeight() / 2 - 5, vdp_getScreenWidth(), 10, 0x05);
-                            char ringsText[0x80];
-                            sprintf(ringsText, "%i to go!", getNinesChallengeTarget() - getBossRushRingCarryTotal());
-                            for (int xOff = -1; xOff <= 1; xOff++) {
-                                for (int yOff = -1; yOff <= 1; yOff++) {
-                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff + offsetX, vdp_getScreenHeight() / 2 + yOff, ringsText, 0xFF);
-                                }
+                        char ringsText[0x80];
+                        sprintf(ringsText, "%i to go!", getNinesChallengeTarget() - getBossRushRingCarryTotal());
+                        for (int xOff = -1; xOff <= 1; xOff++)
+                        {
+                            for (int yOff = -1; yOff <= 1; yOff++)
+                            {
+                                layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff + offsetX, vdp_getScreenHeight() / 2 + yOff, ringsText, 0xFF);
                             }
-                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2 + offsetX, vdp_getScreenHeight() / 2, ringsText, 0x6);
+                        }
+                        layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2 + offsetX, vdp_getScreenHeight() / 2, ringsText, 0x6);
                     }
 
                     // for (int i = 0; i < getNinesRingCheckpointIndex(); i++) {
@@ -2290,65 +2664,89 @@ void modConsole_updateFrame() {
                     // layerRenderer_writeWord256(2, 5 * 8, 0, checkpointIndexText, 0x6);
                 }
 
-                    if (casinoStatusMessageTime > 0) {
-                        int offsetX = 0;
-                        if (casinoStatusMessageTime < 20) {
-                            offsetX = -(20 - casinoStatusMessageTime) * (vdp_getScreenWidth() / 20);
-                        } else {
-                            int enterTime = casinoStatusMessageTime - (casinoStatusMessageDuration - 20);
-                            if (enterTime > 0 ) {
-                                offsetX = enterTime * (vdp_getScreenWidth() / 20);
-                            }
+                if (casinoStatusMessageTime > 0)
+                {
+                    int offsetX = 0;
+                    if (casinoStatusMessageTime < 20)
+                    {
+                        offsetX = -(20 - casinoStatusMessageTime) * (vdp_getScreenWidth() / 20);
+                    }
+                    else
+                    {
+                        int enterTime = casinoStatusMessageTime - (casinoStatusMessageDuration - 20);
+                        if (enterTime > 0)
+                        {
+                            offsetX = enterTime * (vdp_getScreenWidth() / 20);
                         }
-
-                        casinoStatusMessageTime--;
-                        layerRenderer_fill(2, 0 - offsetX, vdp_getScreenHeight() / 3 - 6, vdp_getScreenWidth(), 12, 0xFF);
-                        layerRenderer_fill(2, 0 - offsetX, vdp_getScreenHeight() / 3 - 5, vdp_getScreenWidth(), 10, 0x08);
-                            for (int xOff = -1; xOff <= 1; xOff++) {
-                                for (int yOff = -1; yOff <= 1; yOff++) {
-                                    layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff + offsetX, vdp_getScreenHeight() / 3 + yOff, casinoStatusMessage, 0xFF);
-                                }
-                            }
-                            layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2 + offsetX, vdp_getScreenHeight() / 3, casinoStatusMessage, 0x6);
                     }
 
+                    casinoStatusMessageTime--;
+                    layerRenderer_fill(2, 0 - offsetX, vdp_getScreenHeight() / 3 - 6, vdp_getScreenWidth(), 12, 0xFF);
+                    layerRenderer_fill(2, 0 - offsetX, vdp_getScreenHeight() / 3 - 5, vdp_getScreenWidth(), 10, 0x08);
+                    for (int xOff = -1; xOff <= 1; xOff++)
+                    {
+                        for (int yOff = -1; yOff <= 1; yOff++)
+                        {
+                            layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff + offsetX, vdp_getScreenHeight() / 3 + yOff, casinoStatusMessage, 0xFF);
+                        }
+                    }
+                    layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2 + offsetX, vdp_getScreenHeight() / 3, casinoStatusMessage, 0x6);
+                }
+
                 // check for opponent being ahead!
-                if (menuDisplay_getNinesChallengeOptions().useOnlineRace) {
-                    if (ninesStatusMessageTime > 0) {
+                if (menuDisplay_getNinesChallengeOptions().useOnlineRace)
+                {
+                    if (ninesStatusMessageTime > 0)
+                    {
                         ninesStatusMessageTime--;
-                        for (int xOff = -1; xOff <= 1; xOff++) {
-                            for (int yOff = -1; yOff <= 1; yOff++) {
+                        for (int xOff = -1; xOff <= 1; xOff++)
+                        {
+                            for (int yOff = -1; yOff <= 1; yOff++)
+                            {
                                 layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 24 + yOff, ninesStatusMessage, 0xFF);
                             }
                         }
                         layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, ninesStatusMessage, 0x6);
-                    } else {
+                    }
+                    else
+                    {
                         int opponentLead = getOpponentNinesChallengeLead();
-                        if (opponentLead != 0) {
+                        if (opponentLead != 0)
+                        {
                             char leadAlert[0x80];
-                            if (opponentLead > 0) {
-                                if (opponentLead == 1) {
+                            if (opponentLead > 0)
+                            {
+                                if (opponentLead == 1)
+                                {
                                     sprintf(leadAlert, "Opponent ahead by %i clear", opponentLead);
-                                } else {
+                                }
+                                else
+                                {
                                     sprintf(leadAlert, "Opponent ahead by %i clears", opponentLead);
                                 }
-                            } else {
-                                if (opponentLead == -1) {
+                            }
+                            else
+                            {
+                                if (opponentLead == -1)
+                                {
                                     sprintf(leadAlert, "You are ahead by %i clear", -opponentLead);
-                                } else {
+                                }
+                                else
+                                {
                                     sprintf(leadAlert, "You are ahead by %i clears", -opponentLead);
                                 }
                             }
 
-                            for (int xOff = -1; xOff <= 1; xOff++) {
-                                for (int yOff = -1; yOff <= 1; yOff++) {
+                            for (int xOff = -1; xOff <= 1; xOff++)
+                            {
+                                for (int yOff = -1; yOff <= 1; yOff++)
+                                {
                                     layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2) + xOff, 24 + yOff, leadAlert, 0xFF);
                                 }
                             }
                             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, 24, leadAlert, 0x6);
                         }
                     }
-
 
                     layerRenderer_fill(2, 0, 2, vdp_getScreenWidth(), 12, 0xFF);
                     layerRenderer_fill(2, 0, 3, vdp_getScreenWidth(), 10, 0x05);
@@ -2357,8 +2755,10 @@ void modConsole_updateFrame() {
                     sprintf(yourScore, "YOU  %03d", getBossRushRingCarryTotal());
                     char opponentScore[0x80];
                     sprintf(opponentScore, "%03d  OPPONENT", getNinesOpponentRingCount());
-                    for (int xOff = -1; xOff <= 1; xOff++) {
-                        for (int yOff = -1; yOff <= 1; yOff++) {
+                    for (int xOff = -1; xOff <= 1; xOff++)
+                    {
+                        for (int yOff = -1; yOff <= 1; yOff++)
+                        {
                             layerRenderer_writeWord256RightJustified(2, (vdp_getScreenWidth() / 2) + xOff - 12, 8 + yOff - 4, yourScore, 0xFF);
                             layerRenderer_writeWord256(2, (vdp_getScreenWidth() / 2) + xOff + 12, 8 + yOff - 4, opponentScore, 0xFF);
                         }
@@ -2371,29 +2771,35 @@ void modConsole_updateFrame() {
                     char opponentLevelName[0x80];
                     sprintf(opponentLevelName, "%s", getOpponentLevelName());
 
-                    for (int xOff = -1; xOff <= 1; xOff++) {
-                        for (int yOff = -1; yOff <= 1; yOff++) {
+                    for (int xOff = -1; xOff <= 1; xOff++)
+                    {
+                        for (int yOff = -1; yOff <= 1; yOff++)
+                        {
                             layerRenderer_writeWord256RightJustified(2, (vdp_getScreenWidth() / 2) + xOff - 12, 16 + yOff - 4, yourLevelName, 0xFF);
                             layerRenderer_writeWord256(2, (vdp_getScreenWidth() / 2) + xOff + 12, 16 + yOff - 4, opponentLevelName, 0xFF);
                         }
                     }
-                    layerRenderer_writeWord256RightJustified(2, vdp_getScreenWidth() / 2 - 12, 16-4, yourLevelName, 0x6);
-                    layerRenderer_writeWord256(2, vdp_getScreenWidth() / 2 + 12, 16-4, opponentLevelName, 0xA);
+                    layerRenderer_writeWord256RightJustified(2, vdp_getScreenWidth() / 2 - 12, 16 - 4, yourLevelName, 0x6);
+                    layerRenderer_writeWord256(2, vdp_getScreenWidth() / 2 + 12, 16 - 4, opponentLevelName, 0xA);
                 }
             }
-    
+
             // show "you win" or "you lose"
             int thereIsAWinner = 0;
             char winnerMessage[0x80];
-            if (getYouHaveWonNines()) {
+            if (getYouHaveWonNines())
+            {
                 thereIsAWinner = 1;
                 sprintf(winnerMessage, "You win!");
-            } else if (getOpponentHasWonNines()) {
+            }
+            else if (getOpponentHasWonNines())
+            {
                 thereIsAWinner = 1;
                 sprintf(winnerMessage, "You Lose");
             }
 
-            if (thereIsAWinner) {
+            if (thereIsAWinner)
+            {
                 layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 10 / 2), 48 - 9, 8 * 10, 18, 0xFF);
                 layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 9 / 2), 48 - 5, 8 * 9, 10, 0x5);
                 layerRenderer_writeWord256Centred(2, (vdp_getScreenWidth() / 2), 48, winnerMessage, 0xFF);
@@ -2406,19 +2812,22 @@ void modConsole_updateFrame() {
             // }
         }
 
-        if (showShuffleAlertCountdown > 0) {
+        if (showShuffleAlertCountdown > 0)
+        {
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2) - 2, (vdp_getScreenHeight() / 4) - 6, 8 * 18 + 4, 12, 0xFF);
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2), (vdp_getScreenHeight() / 4) - 4, 8 * 18, 8, 0x5);
             layerRenderer_writeWord256Centred(2, vdp_getScreenWidth() / 2, (vdp_getScreenHeight() / 4), "SHUFFLED BUTTONS", 0xFF);
         }
-        if (shouldShuffleController != 0 && shuffleControllerCountdown < 5 * 60) {
+        if (shouldShuffleController != 0 && shuffleControllerCountdown < 5 * 60)
+        {
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2) - 2, (vdp_getScreenHeight() / 4) - 6, 8 * 18 + 4, 12, 0xFF);
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2), (vdp_getScreenHeight() / 4) - 4, 8 * 18, 8, 0x5);
             int screenFillAmount = ((8 * 18 - 4) * shuffleControllerCountdown) / (5 * 60);
             layerRenderer_fill(2, (vdp_getScreenWidth() / 2) - (8 * 18 / 2) + 2, (vdp_getScreenHeight() / 4) - 2, screenFillAmount, 4, 0xFF);
         }
 
-        if (holdEffectFramesLeft > 0) {
+        if (holdEffectFramesLeft > 0)
+        {
             int barSize = ((vdp_getScreenWidth() - 8) * holdEffectFramesLeft) / holdEffectDuration;
             barSize /= 8;
             barSize *= 8;
@@ -2426,23 +2835,23 @@ void modConsole_updateFrame() {
         }
 
         // for heart rate
-        if (shouldShowHeartRate) {
+        if (shouldShowHeartRate)
+        {
             char heartRateText[0x80];
-            sprintf(heartRateText, "%03d BPM", 
-                heartRate
-            );
+            sprintf(heartRateText, "%03d BPM",
+                    heartRate);
             layerRenderer_fill(2, 0, 0, 7 * 8 + 4, 12, 0xFF);
             layerRenderer_writeWord256(2, 2, 2, heartRateText, 0x05);
         }
 
-        if (shouldShowHeartValues) {
+        if (shouldShowHeartValues)
+        {
             char heartRateText[0x80];
-            sprintf(heartRateText, "SPEED %02X %02X - ACCEL %02X %02X", 
-                aa_genesis_getWorkRam(0xF761),
-                aa_genesis_getWorkRam(0xF760),
-                aa_genesis_getWorkRam(0xF763),
-                aa_genesis_getWorkRam(0xF762)
-            );
+            sprintf(heartRateText, "SPEED %02X %02X - ACCEL %02X %02X",
+                    aa_genesis_getWorkRam(0xF761),
+                    aa_genesis_getWorkRam(0xF760),
+                    aa_genesis_getWorkRam(0xF763),
+                    aa_genesis_getWorkRam(0xF762));
             layerRenderer_fill(2, vdp_getScreenWidth() - (25 * 8 + 4), 0, 25 * 8 + 4, 12, 0xFF);
             layerRenderer_writeWord256(2, vdp_getScreenWidth() - (25 * 8 + 2), 2, heartRateText, 0x05);
         }
@@ -2451,22 +2860,23 @@ void modConsole_updateFrame() {
         //     char headdyText[0x80];
         //     sprintf(headdyText, "HEADDY %i", cooldownSinceLastHeaddyHit);
         //     layerRenderer_fill(2, 0, 0, 25 * 8 + 4, 12, 0xFF);
-        //     layerRenderer_writeWord256(2, 0, 2, headdyText, 0x05);  
+        //     layerRenderer_writeWord256(2, 0, 2, headdyText, 0x05);
         // }
 
         // for terminal
         int tipsYpos = vdp_getScreenHeight() - 16;
         layerRenderer_writeWord256(2, -headingTextScrollPixels, 2 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 2+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 2+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 0+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
-        layerRenderer_writeWord256(2, -headingTextScrollPixels, 1+ tipsYpos, menuDisplay_getCurrentRulesName(), headingColour);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 2 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 2 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 0 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 0 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 0 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels - 1, 1 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels + 1, 1 + tipsYpos, menuDisplay_getCurrentRulesName(), 0xFF);
+        layerRenderer_writeWord256(2, -headingTextScrollPixels, 1 + tipsYpos, menuDisplay_getCurrentRulesName(), headingColour);
 
-        if (terminalEffectDisplayCountdown > 0) {
+        if (terminalEffectDisplayCountdown > 0)
+        {
             terminalEffectDisplayCountdown--;
             int effectXpos = vdp_getScreenWidth() / 2;
             int effectYpos = vdp_getScreenHeight() / 2;
@@ -2476,25 +2886,27 @@ void modConsole_updateFrame() {
             layerRenderer_writeWord256Centred(2, effectXpos - 1, effectYpos + 1, lastTerminalEffect, 0xFF);
             layerRenderer_writeWord256Centred(2, effectXpos - 1, effectYpos, lastTerminalEffect, 0xFF);
             layerRenderer_writeWord256Centred(2, effectXpos - 1, effectYpos - 1, lastTerminalEffect, 0xFF);
-            layerRenderer_writeWord256Centred(2, effectXpos, effectYpos+ 1, lastTerminalEffect, 0xFF);
+            layerRenderer_writeWord256Centred(2, effectXpos, effectYpos + 1, lastTerminalEffect, 0xFF);
             layerRenderer_writeWord256Centred(2, effectXpos, effectYpos - 1, lastTerminalEffect, 0xFF);
             layerRenderer_writeWord256Centred(2, effectXpos, effectYpos, lastTerminalEffect, headingColour);
-
         }
 
-
-        if (shouldUseBossRush()) {
-            if (getBossRushComplete() == 0) {
+        if (shouldUseBossRush())
+        {
+            if (getBossRushComplete() == 0)
+            {
                 // if (buttonStateAtIndex(INPUT_INDEX_A) != 0) {
                 //     onBossDefeated();
                 // }
 
                 bossRushElapsedFrames++;
                 incrementFrameCountOfActiveBossRush();
-                
-                if (countdownToApplyBossRushRings > 0) {
+
+                if (countdownToApplyBossRushRings > 0)
+                {
                     // only count down once level is loaded!
-                    if (aa_genesis_getWorkRam(0xF601) == 0x0C || getActiveBossRushListing().gameIndex == 6) {
+                    if (aa_genesis_getWorkRam(0xF601) == 0x0C || getActiveBossRushListing().gameIndex == 6)
+                    {
                         countdownToApplyBossRushRings--;
                         applyBossRushCachedRings();
                         // if (countdownToApplyBossRushRings == 0) {
@@ -2510,26 +2922,33 @@ void modConsole_updateFrame() {
             // layerRenderer_fill(2, 0, vdp_getScreenHeight() - 8, 8 * 20, 8, 0xFF);
             // layerRenderer_writeWord256(2, 0, vdp_getScreenHeight() - 8, rushText, 0x5);
             int defeated = checkForBossDefeats();
-            if (defeated == 0) {
+            if (defeated == 0)
+            {
                 int activeBossRushIndex = getActiveBossRushIndex();
                 cacheBossRushRingCount();
 
-                if (menuDisplay_getBossRushOptions().switchTriggers.networkBossHit == 1) {
+                if (menuDisplay_getBossRushOptions().switchTriggers.networkBossHit == 1)
+                {
                     checkForBossHits(1, -1);
                 }
-                if (menuDisplay_getBossRushOptions().switchTriggers.bossHit == 1) {
+                if (menuDisplay_getBossRushOptions().switchTriggers.bossHit == 1)
+                {
                     checkForBossHits(0, -1);
-                } 
-                if (activeBossRushIndex == getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTriggers.ring == 1) {
+                }
+                if (activeBossRushIndex == getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTriggers.ring == 1)
+                {
                     updateSwitchGameOnRing();
-                } 
-                if (activeBossRushIndex == getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTriggers.land == 1) {
+                }
+                if (activeBossRushIndex == getActiveBossRushIndex() && menuDisplay_getBossRushOptions().switchTriggers.land == 1)
+                {
                     updateSwitchGameOnLand();
                 }
             }
 
-            if (menuDisplay_getBossRushOptions().ringsOff == 1) {
-                if (getActiveBossRushListing().blockRingZeroing == 0) {
+            if (menuDisplay_getBossRushOptions().ringsOff == 1)
+            {
+                if (getActiveBossRushListing().blockRingZeroing == 0)
+                {
                     aa_genesis_setWorkRam(activeGameListing.ringByte, 0);
                 }
             }
@@ -2559,99 +2978,122 @@ void modConsole_updateFrame() {
         //     buttonStateAtIndex(INPUT_INDEX_A) != 0) {
         //     modConsole_activatePanic();
         // }
+        if (buttonStateAtIndex(INPUT_INDEX_A) != 0)
+        {
+            // EMF
+            promptSwitchGame();
+        }
+
         if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_B) != 0) {
+            buttonStateAtIndex(INPUT_INDEX_B) != 0)
+        {
 
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
             vdp_clearGraphicLayer(2);
 
             dismissStartupHint(1);
-        } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_C) != 0) {
+        }
+        else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
+                 buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+                 buttonStateAtIndex(INPUT_INDEX_C) != 0)
+        {
 
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
             vdp_clearGraphicLayer(2);
 
             dismissStartupHint(1);
-        } else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_A) != 0) {
+        }
+        else if (buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
+                 buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+                 buttonStateAtIndex(INPUT_INDEX_A) != 0)
+        {
 
             cartLoader_cacheSaveStateBeforeMenu();
             menuDisplay_showMenu(MENU_LISTING_IN_GAME);
             vdp_clearGraphicLayer(2);
 
             dismissStartupHint(1);
-        } else if (
+        }
+        else if (
             // insta-kill!!
             buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_B) != 0)
         {
             modConsole_activatePanic();
-        } else if (
+        }
+        else if (
             // show the terminal!!
             buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
             buttonStateAtIndex(INPUT_INDEX_A) != 0)
         {
             // menuDisplay_showTerminalMenu();
-        } else if (
+        }
+        else if (
             buttonStateAtIndex(INPUT_INDEX_UP) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_LEFT) != 0
-        ) {
+            buttonStateAtIndex(INPUT_INDEX_LEFT) != 0)
+        {
             // FOR ALISTAIR
             // saveSaveStateForCurrentGame();
             // cartLoader_saveAllSaveStatesToDisk();
-        } else if (
-            buttonStateAtIndex(INPUT_INDEX_A) != 0
-        ) {
+        }
+        else if (
+            buttonStateAtIndex(INPUT_INDEX_A) != 0)
+        {
             // FOR ALISTAIR
             // storeNinesRingCheckpoint(rand() % 9999);
         }
 
-        if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 && buttonStateAtIndex(INPUT_INDEX_B) != 0 && hasDismissedStartupHint == 0) {
+        if (buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 && buttonStateAtIndex(INPUT_INDEX_B) != 0 && hasDismissedStartupHint == 0)
+        {
             dismissStartupHint(0);
         }
-        
+
         if (
             // rewind!
             (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
-            buttonStateAtIndex(INPUT_INDEX_B) != 0) || shouldRewind == 1)
+             buttonStateAtIndex(INPUT_INDEX_START) != 0 &&
+             buttonStateAtIndex(INPUT_INDEX_B) != 0) ||
+            shouldRewind == 1)
         {
             showRewindSymbol();
-            if (framesHeldDownRewindButtons % 30 == 0) {
+            if (framesHeldDownRewindButtons % 30 == 0)
+            {
                 int rewindSuccess = stepBackRewindRAM();
                 rewindSymbolColour = (rand() % 0x20) + 1;
-                if (rewindSuccess == 0) {
+                if (rewindSuccess == 0)
+                {
                     rewindSymbolColour = 0;
                     shouldRewind = 0;
                 }
             }
-            framesHeldDownRewindButtons ++;
-        } else {
-            if (framesHeldDownRewindButtons > 0) {
+            framesHeldDownRewindButtons++;
+        }
+        else
+        {
+            if (framesHeldDownRewindButtons > 0)
+            {
                 hideRewindSymbol();
             }
             framesHeldDownRewindButtons = 0;
         }
 
-
         // Puyo games need to wait a few frames after a ring effect before activating another,
         // otherwise the game-end countdown counts as many rings!
         // This must occur before anything that uses ring count
         cartIndex = cartLoader_getActiveCartIndex();
-        if (cartLoader_getActiveGameListing().postRingEffectCooldown > 0) {
+        if (cartLoader_getActiveGameListing().postRingEffectCooldown > 0)
+        {
             // some complicated wrangling so that every successive ring in that time resets the counter back to max
-            if (ringCountChangedThisFrame != 0) {
+            if (ringCountChangedThisFrame != 0)
+            {
                 postRingEffectCooldownTimePerGame[cartIndex] = cartLoader_getActiveGameListing().postRingEffectCooldown;
                 cartLoader_appendToLog("Got ring during cooldown");
-            }        
+            }
 
             char logMsgRing[0x100];
             sprintf(logMsgRing, "postRingEffectCooldownTimePerGame[%i] = %i", cartIndex, postRingEffectCooldownTimePerGame[cartIndex]);
@@ -2689,76 +3131,73 @@ void modConsole_updateFrame() {
         // layerRenderer_fill(2, 0, 0, 8 * 8, 8, 0xFF);
         // layerRenderer_writeWord256(2, 0, 0, controlsTextBuf, 0x5);
 
-        if (textAlertShowing != 0) {
+        if (textAlertShowing != 0)
+        {
             char textToShow[60];
             int textAlertX = 2;
             int textAlertY = textAlertMaxTime - textAlertLiveTime;
-            if (textAlertY > 0) {
+            if (textAlertY > 0)
+            {
                 textAlertY = 0;
             }
             textAlertY += 2;
 
             sprintf(textToShow, "%s", textAlert);
 
-            for (int xOff = -1; xOff <= 1; xOff++) {
-                for (int yOff = -1; yOff <= 1; yOff++) {
+            for (int xOff = -1; xOff <= 1; xOff++)
+            {
+                for (int yOff = -1; yOff <= 1; yOff++)
+                {
                     layerRenderer_writeWord256(2, textAlertX + xOff, textAlertY + yOff, textToShow, 0xFF);
                 }
             }
             layerRenderer_writeWord256(2, textAlertX, textAlertY, textToShow, textAlertColour);
 
             textAlertLiveTime++;
-            if (textAlertLiveTime > textAlertMaxTime + 60) {
+            if (textAlertLiveTime > textAlertMaxTime + 60)
+            {
                 textAlertShowing = 0;
                 textAlertLiveTime = 0;
             }
         }
 
         headingTextScrollSubpixels++;
-        if (headingTextScrollSubpixels > HEADING_TEXT_SUBPIXEL_PER_PIXEL) {
+        if (headingTextScrollSubpixels > HEADING_TEXT_SUBPIXEL_PER_PIXEL)
+        {
             headingTextScrollPixels++;
             headingTextScrollSubpixels = 0;
-            if (headingTextScrollPixels > (130 * 8)) {
+            if (headingTextScrollPixels > (130 * 8))
+            {
                 headingTextScrollPixels = -vdp_getScreenWidth();
                 headingColour = (rand() % 10) + 5;
             }
         }
 
-
-
-        if (shouldCheckForIdleMode) {
+        if (shouldCheckForIdleMode)
+        {
             idleModeFrameCount++;
 
-            if (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 
-                || buttonStateAtIndex(INPUT_INDEX_RIGHT) != 0
-                || buttonStateAtIndex(INPUT_INDEX_UP) != 0
-                || buttonStateAtIndex(INPUT_INDEX_DOWN) != 0
-                || buttonStateAtIndex(INPUT_INDEX_START) != 0
-                || buttonStateAtIndex(INPUT_INDEX_A) != 0
-                || buttonStateAtIndex(INPUT_INDEX_B) != 0
-                || buttonStateAtIndex(INPUT_INDEX_C) != 0) 
+            if (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 || buttonStateAtIndex(INPUT_INDEX_RIGHT) != 0 || buttonStateAtIndex(INPUT_INDEX_UP) != 0 || buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 || buttonStateAtIndex(INPUT_INDEX_START) != 0 || buttonStateAtIndex(INPUT_INDEX_A) != 0 || buttonStateAtIndex(INPUT_INDEX_B) != 0 || buttonStateAtIndex(INPUT_INDEX_C) != 0)
             {
                 idleModeFrameCount = 0;
             }
 
-            if (idleModeFrameCount > MAX_FRAMES_FOR_IDLE_MODE) {
+            if (idleModeFrameCount > MAX_FRAMES_FOR_IDLE_MODE)
+            {
                 beginIdleMode();
                 idleModeCooldown = 0;
             }
         }
 
-        if (idleModeActive) {
-            if (idleModeCooldown > 0) {
+        if (idleModeActive)
+        {
+            if (idleModeCooldown > 0)
+            {
                 idleModeCooldown--;
-            } else {
-                if (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 
-                    || buttonStateAtIndex(INPUT_INDEX_RIGHT) != 0
-                    || buttonStateAtIndex(INPUT_INDEX_UP) != 0
-                    || buttonStateAtIndex(INPUT_INDEX_DOWN) != 0
-                    || buttonStateAtIndex(INPUT_INDEX_START) != 0
-                    || buttonStateAtIndex(INPUT_INDEX_A) != 0
-                    || buttonStateAtIndex(INPUT_INDEX_B) != 0
-                    || buttonStateAtIndex(INPUT_INDEX_C) != 0) 
+            }
+            else
+            {
+                if (buttonStateAtIndex(INPUT_INDEX_LEFT) != 0 || buttonStateAtIndex(INPUT_INDEX_RIGHT) != 0 || buttonStateAtIndex(INPUT_INDEX_UP) != 0 || buttonStateAtIndex(INPUT_INDEX_DOWN) != 0 || buttonStateAtIndex(INPUT_INDEX_START) != 0 || buttonStateAtIndex(INPUT_INDEX_A) != 0 || buttonStateAtIndex(INPUT_INDEX_B) != 0 || buttonStateAtIndex(INPUT_INDEX_C) != 0)
                 {
                     menuDisplay_showTerminalMenu();
                     idleModeActive = 0;
@@ -2766,9 +3205,11 @@ void modConsole_updateFrame() {
             }
         }
 
-        if (countdownToUnrandomiseColours > 0) {
+        if (countdownToUnrandomiseColours > 0)
+        {
             countdownToUnrandomiseColours--;
-            if (countdownToUnrandomiseColours <= 0) {
+            if (countdownToUnrandomiseColours <= 0)
+            {
                 vdp_setShouldRandomiseColours(0);
             }
         }
@@ -2783,33 +3224,40 @@ void modConsole_updateFrame() {
             idleModeCooldown = 60;
         }
 
-
         // game switching needs to come at the end for per-game cooldown to work
-        if (hackOpts.switchGameType > 1 && hackOpts.switchGameType < 5) {
+        if (hackOpts.switchGameType > 1 && hackOpts.switchGameType < 5)
+        {
             switchAfterTimeCounter++;
-            if (switchAfterTimeCounter >= switchAfterTimePeriod) {
+            if (switchAfterTimeCounter >= switchAfterTimePeriod)
+            {
                 switchAfterTimeCounter = 0;
                 promptSwitchGame();
             }
         }
 
-        if (countdownUntilRingSwitch > 0) {
+        if (countdownUntilRingSwitch > 0)
+        {
             countdownUntilRingSwitch--;
-            if (countdownUntilRingSwitch == 0) {
+            if (countdownUntilRingSwitch == 0)
+            {
                 bumpEventCountForSwitchGame();
             }
         }
 
-        if (countdownUntilUnpause > 0) {
-            countdownUntilUnpause --;
-            if (countdownUntilUnpause == 0) {
+        if (countdownUntilUnpause > 0)
+        {
+            countdownUntilUnpause--;
+            if (countdownUntilUnpause == 0)
+            {
                 unpauseGame();
             }
         }
 
-        if (countdownToSummonMenu > 0) {
+        if (countdownToSummonMenu > 0)
+        {
             countdownToSummonMenu--;
-            if (countdownToSummonMenu == 0) {
+            if (countdownToSummonMenu == 0)
+            {
                 menuDisplay_showMenu(MENU_LISTING_IN_GAME);
                 vdp_clearGraphicLayer(2);
             }
@@ -2817,55 +3265,63 @@ void modConsole_updateFrame() {
 
         updatePendingRingTrigger();
 
-        if (bossRushStartCountDown > 0) {
+        if (bossRushStartCountDown > 0)
+        {
             bossRushStartCountDown--;
-            if (bossRushStartCountDown == 0) {
+            if (bossRushStartCountDown == 0)
+            {
                 beginBossRush();
             }
         }
 
-        if (ninesChallengeStartCountDown > 0) {
+        if (ninesChallengeStartCountDown > 0)
+        {
             ninesChallengeStartCountDown--;
-            if (ninesChallengeStartCountDown == 0) {
+            if (ninesChallengeStartCountDown == 0)
+            {
                 beginNinesChallenge();
             }
         }
 
-        if (checkForDynamiteHeaddyHits() == 1) {
+        if (checkForDynamiteHeaddyHits() == 1)
+        {
             cooldownSinceLastHeaddyHit = 4;
         }
 
-
         vdp_resetCachedM5();
-
     }
 
     frameCount++;
 
     aa_genesis_updateLastRam();
-} 
+}
 
-void modConsole_beginRewindAction() {
+void modConsole_beginRewindAction()
+{
     shouldRewind = 1;
 }
 
-void modConsole_endRewindAction() {
+void modConsole_endRewindAction()
+{
     shouldRewind = 0;
 }
 
-
-void writeWRAMintoSpriteBuffer() {
+void writeWRAMintoSpriteBuffer()
+{
     // values correct for Sonic games
     int min = 0xF800;
     int max = 0xFA80;
     int length = max - min;
 
-    for (int i = min; i < max; i++) {
+    for (int i = min; i < max; i++)
+    {
         work_ram[i] = 0;
     }
 
-    for (int i = 0; i < 0x10000; i++) {
-        if (i < min || i >= max) {
+    for (int i = 0; i < 0x10000; i++)
+    {
+        if (i < min || i >= max)
+        {
             int index = min + (i % length);
             unsigned int ramValue = work_ram[index];
             ramValue += work_ram[i];
@@ -2875,18 +3331,22 @@ void writeWRAMintoSpriteBuffer() {
     }
 }
 
-void writeWRAMintoLevelLayout() {
+void writeWRAMintoLevelLayout()
+{
     // values correct for Sonic games
     int min = cartLoader_getActiveLevelEditListing().startByte;
     int max = cartLoader_getActiveLevelEditListing().endByte;
     int length = max - min;
-    
-    for (int i = min; i < max; i++) {
+
+    for (int i = min; i < max; i++)
+    {
         work_ram[i] = 0;
     }
 
-    for (int i = 0; i < 0x10000; i++) {
-        if (i < min || i >= max) {
+    for (int i = 0; i < 0x10000; i++)
+    {
+        if (i < min || i >= max)
+        {
             int index = min + (i % length);
             int ramValue = work_ram[index];
             ramValue += work_ram[i];
@@ -2896,20 +3356,26 @@ void writeWRAMintoLevelLayout() {
     }
 }
 
-void applyRamEditOnRing() {
-    if (ringCountHasChanged(0) != 0) {
+void applyRamEditOnRing()
+{
+    if (ringCountHasChanged(0) != 0)
+    {
         int editCount = 0;
         SecondaryHackOptions options = menuDisplay_getSecondaryHackOptions();
-        if (options.ramWritesPerRing == 1) {
+        if (options.ramWritesPerRing == 1)
+        {
             editCount = 1;
         }
-        if (options.ramWritesPerRing == 2) {
+        if (options.ramWritesPerRing == 2)
+        {
             editCount = 5;
         }
-        if (options.ramWritesPerRing == 3) {
+        if (options.ramWritesPerRing == 3)
+        {
             editCount = 25;
         }
-        if (options.ramWritesPerRing == 4) {
+        if (options.ramWritesPerRing == 4)
+        {
             editCount = 100;
         }
 
@@ -2917,25 +3383,30 @@ void applyRamEditOnRing() {
         // sprintf(logMsg, "RAM ON RING will fire %i times", editCount);
         // cartLoader_appendToLog(logMsg);
 
-        if (editCount > 0) {
+        if (editCount > 0)
+        {
             fireScreenSnapOnEvent();
             int startLoc = 0;
             int endLoc = 0;
 
             int multiplicand = 1;
-            for (int i = 3; i >= 0; i--) {
+            for (int i = 3; i >= 0; i--)
+            {
                 startLoc += options.ramWriteStartLoc[i] * multiplicand;
                 endLoc += options.ramWriteEndLoc[i] * multiplicand;
                 multiplicand *= 0x10;
             }
             int distance = abs(startLoc - endLoc);
 
-            for (int i = 0; i < editCount; i++) {
+            for (int i = 0; i < editCount; i++)
+            {
                 int location = startLoc;
-                if (endLoc < startLoc) {
+                if (endLoc < startLoc)
+                {
                     location = endLoc;
                 }
-                if (distance > 0) {
+                if (distance > 0)
+                {
                     location += getBigRandomNumber(distance + 1);
                 }
 
@@ -2952,20 +3423,26 @@ void applyRamEditOnRing() {
     }
 }
 
-void applyVramEditOnRing() {
-    if (ringCountHasChanged(0) != 0) {
+void applyVramEditOnRing()
+{
+    if (ringCountHasChanged(0) != 0)
+    {
         int editCount = 0;
         SecondaryHackOptions options = menuDisplay_getSecondaryHackOptions();
-        if (options.vramWritesPerRing == 1) {
+        if (options.vramWritesPerRing == 1)
+        {
             editCount = 1;
         }
-        if (options.vramWritesPerRing == 2) {
+        if (options.vramWritesPerRing == 2)
+        {
             editCount = 5;
         }
-        if (options.vramWritesPerRing == 3) {
+        if (options.vramWritesPerRing == 3)
+        {
             editCount = 25;
         }
-        if (options.vramWritesPerRing == 4) {
+        if (options.vramWritesPerRing == 4)
+        {
             editCount = 100;
         }
 
@@ -2973,9 +3450,11 @@ void applyVramEditOnRing() {
         // sprintf(logMsg, "RAM ON RING will fire %i times", editCount);
         // cartLoader_appendToLog(logMsg);
 
-        if (editCount > 0) {
+        if (editCount > 0)
+        {
             fireScreenSnapOnEvent();
-            for (int i = 0; i < editCount; i++) {
+            for (int i = 0; i < editCount; i++)
+            {
                 int location = getBigRandomNumber(0xFFFF);
                 int value = rand() % 0x100;
                 aa_genesis_setVRamValue(location, value);
@@ -2984,10 +3463,13 @@ void applyVramEditOnRing() {
     }
 }
 
-void applyHeldValues() {
+void applyHeldValues()
+{
     holdEffectFramesLeft = 0;
-    for (int i = 0; i < 0x10000; i++) {
-        if (holdDurations[i] > 0) {
+    for (int i = 0; i < 0x10000; i++)
+    {
+        if (holdDurations[i] > 0)
+        {
             holdDurations[i]--;
             aa_genesis_setWorkRam(i, holdValues[i]);
 
@@ -2995,146 +3477,178 @@ void applyHeldValues() {
             // sprintf(logMsg, "APPLYING HELD VALUE: %04X at %02X (%i frames left)", i, holdValues[i], holdDurations[i]);
             // cartLoader_appendToLog(logMsg);
 
-            if (holdEffectFramesLeft < holdDurations[i]) {
+            if (holdEffectFramesLeft < holdDurations[i])
+            {
                 holdEffectFramesLeft = holdDurations[i];
             }
         }
     }
 }
 
-void showRewindSymbol() {
+void showRewindSymbol()
+{
     int midX = bitmap.viewport.w / 2;
     int midY = bitmap.viewport.h / 2;
 
     int startX = midX - 40;
     int startY = midY - 20;
-    for (int i = 0; i < 40; i++) {
+    for (int i = 0; i < 40; i++)
+    {
         layerRenderer_fill(2, startX + i, startY + (40 - i), 1, i * 2, rewindSymbolColour);
         layerRenderer_fill(2, startX + 40 + i, startY + (40 - i), 1, i * 2, rewindSymbolColour);
     }
 
-    if (menuDisplay_getSecondaryHackOptions().shouldSaveRewindStates == 0) {
+    if (menuDisplay_getSecondaryHackOptions().shouldSaveRewindStates == 0)
+    {
         layerRenderer_fill(2, midX - 110, midY - 50, 220, 100, 0xFF);
         layerRenderer_fill(2, midX - 100, midY - 40, 200, 80, 0x5);
-        layerRenderer_writeWord256Centred(2, midX, midY-24, "Rewind switched off", 0xFF);
+        layerRenderer_writeWord256Centred(2, midX, midY - 24, "Rewind switched off", 0xFF);
 
-        layerRenderer_writeWord256Centred(2, midX, midY-8, "Use Quality of Life menu", 0xFF);
+        layerRenderer_writeWord256Centred(2, midX, midY - 8, "Use Quality of Life menu", 0xFF);
         layerRenderer_writeWord256Centred(2, midX, midY, "to switch it on", 0xFF);
 
-        layerRenderer_writeWord256Centred(2, midX, midY+16, "(*UP + START + B*, then", 0xFF);
-        layerRenderer_writeWord256Centred(2, midX, midY+24, "*hack options*, then", 0xFF);
-        layerRenderer_writeWord256Centred(2, midX, midY+32, "*quality of life*)", 0xFF);
-
+        layerRenderer_writeWord256Centred(2, midX, midY + 16, "(*UP + START + B*, then", 0xFF);
+        layerRenderer_writeWord256Centred(2, midX, midY + 24, "*hack options*, then", 0xFF);
+        layerRenderer_writeWord256Centred(2, midX, midY + 32, "*quality of life*)", 0xFF);
     }
 }
 
-void hideRewindSymbol() {
+void hideRewindSymbol()
+{
     layerRenderer_clearLayer(2);
 }
 
-void healColoursByTime() {
+void healColoursByTime()
+{
     healColourTimer++;
 
     int difficultyMultiplier = 1;
     int framesForHeal = 300;
     int spacing = 1;
-    if (menuDisplay_getHackOptions().colourDeleteHealRate == 0) {
+    if (menuDisplay_getHackOptions().colourDeleteHealRate == 0)
+    {
         // easy
         spacing = 4;
     }
-    if (menuDisplay_getHackOptions().colourDeleteHealRate == 1) {
+    if (menuDisplay_getHackOptions().colourDeleteHealRate == 1)
+    {
         // medium
         spacing = 8;
     }
-    if (menuDisplay_getHackOptions().colourDeleteHealRate == 2) {
+    if (menuDisplay_getHackOptions().colourDeleteHealRate == 2)
+    {
         // hard
         spacing = 16;
     }
 
     int totalLostColours = vdp_getTotalRemovedColours();
-    for (int i = 0; i < 0xFF; i += spacing) {
-        if (totalLostColours > spacing * i) {
+    for (int i = 0; i < 0xFF; i += spacing)
+    {
+        if (totalLostColours > spacing * i)
+        {
             framesForHeal /= 2;
         }
     }
 
-    if (healColourTimer > framesForHeal) {
+    if (healColourTimer > framesForHeal)
+    {
         vdp_healReducedColour();
         healColourTimer = 0;
     }
 }
 
-void fireScreenSnapOnEvent() {
+void fireScreenSnapOnEvent()
+{
     SecondaryHackOptions options = menuDisplay_getSecondaryHackOptions();
-    if (options.screenSnapOnGetRing != 0) {
+    if (options.screenSnapOnGetRing != 0)
+    {
         fireSnapEffect(0);
     }
 }
 
-void healColoursOnRing(int count) {
-    if (ringCountHasChanged(0) != 0) {
-        for (int i = 0; i < count; i++) {
+void healColoursOnRing(int count)
+{
+    if (ringCountHasChanged(0) != 0)
+    {
+        for (int i = 0; i < count; i++)
+        {
             vdp_healReducedColour();
             fireScreenSnapOnEvent();
         }
     }
 }
 
-void removeColourOnRing(int count) {
-    if (ringCountHasChanged(0) != 0) {
-        for (int i = 0; i < count; i++) {
+void removeColourOnRing(int count)
+{
+    if (ringCountHasChanged(0) != 0)
+    {
+        for (int i = 0; i < count; i++)
+        {
             vdp_reduceColours();
             fireScreenSnapOnEvent();
         }
     }
 }
 
-void queueNetworkMessage(char eventId) {
+void queueNetworkMessage(char eventId)
+{
     queuedNetworkMessage[networkMessageLength] = eventId;
     networkMessageLength++;
 }
 
-void sendQueuedNetworkMessage() {
-    if (networkMessageLength > 0) {
+void sendQueuedNetworkMessage()
+{
+    if (networkMessageLength > 0)
+    {
         cartLoader_writeActionToNetwork(queuedNetworkMessage);
     }
 }
 
 // deals with the fact that the rand() function only goes up to 0x7FFF
 // the largest integer possible is 0x7FFFFFFF
-int getBigRandomNumber(int maxValue) {
+int getBigRandomNumber(int maxValue)
+{
     int runningNumber = rand() % 0x8;
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 7; i++)
+    {
         runningNumber *= 0x10;
         runningNumber += rand() % 0x10;
     }
     return runningNumber % maxValue;
 }
 
-void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocation, int eventDistance, int isFromTwitch, int holdDuration) {
+void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocation, int eventDistance, int isFromTwitch, int holdDuration)
+{
     // do a SNAP effect ONLY if character actually matches an effect
 
-    if (eventId == NETWORK_MSG_SWITCH_GAME) {
+    if (eventId == NETWORK_MSG_SWITCH_GAME)
+    {
         fireSnapEffect(isFromTwitch);
         int switchingIsAllowed = 1;
 
         // check in case we're at the game over phase of a challenge
-        if (shouldUseBossRush() && getBossRushComplete()) {
+        if (shouldUseBossRush() && getBossRushComplete())
+        {
             switchingIsAllowed = 0;
         }
-        if (shouldUseNinesChallenge() && getNinesChallengeComplete()) {
+        if (shouldUseNinesChallenge() && getNinesChallengeComplete())
+        {
             switchingIsAllowed = 0;
         }
 
         // check in case we're in a gamestate where switching game would be dangerous/annoying
         // (e.g. in a menu)
         AAGameTransferListing transfer = cartLoader_getActiveGameTransferListing();
-        if (transfer.gameStateByte != 0) {
+        if (transfer.gameStateByte != 0)
+        {
             unsigned int value = aa_genesis_getWorkRam(transfer.gameStateByte);
-            for (int i = 0; i < 0x10; i++) {
-                if (transfer.gameStatesToBlockSwitch[i] >= 0) {
-                    //the top bit is used for something in Sonic 3
-                    if (value % 0x80 == transfer.gameStatesToBlockSwitch[i]) {
+            for (int i = 0; i < 0x10; i++)
+            {
+                if (transfer.gameStatesToBlockSwitch[i] >= 0)
+                {
+                    // the top bit is used for something in Sonic 3
+                    if (value % 0x80 == transfer.gameStatesToBlockSwitch[i])
+                    {
                         switchingIsAllowed = 0;
                     }
                 }
@@ -3144,108 +3658,138 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
         // //TODO: REMOVE THIS!! THIS ONE'S JUST FOR VIDEO
         // switchingIsAllowed = 1;
 
-        if (switchingIsAllowed > 0) {
+        if (switchingIsAllowed > 0)
+        {
             cartLoader_appendToLog("Switching game from network");
             promptSwitchGame();
-        } else {
+        }
+        else
+        {
             cartLoader_appendToLog("Switching game from network (blocked!)");
         }
     }
 
-    if (eventId == NETWORK_MSG_SPEED_UP) {
+    if (eventId == NETWORK_MSG_SPEED_UP)
+    {
         fireSnapEffect(isFromTwitch);
-        if (cartLoader_getActiveGameListing().accelerationType == 1) {
+        if (cartLoader_getActiveGameListing().accelerationType == 1)
+        {
             cartLoader_appendToLog("Increasing Sonic 2D speed from network");
-            for (int i = 0; i < eventCount; i++) {
+            for (int i = 0; i < eventCount; i++)
+            {
                 aa_genesis_incrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
                 aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
             }
         }
     }
 
-    if (eventId == NETWORK_MSG_SLOW_DOWN) {
+    if (eventId == NETWORK_MSG_SLOW_DOWN)
+    {
         fireSnapEffect(isFromTwitch);
-        if (cartLoader_getActiveGameListing().accelerationType == 1) {
+        if (cartLoader_getActiveGameListing().accelerationType == 1)
+        {
             cartLoader_appendToLog("Decreasing Sonic 2D speed from network");
-            for (int i = 0; i < eventCount; i++) {
+            for (int i = 0; i < eventCount; i++)
+            {
                 // can't slow down at all if you're nearly motionless
-                if (aa_genesis_getWorkRam(0xF761) > 0) {
+                if (aa_genesis_getWorkRam(0xF761) > 0)
+                {
                     aa_genesis_decrementWorkRamCompoundValueByInt(0xF760, 2, 0x10);
                 }
                 // if you're faster than normal, slowdown is the opposite of speeding up one ring
-                if (aa_genesis_getWorkRam(0xF761) >= 6) {
+                if (aa_genesis_getWorkRam(0xF761) >= 6)
+                {
                     aa_genesis_decrementWorkRamCompoundValueByInt(0xF760, 2, 0x30);
                 }
                 aa_genesis_decrementWorkRamCompoundValueByInt(0xF762, 2, 0x01);
                 // don't slow acceleration so much that Sonic can barely run
-                if (aa_genesis_getWorkRam(0xF762) <= 4 && aa_genesis_getWorkRam(0xF763) == 0) {
+                if (aa_genesis_getWorkRam(0xF762) <= 4 && aa_genesis_getWorkRam(0xF763) == 0)
+                {
                     aa_genesis_setWorkRam(0xF762, 1);
                 }
             }
         }
     }
 
-    if (eventId == NETWORK_MSG_RANDOMISE_VELOCITY) {
+    if (eventId == NETWORK_MSG_RANDOMISE_VELOCITY)
+    {
         fireSnapEffect(isFromTwitch);
         cartLoader_appendToLog("Randomising velocity from network");
         applyRandomiseVelocity();
     }
 
     int scrambleLevelCount = 0;
-    if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_EASY) {
+    if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_EASY)
+    {
         scrambleLevelCount = 1; // was 10
     }
-    if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM) {
+    if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM)
+    {
         scrambleLevelCount = 2; // was 20
     }
-    if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_HARD) {
+    if (eventId == NETWORK_MSG_SCRAMBLE_LEVEL_HARD)
+    {
         scrambleLevelCount = 5; // was 50
     }
-    if (scrambleLevelCount > 0) {
+    if (scrambleLevelCount > 0)
+    {
         fireSnapEffect(isFromTwitch);
         cartLoader_appendToLog("Scrambling level from network");
         overwriteLevel(scrambleLevelCount * eventCount, 1);
     }
 
-    if (eventId == NETWORK_MSG_REMOVE_COLOUR) {
+    if (eventId == NETWORK_MSG_REMOVE_COLOUR)
+    {
         fireSnapEffect(isFromTwitch);
-        for (int i = 0; i < eventCount; i++) {
+        for (int i = 0; i < eventCount; i++)
+        {
             vdp_reduceColours();
         }
     }
-    if (eventId == NETWORK_MSG_REMOVE_10_COLOURS) {
+    if (eventId == NETWORK_MSG_REMOVE_10_COLOURS)
+    {
         fireSnapEffect(isFromTwitch);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++)
+        {
             vdp_reduceColours();
         }
     }
 
-    if (eventId == NETWORK_MSG_TOGGLE_LAYER) {
+    if (eventId == NETWORK_MSG_TOGGLE_LAYER)
+    {
         fireSnapEffect(isFromTwitch);
         char logMsg[0x100];
         sprintf(logMsg, "Toggle visble layers: %i", eventLocation);
         cartLoader_appendToLog(logMsg);
 
-        if (eventLocation == 100) {
+        if (eventLocation == 100)
+        {
             menuDisplay_showAllVisibleLayers();
             cartLoader_appendToLog("Shown all visible");
-        } else {
+        }
+        else
+        {
             menuDisplay_toggleVisibleLayers();
             cartLoader_appendToLog("Toggled");
         }
         applyLayerHidingOptions();
     }
 
-    if (eventId == NETWORK_MSG_WRITE_TO_RAM) {
+    if (eventId == NETWORK_MSG_WRITE_TO_RAM)
+    {
         fireSnapEffect(isFromTwitch);
         int maxValue = 0x10000;
-        if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM || cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR) {
+        if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM || cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR)
+        {
             maxValue = 0x2000;
             // cartLoader_appendToLog("Is MS or GG so max is 0x1FFF");
-        } else {
+        }
+        else
+        {
             // cartLoader_appendToLog("Is MD so max is 0xFFFF");
         }
-        for (int i = 0; i < eventCount; i++) {
+        for (int i = 0; i < eventCount; i++)
+        {
             int index = getBigRandomNumber(maxValue);
             int value = rand() % 0x100;
             // char logMsg[0x100];
@@ -3256,40 +3800,53 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
         }
     }
 
-    if (eventId == NETWORK_MSG_WRITE_TO_CART) {
+    if (eventId == NETWORK_MSG_WRITE_TO_CART)
+    {
         fireSnapEffect(isFromTwitch);
-        for (int i = 0; i < eventCount; i++) {
+        for (int i = 0; i < eventCount; i++)
+        {
             int index = rand() % MAXROMSIZE;
             setCartValueAtIndex(index, rand() % 0x100);
         }
     }
 
-    if (eventId == NETWORK_MSG_WRITE_SPECIFIC_TO_RAM) {
+    if (eventId == NETWORK_MSG_WRITE_SPECIFIC_TO_RAM)
+    {
         fireSnapEffect(isFromTwitch);
-        if (eventDistance == 0) {
+        if (eventDistance == 0)
+        {
             int valueToWrite = eventCount;
-            if (eventCount >= 0x100) {
+            if (eventCount >= 0x100)
+            {
                 valueToWrite = rand() % 0x100;
             }
             aa_genesis_setWorkRam(eventLocation, valueToWrite);
-        } else {
+        }
+        else
+        {
             int cartSize = 0x10000;
-            if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM || cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR) {
+            if (cartLoader_consoleForCurrentCart() == CART_TYPE_MASTERSYSTEM || cartLoader_consoleForCurrentCart() == CART_TYPE_GAMEGEAR)
+            {
                 cartSize = 0x2000;
             }
-            for (int i = 0; i < eventDistance; i++) {
+            for (int i = 0; i < eventDistance; i++)
+            {
                 int valueToWrite = eventCount;
-                if (eventCount >= 0x100) {
+                if (eventCount >= 0x100)
+                {
                     valueToWrite = rand() % 0x100;
                 }
                 int location = (eventLocation + i) % cartSize;
-                if (holdDuration == 0) {
+                if (holdDuration == 0)
+                {
                     char logMsg[0x100];
                     sprintf(logMsg, "SETTING %04X at %02X", location, valueToWrite);
                     cartLoader_appendToLog(logMsg);
 
                     aa_genesis_setWorkRam(location, valueToWrite);
-                } else {
+                }
+                else
+                {
                     // char logMsg[0x100];
                     // sprintf(logMsg, "HOLDING %04X at %02X for %i frames", location, valueToWrite, holdDuration);
                     // cartLoader_appendToLog(logMsg);
@@ -3303,29 +3860,38 @@ void modConsole_processNetworkEvent(char eventId, int eventCount, int eventLocat
         }
     }
 
-    if (eventId == NETWORK_MSG_HEAL_COLOURS) {
+    if (eventId == NETWORK_MSG_HEAL_COLOURS)
+    {
         vdp_healAllColours();
     }
 }
 
-void unpauseGame() {
-    if (activeGameListing.unpauseByte > 0) {
+void unpauseGame()
+{
+    if (activeGameListing.unpauseByte > 0)
+    {
         // this doesn't work yet
         // cartLoader_appendToLog("unpausing");
         // aa_genesis_setWorkRam(activeGameListing.unpauseByte, activeGameListing.unpauseByteDestination);
-    } else {
+    }
+    else
+    {
         // cartLoader_appendToLog("did not unpause");
     }
 }
 
-void overwriteLevelOnRing() {
-    if (ringCountHasChanged(0) != 0) {
+void overwriteLevelOnRing()
+{
+    if (ringCountHasChanged(0) != 0)
+    {
         HackOptions hackOpts = menuDisplay_getHackOptions();
         int cycleCount = 10;
-        if (hackOpts.overwriteLevelDifficulty == 1) {
+        if (hackOpts.overwriteLevelDifficulty == 1)
+        {
             cycleCount = 20;
         }
-        if (hackOpts.overwriteLevelDifficulty == 2) {
+        if (hackOpts.overwriteLevelDifficulty == 2)
+        {
             cycleCount = 50;
         }
 
@@ -3335,71 +3901,91 @@ void overwriteLevelOnRing() {
     }
 }
 
-void sendNetworkMessageOnHitBoss() {
-    if (menuDisplay_getBossRushOptions().switchTriggers.networkBossHit) {
+void sendNetworkMessageOnHitBoss()
+{
+    if (menuDisplay_getBossRushOptions().switchTriggers.networkBossHit)
+    {
         queueNetworkMessage(NETWORK_MSG_SWITCH_GAME);
     }
 }
 
-void sendNetworkMessageOnGetRing() {
-    if (ringCountHasChanged(0) != 0) {
+void sendNetworkMessageOnGetRing()
+{
+    if (ringCountHasChanged(0) != 0)
+    {
         NetworkOptions networkOpts = menuDisplay_getNetworkOptions();
-        if (networkOpts.networkingIsActive != 0) {
+        if (networkOpts.networkingIsActive != 0)
+        {
             queueNetworkMessage(NETWORK_MSG_DUMMY_TWTICH_MESSAGE);
 
-            if (networkOpts.sendSwitchGame != 0) {
+            if (networkOpts.sendSwitchGame != 0)
+            {
                 queueNetworkMessage(NETWORK_MSG_SWITCH_GAME);
             }
-            if (networkOpts.sendSpeedUp != 0) {
+            if (networkOpts.sendSpeedUp != 0)
+            {
                 queueNetworkMessage(NETWORK_MSG_SPEED_UP);
             }
-            if (networkOpts.sendRandomiseVelocity != 0) {
+            if (networkOpts.sendRandomiseVelocity != 0)
+            {
                 queueNetworkMessage(NETWORK_MSG_RANDOMISE_VELOCITY);
             }
 
-            if (networkOpts.sendWriteIntoLevelDifficulty == 1) {
+            if (networkOpts.sendWriteIntoLevelDifficulty == 1)
+            {
                 queueNetworkMessage(NETWORK_MSG_SCRAMBLE_LEVEL_EASY);
             }
-            if (networkOpts.sendWriteIntoLevelDifficulty == 2) {
+            if (networkOpts.sendWriteIntoLevelDifficulty == 2)
+            {
                 queueNetworkMessage(NETWORK_MSG_SCRAMBLE_LEVEL_MEDIUM);
             }
-            if (networkOpts.sendWriteIntoLevelDifficulty == 3) {
+            if (networkOpts.sendWriteIntoLevelDifficulty == 3)
+            {
                 queueNetworkMessage(NETWORK_MSG_SCRAMBLE_LEVEL_HARD);
             }
 
-            if (networkOpts.sendRemoveColour == 1) {
+            if (networkOpts.sendRemoveColour == 1)
+            {
                 queueNetworkMessage(NETWORK_MSG_REMOVE_COLOUR);
             }
-            if (networkOpts.sendRemoveColour == 2) {
+            if (networkOpts.sendRemoveColour == 2)
+            {
                 queueNetworkMessage(NETWORK_MSG_REMOVE_10_COLOURS);
             }
         }
     }
 }
 
-void overwriteLevel(int cycleCount, int overwriteType) {
+void overwriteLevel(int cycleCount, int overwriteType)
+{
     // check in case we're in a gamestate where scrambling would be dangerous
     AAGameTransferListing transfer = cartLoader_getActiveGameTransferListing();
-    if (transfer.gameStateByte != 0) {
+    if (transfer.gameStateByte != 0)
+    {
         unsigned int value = aa_genesis_getWorkRam(transfer.gameStateByte);
         // char logMsg[0x100];
         // sprintf(logMsg, "Value at transfer.gameStateByte %04X is %02X", transfer.gameStateByte, value);
         // cartLoader_appendToLog(logMsg);
 
-        for (int i = 0; i < 0x10; i++) {
-            if (transfer.gameStatesToBlockScramble[i] >= 0) {
+        for (int i = 0; i < 0x10; i++)
+        {
+            if (transfer.gameStatesToBlockScramble[i] >= 0)
+            {
                 // char logMsg2[0x100];
                 // sprintf(logMsg2, "Checking transfer.gameStatesToBlockScramble[%i] valye %02X", i, transfer.gameStatesToBlockScramble[i]);
                 // cartLoader_appendToLog(logMsg2);
-                //the top bit is used for something in Sonic 3
-                if (value % 0x80 == transfer.gameStatesToBlockScramble[i]) {
+                // the top bit is used for something in Sonic 3
+                if (value % 0x80 == transfer.gameStatesToBlockScramble[i])
+                {
                     // cartLoader_appendToLog("Found this value as a SKIP_ME");
                     return;
                 }
             }
         }
         // cartLoader_appendToLog("Did NOT find this value as a SKIP_ME");
-    } else {
+    }
+    else
+    {
         // char logMsg[0x100];
         // sprintf(logMsg, "transfer.gameStateByte is zero");
         // cartLoader_appendToLog(logMsg);
@@ -3407,10 +3993,13 @@ void overwriteLevel(int cycleCount, int overwriteType) {
 
     // If we got to here, it's safe!
     AALevelEditListing levelEdits = cartLoader_getActiveLevelEditListing();
-    if (levelEdits.endByte > 0 && levelEdits.endByte > levelEdits.startByte) {
-        for (int i = 0; i < cycleCount; i++) {
+    if (levelEdits.endByte > 0 && levelEdits.endByte > levelEdits.startByte)
+    {
+        for (int i = 0; i < cycleCount; i++)
+        {
             unsigned int value = 0;
-            if (overwriteType == 1) {
+            if (overwriteType == 1)
+            {
                 value = rand() % 0x100;
             }
             unsigned int index = (rand() % (levelEdits.endByte - levelEdits.startByte)) + levelEdits.startByte;
@@ -3419,14 +4008,16 @@ void overwriteLevel(int cycleCount, int overwriteType) {
     }
 }
 
-void promptSwitchGame() {
+void promptSwitchGame()
+{
     // shouldSwitchAfterCooldown = 1;
     // if (switchCooldownPeriod <= 0) {
-        switchGame();
+    switchGame();
     // }
 }
 
-void switchGame() {
+void switchGame()
+{
     shouldSwitchAfterCooldown = 0;
     switchCooldownCounter = switchCooldownPeriod;
 
@@ -3434,22 +4025,30 @@ void switchGame() {
 
     clearCooldownVisualiser();
 
-    if (shouldUseBossRush()) {
+    if (shouldUseBossRush())
+    {
         bumpToNextBossRush();
-    } else if(shouldUseNinesChallenge()) {
+    }
+    else if (shouldUseNinesChallenge())
+    {
         bumpNinesChallengeLevel(0);
-    } else {
+    }
+    else
+    {
         cartLoader_loadRandomRom();
     }
 }
 
-void clearCooldownVisualiser() {
+void clearCooldownVisualiser()
+{
     layerRenderer_clearLayer(1);
 }
 
-void showCooldownVisualiser() {
+void showCooldownVisualiser()
+{
     layerRenderer_clearLayer(1);
-    if (switchCooldownPeriod > 0) {
+    if (switchCooldownPeriod > 0)
+    {
         int width = ((vdp_getScreenWidth() - 4) * switchCooldownCounter) / switchCooldownPeriod;
         layerRenderer_fill(1, 0, 0, vdp_getScreenWidth(), 8, 0xFF);
         layerRenderer_fill(1, 2, 2, (vdp_getScreenWidth() - 4), 4, 3);
@@ -3457,16 +4056,20 @@ void showCooldownVisualiser() {
     }
 }
 
-void checkDeathCounter() {
+void checkDeathCounter()
+{
     diedThisFrame = 0;
     int shouldIncrement = 0;
 
     // this uses the assumption that bytes 0 and 1 are a life counter, and byte 2 is an "update plz" trigger so we shouldn't track it
-    for (int i = 0; i < 2; i++) {
-        if (cartLoader_getActiveGameListing().livesBytes[i] != 0) {
+    for (int i = 0; i < 2; i++)
+    {
+        if (cartLoader_getActiveGameListing().livesBytes[i] != 0)
+        {
             int lastVal = aa_genesis_getLastWorkRam(cartLoader_getActiveGameListing().livesBytes[i]);
             int nowVal = aa_genesis_getWorkRam(cartLoader_getActiveGameListing().livesBytes[i]);
-            if (lastVal - nowVal == 1) {
+            if (lastVal - nowVal == 1)
+            {
                 char logMsg[0x100];
                 sprintf(logMsg, "counted death %i (%04X): lastVal %02X, nowVal %02X", i, cartLoader_getActiveGameListing().livesBytes[i], lastVal, nowVal);
                 cartLoader_appendToLog(logMsg);
@@ -3475,50 +4078,66 @@ void checkDeathCounter() {
         }
     }
 
-    if (shouldIncrement != 0) {
+    if (shouldIncrement != 0)
+    {
         playerDeathCount++;
         reportToLED("4");
         diedThisFrame = 1;
     }
 }
 
-void updateLives() {
-    for (int i = 0; i < 3; i++) {
-        if (activeGameListing.livesBytes[i] != 0) {
+void updateLives()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        if (activeGameListing.livesBytes[i] != 0)
+        {
             aa_genesis_setWorkRam(activeGameListing.livesBytes[i], activeGameListing.livesByteDestinations[i]);
-        } else {
+        }
+        else
+        {
             break;
         }
     }
 }
 
-void updateTime() {
-    for (int i = 0; i < 3; i++) {
-        if (activeGameListing.timeBytes[i] != 0) {
+void updateTime()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        if (activeGameListing.timeBytes[i] != 0)
+        {
             aa_genesis_setWorkRam(activeGameListing.timeBytes[i], activeGameListing.timeByteDestinations[i]);
             // ensure this doesn't trigger the death counter
             // by changing the LAST work ram too!
             aa_genesis_setLastWorkRam(activeGameListing.timeBytes[i], activeGameListing.timeByteDestinations[i]);
-        } else {
+        }
+        else
+        {
             break;
         }
     }
 }
 
-void modConsole_activatePanic() {
+void modConsole_activatePanic()
+{
     // for ALISTAIR
     // saveSaveStateForCurrentGame();
     // cartLoader_saveAllSaveStatesToDisk();
 
     cartLoader_appendToLog("modConsole_activatePanic");
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++)
+    {
 
-        if (activeGameListing.panicBytes[i] != 0) {
+        if (activeGameListing.panicBytes[i] != 0)
+        {
             aa_genesis_setWorkRam(activeGameListing.panicBytes[i], activeGameListing.panicByteDestinations[i]);
             char tempLog[0x100];
             sprintf(tempLog, "Setting panic byte at index %i (%04X -> %02X", i, activeGameListing.panicBytes[i], activeGameListing.panicByteDestinations[i]);
             cartLoader_appendToLog(tempLog);
-        } else {
+        }
+        else
+        {
             char tempLog[0x100];
             sprintf(tempLog, "Nothing at index %i", i);
             cartLoader_appendToLog(tempLog);
@@ -3531,50 +4150,63 @@ void modConsole_activatePanic() {
     countdownUntilUnpause = 5;
 }
 
-void modConsole_queuePanic() {
+void modConsole_queuePanic()
+{
     panicCountdown = 60;
     cartLoader_appendToLog("modConsole_queuePanic");
 }
 
-void modConsole_activateReset() {
+void modConsole_activateReset()
+{
     system_reset();
     aa_genesis_updateLastRam();
 }
 
-void applyRandomiseVelocity() {
+void applyRandomiseVelocity()
+{
     // cartLoader_appendToLog("Will apply random velocity");
     MomentumControlListing momentumDef = cartLoader_getMomentumControlListing();
-    if (momentumDef.radius > 0) {
+    if (momentumDef.radius > 0)
+    {
         // cartLoader_appendToLog("Am happy with radius");
         double angle = ((double)(rand() % 360) / 360) * M_PI * 2;
         int xVel = abs((int)(momentumDef.radius * sin(angle)));
         int yVel = abs((int)(momentumDef.radius * cos(angle)));
 
         int inertiaDiff = 0;
-        if (momentumDef.inertiaMax > momentumDef.inertiaMin) {
+        if (momentumDef.inertiaMax > momentumDef.inertiaMin)
+        {
             inertiaDiff = (rand() % (momentumDef.inertiaMin - momentumDef.inertiaMax));
         }
-        if (momentumDef.inertiaMax < momentumDef.inertiaMin) {
+        if (momentumDef.inertiaMax < momentumDef.inertiaMin)
+        {
             inertiaDiff = (rand() % (momentumDef.inertiaMax - momentumDef.inertiaMin));
         }
         int inertia = momentumDef.inertiaMin + inertiaDiff;
 
-        if (rand() % 100 < 50 && xVel > 0) {
+        if (rand() % 100 < 50 && xVel > 0)
+        {
             xVel = 0x100 - xVel;
         }
-        if (rand() % 100 < 50 && yVel > 0) {
+        if (rand() % 100 < 50 && yVel > 0)
+        {
             yVel = 0x100 - yVel;
         }
-        if (aa_genesis_getWorkRam(momentumDef.inertiaByte) > 0) {
+        if (aa_genesis_getWorkRam(momentumDef.inertiaByte) > 0)
+        {
             // player is moving
             // if player is going right, force them to go left
-            if (aa_genesis_getWorkRam(momentumDef.inertiaByte) < 128 && inertia > 0) {
+            if (aa_genesis_getWorkRam(momentumDef.inertiaByte) < 128 && inertia > 0)
+            {
                 inertia = 0x100 - inertia;
             }
-        } else {
+        }
+        else
+        {
             // player is standing still
             // set inertia to a random direction
-            if (rand() % 100 < 50 && inertia > 0) {
+            if (rand() % 100 < 50 && inertia > 0)
+            {
                 inertia = 0x100 - inertia;
             }
         }
@@ -3586,33 +4218,41 @@ void applyRandomiseVelocity() {
         aa_genesis_setWorkRam(momentumDef.xByteStart, xVel);
         aa_genesis_setWorkRam(momentumDef.inertiaByte, inertia);
         aa_genesis_setWorkRam(momentumDef.yByteStart, yVel);
-    } else {
+    }
+    else
+    {
         // cartLoader_appendToLog("Did not apply random velocity because of radius");
     }
 }
 
-void updateRandomiseVelocityOnRing() {
-    if (ringCountHasChanged(0) != 0) {
+void updateRandomiseVelocityOnRing()
+{
+    if (ringCountHasChanged(0) != 0)
+    {
         applyRandomiseVelocity();
         fireScreenSnapOnEvent();
     }
 }
 
-void forceSonicSpeed(unsigned int amount) {
-    //speed
+void forceSonicSpeed(unsigned int amount)
+{
+    // speed
     aa_genesis_setWorkRam(0xF760, amount % 0x100);
     aa_genesis_setWorkRam(0xF761, amount / 0x100);
 
-    //acceleration
+    // acceleration
     unsigned int divisor = 128; // matches in-game speed
     unsigned int acceleration = amount / divisor;
     aa_genesis_setWorkRam(0xF762, acceleration % 0x100);
     aa_genesis_setWorkRam(0xF763, acceleration / 0x100);
 }
 
-void updateSpeedUpOnRing() {
-    if (ringCountHasChanged(0) != 0) {
-        if (cartLoader_getActiveGameListing().accelerationType == 1) {
+void updateSpeedUpOnRing()
+{
+    if (ringCountHasChanged(0) != 0)
+    {
+        if (cartLoader_getActiveGameListing().accelerationType == 1)
+        {
             // fireSnapEffect();
 
             cartLoader_appendToLog("Increasing Sonic 2D speed");
@@ -3621,9 +4261,9 @@ void updateSpeedUpOnRing() {
             aa_genesis_incrementWorkRamCompoundValueByInt(0xF760, 2, 0x40);
             // acceleration
             aa_genesis_incrementWorkRamCompoundValueByInt(0xF762, 2, 0x08);
-            
         }
-        if (cartLoader_getActiveGameListing().accelerationType == 2) {
+        if (cartLoader_getActiveGameListing().accelerationType == 2)
+        {
             // I don't think this does anything because I don't think Sonic's running
             // speed is held in RAM
 
@@ -3658,82 +4298,102 @@ void updateSpeedUpOnRing() {
     }
 }
 
-void updateSwitchGameOnLand() {
-    if (switchCooldownCounter > 0) {
-        switchCooldownCounter --;
+void updateSwitchGameOnLand()
+{
+    if (switchCooldownCounter > 0)
+    {
+        switchCooldownCounter--;
     }
 
-
-    if ( switchCooldownCounter <= 0) {
+    if (switchCooldownCounter <= 0)
+    {
         // AAStandTriggerListing triggers = cartLoader_getActiveStandTriggerListing();
         // if (cartLoader_getActiveStandTriggerListing().standingCooldown > 0) { // standingCooldown doesn't work as I expect...
-            // || triggers.standingByte == 0) { // ... so I also check "is this a non-standing game!"
-        if (standingHasChanged(0) != 0) {
+        // || triggers.standingByte == 0) { // ... so I also check "is this a non-standing game!"
+        if (standingHasChanged(0) != 0)
+        {
             bumpEventCountForSwitchGame();
         }
 
         // account for pixel games if no standing byte declared
         AAStandTriggerListing triggers = cartLoader_getActiveStandTriggerListing();
-        if (switchAfterTimeCounter <= 0 && triggers.standingByte == 0) {
+        if (switchAfterTimeCounter <= 0 && triggers.standingByte == 0)
+        {
             cartLoader_checkPixelTrackerForStateChange();
         }
     }
 }
 
-void bumpEventCountForSwitchGame() {
+void bumpEventCountForSwitchGame()
+{
     consecutiveEventCount++;
     int requiredEvents = 1;
     int eventCountFlag = menuDisplay_getSecondaryHackOptions().eventCountForSwitch;
-    if (eventCountFlag == 1) {
+    if (eventCountFlag == 1)
+    {
         requiredEvents = 2;
     }
-    if (eventCountFlag == 2) {
+    if (eventCountFlag == 2)
+    {
         requiredEvents = 5;
     }
-    if (eventCountFlag == 3) {
+    if (eventCountFlag == 3)
+    {
         requiredEvents = 10;
     }
 
-    if (consecutiveEventCount >= requiredEvents) {
+    if (consecutiveEventCount >= requiredEvents)
+    {
         consecutiveEventCount = 0;
         promptSwitchGame();
-        fireScreenSnapOnEvent();   
-    } 
+        fireScreenSnapOnEvent();
+    }
 }
 
-void updateSwitchGameOnRing() {
-    if (switchCooldownCounter > 0) {
-        switchCooldownCounter --;
+void updateSwitchGameOnRing()
+{
+    if (switchCooldownCounter > 0)
+    {
+        switchCooldownCounter--;
     }
 
-    if (switchCooldownCounter <= 0) {
-        if (ringCountHasChanged(0) != 0) {
+    if (switchCooldownCounter <= 0)
+    {
+        if (ringCountHasChanged(0) != 0)
+        {
             // layerRenderer_clearLayer(0);
             // char word[0x20];
             // sprintf(word, "%d", aa_genesis_getWorkRam(activeGameListing.ringByte));
 
             // layerRenderer_fill(0, 0, 0, 32, 8, 1);
             // layerRenderer_writeWord256(0, 0, 0, word, 5);
-            if (activeGameListing.ringSwitchCooldown > 0) {
+            if (activeGameListing.ringSwitchCooldown > 0)
+            {
                 countdownUntilRingSwitch = activeGameListing.ringSwitchCooldown;
-            } else {
+            }
+            else
+            {
                 bumpEventCountForSwitchGame();
             }
         }
 
-        if (switchAfterTimeCounter <= 0) {
+        if (switchAfterTimeCounter <= 0)
+        {
             cartLoader_checkPixelTrackerForStateChange();
         }
     }
 }
 
-int standingHasChanged(int shouldIgnoreCooldown) {
-    if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0 && shouldIgnoreCooldown == 0) {
+int standingHasChanged(int shouldIgnoreCooldown)
+{
+    if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0 && shouldIgnoreCooldown == 0)
+    {
         return 0;
     }
 
     AAStandTriggerListing triggers = cartLoader_getActiveStandTriggerListing();
-    if (triggers.standingByte > 0) {
+    if (triggers.standingByte > 0)
+    {
         unsigned int lastStanding = aa_genesis_getLastWorkRam(triggers.standingByte);
         unsigned int currentStanding = aa_genesis_getWorkRam(triggers.standingByte);
 
@@ -3744,50 +4404,62 @@ int standingHasChanged(int shouldIgnoreCooldown) {
         // sprintf(debugWord, "triggers %04X >> %02X, (%02X --> %02X) >> (%01X --> %01X), frame %d", triggers.standingByte, triggers.standingBit, lastStanding, currentStanding, lastBitStatus, currentBitStatus, frameCount);
         // cartLoader_appendToLog(debugWord);
 
-        if (currentBitStatus == triggers.standingRequiredValue && currentBitStatus != lastBitStatus) {
+        if (currentBitStatus == triggers.standingRequiredValue && currentBitStatus != lastBitStatus)
+        {
             // char word[0x100];
             // sprintf(word, "Standing went from %02X to %02X, (%02X --> %02X), frame %d", lastBitStatus, currentBitStatus, lastStanding, currentStanding, frameCount);
             // cartLoader_appendToLog(word);
             postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] = 5;
             return 1;
         }
-    } else {
+    }
+    else
+    {
         // in other games (e.g. micro machines) switch on normal "ring-like" events
         return ringCountHasChanged(shouldIgnoreCooldown);
     }
     return 0;
 }
 
-int ringCountHasChanged(int shouldIgnoreCooldown) {
-    if (checkForDynamiteHeaddyHits() == 1) {
-        if (cooldownSinceLastHeaddyHit <= 0) {
+int ringCountHasChanged(int shouldIgnoreCooldown)
+{
+    if (checkForDynamiteHeaddyHits() == 1)
+    {
+        if (cooldownSinceLastHeaddyHit <= 0)
+        {
             return 1;
         }
     }
 
-    if (checkForRistarHits() == 1) {
+    if (checkForRistarHits() == 1)
+    {
         return 1;
     }
 
-    if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0 && shouldIgnoreCooldown == 0) {
+    if (postRingEffectCooldownTimePerGame[cartLoader_getActiveCartIndex()] > 0 && shouldIgnoreCooldown == 0)
+    {
         return 0;
     }
 
     AAScoreMonitorListing scoreListing = cartLoader_getActiveScoreMonitorListing();
 
-    if (activeGameListing.ringByte > 0) {
+    if (activeGameListing.ringByte > 0)
+    {
         unsigned int lastRingCount = aa_genesis_getLastWorkRam(activeGameListing.ringByte);
         unsigned int currentRingCount = aa_genesis_getWorkRam(activeGameListing.ringByte);
 
-        if (currentRingCount != 0 && currentRingCount != lastRingCount) {
+        if (currentRingCount != 0 && currentRingCount != lastRingCount)
+        {
             char word[0x100];
             sprintf(word, "Ring count went from %02X to %02X, frame %d", lastRingCount, currentRingCount, frameCount);
             cartLoader_appendToLog(word);
 
             // e.g. if you pick up a 10 ring box, make 10 things happen
-            if (scoreListing.allowStackRingInputs == 1) {
+            if (scoreListing.allowStackRingInputs == 1)
+            {
                 int difference = abs((int)lastRingCount - (int)currentRingCount);
-                if (difference == 10 || difference == 50) {
+                if (difference == 10 || difference == 50)
+                {
                     increasePendingRingTriggers(difference);
                 }
             }
@@ -3796,22 +4468,27 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
         }
     }
 
-    if (activeGameListing.specialRingByte > 0) {
+    if (activeGameListing.specialRingByte > 0)
+    {
         unsigned int lastRingCount = aa_genesis_getLastWorkRam(activeGameListing.specialRingByte);
         unsigned int currentRingCount = aa_genesis_getWorkRam(activeGameListing.specialRingByte);
         int difference = abs((int)lastRingCount - (int)currentRingCount);
 
-        if (currentRingCount != 0 && currentRingCount != lastRingCount && difference < 6) {
+        if (currentRingCount != 0 && currentRingCount != lastRingCount && difference < 6)
+        {
             return 1;
         }
     }
 
-    for (int i = 0; i < 8; i++) {
-        if (activeGameListing.bytesToTestForChange[i] != 0) {
+    for (int i = 0; i < 8; i++)
+    {
+        if (activeGameListing.bytesToTestForChange[i] != 0)
+        {
             unsigned int lastVal = aa_genesis_getLastWorkRam(activeGameListing.bytesToTestForChange[i]);
             unsigned int currentVal = aa_genesis_getWorkRam(activeGameListing.bytesToTestForChange[i]);
 
-            if (lastVal != currentVal) {
+            if (lastVal != currentVal)
+            {
                 return 1;
             }
         }
@@ -3822,17 +4499,22 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
     int multiplier = 1;
 
     // P1 score
-    for (int i = 0; i < 8; i++) {
-        if (scoreListing.scoreBytes[i] > 0 && scoreListing.scoreBytes[i] < 0x10000) {
+    for (int i = 0; i < 8; i++)
+    {
+        if (scoreListing.scoreBytes[i] > 0 && scoreListing.scoreBytes[i] < 0x10000)
+        {
             unsigned int lastScoreVal = aa_genesis_getLastWorkRam(scoreListing.scoreBytes[i]);
             unsigned int currentScoreVal = aa_genesis_getWorkRam(scoreListing.scoreBytes[i]);
 
-            //change the below for different calculation types
-            if (scoreListing.calculatationType == 0) {
+            // change the below for different calculation types
+            if (scoreListing.calculatationType == 0)
+            {
                 lastScore += lastScoreVal * multiplier;
                 currentScore += currentScoreVal * multiplier;
                 multiplier *= 0x100;
-            } else if (scoreListing.calculatationType == 1) {
+            }
+            else if (scoreListing.calculatationType == 1)
+            {
                 unsigned int lastScoreLowDigit = lastScoreVal % 0x10;
                 unsigned int lastScoreHighDigit = lastScoreVal / 0x10;
                 unsigned int currentScoreLowDigit = currentScoreVal % 0x10;
@@ -3841,37 +4523,47 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
                 lastScore += (lastScoreLowDigit + (10 * lastScoreHighDigit)) * multiplier;
                 currentScore += (currentScoreLowDigit + (10 * currentScoreHighDigit)) * multiplier;
                 multiplier *= 100;
-            } else if (scoreListing.calculatationType == 2) {
+            }
+            else if (scoreListing.calculatationType == 2)
+            {
                 // single digits in decimal (Lucky Dime Caper) - each byte is a decimal digit
                 lastScore += lastScoreVal * multiplier;
                 currentScore += currentScoreVal * multiplier;
                 multiplier *= 10;
             }
-        } else {
+        }
+        else
+        {
             break;
         }
     }
 
     int blockedBecauseZero = 0;
-    if (scoreListing.blockJumpFromZero != 0) {
-        if (lastScore == 0) {
+    if (scoreListing.blockJumpFromZero != 0)
+    {
+        if (lastScore == 0)
+        {
             blockedBecauseZero = 1;
         }
     }
-    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0) {
+    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0)
+    {
         return 1;
     }
     if (scoreListing.allowNegativeChange != 0 &&
-        multiplier > 1 && currentScore < lastScore - scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0) {
+        multiplier > 1 && currentScore < lastScore - scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0)
+    {
         return 1;
-    } 
+    }
 
     // P2 score
     lastScore = 0;
     currentScore = 0;
     multiplier = 1;
-    for (int i = 0; i < 8; i++) {
-        if (scoreListing.scoreBytesP2[i] > 0 && scoreListing.scoreBytesP2[i] < 0x10000) {
+    for (int i = 0; i < 8; i++)
+    {
+        if (scoreListing.scoreBytesP2[i] > 0 && scoreListing.scoreBytesP2[i] < 0x10000)
+        {
             unsigned int lastScoreVal = aa_genesis_getLastWorkRam(scoreListing.scoreBytesP2[i]);
             unsigned int currentScoreVal = aa_genesis_getWorkRam(scoreListing.scoreBytesP2[i]);
 
@@ -3879,12 +4571,13 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
             // sprintf(logMsg, "score2 at %i: %i --> %i", i, lastScoreVal, currentScoreVal);
             // cartLoader_appendToLog(logMsg);
 
-
-            //change the below for different calculation types
+            // change the below for different calculation types
             lastScore += lastScoreVal * multiplier;
             currentScore += currentScoreVal * multiplier;
             multiplier *= 0x100;
-        } else {
+        }
+        else
+        {
             break;
         }
     }
@@ -3894,215 +4587,270 @@ int ringCountHasChanged(int shouldIgnoreCooldown) {
     // cartLoader_appendToLog(logMsg);
 
     blockedBecauseZero = 0;
-    if (scoreListing.blockJumpFromZero != 0) {
-        if (lastScore == 0) {
+    if (scoreListing.blockJumpFromZero != 0)
+    {
+        if (lastScore == 0)
+        {
             blockedBecauseZero = 1;
         }
     }
-    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0) {
+    if (multiplier > 1 && currentScore > lastScore + scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0)
+    {
         return 1;
     }
     if (scoreListing.allowNegativeChange != 0 &&
-        multiplier > 1 && currentScore < lastScore - scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0) {
+        multiplier > 1 && currentScore < lastScore - scoreListing.scoreJumpForTrigger && blockedBecauseZero == 0)
+    {
         return 1;
     }
 
-    if (pendingRingTriggerShouldFire() == 1) {
+    if (pendingRingTriggerShouldFire() == 1)
+    {
         return 1;
     }
 
     return 0;
 }
 
-void modConsole_getMasterSystemProductId(char intoArray[]) {
+void modConsole_getMasterSystemProductId(char intoArray[])
+{
     sprintf(intoArray, "%02X%02X%01X", getCartValueAtIndex(0x7FFC), getCartValueAtIndex(0x7FFD), getCartValueAtIndex(0x7FFE) / 0x10);
 }
 
-void modConsole_getRomFingerprint(char intoArray[], int location) {
-    for (int i = 0; i < 0x20; i++) {
+void modConsole_getRomFingerprint(char intoArray[], int location)
+{
+    for (int i = 0; i < 0x20; i++)
+    {
         intoArray[i] = getCartValueAtIndex(location + i);
     }
 }
 
-void modConsole_getRomHeader(char intoArray[]) {
+void modConsole_getRomHeader(char intoArray[])
+{
     // cartLoader_appendToLog("***** modConsole_getRomHeader");
 
     // if (frameCount > 100) {
-        // for (int i = 0; i < 0x200; i++) {
-        //     uint8 character = getCartValueAtIndex(i);
-        //     char logMsg[0x20];
-        //     sprintf(logMsg, "%02X: %02X", i, character);
-        //     cartLoader_appendToLog(logMsg);
-        // }
+    // for (int i = 0; i < 0x200; i++) {
+    //     uint8 character = getCartValueAtIndex(i);
+    //     char logMsg[0x20];
+    //     sprintf(logMsg, "%02X: %02X", i, character);
+    //     cartLoader_appendToLog(logMsg);
+    // }
     // }
 
     uint8 tempHeader[0x20];
-    for (int i = 0; i < 0x20; i++) {
+    for (int i = 0; i < 0x20; i++)
+    {
         tempHeader[i] = 0;
     }
 
     uint8 byteArray[0x20];
-    for (int i = 0; i < 0x20; i++) {
+    for (int i = 0; i < 0x20; i++)
+    {
         int index = 0x100 + 0x20 + i;
-        if (i % 2 == 0) {
+        if (i % 2 == 0)
+        {
             index += 1;
-        } else {
+        }
+        else
+        {
             index -= 1;
         }
         uint8 character = getCartValueAtIndex(index);
         tempHeader[i] = character;
     }
     // cartLoader_appendToLog(tempHeader);
-    
+
     uint8 tidiedHeader[0x20];
     int tempIndex = 0;
-    for (int i = 0; i < 0x20; i++) {
+    for (int i = 0; i < 0x20; i++)
+    {
         // char logMsg[0x20];
         // sprintf(logMsg, "%02X: %02X", i, tempHeader[i]);
         // cartLoader_appendToLog(logMsg);
-        if (tempHeader[i] != 0 && tempHeader[i] != ' ') {
+        if (tempHeader[i] != 0 && tempHeader[i] != ' ')
+        {
             tidiedHeader[tempIndex] = tempHeader[i];
             tempIndex++;
         }
     }
-    if (tempIndex < 0x20) {
+    if (tempIndex < 0x20)
+    {
         tidiedHeader[tempIndex] = '\0';
     }
 
     // if no luck getting a header, just check a weird location
-    if (tempIndex == 0) {
+    if (tempIndex == 0)
+    {
         modConsole_getRomFingerprint(tidiedHeader, 0x10000);
         tempIndex = 0x1C;
     }
 
-    for (int i = 0; i < 0x20; i++) {
-        if (i <= tempIndex) {
+    for (int i = 0; i < 0x20; i++)
+    {
+        if (i <= tempIndex)
+        {
             intoArray[i] = tidiedHeader[i];
         }
-        else {
+        else
+        {
             intoArray[i] = 0;
         }
     }
 
-    if (cart.romsize == 0x400000 && modconsole_array32sAreEqual("SONIC&KNUCKLES", intoArray) != 0) {
+    if (cart.romsize == 0x400000 && modconsole_array32sAreEqual("SONIC&KNUCKLES", intoArray) != 0)
+    {
         writeStringToArray32("SONIC3&KNUCKLES", intoArray);
         return;
     }
 }
 
-void modConsole_getLockOnRomHeader(char intoArray[]) {
-    if (0x201000 < cart.romsize) {
+void modConsole_getLockOnRomHeader(char intoArray[])
+{
+    if (0x201000 < cart.romsize)
+    {
         uint8 tempHeader[0x20];
-        for (int i = 0; i < 0x20; i++) {
+        for (int i = 0; i < 0x20; i++)
+        {
             tempHeader[i] = 0;
         }
 
         uint8 byteArray[0x20];
-        for (int i = 0; i < 0x20; i++) {
+        for (int i = 0; i < 0x20; i++)
+        {
             int index = 0x200000 + 0x100 + 0x20 + i;
-            if (i % 2 == 0) {
+            if (i % 2 == 0)
+            {
                 index += 1;
-            } else {
+            }
+            else
+            {
                 index -= 1;
             }
             uint8 character = getCartValueAtIndex(index);
             tempHeader[i] = character;
         }
         // cartLoader_appendToLog(tempHeader);
-        
+
         uint8 tidiedHeader[0x20];
         int tempIndex = 0;
-        for (int i = 0; i < 0x20; i++) {
+        for (int i = 0; i < 0x20; i++)
+        {
             // char logMsg[0x20];
             // sprintf(logMsg, "%02X: %02X", i, tempHeader[i]);
             // cartLoader_appendToLog(logMsg);
-            if (tempHeader[i] != 0 && tempHeader[i] != ' ') {
+            if (tempHeader[i] != 0 && tempHeader[i] != ' ')
+            {
                 tidiedHeader[tempIndex] = tempHeader[i];
                 tempIndex++;
             }
         }
-        if (tempIndex < 0x20) {
+        if (tempIndex < 0x20)
+        {
             tidiedHeader[tempIndex] = '\0';
         }
 
-        for (int i = 0; i < 0x20; i++) {
-            if (i <= tempIndex) {
+        for (int i = 0; i < 0x20; i++)
+        {
+            if (i <= tempIndex)
+            {
                 intoArray[i] = tidiedHeader[i];
             }
-            else {
+            else
+            {
                 intoArray[i] = 0;
             }
         }
-    } else {
+    }
+    else
+    {
         writeStringToArray32("TOO SMALL TO LOCK-ON", intoArray);
     }
 }
 
-int modconsole_array32sAreEqual(char arrayA[], char arrayB[]) {
+int modconsole_array32sAreEqual(char arrayA[], char arrayB[])
+{
     // cartLoader_appendToLog("modconsole_array32sAreEqual");
     // cartLoader_appendToLog(arrayA);
     // cartLoader_appendToLog(arrayB);
 
-    for (int i = 0; i < 0x20; i++) {
-        if (arrayA[i] != arrayB[i]) {
+    for (int i = 0; i < 0x20; i++)
+    {
+        if (arrayA[i] != arrayB[i])
+        {
             return 0;
         }
-        if (arrayA[i] == '\0') {
+        if (arrayA[i] == '\0')
+        {
             break;
         }
     }
     return 1;
 }
 
-int getButtonState(uint16 whichInput) {
+int getButtonState(uint16 whichInput)
+{
     // char padStateAsString[0x20];
     // sprintf(padStateAsString, "%d", padState & whichInput);
     // cartLoader_appendToLog(padStateAsString);
 
-    if (padState & whichInput != 0) {
+    if (padState & whichInput != 0)
+    {
         return 1;
     }
     return 0;
 }
 
-int getLastButtonState(uint16 whichInput) {
-    if (lastPadState & whichInput != 0) {
+int getLastButtonState(uint16 whichInput)
+{
+    if (lastPadState & whichInput != 0)
+    {
         return 1;
     }
     return 0;
 }
 
-int buttonWasReleased(uint16 whichInput) {
-    if (getLastButtonState(whichInput) != 0 && getButtonState(whichInput) == 0) {
+int buttonWasReleased(uint16 whichInput)
+{
+    if (getLastButtonState(whichInput) != 0 && getButtonState(whichInput) == 0)
+    {
         return 1;
     }
     return 0;
 }
 
-int buttonWasPressed(uint16 whichInput) {
-    if (getLastButtonState(whichInput) == 0 && getButtonState(whichInput) != 0) {
+int buttonWasPressed(uint16 whichInput)
+{
+    if (getLastButtonState(whichInput) == 0 && getButtonState(whichInput) != 0)
+    {
         return 1;
     }
     return 0;
 }
 
-int buttonWasReleasedAtIndex(int index) {
-    if (lastButtonStateAtIndex(index) != 0 && buttonStateAtIndex(index) == 0) {
+int buttonWasReleasedAtIndex(int index)
+{
+    if (lastButtonStateAtIndex(index) != 0 && buttonStateAtIndex(index) == 0)
+    {
         return 1;
     }
     return 0;
 }
 
-int buttonWasPressedAtIndex(int index) {
-    if (lastButtonStateAtIndex(index) == 0 && buttonStateAtIndex(index) != 0) {
+int buttonWasPressedAtIndex(int index)
+{
+    if (lastButtonStateAtIndex(index) == 0 && buttonStateAtIndex(index) != 0)
+    {
         return 1;
     }
     return 0;
 }
 
-int lastButtonStateAtIndex(int index) {
+int lastButtonStateAtIndex(int index)
+{
     uint testNum = 1;
-    for (int i = 0; i < index; i++) {
+    for (int i = 0; i < index; i++)
+    {
         testNum = testNum * 2;
     }
 
@@ -4115,16 +4863,21 @@ int lastButtonStateAtIndex(int index) {
     //     vdp_setGraphicLayerPixel(0, result, ((index + 3) * 10) + 1, 5);
     // }
 
-    if (result == 0) { // why does this always return false?
+    if (result == 0)
+    { // why does this always return false?
         return 0;
-    } else {
+    }
+    else
+    {
         return 1;
     }
 }
 
-int buttonStateAtIndex(int index) {
+int buttonStateAtIndex(int index)
+{
     uint testNum = 1;
-    for (int i = 0; i < index; i++) {
+    for (int i = 0; i < index; i++)
+    {
         testNum = testNum * 2;
     }
 
@@ -4137,27 +4890,35 @@ int buttonStateAtIndex(int index) {
     //     vdp_setGraphicLayerPixel(0, result, ((index + 3) * 10) + 1, 5);
     // }
 
-    if (result == 0) {
+    if (result == 0)
+    {
         return 0;
-    } else {
+    }
+    else
+    {
         return 1;
     }
 }
 
-int lengthOfString256(char string256[]) {
-    for (int i = 0; i < 0x100; i++) {
-        if (string256[i] == 0 || string256[i] == '\0') {
+int lengthOfString256(char string256[])
+{
+    for (int i = 0; i < 0x100; i++)
+    {
+        if (string256[i] == 0 || string256[i] == '\0')
+        {
             return i;
         }
     }
     return 0x100;
 }
 
-void modConsole_showHeartRate(int newHeartRate) {
+void modConsole_showHeartRate(int newHeartRate)
+{
     heartRate = newHeartRate;
 }
 
-void modConsole_applySonicSpeed(int newSonicSpeed) {
+void modConsole_applySonicSpeed(int newSonicSpeed)
+{
     int highByte = newSonicSpeed / 0x100;
     int lowByte = newSonicSpeed % 0x100;
 
@@ -4165,7 +4926,8 @@ void modConsole_applySonicSpeed(int newSonicSpeed) {
     aa_genesis_setWorkRam(0xF760, lowByte);
 }
 
-void modConsole_applySonicAccel(int newSonicAccel) {
+void modConsole_applySonicAccel(int newSonicAccel)
+{
     int highByte = newSonicAccel / 0x100;
     int lowByte = newSonicAccel % 0x100;
 
@@ -4173,53 +4935,59 @@ void modConsole_applySonicAccel(int newSonicAccel) {
     aa_genesis_setWorkRam(0xF762, lowByte);
 }
 
-void modConsole_setShouldShowHeartRate(int should) {
+void modConsole_setShouldShowHeartRate(int should)
+{
     shouldShowHeartRate = should;
 }
 
-void modConsole_setShouldShowHeartValues(int should) {
+void modConsole_setShouldShowHeartValues(int should)
+{
     shouldShowHeartValues = should;
 }
 
 int lastFrameValue = -1;
 int frozenFrameCount = 0;
 
-void checkForRandomObjectSpawn() {
+void checkForRandomObjectSpawn()
+{
     // only do this for Sonic 2
-    if (ringCountHasChanged(0) != 0 && (
-        cartLoader_getActiveCartIndex() == 1 ||
-        cartLoader_getActiveCartIndex() == 2 ||
-        cartLoader_getActiveCartIndex() == 3 ||
-        cartLoader_getActiveCartIndex() == 4 )) {
+    if (ringCountHasChanged(0) != 0 && (cartLoader_getActiveCartIndex() == 1 ||
+                                        cartLoader_getActiveCartIndex() == 2 ||
+                                        cartLoader_getActiveCartIndex() == 3 ||
+                                        cartLoader_getActiveCartIndex() == 4))
+    {
         spawnRandomObjectNearSonic();
     }
 }
 
-void checkForGameCrashes() {
+void checkForGameCrashes()
+{
     // layerRenderer_writeWord256(3, 0, 60, "Check for crashes", 0x5);
 
     // so far only do this for Sonic 1, 2 and 3
-    if (cartLoader_getActiveCartIndex() == 1 || cartLoader_getActiveCartIndex() == 2 || cartLoader_getActiveCartIndex() == 3) {
+    if (cartLoader_getActiveCartIndex() == 1 || cartLoader_getActiveCartIndex() == 2 || cartLoader_getActiveCartIndex() == 3)
+    {
         // layerRenderer_writeWord256(3, 0, 68, "Sonic 1/2/3", 0x5);
 
         // check for freezes if in a loaded level and not paused
-        if (aa_genesis_getWorkRam(0xF601) == 0x0C
-            && aa_genesis_getWorkRam(0xF63A) == 0
-            && aa_genesis_getWorkRam(0xF63B) == 0) {
+        if (aa_genesis_getWorkRam(0xF601) == 0x0C && aa_genesis_getWorkRam(0xF63A) == 0 && aa_genesis_getWorkRam(0xF63B) == 0)
+        {
 
             int currentFrameValue = aa_genesis_getWorkRam(0xFE04) * 0x100 + aa_genesis_getWorkRam(0xFE05);
-            if (currentFrameValue == lastFrameValue) {
+            if (currentFrameValue == lastFrameValue)
+            {
                 frozenFrameCount++;
-            } else {
+            }
+            else
+            {
                 frozenFrameCount = 0;
             }
 
-            if (frozenFrameCount > 15) {
+            if (frozenFrameCount > 15)
+            {
                 frozenFrameCount = 0;
-                beginEmergencyRewind(); // make a version of this that rewinds - cache a 
+                beginEmergencyRewind(); // make a version of this that rewinds - cache a
             }
-
-            
 
             // char detailsBuf3[0x100];
             // sprintf(detailsBuf3, "%04X %04X %04X", currentFrameValue, lastFrameValue, frozenFrameCount);
@@ -4237,29 +5005,34 @@ void checkForGameCrashes() {
     if (cartLoader_getActiveCartIndex() == 1 ||
         cartLoader_getActiveCartIndex() == 2 ||
         cartLoader_getActiveCartIndex() == 3 ||
-        cartLoader_getActiveCartIndex() == 4) {
-        if (aa_genesis_getLastWorkRam(0xF601) == 0x0C && aa_genesis_getWorkRam(0xF601) == 0x00) {
+        cartLoader_getActiveCartIndex() == 4)
+    {
+        if (aa_genesis_getLastWorkRam(0xF601) == 0x0C && aa_genesis_getWorkRam(0xF601) == 0x00)
+        {
             beginEmergencyRewind();
         }
     }
 
-    if (cartLoader_getActiveCartIndex() == 1) {
-        if (aa_genesis_getWorkRam(0xF601) == 0x1C || aa_genesis_getWorkRam(0xF601) == 0x88 || aa_genesis_getWorkRam(0xF601) == 0x08) {
+    if (cartLoader_getActiveCartIndex() == 1)
+    {
+        if (aa_genesis_getWorkRam(0xF601) == 0x1C || aa_genesis_getWorkRam(0xF601) == 0x88 || aa_genesis_getWorkRam(0xF601) == 0x08)
+        {
             beginEmergencyRewind();
         }
     }
 
     // 3D Blast - detect the secret level select screen
-    if (cartLoader_getActiveCartIndex() == 7) {
-        if (aa_genesis_getLastWorkRam(0x067F) != 0x00 && aa_genesis_getWorkRam(0x067F) == 0x00) {
+    if (cartLoader_getActiveCartIndex() == 7)
+    {
+        if (aa_genesis_getLastWorkRam(0x067F) != 0x00 && aa_genesis_getWorkRam(0x067F) == 0x00)
+        {
             beginEmergencyRewind();
         }
     }
-
-
 }
 
-void modConsole_showTextAlert(char alert[]) {
+void modConsole_showTextAlert(char alert[])
+{
     textAlertId = rand() % 1000;
 
     sprintf(textAlert, "%s", alert);
@@ -4268,9 +5041,8 @@ void modConsole_showTextAlert(char alert[]) {
     textAlertColour = 0x05; // (0x04) + (rand() % 0x10);
 }
 
-
-
-void spawnRandomObjectNearSonic() {
+void spawnRandomObjectNearSonic()
+{
     int spacing = 0x40;
     int start = 0xB400;
     int end = 0xD600;
@@ -4283,8 +5055,8 @@ void spawnRandomObjectNearSonic() {
     int objectYPosOffsets[2] = {0x0D, 0x0C};
     int offsetDistance = 0x30;
 
-
-    if (cartLoader_getActiveCartIndex() == 1) {
+    if (cartLoader_getActiveCartIndex() == 1)
+    {
         start = 0xD800;
         end = 0xF000;
         minValue = 0;
@@ -4292,15 +5064,17 @@ void spawnRandomObjectNearSonic() {
         sonicLoc = 0xD000;
     }
 
-    if (cartLoader_getActiveCartIndex() == 2) {
+    if (cartLoader_getActiveCartIndex() == 2)
+    {
         start = 0xB400;
         end = 0xD600;
         minValue = 0;
         maxValue = 0xDC;
         sonicLoc = 0xB000;
     }
-    
-    if (cartLoader_getActiveCartIndex() == 3) {
+
+    if (cartLoader_getActiveCartIndex() == 3)
+    {
         start = 0xB0DE;
         end = 0xCAE2;
         minValue = 0;
@@ -4313,7 +5087,8 @@ void spawnRandomObjectNearSonic() {
         spacing = 0x4A;
     }
 
-    if (cartLoader_getActiveCartIndex() == 4) {
+    if (cartLoader_getActiveCartIndex() == 4)
+    {
         start = 0xB0DE;
         end = 0xCAE2;
         minValue = 0;
@@ -4325,35 +5100,44 @@ void spawnRandomObjectNearSonic() {
         objectYPosOffsets[1] = 0x15;
         spacing = 0x4A;
     }
-
 
     int index = start + (((getBigRandomNumber(end - start) / spacing) * spacing));
-    for (int i = start; i < end; i += spacing) {
-        if (cartLoader_getActiveCartIndex() == 4  || cartLoader_getActiveCartIndex() == 3) {
-            int zeroCount  = 0;
-            for (int j = 0; j < 4; j++) {
-                if (aa_genesis_getWorkRam(i + j) == 0) {
+    for (int i = start; i < end; i += spacing)
+    {
+        if (cartLoader_getActiveCartIndex() == 4 || cartLoader_getActiveCartIndex() == 3)
+        {
+            int zeroCount = 0;
+            for (int j = 0; j < 4; j++)
+            {
+                if (aa_genesis_getWorkRam(i + j) == 0)
+                {
                     zeroCount++;
                 }
             }
-            if (zeroCount == 4) {
+            if (zeroCount == 4)
+            {
                 index = i;
                 break;
             }
-        } else {
-            if (aa_genesis_getWorkRam(i + 1) == 0) {
+        }
+        else
+        {
+            if (aa_genesis_getWorkRam(i + 1) == 0)
+            {
                 index = i;
                 break;
             }
         }
     }
 
-    for (int i = 0; i < spacing; i++) {
-        aa_genesis_setWorkRam(index + i, 0);// rand() % 0xFF);
+    for (int i = 0; i < spacing; i++)
+    {
+        aa_genesis_setWorkRam(index + i, 0); // rand() % 0xFF);
     }
     // aa_genesis_setWorkRam(index + 0x29, rand() % 0xFF);
 
-    if (cartLoader_getActiveCartIndex() == 4  || cartLoader_getActiveCartIndex() == 3) {
+    if (cartLoader_getActiveCartIndex() == 4 || cartLoader_getActiveCartIndex() == 3)
+    {
         aa_genesis_setWorkRam(index, 0x01);
         aa_genesis_setWorkRam(index + 1, 0x00);
         aa_genesis_setWorkRam(index + 2, 0x1A);
@@ -4362,7 +5146,9 @@ void spawnRandomObjectNearSonic() {
         char detailsBuf3[0x100];
         sprintf(detailsBuf3, "Wrote to %04X", index);
         layerRenderer_writeWord256(3, 0, 32, detailsBuf3, 0x5);
-    } else {
+    }
+    else
+    {
         aa_genesis_setWorkRam(index + 0x01, minValue + getBigRandomNumber(maxValue - minValue));
     }
 
@@ -4372,13 +5158,17 @@ void spawnRandomObjectNearSonic() {
     int objectY[2] = {aa_genesis_getWorkRam(sonicLoc + objectYPosOffsets[0]), aa_genesis_getWorkRam(sonicLoc + objectYPosOffsets[1])};
 
     int radiusX = getBigRandomNumber(offsetDistance);
-    if (rand() % 4 == 0) {
+    if (rand() % 4 == 0)
+    {
         radiusX *= -1;
-    } else {
+    }
+    else
+    {
         radiusX *= 2;
     }
     int radiusY = offsetDistance / 2 + getBigRandomNumber(offsetDistance / 2);
-    if (rand() % 4 > 0) {
+    if (rand() % 4 > 0)
+    {
         radiusY *= -1;
     }
 
@@ -4386,33 +5176,39 @@ void spawnRandomObjectNearSonic() {
     int offsetY = radiusY;
 
     objectX[1] += offsetX;
-    if (objectX[1] > 0xFF) {
+    if (objectX[1] > 0xFF)
+    {
         objectX[1] -= 0x100;
         objectX[0]++;
     }
-    if (objectX[1] < 0) {
+    if (objectX[1] < 0)
+    {
         objectX[1] += 0x100;
         objectX[0]--;
-        if (objectX[0] < 0) {
+        if (objectX[0] < 0)
+        {
             objectX[0] = 0;
         }
     }
     objectY[1] += offsetY;
-    if (objectY[1] > 0xFF) {
+    if (objectY[1] > 0xFF)
+    {
         objectY[1] -= 0x100;
         objectY[0]++;
     }
-    if (objectY[1] < 0) {
+    if (objectY[1] < 0)
+    {
         objectY[1] += 0x100;
         objectY[0]--;
-        if (objectY[0] < 0) {
+        if (objectY[0] < 0)
+        {
             objectY[0] = 0;
         }
     }
 
-    aa_genesis_setWorkRam(index + objectXPosOffsets[0], objectX[0]); 
-    aa_genesis_setWorkRam(index + objectXPosOffsets[1], objectX[1]); 
-    
-    aa_genesis_setWorkRam(index + objectYPosOffsets[0], objectY[0]); 
-    aa_genesis_setWorkRam(index + objectYPosOffsets[1], objectY[1]); 
+    aa_genesis_setWorkRam(index + objectXPosOffsets[0], objectX[0]);
+    aa_genesis_setWorkRam(index + objectXPosOffsets[1], objectX[1]);
+
+    aa_genesis_setWorkRam(index + objectYPosOffsets[0], objectY[0]);
+    aa_genesis_setWorkRam(index + objectYPosOffsets[1], objectY[1]);
 }
